@@ -3,7 +3,12 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ShieldCheck, Users, Clock, PlusCircle, CheckCircle2, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone } from 'lucide-react';
+import { 
+  Users, Clock, PlusCircle, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, 
+  ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
+  Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
+  ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
@@ -17,8 +22,12 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // Layout State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(true);
+
   // Dashboard State
-  const [activeTab, setActiveTab] = useState<'FUNNEL' | 'UPSELL'>('FUNNEL');
+  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -30,6 +39,8 @@ export default function AdminDashboard() {
     activeTrial: 0,
     expiredTrial: 0,
     vvip: 0,
+    trafficToday: 0,
+    traffic7Days: 0,
     categories: {} as Record<string, number>
   });
 
@@ -72,12 +83,19 @@ export default function AdminDashboard() {
         setMerchants(allMerchants);
         
         const now = new Date().getTime();
+        const startOfToday = new Date();
+        startOfToday.setHours(0,0,0,0);
+        const startOf7DaysAgo = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
+
         let active = 0;
         let expired = 0;
         let vvipCount = 0;
+        let tToday = 0;
+        let t7Days = 0;
         const cats: Record<string, number> = {};
 
         allMerchants.forEach(m => {
+          // Status Trial
           const expiresAt = m.trial_expires_at ? new Date(m.trial_expires_at).getTime() : 0;
           const isVVIP = expiresAt > now + 3000 * 24 * 60 * 60 * 1000;
 
@@ -89,8 +107,20 @@ export default function AdminDashboard() {
             expired++;
           }
 
+          // Kategori
           const cat = m.kategori_usaha || 'Lainnya';
           cats[cat] = (cats[cat] || 0) + 1;
+
+          // Traffic
+          if (m.last_active_at) {
+            const lastActive = new Date(m.last_active_at).getTime();
+            if (lastActive >= startOfToday.getTime()) {
+              tToday++;
+            }
+            if (lastActive >= startOf7DaysAgo.getTime()) {
+              t7Days++;
+            }
+          }
         });
 
         setMetrics({
@@ -98,6 +128,8 @@ export default function AdminDashboard() {
           activeTrial: active,
           expiredTrial: expired,
           vvip: vvipCount,
+          trafficToday: tToday,
+          traffic7Days: t7Days,
           categories: cats
         });
       }
@@ -225,7 +257,7 @@ export default function AdminDashboard() {
 
   const formatTimeAgo = (dateStr?: string) => {
     if (!dateStr) return 'Never';
-    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000); // in minutes
+    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000);
     if (diff < 1) return 'Online / Just now';
     if (diff < 60) return `${diff} min ago`;
     if (diff < 1440) return `${Math.floor(diff/60)} hr ago`;
@@ -234,8 +266,8 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-primary"></div>
+      <div className="flex items-center justify-center min-h-[100dvh] bg-slate-950">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-800 border-t-primary"></div>
       </div>
     );
   }
@@ -243,35 +275,35 @@ export default function AdminDashboard() {
   // --- LOGIN GATE ---
   if (!isAdmin) {
     return (
-      <div className="flex flex-col min-h-screen p-6 justify-center bg-slate-50 selection:bg-primary/20">
+      <div className="flex flex-col min-h-[100dvh] p-6 justify-center bg-slate-950 selection:bg-primary/20">
         <div className="w-full max-w-md mx-auto space-y-8">
           <div className="text-center space-y-4">
-            <div className="w-20 h-20 mx-auto drop-shadow-xl">
+            <div className="w-20 h-20 mx-auto drop-shadow-xl bg-white p-2 rounded-2xl">
               <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Admin Gateway</h1>
-              <p className="text-sm font-medium text-slate-500">Internal Logaritma Ecosystem</p>
+              <h1 className="text-2xl font-black text-white tracking-tight">Admin Gateway</h1>
+              <p className="text-sm font-medium text-slate-400">Internal Logaritma Ecosystem</p>
             </div>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5 bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+          <form onSubmit={handleLogin} className="space-y-5 bg-slate-900 p-8 rounded-3xl shadow-xl border border-slate-800">
             {loginError && (
-              <div className="p-4 bg-danger/10 border border-danger/20 text-danger text-sm font-semibold rounded-2xl flex items-start gap-2">
+              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold rounded-2xl flex items-start gap-2">
                 <AlertCircle size={18} className="shrink-0 mt-0.5" />
                 <p>{loginError}</p>
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Admin Email</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all" placeholder="logaritma.tim@gmail.com" />
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Admin Email</label>
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" placeholder="logaritma.tim@gmail.com" />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all" placeholder="••••••••" />
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" placeholder="••••••••" />
             </div>
-            <button type="submit" disabled={isLoggingIn} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
-              {isLoggingIn ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-white"></div> : <>Masuk Secure Portal <ArrowRight size={18} /></>}
+            <button type="submit" disabled={isLoggingIn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
+              {isLoggingIn ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div> : <>Masuk Secure Portal <ArrowRight size={18} /></>}
             </button>
           </form>
         </div>
@@ -279,131 +311,164 @@ export default function AdminDashboard() {
     );
   }
 
-  // --- DASHBOARD ADMIN ---
+  // --- DASHBOARD ADMIN (DARK MODE LAYOUT) ---
   return (
-    <div className="min-h-screen bg-slate-50 p-6 selection:bg-slate-900/20">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md shrink-0">
-              <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">Logaritma Admin Panel</h1>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-md">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                  Authenticated
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Pengelolaan CRM & Ecosystem Leads</p>
-            </div>
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col md:flex-row overflow-hidden selection:bg-blue-500/30">
+      
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-white rounded-lg p-1">
+            <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
-          <button onClick={handleLogout} className="text-xs sm:text-sm font-bold text-slate-600 hover:text-danger bg-slate-100 hover:bg-red-50 px-4 py-2 sm:py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 w-full sm:w-fit shrink-0">
-            <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" /> Keluar
+          <span className="font-black text-white">Logaritma Admin</span>
+        </div>
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white p-2">
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Sidebar (Left) */}
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:shrink-0`}>
+        <div className="p-6 hidden md:flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-white rounded-xl p-1.5 shadow-lg shadow-white/5">
+            <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
+          <div>
+            <h1 className="font-black text-white text-lg leading-tight tracking-tight">LOGARITMA</h1>
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Admin Control</p>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 space-y-1">
+          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 mt-4">Main Menu</p>
+          <button 
+            onClick={() => { setActiveMenu('DASHBOARD'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <LayoutDashboard size={18} /> Dashboard
+          </button>
+          <button 
+            onClick={() => { setActiveMenu('FUNNEL'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'FUNNEL' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Activity size={18} /> Lead Funnel Tracker
+          </button>
+          <button 
+            onClick={() => { setActiveMenu('UPSELL'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'UPSELL' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <ShoppingCart size={18} /> Manage Upsell
+          </button>
+          
+          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 mt-6">Settings</p>
+          <button 
+            onClick={() => { setActiveMenu('SETTINGS'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'SETTINGS' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Settings size={18} /> Provider & Pricing
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="grid grid-cols-2 bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm gap-1">
-          <button 
-            onClick={() => setActiveTab('FUNNEL')} 
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl text-[11px] sm:text-sm font-bold transition-all text-center leading-tight ${activeTab === 'FUNNEL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <Activity size={16} className="shrink-0 sm:w-[18px] sm:h-[18px]" /> <span className="hidden sm:inline">Lead Funnel & CRM Tracker</span><span className="sm:hidden">CRM Tracker</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('UPSELL')} 
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl text-[11px] sm:text-sm font-bold transition-all text-center leading-tight ${activeTab === 'UPSELL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <ShoppingCart size={16} className="shrink-0 sm:w-[18px] sm:h-[18px]" /> <span className="hidden sm:inline">Ekosistem & Upsell Module</span><span className="sm:hidden">Upsell Module</span>
+        <div className="p-4 border-t border-slate-800">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-sm font-bold rounded-xl transition-colors">
+            <LogOut size={16} /> Keluar
           </button>
         </div>
+      </div>
 
-        {activeTab === 'FUNNEL' && (
-          <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
-                  <p className="text-3xl font-black text-slate-900">{metrics.total}</p>
-                </div>
-                <div className="w-14 h-14 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center border border-slate-100"><Users size={28}/></div>
+      {/* Main Content Area (Middle) */}
+      <div className={`flex-1 flex flex-col h-[100dvh] overflow-hidden transition-all duration-300 ${isAIPanelOpen ? 'md:mr-80 lg:mr-96' : ''}`}>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-white">
+                {activeMenu === 'FUNNEL' ? 'Lead Funnel & CRM' : activeMenu === 'UPSELL' ? 'Ecosystem Upsell Hub' : 'Dashboard Overview'}
+              </h2>
+              <p className="text-sm text-slate-400 font-medium">Internal data management & monitoring.</p>
+            </div>
+            {/* AI Toggle Button (Desktop) */}
+            <button 
+              onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
+              className="hidden md:flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-bold text-slate-300 transition-colors"
+            >
+              {isAIPanelOpen ? <><ChevronRight size={16}/> Tutup AI</> : <><Bot size={16} className="text-blue-400"/> Buka Command Center</>}
+            </button>
+          </div>
+
+          {/* Metric Cards */}
+          {(activeMenu === 'FUNNEL' || activeMenu === 'DASHBOARD') && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden">
+                <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><Users size={80}/></div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Leads</p>
+                <p className="text-3xl font-black text-white">{metrics.total}</p>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Aktif</p>
-                  <p className="text-3xl font-black text-emerald-600">{metrics.activeTrial}</p>
-                </div>
-                <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-100"><Clock size={28}/></div>
+              <div className="bg-slate-900 p-5 rounded-2xl border border-emerald-900/50 shadow-sm relative overflow-hidden">
+                <div className="absolute right-[-10px] bottom-[-10px] opacity-10 text-emerald-500"><Clock size={80}/></div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Trial Aktif</p>
+                <p className="text-3xl font-black text-emerald-400">{metrics.activeTrial}</p>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Expired</p>
-                  <p className="text-3xl font-black text-danger">{metrics.expiredTrial}</p>
-                </div>
-                <div className="w-14 h-14 bg-red-50 text-danger rounded-2xl flex items-center justify-center border border-red-100"><AlertCircle size={28}/></div>
+              <div className="bg-gradient-to-br from-blue-900/40 to-slate-900 p-5 rounded-2xl border border-blue-800/50 shadow-sm relative overflow-hidden">
+                <div className="absolute right-[-10px] bottom-[-10px] opacity-20 text-blue-500"><Crown size={80}/></div>
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Sparkles size={12}/> VVIP / Premium</p>
+                <p className="text-3xl font-black text-white">{metrics.vvip}</p>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between overflow-hidden relative">
-                <div className="absolute right-[-20px] bottom-[-20px] opacity-5"><Crown size={120} /></div>
-                <div className="relative z-10">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">VVIP Member</p>
-                  <p className="text-3xl font-black text-blue-600">{metrics.vvip}</p>
-                </div>
-                <div className="relative z-10 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100"><Crown size={28}/></div>
+              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden">
+                <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><Activity size={80}/></div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Traffic 7 Hari</p>
+                <p className="text-3xl font-black text-amber-400">{metrics.traffic7Days} <span className="text-sm text-slate-500 font-medium ml-1">users</span></p>
+                <p className="text-[10px] font-bold text-slate-400 mt-1">Hari ini: {metrics.trafficToday} aktif</p>
               </div>
             </div>
+          )}
 
-            {/* Merchant Table Section */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[550px] sm:h-[650px]">
-              
-              {/* Table Tools */}
-              <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
-                <div className="flex gap-2 w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+          {activeMenu === 'FUNNEL' && (
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-[600px] overflow-hidden">
+              <div className="p-4 sm:p-5 border-b border-slate-800 flex flex-col xl:flex-row gap-4 justify-between items-center bg-slate-900/50">
+                <div className="flex gap-2 w-full xl:w-auto overflow-x-auto hide-scrollbar pb-1 xl:pb-0">
                   {['All', 'Active Trial', 'Premium Member', 'Expired'].map(filter => (
                     <button 
                       key={filter}
                       onClick={() => setFunnelFilter(filter)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors border ${funnelFilter === filter ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors border ${funnelFilter === filter ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}
                     >
                       {filter}
                     </button>
                   ))}
                 </div>
                 
-                <div className="flex w-full md:w-auto items-center gap-3">
-                  <div className="relative flex-1 md:w-64">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Search size={16} /></div>
-                    <input type="text" placeholder="Cari nama toko / WA..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                <div className="flex w-full xl:w-auto items-center gap-3">
+                  <div className="relative flex-1 xl:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Search size={14} /></div>
+                    <input type="text" placeholder="Cari merchant / WA..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                   </div>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Filter size={16} /></div>
-                    <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                      <option value="All">Semua Kategori</option>
-                      <option value="Kuliner & F&B">Kuliner & F&B</option>
-                      <option value="Fotokopi & Percetakan">Percetakan</option>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Filter size={14} /></div>
+                    <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="pl-9 pr-8 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                      <option value="All">Kategori</option>
+                      <option value="Kuliner & F&B">F&B</option>
+                      <option value="Fotokopi & Percetakan">Cetak</option>
                       <option value="Toko / Ritel">Ritel</option>
-                      <option value="Laundry & Jasa">Laundry</option>
+                      <option value="Laundry & Jasa">Jasa</option>
                     </select>
                   </div>
                 </div>
               </div>
 
-              <div className="overflow-y-auto flex-1 bg-slate-50/30">
+              <div className="overflow-y-auto flex-1 custom-scrollbar">
                 <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead className="sticky top-0 bg-white shadow-sm z-10">
-                    <tr className="border-b border-slate-200">
-                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-10"></th>
-                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Leads</th>
-                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Online Status</th>
-                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Funnel Status</th>
-                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi Cepat</th>
+                  <thead className="sticky top-0 bg-slate-900 shadow-md z-10">
+                    <tr className="border-b border-slate-800">
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest w-10"></th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identitas Leads</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Online Status</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Funnel Status</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Aksi Cepat</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-800/50">
                     {filteredMerchants.map((m) => {
                       const isActive = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now();
                       const isVVIP = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now() + 3000 * 24 * 60 * 60 * 1000;
@@ -411,23 +476,23 @@ export default function AdminDashboard() {
                       
                       return (
                         <React.Fragment key={m.id}>
-                          <tr className={`hover:bg-slate-50 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50' : 'bg-white'}`} onClick={() => toggleRow(m.id)}>
-                            <td className="p-4 text-slate-400">
-                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          <tr className={`hover:bg-slate-800/50 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-800/30' : ''}`} onClick={() => toggleRow(m.id)}>
+                            <td className="p-4 text-slate-500">
+                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             </td>
                             <td className="p-4">
-                              <div className="font-bold text-slate-900 flex items-center gap-2">
+                              <div className="font-bold text-slate-200 flex items-center gap-2">
                                 {m.nama_usaha || 'Tanpa Nama'}
                                 {m.upsell_history && Array.isArray(m.upsell_history) && m.upsell_history.some((r:any) => r.status === 'Pending') && (
-                                  <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-amber-200">
+                                  <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-amber-500/30">
                                     UPSELL REQ
                                   </span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-slate-500 font-medium">{m.whatsapp || '-'}</span>
+                                <span className="text-xs text-slate-400 font-medium">{m.kategori_usaha || 'Kategori Lain'} • {m.whatsapp || '-'}</span>
                                 {m.whatsapp && (
-                                  <a href={`https://wa.me/62${m.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[10px] font-bold border border-green-200 hover:bg-green-100 transition-colors">
+                                  <a href={`https://wa.me/62${m.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded text-[10px] font-bold border border-green-500/20 hover:bg-green-500/20 transition-colors">
                                     <MessageCircle size={10} /> WA
                                   </a>
                                 )}
@@ -435,63 +500,63 @@ export default function AdminDashboard() {
                             </td>
                             <td className="p-4">
                               <div className="flex items-center gap-1.5">
-                                <div className={`w-2 h-2 rounded-full ${formatTimeAgo(m.last_active_at).includes('min ago') || formatTimeAgo(m.last_active_at).includes('Online') ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
-                                <span className="text-xs font-bold text-slate-600">{formatTimeAgo(m.last_active_at)}</span>
+                                <div className={`w-2 h-2 rounded-full ${formatTimeAgo(m.last_active_at).includes('min ago') || formatTimeAgo(m.last_active_at).includes('Online') ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse' : 'bg-slate-600'}`}></div>
+                                <span className="text-xs font-bold text-slate-400">{formatTimeAgo(m.last_active_at)}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               {isVVIP ? (
-                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-100"><Crown size={12} /> Premium</div>
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20"><Crown size={12} /> Premium</div>
                               ) : isActive ? (
-                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Trial Aktif</div>
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Trial Aktif</div>
                               ) : (
-                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-danger bg-red-50 px-2 py-1 rounded-md border border-red-100"><span className="w-1.5 h-1.5 rounded-full bg-danger"></span> Expired</div>
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-red-400 bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Expired</div>
                               )}
                             </td>
                             <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
-                              <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
+                              <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
+                              <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
                             </td>
                           </tr>
                           {isExpanded && (
-                            <tr className="bg-slate-50/80 border-b border-slate-200">
+                            <tr className="bg-slate-950/50 border-b border-slate-800">
                               <td></td>
                               <td colSpan={4} className="p-4 pt-0">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-2">
-                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Smartphone size={12} /> Device & Network</p>
-                                    <p className="text-xs font-medium text-slate-700 break-all">{m.device_info || 'No data'}</p>
-                                    <p className="text-xs font-bold text-slate-900 mt-2">IP: {m.ip_address || 'Unknown'}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 shadow-sm">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1"><Smartphone size={12} /> Device & Network</p>
+                                    <p className="text-xs font-medium text-slate-300 break-all">{m.device_info || 'No data available'}</p>
+                                    <p className="text-xs font-bold text-blue-400 mt-2">IP: {m.ip_address || 'Unknown'}</p>
                                   </div>
-                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Activity size={12} /> Drop-off Tracker</p>
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Current / Last Page Visited:</p>
-                                    <code className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{m.current_page || '/'}</code>
+                                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 shadow-sm">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1"><Activity size={12} /> Drop-off Tracker</p>
+                                    <p className="text-xs font-medium text-slate-400 mb-1">Current / Last Page Visited:</p>
+                                    <code className="text-[10px] font-bold text-slate-300 bg-slate-950 border border-slate-800 px-2 py-1 rounded inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap">{m.current_page || '/'}</code>
                                   </div>
-                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full max-h-40">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><ShoppingCart size={12} /> Permintaan Upsell Aktif</p>
-                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 hide-scrollbar">
+                                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 shadow-sm flex flex-col h-full max-h-40">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1"><ShoppingCart size={12} /> Permintaan Upsell Aktif</p>
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                       {!m.upsell_history || !Array.isArray(m.upsell_history) || m.upsell_history.length === 0 ? (
                                         <p className="text-xs font-medium text-slate-500 italic">Belum ada upsell yang diminta.</p>
                                       ) : (
                                         m.upsell_history.map((req: any, idx: number) => (
-                                          <div key={idx} className="bg-slate-50 p-2 rounded-lg border border-slate-100 flex flex-col gap-2">
+                                          <div key={idx} className="bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col gap-2">
                                             <div className="flex justify-between items-start">
                                               <div>
-                                                <p className="text-xs font-bold text-slate-900 leading-tight">{req.product}</p>
+                                                <p className="text-[11px] font-bold text-slate-200 leading-tight">{req.product}</p>
                                                 <p className="text-[9px] text-slate-500">{new Date(req.requested_at).toLocaleDateString('id-ID', {day: 'numeric', month:'short'})}</p>
                                               </div>
                                               <select 
                                                 value={req.status} 
                                                 onChange={(e) => updateUpsellStatus(m.id, idx, e.target.value, m.upsell_history)}
-                                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded outline-none cursor-pointer border ${req.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}
+                                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded outline-none cursor-pointer border ${req.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : req.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}
                                               >
-                                                <option value="Pending">Pending</option>
-                                                <option value="Followed Up">Followed Up</option>
-                                                <option value="Completed">Completed</option>
+                                                <option value="Pending" className="bg-slate-900 text-amber-400">Pending</option>
+                                                <option value="Followed Up" className="bg-slate-900 text-blue-400">Followed Up</option>
+                                                <option value="Completed" className="bg-slate-900 text-emerald-400">Completed</option>
                                               </select>
                                             </div>
-                                            <a href={`https://wa.me/62${m.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors shadow-sm shadow-green-500/20">
+                                            <a href={`https://wa.me/62${m.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors">
                                               <MessageCircle size={10} /> Follow Up via WA
                                             </a>
                                           </div>
@@ -509,8 +574,8 @@ export default function AdminDashboard() {
                     {filteredMerchants.length === 0 && (
                       <tr>
                         <td colSpan={5} className="p-12 text-center">
-                           <div className="inline-flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-400 rounded-full mb-4 shadow-sm"><Search size={24} /></div>
-                           <p className="text-slate-500 font-medium">Tidak ada data leads yang sesuai dengan pencarian.</p>
+                           <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 border border-slate-800 text-slate-500 rounded-full mb-4 shadow-sm"><Search size={24} /></div>
+                           <p className="text-slate-400 font-medium">Tidak ada data leads yang sesuai dengan pencarian.</p>
                         </td>
                       </tr>
                     )}
@@ -518,61 +583,160 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'UPSELL' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-black tracking-tight mb-2">Ecosystem & Upsell Hub</h2>
-                <p className="text-slate-400 font-medium">Tawarkan layanan tambahan untuk meningkatkan LTV (Life Time Value) merchant.</p>
-              </div>
-              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md"><ShoppingCart size={32} className="text-blue-400" /></div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Shopee Affiliate Printer */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center mb-4"><ShoppingCart size={24} /></div>
-                <h3 className="font-black text-slate-900 text-lg">Mini Printer Thermal</h3>
-                <p className="text-sm text-slate-500 mt-2 flex-1">Solusi hardware kasir fisik via Shopee Affiliate. Komisi cair saat merchant beli printer dari link Anda.</p>
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                  <a href="https://shope.ee/contoh_affiliate_link" target="_blank" rel="noreferrer" className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors">
-                    Copy Link Affiliate <ExternalLink size={16} />
-                  </a>
+          {activeMenu === 'UPSELL' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="bg-gradient-to-r from-blue-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between border border-blue-800/30">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight mb-2">Ecosystem & Upsell Hub</h2>
+                  <p className="text-blue-200 font-medium max-w-lg">Kelola katalog produk fisik dan servis pendukung Logaritma untuk meningkatkan LTV merchant.</p>
                 </div>
+                <div className="w-16 h-16 bg-white/10 rounded-2xl hidden sm:flex items-center justify-center backdrop-blur-md border border-white/10"><ShoppingCart size={32} className="text-white" /></div>
               </div>
 
-              {/* Jasa Iklan */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
-                <div className="absolute top-4 right-4 text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-1 rounded-md">HIGH TICKET</div>
-                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4"><Activity size={24} /></div>
-                <h3 className="font-black text-slate-900 text-lg">Jasa Meta / TikTok Ads</h3>
-                <p className="text-sm text-slate-500 mt-2 flex-1">Tawarkan paket pengelolaan iklan untuk merchant yang ingin omsetnya naik pesat.</p>
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                  <button className="w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-500/20">
-                    <MessageCircle size={16} /> Tawarkan via WA
-                  </button>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm flex flex-col">
+                  <div className="w-12 h-12 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-xl flex items-center justify-center mb-4"><ShoppingCart size={24} /></div>
+                  <h3 className="font-black text-white text-lg">Mini Printer Thermal</h3>
+                  <p className="text-sm text-slate-400 mt-2 flex-1">Solusi hardware kasir fisik via Shopee Affiliate. Komisi cair saat merchant beli printer dari link Anda.</p>
+                  <div className="mt-6 pt-4 border-t border-slate-800">
+                    <a href="https://shope.ee/contoh_affiliate_link" target="_blank" rel="noreferrer" className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors">
+                      Copy Link Affiliate <ExternalLink size={16} />
+                    </a>
+                  </div>
                 </div>
-              </div>
 
-              {/* Premium Setup */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4"><Crown size={24} /></div>
-                <h3 className="font-black text-slate-900 text-lg">Premium Setup Menu</h3>
-                <p className="text-sm text-slate-500 mt-2 flex-1">Jasa input ratusan menu & gambar secara massal bagi merchant sibuk yang tidak punya waktu.</p>
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                  <button className="w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-500/20">
-                    <MessageCircle size={16} /> Tawarkan via WA
-                  </button>
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm flex flex-col relative overflow-hidden">
+                  <div className="absolute top-4 right-4 text-[10px] font-black bg-blue-500/20 border border-blue-500/30 text-blue-400 px-2 py-1 rounded-md">HIGH TICKET</div>
+                  <div className="w-12 h-12 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl flex items-center justify-center mb-4"><Activity size={24} /></div>
+                  <h3 className="font-black text-white text-lg">Jasa Meta / TikTok Ads</h3>
+                  <p className="text-sm text-slate-400 mt-2 flex-1">Tawarkan paket pengelolaan iklan untuk merchant yang ingin omsetnya naik pesat.</p>
+                  <div className="mt-6 pt-4 border-t border-slate-800">
+                    <button className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors">
+                      <MessageCircle size={16} /> Tawarkan via WA
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm flex flex-col">
+                  <div className="w-12 h-12 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl flex items-center justify-center mb-4"><Crown size={24} /></div>
+                  <h3 className="font-black text-white text-lg">Premium Setup Menu</h3>
+                  <p className="text-sm text-slate-400 mt-2 flex-1">Jasa input ratusan menu & gambar secara massal bagi merchant sibuk yang tidak punya waktu.</p>
+                  <div className="mt-6 pt-4 border-t border-slate-800">
+                    <button className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors">
+                      <MessageCircle size={16} /> Tawarkan via WA
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
+          {(activeMenu === 'DASHBOARD' || activeMenu === 'SETTINGS') && (
+            <div className="flex items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-3xl">
+              <div className="text-center">
+                <LayoutPanelLeft size={48} className="mx-auto text-slate-700 mb-4" />
+                <p className="text-slate-400 font-medium">Modul {activeMenu} sedang dalam pengembangan.</p>
+              </div>
+            </div>
+          )}
+          
+        </div>
       </div>
+
+      {/* Right AI Command Center (Collapsible) */}
+      <div className={`fixed inset-y-0 right-0 z-30 w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col transition-transform duration-300 ease-in-out transform ${isAIPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/30">
+              <Bot size={16} className="text-white" />
+            </div>
+            <h2 className="font-black text-white tracking-tight">AI Command Center</h2>
+          </div>
+          <button onClick={() => setIsAIPanelOpen(false)} className="text-slate-500 hover:text-white transition-colors p-1 md:hidden">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+          
+          <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1"><TrendingUp size={12}/> Revenue Intelligence</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-slate-400">Total Potential MRR</p>
+                <div className="flex items-end gap-2 mt-1">
+                  <p className="text-2xl font-black text-emerald-400">Rp {(metrics.total * 49000).toLocaleString('id-ID')}</p>
+                  <span className="text-[10px] text-emerald-500/70 font-bold mb-1">/mo</span>
+                </div>
+              </div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-emerald-500 h-full w-1/4"></div>
+              </div>
+              <p className="text-[10px] font-medium text-slate-500">Dihitung dari {metrics.total} total leads (asumsi konversi 100% pada harga promo Rp49rb).</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Zap size={12}/> AI Insights & Action Items</p>
+            
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 flex gap-3 hover:bg-slate-800 transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center shrink-0 border border-amber-500/20"><AlertCircle size={14}/></div>
+              <div>
+                <p className="text-xs font-bold text-slate-200 leading-tight mb-1">Follow up {metrics.expiredTrial} Trial Expired</p>
+                <p className="text-[10px] text-slate-400 leading-relaxed">Terdapat merchant yang masa trialnya habis. Tawarkan harga spesial atau perpanjang trial +7 hari.</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 flex gap-3 hover:bg-slate-800 transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center shrink-0 border border-blue-500/20"><Database size={14}/></div>
+              <div>
+                <p className="text-xs font-bold text-slate-200 leading-tight mb-1">Top Kategori: Kuliner & F&B</p>
+                <p className="text-[10px] text-slate-400 leading-relaxed">Mayoritas leads saat ini fokus pada F&B. Prioritaskan peluncuran fitur manajemen resep & HPP.</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 flex gap-3 hover:bg-slate-800 transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center shrink-0 border border-emerald-500/20"><Activity size={14}/></div>
+              <div>
+                <p className="text-xs font-bold text-slate-200 leading-tight mb-1">{metrics.trafficToday} Active User Hari Ini</p>
+                <p className="text-[10px] text-slate-400 leading-relaxed">Engagement rate stabil. Pertahankan performa server dan uptime aplikasi.</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      {/* Mobile Overlay for Sidebar */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
+      <style jsx global>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #334155;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #475569;
+        }
+      `}</style>
     </div>
   );
 }
