@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const [isUpsellMenuExpanded, setIsUpsellMenuExpanded] = useState(false);
 
   // Dashboard State
-  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
+  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'ACCOUNTING' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -50,6 +50,16 @@ export default function AdminDashboard() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  // Accounting State
+  const [cashTransactions, setCashTransactions] = useState<any[]>([]);
+  const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
+  const [accFormDate, setAccFormDate] = useState(new Date().toISOString().split('T')[0]);
+  const [accFormType, setAccFormType] = useState<'IN' | 'OUT'>('OUT');
+  const [accFormCategory, setAccFormCategory] = useState('Infra / Server');
+  const [accFormDesc, setAccFormDesc] = useState('');
+  const [accFormAmount, setAccFormAmount] = useState('');
+  const [isSubmittingAcc, setIsSubmittingAcc] = useState(false);
+  const [isInvestorViewOnly, setIsInvestorViewOnly] = useState(false);
   
   const [metrics, setMetrics] = useState({
     total: 0,
@@ -79,8 +89,9 @@ export default function AdminDashboard() {
 
       const isHardcodedAdmin = user.email === 'logaritma.tim@gmail.com';
       const isProfileAdmin = profile && profile.is_admin;
+      const isInvestor = profile && profile.is_investor_view_only;
 
-      if (!isHardcodedAdmin && !isProfileAdmin) {
+      if (!isHardcodedAdmin && !isProfileAdmin && !isInvestor) {
         setLoginError('Akses Terbatas: Akun ini tidak memiliki hak akses Admin Logaritma.');
         await supabase.auth.signOut();
         setIsAdmin(false);
@@ -89,6 +100,7 @@ export default function AdminDashboard() {
       }
 
       setIsAdmin(true);
+      setIsInvestorViewOnly(isInvestor || false);
 
       const { data: allMerchants, error } = await supabase
         .from('merchants')
@@ -164,6 +176,17 @@ export default function AdminDashboard() {
         if (settings.mayar_api_key) setMayarApiKey(settings.mayar_api_key);
         if (settings.mayar_webhook_secret) setMayarWebhookSecret(settings.mayar_webhook_secret);
         if (settings.mayar_mode) setMayarMode(settings.mayar_mode);
+      }
+
+      // Fetch Cash Transactions
+      const { data: txData } = await supabase
+        .from('cash_transactions')
+        .select('*')
+        .order('transaction_date', { ascending: false })
+        .order('created_at', { ascending: false });
+        
+      if (txData) {
+        setCashTransactions(txData);
       }
 
     } catch (err: any) {
@@ -292,6 +315,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isInvestorViewOnly) return;
+    setIsSubmittingAcc(true);
+    try {
+      const payload = {
+        transaction_date: accFormDate,
+        type: accFormType,
+        category: accFormCategory,
+        description: accFormDesc,
+        amount: parseFloat(accFormAmount)
+      };
+      const { error } = await supabase.from('cash_transactions').insert([payload]);
+      if (error) throw error;
+      toast.success('Transaksi kas berhasil dicatat!');
+      setIsAccountingModalOpen(false);
+      setAccFormDesc('');
+      setAccFormAmount('');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Gagal mencatat transaksi.');
+    } finally {
+      setIsSubmittingAcc(false);
+    }
+  };
+
   const filteredMerchants = useMemo(() => {
     return merchants.filter(m => {
       const matchSearch = 
@@ -371,6 +421,26 @@ export default function AdminDashboard() {
     // Sort by requested_at descending
     return list.sort((a, b) => new Date(b.request.requested_at).getTime() - new Date(a.request.requested_at).getTime());
   }, [merchants]);
+
+  const accMetrics = useMemo(() => {
+    let totalInflow = 0;
+    let totalOutflow = 0;
+    
+    cashTransactions.forEach(tx => {
+      if (tx.type === 'IN') totalInflow += Number(tx.amount);
+      if (tx.type === 'OUT') totalOutflow += Number(tx.amount);
+    });
+    
+    // Estimate subscription revenue (mock logic based on active Premium users for transparency)
+    const subRevenue = metrics.vvip * parseInt(promoPrice);
+    
+    return {
+      capitalIn: totalInflow,
+      expensesOut: totalOutflow,
+      balance: totalInflow - totalOutflow + subRevenue,
+      subRevenue: subRevenue
+    };
+  }, [cashTransactions, metrics.vvip, promoPrice]);
 
   if (loading) {
     return (
@@ -505,13 +575,22 @@ export default function AdminDashboard() {
             )}
           </div>
           
-          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 mt-6">Settings</p>
+          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 mt-6">Settings & Finance</p>
           <button 
-            onClick={() => { setActiveMenu('SETTINGS'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'SETTINGS' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            onClick={() => { setActiveMenu('ACCOUNTING'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'ACCOUNTING' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
           >
-            <Settings size={18} /> Provider & Pricing
+            <DollarSign size={18} /> Accounting & Capital
           </button>
+          
+          {!isInvestorViewOnly && (
+            <button 
+              onClick={() => { setActiveMenu('SETTINGS'); setIsSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'SETTINGS' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            >
+              <Settings size={18} /> Provider & Pricing
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-t border-slate-800">
@@ -532,6 +611,7 @@ export default function AdminDashboard() {
                  activeMenu === 'UPSELL_REQUESTS' ? 'Permintaan Upsell (Incoming)' : 
                  activeMenu === 'UPSELL_CATALOG' ? 'Katalog Produk Ekosistem' : 
                  activeMenu === 'UPSELL_SETTINGS' ? 'Pengaturan Link & Affiliate' : 
+                 activeMenu === 'ACCOUNTING' ? 'Accounting & Finance Hub' : 
                  activeMenu === 'SETTINGS' ? 'Provider & Pricing' : 
                  'Dashboard Overview'}
               </h2>
@@ -667,8 +747,12 @@ export default function AdminDashboard() {
                               )}
                             </td>
                             <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
-                              <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
+                              {!isInvestorViewOnly && (
+                                <>
+                                  <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
+                                  <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
+                                </>
+                              )}
                             </td>
                           </tr>
                           {isExpanded && (
@@ -853,7 +937,102 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeMenu === 'SETTINGS' && (
+          {activeMenu === 'ACCOUNTING' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="bg-gradient-to-r from-blue-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex items-center justify-between border border-blue-800/30">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight mb-2">Accounting & Finance Hub</h2>
+                  <p className="text-blue-200 font-medium max-w-lg">Transparansi arus kas, modal investor, dan pengeluaran operasional.</p>
+                </div>
+                {!isInvestorViewOnly && (
+                  <button onClick={() => setIsAccountingModalOpen(true)} className="hidden sm:flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-md">
+                    <PlusCircle size={18} /> Catat Transaksi
+                  </button>
+                )}
+              </div>
+
+              {/* Accounting Metrics Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden group">
+                  <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><DollarSign size={80}/></div>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Modal (IN)</p>
+                  <p className="text-2xl font-black text-white">Rp {accMetrics.capitalIn.toLocaleString('id-ID')}</p>
+                </div>
+                <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden group">
+                  <div className="absolute right-[-10px] bottom-[-10px] opacity-10 text-red-500"><TrendingUp size={80} className="transform rotate-180"/></div>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Pengeluaran (OUT)</p>
+                  <p className="text-2xl font-black text-red-400">Rp {accMetrics.expensesOut.toLocaleString('id-ID')}</p>
+                </div>
+                <div className="bg-slate-900 p-5 rounded-2xl border border-blue-900/50 shadow-sm relative overflow-hidden group">
+                  <div className="absolute right-[-10px] bottom-[-10px] opacity-10 text-blue-500"><CreditCard size={80}/></div>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sisa Kas & Runway</p>
+                  <p className="text-2xl font-black text-blue-400">Rp {accMetrics.balance.toLocaleString('id-ID')}</p>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 p-5 rounded-2xl border border-emerald-800/50 shadow-sm relative overflow-hidden group">
+                  <div className="absolute right-[-10px] bottom-[-10px] opacity-10 text-emerald-500"><Sparkles size={80}/></div>
+                  <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-1">Est. Pendapatan (MRR)</p>
+                  <p className="text-2xl font-black text-white">Rp {accMetrics.subRevenue.toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+
+              {!isInvestorViewOnly && (
+                <button onClick={() => setIsAccountingModalOpen(true)} className="sm:hidden w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md">
+                  <PlusCircle size={18} /> Catat Transaksi Baru
+                </button>
+              )}
+
+              <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-[500px] overflow-hidden">
+                <div className="p-5 border-b border-slate-800 bg-slate-900/50">
+                  <h3 className="text-lg font-black text-white flex items-center gap-2"><Activity size={20} className="text-blue-500" /> Riwayat Transaksi Kas</h3>
+                </div>
+                <div className="overflow-y-auto flex-1 custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead className="sticky top-0 bg-slate-900 shadow-md z-10">
+                      <tr className="border-b border-slate-800">
+                        <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Tanggal</th>
+                        <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Kategori</th>
+                        <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Deskripsi</th>
+                        <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Tipe</th>
+                        <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Nominal (Rp)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {cashTransactions.map((tx) => (
+                        <tr key={tx.id} className="hover:bg-slate-800/30 transition-colors">
+                          <td className="p-4 text-xs font-medium text-slate-400">
+                            {new Date(tx.transaction_date).toLocaleDateString('id-ID', {day: 'numeric', month:'short', year:'numeric'})}
+                          </td>
+                          <td className="p-4 text-xs font-bold text-slate-300">
+                            {tx.category}
+                          </td>
+                          <td className="p-4 text-xs text-slate-400">
+                            {tx.description || '-'}
+                          </td>
+                          <td className="p-4">
+                            {tx.type === 'IN' ? (
+                              <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black px-2 py-0.5 rounded border border-emerald-500/20">INFLOW</span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-red-500/10 text-red-400 text-[10px] font-black px-2 py-0.5 rounded border border-red-500/20">OUTFLOW</span>
+                            )}
+                          </td>
+                          <td className={`p-4 text-right text-sm font-black ${tx.type === 'IN' ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {tx.type === 'IN' ? '+' : '-'} {Number(tx.amount).toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      ))}
+                      {cashTransactions.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="p-12 text-center text-slate-500">Belum ada data transaksi kas.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'SETTINGS' && !isInvestorViewOnly && (
             <div className="max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="bg-gradient-to-r from-slate-900 to-slate-950 rounded-3xl p-8 border border-slate-800 shadow-xl">
                 <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2"><Settings size={24} className="text-blue-500" /> Provider & Pricing</h2>
@@ -1086,6 +1265,66 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Accounting Transaction Modal */}
+      {isAccountingModalOpen && !isInvestorViewOnly && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsAccountingModalOpen(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <h2 className="text-lg font-black text-white flex items-center gap-2"><DollarSign size={20} className="text-blue-500"/> Catat Transaksi Kas</h2>
+              <button onClick={() => setIsAccountingModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddTransaction} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipe Transaksi</label>
+                  <select required value={accFormType} onChange={(e) => setAccFormType(e.target.value as 'IN'|'OUT')} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="OUT">Pengeluaran (OUT)</option>
+                    <option value="IN">Pemasukan / Modal (IN)</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal</label>
+                  <input type="date" required value={accFormDate} onChange={(e) => setAccFormDate(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kategori</label>
+                <select required value={accFormCategory} onChange={(e) => setAccFormCategory(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="Infra / Server">Infra / Server (Vercel, Supabase)</option>
+                  <option value="Marketing / Ads">Marketing / Ads</option>
+                  <option value="WA Gateway">WA Gateway API</option>
+                  <option value="Inject Modal Investor">Inject Modal Investor</option>
+                  <option value="Pendapatan Langganan">Pendapatan Langganan</option>
+                  <option value="Lain-lain">Lain-lain</option>
+                </select>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nominal (Rp)</label>
+                <input type="number" required min="0" value={accFormAmount} onChange={(e) => setAccFormAmount(e.target.value)} placeholder="Contoh: 150000" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keterangan / Deskripsi</label>
+                <input type="text" required value={accFormDesc} onChange={(e) => setAccFormDesc(e.target.value)} placeholder="Misal: Bayar tagihan Vercel bulan Agustus" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              </div>
+              
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsAccountingModalOpen(false)} className="px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-white transition-colors">Batal</button>
+                <button type="submit" disabled={isSubmittingAcc} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+                  {isSubmittingAcc ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div> : <Save size={16} />}
+                  Simpan Transaksi
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
