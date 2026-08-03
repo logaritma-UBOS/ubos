@@ -264,6 +264,21 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleInvestorRole = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('merchants')
+        .update({ is_investor_view_only: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success(`Role Investor berhasil di${!currentStatus ? 'aktifkan' : 'nonaktifkan'}`);
+      fetchData();
+    } catch (err) {
+      toast.error('Gagal mengubah role investor.');
+    }
+  };
+
   const updateUpsellStatus = async (merchantId: string, requestIndex: number, newStatus: string, currentHistory: any[]) => {
     try {
       const updatedHistory = [...currentHistory];
@@ -751,6 +766,13 @@ export default function AdminDashboard() {
                                 <>
                                   <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
                                   <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
+                                  <button 
+                                    onClick={() => toggleInvestorRole(m.id, m.is_investor_view_only || false)} 
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 border text-xs font-bold rounded-lg transition-colors shadow-sm ${m.is_investor_view_only ? 'bg-cyan-600/20 hover:bg-cyan-600/30 border-cyan-500/30 text-cyan-400' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'}`}
+                                    title={m.is_investor_view_only ? "Batalkan Role Investor" : "Set sebagai Investor"}
+                                  >
+                                    <Eye size={14} /> {m.is_investor_view_only ? 'Investor View-Only' : 'Set Investor'}
+                                  </button>
                                 </>
                               )}
                             </td>
