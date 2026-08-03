@@ -267,47 +267,47 @@ export default function AdminDashboard() {
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 flex items-center justify-center drop-shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md shrink-0">
               <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Logaritma Admin Panel</h1>
-                <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-md">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">Logaritma Admin Panel</h1>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-md">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                   Authenticated
                 </span>
               </div>
-              <p className="text-sm text-slate-500 font-medium">Pengelolaan CRM & Ecosystem Leads</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Pengelolaan CRM & Ecosystem Leads</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-sm font-bold text-slate-600 hover:text-danger bg-slate-100 hover:bg-red-50 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 w-fit">
-            <LogOut size={18} /> Keluar
+          <button onClick={handleLogout} className="text-xs sm:text-sm font-bold text-slate-600 hover:text-danger bg-slate-100 hover:bg-red-50 px-4 py-2 sm:py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 w-full sm:w-fit shrink-0">
+            <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" /> Keluar
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm overflow-x-auto hide-scrollbar">
+        <div className="grid grid-cols-2 bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm gap-1">
           <button 
             onClick={() => setActiveTab('FUNNEL')} 
-            className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'FUNNEL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl text-[11px] sm:text-sm font-bold transition-all text-center leading-tight ${activeTab === 'FUNNEL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
           >
-            <Activity size={18} /> Lead Funnel & CRM Tracker
+            <Activity size={16} className="shrink-0 sm:w-[18px] sm:h-[18px]" /> <span className="hidden sm:inline">Lead Funnel & CRM Tracker</span><span className="sm:hidden">CRM Tracker</span>
           </button>
           <button 
             onClick={() => setActiveTab('UPSELL')} 
-            className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'UPSELL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl text-[11px] sm:text-sm font-bold transition-all text-center leading-tight ${activeTab === 'UPSELL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
           >
-            <ShoppingCart size={18} /> Ekosistem & Upsell Module
+            <ShoppingCart size={16} className="shrink-0 sm:w-[18px] sm:h-[18px]" /> <span className="hidden sm:inline">Ekosistem & Upsell Module</span><span className="sm:hidden">Upsell Module</span>
           </button>
         </div>
 
         {activeTab === 'FUNNEL' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
@@ -340,10 +340,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Merchant Table Section */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[550px] sm:h-[650px]">
               
               {/* Table Tools */}
-              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
+              <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
                   {['All', 'Active Trial', 'Premium Member', 'Expired'].map(filter => (
                     <button 
@@ -432,7 +432,7 @@ export default function AdminDashboard() {
                             <tr className="bg-slate-50/80 border-b border-slate-200">
                               <td></td>
                               <td colSpan={4} className="p-4 pt-0">
-                                <div className="grid grid-cols-3 gap-4 mt-2">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-2">
                                   <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Smartphone size={12} /> Device & Network</p>
                                     <p className="text-xs font-medium text-slate-700 break-all">{m.device_info || 'No data'}</p>
