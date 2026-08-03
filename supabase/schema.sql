@@ -115,3 +115,10 @@ CREATE POLICY "Users can only access their merchant's wallets" ON wallets
   FOR ALL USING (
     merchant_id IN (SELECT id FROM merchants WHERE user_id = auth.uid())
   );
+
+-- CRM Tracking Columns
+ALTER TABLE merchants ADD COLUMN IF NOT EXISTS ip_address VARCHAR(255);
+ALTER TABLE merchants ADD COLUMN IF NOT EXISTS device_info TEXT;
+ALTER TABLE merchants ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE merchants ADD COLUMN IF NOT EXISTS current_page VARCHAR(255);
+ALTER TABLE merchants ADD COLUMN IF NOT EXISTS upsell_history JSONB DEFAULT '[]'::jsonb;

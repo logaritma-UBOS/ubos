@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ShieldCheck, Users, Clock, PlusCircle, CheckCircle2, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Users, Clock, PlusCircle, CheckCircle2, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
@@ -18,9 +18,12 @@ export default function AdminDashboard() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Dashboard State
+  const [activeTab, setActiveTab] = useState<'FUNNEL' | 'UPSELL'>('FUNNEL');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [funnelFilter, setFunnelFilter] = useState('All');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
   
   const [metrics, setMetrics] = useState({
     total: 0,
@@ -40,7 +43,6 @@ export default function AdminDashboard() {
         return;
       }
 
-      // Check admin status
       const { data: profile } = await supabase
         .from('merchants')
         .select('*')
@@ -60,7 +62,6 @@ export default function AdminDashboard() {
 
       setIsAdmin(true);
 
-      // Fetch all merchants
       const { data: allMerchants, error } = await supabase
         .from('merchants')
         .select('*')
@@ -124,7 +125,7 @@ export default function AdminDashboard() {
         setIsLoggingIn(false);
         return;
       }
-      await fetchData(); // Will handle auth validation and redirection naturally
+      await fetchData(); 
     } catch (err: any) {
       setLoginError(err.message || 'Gagal masuk.');
     } finally {
@@ -146,9 +147,7 @@ export default function AdminDashboard() {
       if (currentExpiry && new Date(currentExpiry).getTime() > baseDate.getTime()) {
         baseDate = new Date(currentExpiry);
       }
-      
       const newExpiry = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
-      
       const { error } = await supabase
         .from('merchants')
         .update({ trial_expires_at: newExpiry })
@@ -164,9 +163,7 @@ export default function AdminDashboard() {
 
   const activateVVIP = async (id: string) => {
     try {
-      // Simulate VVIP activation by setting trial far in the future
       const vvipExpiry = new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000).toISOString();
-      
       const { error } = await supabase
         .from('merchants')
         .update({ trial_expires_at: vvipExpiry })
@@ -189,9 +186,33 @@ export default function AdminDashboard() {
       
       const matchCategory = categoryFilter === 'All' || m.kategori_usaha === categoryFilter;
       
-      return matchSearch && matchCategory;
+      const now = Date.now();
+      const expiresAt = m.trial_expires_at ? new Date(m.trial_expires_at).getTime() : 0;
+      const isVVIP = expiresAt > now + 3000 * 24 * 60 * 60 * 1000;
+      const isActive = expiresAt > now && !isVVIP;
+      const isExpired = expiresAt <= now && expiresAt > 0;
+      
+      let matchFunnel = true;
+      if (funnelFilter === 'Active Trial') matchFunnel = isActive;
+      if (funnelFilter === 'Premium Member') matchFunnel = isVVIP;
+      if (funnelFilter === 'Expired') matchFunnel = isExpired;
+      
+      return matchSearch && matchCategory && matchFunnel;
     });
-  }, [merchants, searchQuery, categoryFilter]);
+  }, [merchants, searchQuery, categoryFilter, funnelFilter]);
+
+  const toggleRow = (id: string) => {
+    setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  const formatTimeAgo = (dateStr?: string) => {
+    if (!dateStr) return 'Never';
+    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000); // in minutes
+    if (diff < 1) return 'Online / Just now';
+    if (diff < 60) return `${diff} min ago`;
+    if (diff < 1440) return `${Math.floor(diff/60)} hr ago`;
+    return `${Math.floor(diff/1440)} days ago`;
+  };
 
   if (loading) {
     return (
@@ -223,41 +244,16 @@ export default function AdminDashboard() {
                 <p>{loginError}</p>
               </div>
             )}
-
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Admin Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all"
-                placeholder="logaritma.tim@gmail.com"
-              />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all" placeholder="logaritma.tim@gmail.com" />
             </div>
-
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all"
-                placeholder="••••••••"
-              />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all" placeholder="••••••••" />
             </div>
-
-            <button 
-              type="submit" 
-              disabled={isLoggingIn}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2"
-            >
-              {isLoggingIn ? (
-                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-white"></div>
-              ) : (
-                 <>Masuk Secure Portal <ArrowRight size={18} /></>
-              )}
+            <button type="submit" disabled={isLoggingIn} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
+              {isLoggingIn ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-white"></div> : <>Masuk Secure Portal <ArrowRight size={18} /></>}
             </button>
           </form>
         </div>
@@ -284,183 +280,245 @@ export default function AdminDashboard() {
                   Authenticated
                 </span>
               </div>
-              <p className="text-sm text-slate-500 font-medium">Pengelolaan Hak Akses & Leads Ecosystem</p>
+              <p className="text-sm text-slate-500 font-medium">Pengelolaan CRM & Ecosystem Leads</p>
             </div>
           </div>
-          <button 
-            onClick={handleLogout} 
-            className="text-sm font-bold text-slate-600 hover:text-danger bg-slate-100 hover:bg-red-50 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 w-fit"
-          >
-            <LogOut size={18} /> Keluar / Logout
+          <button onClick={handleLogout} className="text-sm font-bold text-slate-600 hover:text-danger bg-slate-100 hover:bg-red-50 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 w-fit">
+            <LogOut size={18} /> Keluar
           </button>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
-              <p className="text-3xl font-black text-slate-900">{metrics.total}</p>
-            </div>
-            <div className="w-14 h-14 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center border border-slate-100"><Users size={28}/></div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Aktif</p>
-              <p className="text-3xl font-black text-emerald-600">{metrics.activeTrial}</p>
-            </div>
-            <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-100"><Clock size={28}/></div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Expired</p>
-              <p className="text-3xl font-black text-danger">{metrics.expiredTrial}</p>
-            </div>
-            <div className="w-14 h-14 bg-red-50 text-danger rounded-2xl flex items-center justify-center border border-red-100"><AlertCircle size={28}/></div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between overflow-hidden relative">
-            <div className="absolute right-[-20px] bottom-[-20px] opacity-5">
-              <Crown size={120} />
-            </div>
-            <div className="relative z-10">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">VVIP Member</p>
-              <p className="text-3xl font-black text-blue-600">{metrics.vvip}</p>
-            </div>
-            <div className="relative z-10 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100"><Crown size={28}/></div>
-          </div>
+        {/* Tab Navigation */}
+        <div className="flex bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm overflow-x-auto hide-scrollbar">
+          <button 
+            onClick={() => setActiveTab('FUNNEL')} 
+            className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'FUNNEL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            <Activity size={18} /> Lead Funnel & CRM Tracker
+          </button>
+          <button 
+            onClick={() => setActiveTab('UPSELL')} 
+            className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'UPSELL' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            <ShoppingCart size={18} /> Ekosistem & Upsell Module
+          </button>
         </div>
 
-        {/* Merchant Table Section */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
-          
-          {/* Table Tools */}
-          <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
-            <h2 className="text-lg font-black text-slate-900 hidden md:block">Database Merchants</h2>
-            
-            <div className="flex w-full md:w-auto items-center gap-3">
-              <div className="relative flex-1 md:w-64">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Search size={16} />
+        {activeTab === 'FUNNEL' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
+                  <p className="text-3xl font-black text-slate-900">{metrics.total}</p>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Cari nama toko / WA..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                />
+                <div className="w-14 h-14 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center border border-slate-100"><Users size={28}/></div>
               </div>
-
-              <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Filter size={16} />
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Aktif</p>
+                  <p className="text-3xl font-black text-emerald-600">{metrics.activeTrial}</p>
                 </div>
-                <select 
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                >
-                  <option value="All">Semua Kategori</option>
-                  <option value="Kuliner & F&B">Kuliner & F&B</option>
-                  <option value="Fotokopi & Percetakan">Percetakan</option>
-                  <option value="Toko / Ritel">Ritel</option>
-                  <option value="Laundry & Jasa">Laundry</option>
-                </select>
+                <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-100"><Clock size={28}/></div>
+              </div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trial Expired</p>
+                  <p className="text-3xl font-black text-danger">{metrics.expiredTrial}</p>
+                </div>
+                <div className="w-14 h-14 bg-red-50 text-danger rounded-2xl flex items-center justify-center border border-red-100"><AlertCircle size={28}/></div>
+              </div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between overflow-hidden relative">
+                <div className="absolute right-[-20px] bottom-[-20px] opacity-5"><Crown size={120} /></div>
+                <div className="relative z-10">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">VVIP Member</p>
+                  <p className="text-3xl font-black text-blue-600">{metrics.vvip}</p>
+                </div>
+                <div className="relative z-10 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100"><Crown size={28}/></div>
               </div>
             </div>
-          </div>
 
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="sticky top-0 bg-white shadow-sm z-10">
-                <tr className="border-b border-slate-100">
-                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Usaha / Profil</th>
-                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</th>
-                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Akses</th>
-                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 bg-white">
-                {filteredMerchants.map((m) => {
-                  const isActive = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now();
-                  const isVVIP = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now() + 3000 * 24 * 60 * 60 * 1000;
-                  
-                  return (
-                    <tr key={m.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="p-4">
-                        <div className="font-bold text-slate-900">{m.nama_usaha || 'Tanpa Nama'}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-slate-500 font-medium">{m.whatsapp || '-'}</span>
-                          {m.whatsapp && (
-                            <a 
-                              href={`https://wa.me/62${m.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`}
-                              target="_blank" rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[10px] font-bold border border-green-200 hover:bg-green-100 transition-colors"
-                            >
-                              <MessageCircle size={10} /> Chat
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="inline-block px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold">
-                          {m.kategori_usaha || 'Lainnya'}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        {isVVIP ? (
-                          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-100">
-                            <Crown size={12} />
-                            VVIP Member
-                          </div>
-                        ) : isActive ? (
-                          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            Trial Aktif
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-danger bg-red-50 px-2 py-1 rounded-md border border-red-100">
-                            <span className="w-1.5 h-1.5 rounded-full bg-danger"></span>
-                            Expired
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-4 text-right space-x-2 opacity-100 md:opacity-50 md:group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => addTrialDays(m.id, m.trial_expires_at)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-colors shadow-sm"
-                          title="Perpanjang +7 Hari"
-                        >
-                          <PlusCircle size={14} /> +7 Hari
-                        </button>
-                        <button 
-                          onClick={() => activateVVIP(m.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold rounded-lg transition-colors shadow-sm"
-                          title="Set Lifetime VVIP"
-                        >
-                          <Crown size={14} /> Set VVIP
-                        </button>
-                      </td>
+            {/* Merchant Table Section */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]">
+              
+              {/* Table Tools */}
+              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
+                <div className="flex gap-2 w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                  {['All', 'Active Trial', 'Premium Member', 'Expired'].map(filter => (
+                    <button 
+                      key={filter}
+                      onClick={() => setFunnelFilter(filter)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors border ${funnelFilter === filter ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex w-full md:w-auto items-center gap-3">
+                  <div className="relative flex-1 md:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Search size={16} /></div>
+                    <input type="text" placeholder="Cari nama toko / WA..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Filter size={16} /></div>
+                    <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                      <option value="All">Semua Kategori</option>
+                      <option value="Kuliner & F&B">Kuliner & F&B</option>
+                      <option value="Fotokopi & Percetakan">Percetakan</option>
+                      <option value="Toko / Ritel">Ritel</option>
+                      <option value="Laundry & Jasa">Laundry</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto flex-1 bg-slate-50/30">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead className="sticky top-0 bg-white shadow-sm z-10">
+                    <tr className="border-b border-slate-200">
+                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-10"></th>
+                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Leads</th>
+                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Online Status</th>
+                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Funnel Status</th>
+                      <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi Cepat</th>
                     </tr>
-                  );
-                })}
-                {filteredMerchants.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-12 text-center">
-                       <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 text-slate-400 rounded-full mb-4">
-                         <Search size={32} />
-                       </div>
-                       <p className="text-slate-500 font-medium">Tidak ada data merchant yang sesuai dengan pencarian.</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredMerchants.map((m) => {
+                      const isActive = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now();
+                      const isVVIP = m.trial_expires_at && new Date(m.trial_expires_at).getTime() > Date.now() + 3000 * 24 * 60 * 60 * 1000;
+                      const isExpanded = expandedRow === m.id;
+                      
+                      return (
+                        <React.Fragment key={m.id}>
+                          <tr className={`hover:bg-slate-50 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50' : 'bg-white'}`} onClick={() => toggleRow(m.id)}>
+                            <td className="p-4 text-slate-400">
+                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </td>
+                            <td className="p-4">
+                              <div className="font-bold text-slate-900">{m.nama_usaha || 'Tanpa Nama'}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-slate-500 font-medium">{m.whatsapp || '-'}</span>
+                                {m.whatsapp && (
+                                  <a href={`https://wa.me/62${m.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[10px] font-bold border border-green-200 hover:bg-green-100 transition-colors">
+                                    <MessageCircle size={10} /> WA
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-2 h-2 rounded-full ${formatTimeAgo(m.last_active_at).includes('min ago') || formatTimeAgo(m.last_active_at).includes('Online') ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                                <span className="text-xs font-bold text-slate-600">{formatTimeAgo(m.last_active_at)}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              {isVVIP ? (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-100"><Crown size={12} /> Premium</div>
+                              ) : isActive ? (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Trial Aktif</div>
+                              ) : (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-danger bg-red-50 px-2 py-1 rounded-md border border-red-100"><span className="w-1.5 h-1.5 rounded-full bg-danger"></span> Expired</div>
+                              )}
+                            </td>
+                            <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                              <button onClick={() => addTrialDays(m.id, m.trial_expires_at)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Perpanjang +7 Hari"><PlusCircle size={14} /> +7 Hari</button>
+                              <button onClick={() => activateVVIP(m.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold rounded-lg transition-colors shadow-sm" title="Set Lifetime VVIP"><Crown size={14} /> Set Premium</button>
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr className="bg-slate-50/80 border-b border-slate-200">
+                              <td></td>
+                              <td colSpan={4} className="p-4 pt-0">
+                                <div className="grid grid-cols-3 gap-4 mt-2">
+                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Smartphone size={12} /> Device & Network</p>
+                                    <p className="text-xs font-medium text-slate-700 break-all">{m.device_info || 'No data'}</p>
+                                    <p className="text-xs font-bold text-slate-900 mt-2">IP: {m.ip_address || 'Unknown'}</p>
+                                  </div>
+                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Activity size={12} /> Drop-off Tracker</p>
+                                    <p className="text-xs font-medium text-slate-500 mb-1">Current / Last Page Visited:</p>
+                                    <code className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{m.current_page || '/'}</code>
+                                  </div>
+                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><ShoppingCart size={12} /> Upsell History</p>
+                                    <p className="text-xs font-medium text-slate-500 italic">Belum ada upsell yang dikirimkan.</p>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                    {filteredMerchants.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center">
+                           <div className="inline-flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-400 rounded-full mb-4 shadow-sm"><Search size={24} /></div>
+                           <p className="text-slate-500 font-medium">Tidak ada data leads yang sesuai dengan pencarian.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'UPSELL' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight mb-2">Ecosystem & Upsell Hub</h2>
+                <p className="text-slate-400 font-medium">Tawarkan layanan tambahan untuk meningkatkan LTV (Life Time Value) merchant.</p>
+              </div>
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md"><ShoppingCart size={32} className="text-blue-400" /></div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Shopee Affiliate Printer */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center mb-4"><ShoppingCart size={24} /></div>
+                <h3 className="font-black text-slate-900 text-lg">Mini Printer Thermal</h3>
+                <p className="text-sm text-slate-500 mt-2 flex-1">Solusi hardware kasir fisik via Shopee Affiliate. Komisi cair saat merchant beli printer dari link Anda.</p>
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <a href="https://shope.ee/contoh_affiliate_link" target="_blank" rel="noreferrer" className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors">
+                    Copy Link Affiliate <ExternalLink size={16} />
+                  </a>
+                </div>
+              </div>
+
+              {/* Jasa Iklan */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
+                <div className="absolute top-4 right-4 text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-1 rounded-md">HIGH TICKET</div>
+                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4"><Activity size={24} /></div>
+                <h3 className="font-black text-slate-900 text-lg">Jasa Meta / TikTok Ads</h3>
+                <p className="text-sm text-slate-500 mt-2 flex-1">Tawarkan paket pengelolaan iklan untuk merchant yang ingin omsetnya naik pesat.</p>
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <button className="w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-500/20">
+                    <MessageCircle size={16} /> Tawarkan via WA
+                  </button>
+                </div>
+              </div>
+
+              {/* Premium Setup */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4"><Crown size={24} /></div>
+                <h3 className="font-black text-slate-900 text-lg">Premium Setup Menu</h3>
+                <p className="text-sm text-slate-500 mt-2 flex-1">Jasa input ratusan menu & gambar secara massal bagi merchant sibuk yang tidak punya waktu.</p>
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <button className="w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-500/20">
+                    <MessageCircle size={16} /> Tawarkan via WA
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

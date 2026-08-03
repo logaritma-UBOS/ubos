@@ -19,6 +19,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    const pingActivity = async (userId: string) => {
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json').catch(() => null);
+        const ip = ipRes ? (await ipRes.json()).ip : 'Unknown';
+        const deviceInfo = navigator.userAgent;
+        
+        await supabase.from('merchants').update({
+          last_active_at: new Date().toISOString(),
+          current_page: pathname,
+          ip_address: ip,
+          device_info: deviceInfo
+        }).eq('user_id', userId);
+      } catch (err) {
+        // Silently fail for tracking ping
+      }
+    };
+
+
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!isMounted) return;
@@ -41,6 +59,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary', merchantData.brand_color);
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
+          pingActivity(session.user.id);
         }
       }
 
@@ -84,6 +103,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary', merchantData.brand_color);
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
+          pingActivity(newSession.user.id);
           
           let expiresDate = new Date();
           if (merchantData.trial_expires_at) {
