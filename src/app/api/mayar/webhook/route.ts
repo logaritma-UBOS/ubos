@@ -21,7 +21,87 @@ export async function POST(req: Request) {
     if (event === 'PAID' || event === 'payment.received' || body.status === 'success') {
       const payload = body.data || body;
       
-      // Attempt to extract merchantId from custom_field or other references
+      let customFieldObj: any = null;
+      try {
+        if (payload.custom_field) {
+          customFieldObj = JSON.parse(payload.custom_field);
+        }
+      } catch (e) {
+        // Not a JSON custom field, ignore
+      }
+
+      // Handle Investor Funding
+      if (customFieldObj && customFieldObj.type === 'INVESTOR_FUNDING') {
+        const amount = payload.amount || 0;
+        const items = customFieldObj.items || 'Pendanaan Project';
+        const email = payload.email || payload.customer?.email;
+        const name = payload.name || payload.customer?.name || 'Investor';
+
+        if (!email) {
+          console.error('Webhook payload missing email for investor:', payload);
+          return NextResponse.json({ error: 'Missing email' }, { status: 400 });
+        }
+
+        // 1. Insert Cash Transaction
+        await supabaseAdmin.from('cash_transactions').insert([{
+          transaction_date: new Date().toISOString().split('T')[0],
+          type: 'IN',
+          category: 'Inject Modal Investor',
+          description: items,
+          amount: amount
+        }]);
+
+        // 2. Create User Account in Supabase Auth
+        // Generate a standard password for the investor
+        const password = 'LogaritmaInvestor123!';
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
+          email: email,
+          password: password,
+          email_confirm: true,
+          user_metadata: { name: name }
+        });
+
+        if (userError) {
+          // If user exists, we might just want to update their role. 
+          // For simplicity, we assume they might already have an account.
+          console.error('Failed to create investor user (may already exist):', userError);
+        }
+
+        const userId = userData?.user?.id;
+
+        // 3. Create or update profile in merchants
+        if (userId) {
+          const { error: profileError } = await supabaseAdmin.from('merchants').upsert({
+            id: userId, // Primary key
+            user_id: userId,
+            nama_usaha: name,
+            whatsapp: payload.mobile || payload.customer?.phone,
+            is_investor_view_only: true,
+            is_admin: false,
+            kategori_usaha: 'Investor',
+            created_at: new Date().toISOString(),
+            last_active_at: new Date().toISOString()
+          }, { onConflict: 'user_id' }); // Assuming user_id has unique constraint, or ID is used.
+          
+          if (profileError) {
+             console.error('Failed to create merchant profile for investor:', profileError);
+          }
+        } else {
+           // Fallback if user creation failed because they exist: fetch user by email
+           // Supabase admin api to list users by email
+           const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+           const existingUser = usersData.users.find(u => u.email === email);
+           if (existingUser) {
+              await supabaseAdmin.from('merchants').update({
+                 is_investor_view_only: true
+              }).eq('user_id', existingUser.id);
+           }
+        }
+
+        return NextResponse.json({ success: true, message: 'Investor funding processed successfully' });
+      }
+
+      // Handle Regular Merchant Subscription Renewal
       const merchantId = payload.custom_field || payload.reference_id;
       
       if (!merchantId) {
