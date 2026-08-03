@@ -7,7 +7,8 @@ import {
   Users, Clock, PlusCircle, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, 
   ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
   Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
-  ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin
+  ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin,
+  Eye, EyeOff, Save
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,6 +38,17 @@ export default function AdminDashboard() {
   // Modal State
   const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
   const [visitorModalFilter, setVisitorModalFilter] = useState<'ALL' | 'ACTIVE_TRIAL' | 'VVIP' | 'TRAFFIC_7_DAYS'>('ALL');
+  
+  // Settings State
+  const [promoPrice, setPromoPrice] = useState('49000');
+  const [normalPrice, setNormalPrice] = useState('150000');
+  const [trialDays, setTrialDays] = useState('7');
+  const [mayarApiKey, setMayarApiKey] = useState('');
+  const [mayarWebhookSecret, setMayarWebhookSecret] = useState('');
+  const [mayarMode, setMayarMode] = useState('sandbox');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
   
   const [metrics, setMetrics] = useState({
     total: 0,
@@ -138,6 +150,21 @@ export default function AdminDashboard() {
         });
       }
 
+      // Fetch Settings
+      const { data: settings } = await supabase
+        .from('app_settings')
+        .select('*')
+        .maybeSingle();
+        
+      if (settings) {
+        if (settings.promo_price) setPromoPrice(settings.promo_price.toString());
+        if (settings.normal_price) setNormalPrice(settings.normal_price.toString());
+        if (settings.trial_days) setTrialDays(settings.trial_days.toString());
+        if (settings.mayar_api_key) setMayarApiKey(settings.mayar_api_key);
+        if (settings.mayar_webhook_secret) setMayarWebhookSecret(settings.mayar_webhook_secret);
+        if (settings.mayar_mode) setMayarMode(settings.mayar_mode);
+      }
+
     } catch (err: any) {
       console.error(err);
       toast.error('Gagal mengambil data admin.');
@@ -228,6 +255,39 @@ export default function AdminDashboard() {
       fetchData();
     } catch (err) {
       toast.error('Gagal mengubah status upsell.');
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      const { data: existing } = await supabase.from('app_settings').select('id').limit(1);
+      const payload = {
+        promo_price: parseInt(promoPrice),
+        normal_price: parseInt(normalPrice),
+        trial_days: parseInt(trialDays),
+        mayar_api_key: mayarApiKey,
+        mayar_webhook_secret: mayarWebhookSecret,
+        mayar_mode: mayarMode,
+        updated_at: new Date().toISOString()
+      };
+      
+      let error;
+      if (existing && existing.length > 0) {
+        const res = await supabase.from('app_settings').update(payload).eq('id', existing[0].id);
+        error = res.error;
+      } else {
+        const res = await supabase.from('app_settings').insert([payload]);
+        error = res.error;
+      }
+      
+      if (error) throw error;
+      toast.success('Pengaturan harga dan API Mayar berhasil diperbarui!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Gagal menyimpan pengaturan.');
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -667,11 +727,82 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {(activeMenu === 'DASHBOARD' || activeMenu === 'SETTINGS') && (
+          {activeMenu === 'SETTINGS' && (
+            <div className="max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="bg-gradient-to-r from-slate-900 to-slate-950 rounded-3xl p-8 border border-slate-800 shadow-xl">
+                <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2"><Settings size={24} className="text-blue-500" /> Provider & Pricing</h2>
+                <p className="text-sm text-slate-400 font-medium">Atur paket langganan dan integrasi gateway pembayaran Mayar.</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Pricing & Trial */}
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm space-y-5">
+                  <h3 className="font-black text-white text-lg flex items-center gap-2"><DollarSign size={20} className="text-emerald-500" /> Atur Paket & Harga Langganan</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Harga Promo Bulanan (Rp)</label>
+                    <input type="number" value={promoPrice} onChange={(e) => setPromoPrice(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Harga Coret / Normal (Rp)</label>
+                    <input type="number" value={normalPrice} onChange={(e) => setNormalPrice(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Durasi Trial Gratis (Hari)</label>
+                    <input type="number" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+                  </div>
+                </div>
+
+                {/* Mayar Gateway */}
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm space-y-5">
+                  <h3 className="font-black text-white text-lg flex items-center gap-2"><CreditCard size={20} className="text-blue-500" /> Integrasi Payment Gateway Mayar</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mode Transaksi</label>
+                    <select value={mayarMode} onChange={(e) => setMayarMode(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all appearance-none cursor-pointer">
+                      <option value="sandbox">Sandbox (Testing)</option>
+                      <option value="production">Production (Live)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mayar API Key</label>
+                    <div className="relative">
+                      <input type={showApiKey ? "text" : "password"} value={mayarApiKey} onChange={(e) => setMayarApiKey(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all pr-12" placeholder="sk_..." />
+                      <button onClick={() => setShowApiKey(!showApiKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                        {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mayar Webhook Secret</label>
+                    <div className="relative">
+                      <input type={showWebhookSecret ? "text" : "password"} value={mayarWebhookSecret} onChange={(e) => setMayarWebhookSecret(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all pr-12" placeholder="wh_..." />
+                      <button onClick={() => setShowWebhookSecret(!showWebhookSecret)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                        {showWebhookSecret ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button onClick={handleSaveSettings} disabled={isSavingSettings} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+                  {isSavingSettings ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div> : <Save size={18} />}
+                  Simpan Pengaturan
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'DASHBOARD' && (
             <div className="flex items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-3xl">
               <div className="text-center">
                 <LayoutPanelLeft size={48} className="mx-auto text-slate-700 mb-4" />
-                <p className="text-slate-400 font-medium">Modul {activeMenu} sedang dalam pengembangan.</p>
+                <p className="text-slate-400 font-medium">Modul DASHBOARD sedang dalam pengembangan.</p>
               </div>
             </div>
           )}
