@@ -1334,10 +1334,25 @@ export default function AdminDashboard() {
                 <input type="number" required min="0" value={accFormAmount} onChange={(e) => setAccFormAmount(e.target.value)} placeholder="Contoh: 150000" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
               
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keterangan / Deskripsi</label>
-                <input type="text" required value={accFormDesc} onChange={(e) => setAccFormDesc(e.target.value)} placeholder="Misal: Bayar tagihan Vercel bulan Agustus" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
-              </div>
+              {accFormCategory === 'Inject Modal Investor' ? (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Item (Deskripsi)</label>
+                  <select required value={accFormDesc} onChange={(e) => setAccFormDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="" disabled>-- Pilih Item Pendanaan --</option>
+                    <option value="Hosting & Database (Vercel, Supabase)">Hosting & Database (Rp 350rb)</option>
+                    <option value="WhatsApp Gateway API">WhatsApp Gateway API (Rp 100rb)</option>
+                    <option value="OpenAI / Gemini API Tokens">OpenAI / Gemini API Tokens (Rp 200rb)</option>
+                    <option value="Pemasaran Awal (GTM / Meta Ads)">Pemasaran Awal / GTM (Rp 1jt)</option>
+                    <option value="Cadangan Kas Operasional">Cadangan Kas Operasional (Rp 300rb)</option>
+                    <option value="Pendanaan Umum / Bebas">Pendanaan Umum / Bebas</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keterangan / Deskripsi</label>
+                  <input type="text" required value={accFormDesc} onChange={(e) => setAccFormDesc(e.target.value)} placeholder="Misal: Bayar tagihan Vercel bulan Agustus" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+              )}
               
               <div className="pt-4 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsAccountingModalOpen(false)} className="px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-white transition-colors">Batal</button>
