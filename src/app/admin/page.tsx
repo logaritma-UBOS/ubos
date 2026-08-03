@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const [isUpsellMenuExpanded, setIsUpsellMenuExpanded] = useState(false);
 
   // Dashboard State
-  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'ACCOUNTING' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
+  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'ACCOUNTING' | 'DASHBOARD' | 'SETTINGS'>('DASHBOARD');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -1145,14 +1145,116 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeMenu === 'DASHBOARD' && (
-            <div className="flex items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-3xl">
-              <div className="text-center">
-                <LayoutPanelLeft size={48} className="mx-auto text-slate-700 mb-4" />
-                <p className="text-slate-400 font-medium">Modul DASHBOARD sedang dalam pengembangan.</p>
+          {activeMenu === 'DASHBOARD' && (() => {
+            const investorCapital = cashTransactions.filter(tx => tx.category === 'Inject Modal Investor').reduce((sum, tx) => sum + Number(tx.amount), 0);
+            return (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                
+                {/* Quick Actions Bar */}
+                <div className="flex flex-wrap gap-3">
+                  <button onClick={() => { setActiveMenu('FUNNEL'); }} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors shadow-md shadow-blue-600/20">
+                    <PlusCircle size={16} /> Tambah Lead Baru
+                  </button>
+                  <button onClick={() => { setFunnelFilter('Expired'); setActiveMenu('FUNNEL'); }} className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-sm font-bold rounded-xl border border-amber-500/20 transition-colors">
+                    <MessageCircle size={16} /> Follow-up WA Expired
+                  </button>
+                  <button onClick={() => setActiveMenu('UPSELL_REQUESTS')} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold rounded-xl transition-colors">
+                    <ShoppingCart size={16} /> Kelola Upsell
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Investor Funding Progress Widget */}
+                  <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden h-full flex flex-col justify-between">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                      <div>
+                        <div className="flex items-center justify-between mb-6 relative z-10">
+                          <h3 className="text-lg font-black text-white flex items-center gap-2"><Sparkles size={20} className="text-blue-400" /> Modal Investor</h3>
+                          <span className="bg-blue-500/10 text-blue-400 text-[10px] font-black px-2 py-1 rounded-md border border-blue-500/20 uppercase tracking-widest">Tahap I</span>
+                        </div>
+                        
+                        <div className="space-y-4 relative z-10">
+                          <div>
+                            <div className="flex justify-between items-end mb-1">
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Terkumpul</p>
+                              <p className="text-xl font-black text-blue-400">Rp {investorCapital.toLocaleString('id-ID')}</p>
+                            </div>
+                            <div className="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
+                              <div 
+                                className="bg-gradient-to-r from-blue-600 to-blue-400 h-full rounded-full transition-all duration-500 ease-out" 
+                                style={{ width: `${Math.min((investorCapital / 1950000) * 100, 100)}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-500 text-right mt-1.5">Target: Rp 1.950.000</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-800/50 flex flex-col gap-2 relative z-10 mt-6">
+                        <button onClick={() => window.open('/investor', '_blank')} className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-xs font-bold rounded-xl border border-blue-500/20 transition-colors">
+                          <ExternalLink size={14} /> Buka Halaman Investor Portal
+                        </button>
+                        <button onClick={() => setActiveMenu('ACCOUNTING')} className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors">
+                          <DollarSign size={14} /> Detail Accounting
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity Log Table */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-slate-900 rounded-3xl border border-slate-800 flex flex-col h-[400px] overflow-hidden shadow-xl">
+                      <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                        <h3 className="text-base font-black text-white flex items-center gap-2"><Activity size={18} className="text-emerald-500" /> Recent Activity Log</h3>
+                        <button onClick={() => { setVisitorModalFilter('ALL'); setIsVisitorModalOpen(true); }} className="text-[10px] font-bold text-blue-400 uppercase tracking-widest hover:text-blue-300 transition-colors">Lihat Semua</button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse min-w-[500px]">
+                          <thead className="sticky top-0 bg-slate-900 shadow-sm z-10">
+                            <tr className="border-b border-slate-800">
+                              <th className="p-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Waktu</th>
+                              <th className="p-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Merchant</th>
+                              <th className="p-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status / Last Page</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/50">
+                            {merchants.slice(0, 10).map(m => (
+                              <tr key={m.id} className="hover:bg-slate-800/30 transition-colors">
+                                <td className="p-3">
+                                  <p className="text-xs font-bold text-slate-300">{formatTimeAgo(m.last_active_at)}</p>
+                                </td>
+                                <td className="p-3">
+                                  <p className="text-xs font-bold text-slate-200">{m.nama_usaha || 'Guest'}</p>
+                                  <p className="text-[10px] font-medium text-slate-500">{m.kategori_usaha || 'Unknown'}</p>
+                                </td>
+                                <td className="p-3">
+                                  {formatTimeAgo(m.last_active_at).includes('min ago') || formatTimeAgo(m.last_active_at).includes('Online') || formatTimeAgo(m.last_active_at).includes('Just now') ? (
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-md border border-emerald-500/20 mb-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-md mb-1">Offline</span>
+                                  )}
+                                  <p className="text-[10px] font-medium text-slate-400 line-clamp-1" title={m.current_page || '/'}>{m.current_page || '/'}</p>
+                                </td>
+                              </tr>
+                            ))}
+                            {merchants.length === 0 && (
+                              <tr>
+                                <td colSpan={3} className="p-8 text-center text-xs font-medium text-slate-500">Belum ada aktivitas.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
           
         </div>
       </div>
