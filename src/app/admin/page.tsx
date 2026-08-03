@@ -8,7 +8,7 @@ import {
   ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
   Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
   ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin,
-  Eye, EyeOff, Save
+  Eye, EyeOff, Save, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -354,6 +354,21 @@ export default function AdminDashboard() {
       toast.error('Gagal mencatat transaksi.');
     } finally {
       setIsSubmittingAcc(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    if (isInvestorViewOnly) return;
+    if (!confirm('Yakin ingin menghapus transaksi kas ini? Aksi ini tidak dapat dibatalkan.')) return;
+    
+    try {
+      const { error } = await supabase.from('cash_transactions').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Transaksi kas berhasil dihapus!');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal menghapus transaksi.');
     }
   };
 
@@ -1039,6 +1054,11 @@ export default function AdminDashboard() {
                           </td>
                           <td className={`p-4 text-right text-sm font-black ${tx.type === 'IN' ? 'text-emerald-400' : 'text-red-400'}`}>
                             {tx.type === 'IN' ? '+' : '-'} {Number(tx.amount).toLocaleString('id-ID')}
+                            {!isInvestorViewOnly && (
+                              <button onClick={() => handleDeleteTransaction(tx.id)} className="ml-3 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors inline-flex align-middle" title="Hapus Transaksi">
+                                <Trash2 size={14} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
