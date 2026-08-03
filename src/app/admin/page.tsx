@@ -679,8 +679,13 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Mobile Overlay for AI Panel */}
+      {isAIPanelOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsAIPanelOpen(false)}></div>
+      )}
+
       {/* Right AI Command Center (Collapsible) */}
-      <div className={`fixed inset-y-0 right-0 z-30 w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col transition-transform duration-300 ease-in-out transform ${isAIPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 z-50 w-[85%] max-w-sm lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col transition-transform duration-300 ease-in-out transform shadow-2xl ${isAIPanelOpen ? 'translate-x-0' : 'translate-x-full'} md:z-30`}>
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/30">
