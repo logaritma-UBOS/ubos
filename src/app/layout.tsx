@@ -19,12 +19,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "LOGARITMA.ID",
-  description: "Ekosistem SaaS untuk bisnis F&B, Ritel, dan Jasa",
+  title: 'LOGARITMA.ID - Universal Business Operation System',
+  description: 'Pusat Kontrol Ekosistem & Operasional Bisnis UMKM',
   icons: {
-    icon: '/logo-ubos.png',
-    apple: '/logo-ubos.png',
-  }
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
