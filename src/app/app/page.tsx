@@ -75,43 +75,6 @@ export default function MemberDashboard() {
     router.push('/');
   };
 
-  const handleDevSetExpired = async () => {
-    try {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      const { error } = await supabase
-        .from('merchants')
-        .update({ trial_expires_at: yesterday.toISOString() })
-        .eq('id', merchant.id);
-        
-      if (error) throw error;
-      toast.success('Status diset Expired');
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal update status');
-    }
-  };
-
-  const handleDevSetPremium = async () => {
-    try {
-      const nextMonth = new Date();
-      nextMonth.setDate(nextMonth.getDate() + 30);
-      
-      const { error } = await supabase
-        .from('merchants')
-        .update({ trial_expires_at: nextMonth.toISOString() })
-        .eq('id', merchant.id);
-        
-      if (error) throw error;
-      toast.success('Status diset Premium (30 Hari)');
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal update status');
-    }
-  };
 
   const handlePayWithMayar = async () => {
     setIsCreatingPayment(true);
@@ -216,17 +179,26 @@ export default function MemberDashboard() {
             <h1 className="text-3xl md:text-4xl font-black tracking-tight">Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!</h1>
             <p className="text-blue-100 font-medium">Selamat datang di Pusat Kontrol Ekosistem Logaritma.</p>
           </div>
-          <div className="relative z-10 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-2xl p-4 flex items-center gap-3 w-fit cursor-pointer hover:bg-blue-500/30 transition-colors" onClick={() => trialDaysLeft <= 0 ? setShowPaywallModal(true) : null}>
-             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">{trialDaysLeft > 0 ? '🎁' : '🔒'}</div>
-             <div>
-               <p className="text-xs font-bold text-blue-300 uppercase tracking-wider">Status Lisensi</p>
-               <p className="font-bold text-lg text-white leading-tight">
-                 {trialDaysLeft > 0 ? `Masa Coba 7 Hari Aktif` : `Lisensi Expired`} 
-                 <span className="text-sm font-medium opacity-80 ml-1">
-                   {trialDaysLeft > 0 ? `(Sisa ${trialDaysLeft} Hari)` : `(Silakan Upgrade)`}
-                 </span>
-               </p>
-             </div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-3">
+            <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-blue-500/30 transition-colors" onClick={() => setShowPaywallModal(true)}>
+               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">{trialDaysLeft > 0 ? '🎁' : '🔒'}</div>
+               <div>
+                 <p className="text-xs font-bold text-blue-300 uppercase tracking-wider">Status Lisensi</p>
+                 <p className="font-bold text-lg text-white leading-tight">
+                   {trialDaysLeft > 0 ? `Aktif` : `Expired`} 
+                   <span className="text-sm font-medium opacity-80 ml-1">
+                     {trialDaysLeft > 0 ? `(Sisa ${trialDaysLeft} Hari)` : `(Silakan Upgrade)`}
+                   </span>
+                 </p>
+               </div>
+            </div>
+            
+            <button 
+              onClick={() => setShowPaywallModal(true)}
+              className="bg-amber-400 hover:bg-amber-300 text-amber-900 font-black px-4 py-3 rounded-xl transition-transform active:scale-95 shadow-lg shadow-amber-400/20 w-full md:w-auto flex items-center justify-center gap-2"
+            >
+              ⚡ Upgrade Premium Rp 49.000
+            </button>
           </div>
         </div>
 
@@ -565,8 +537,16 @@ export default function MemberDashboard() {
               <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-2 rotate-12 shadow-sm border border-amber-200">
                 <Lock size={40} />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Masa Coba Gratis Anda<br />Telah Berakhir</h3>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                {trialDaysLeft > 0 ? 'Upgrade Premium UBOS' : 'Masa Coba Gratis Anda Telah Berakhir'}
+              </h3>
               <p className="text-slate-500 font-medium max-w-sm mx-auto">Tetap kunci batas belanja harian, pantau profit bersih, dan operasionalkan kasir toko Anda tanpa henti.</p>
+              
+              <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mt-4">
+                <p className="text-xs font-bold text-blue-700 leading-relaxed">
+                  ℹ️ Sisa hari aktif trial/lisensi Anda saat ini tidak akan hangus, melainkan langsung otomatis ditambahkan <span className="text-blue-800 font-black bg-blue-200 px-1 rounded">+30 hari</span> setelah pembayaran selesai.
+                </p>
+              </div>
               
               <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200 relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-xs font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-red-500/20">
@@ -607,22 +587,6 @@ export default function MemberDashboard() {
         </div>
       )}
 
-      {/* Dev Simulator Bar */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-slate-700 shadow-2xl z-50 flex items-center gap-3 w-max">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 border-r border-slate-700">Dev Simulator</span>
-        <button 
-          onClick={handleDevSetExpired}
-          className="bg-red-500/20 hover:bg-red-500/40 text-red-400 text-xs font-bold px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
-        >
-          <Lock size={14} /> Set Expired
-        </button>
-        <button 
-          onClick={handleDevSetPremium}
-          className="bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 text-xs font-bold px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
-        >
-          <CheckCircle2 size={14} /> Set Premium (30hr)
-        </button>
-      </div>
 
     </div>
   );
