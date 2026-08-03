@@ -424,7 +424,7 @@ export default function AdminDashboard() {
     <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col md:flex-row overflow-hidden selection:bg-blue-500/30">
       
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50">
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50 relative">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded-lg p-1">
             <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
@@ -435,6 +435,14 @@ export default function AdminDashboard() {
           {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
+
+      {/* Mobile Sidebar Overlay / Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar (Left) */}
       <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:shrink-0`}>
