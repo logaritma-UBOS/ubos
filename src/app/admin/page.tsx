@@ -26,9 +26,10 @@ export default function AdminDashboard() {
   // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(true);
+  const [isUpsellMenuExpanded, setIsUpsellMenuExpanded] = useState(false);
 
   // Dashboard State
-  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
+  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'DASHBOARD' | 'SETTINGS'>('FUNNEL');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -354,6 +355,23 @@ export default function AdminDashboard() {
     setIsVisitorModalOpen(true);
   };
 
+  const incomingUpsells = useMemo(() => {
+    const list: any[] = [];
+    merchants.forEach(m => {
+      if (m.upsell_history && Array.isArray(m.upsell_history)) {
+        m.upsell_history.forEach((req: any, index: number) => {
+          list.push({
+            merchant: m,
+            request: req,
+            index: index
+          });
+        });
+      }
+    });
+    // Sort by requested_at descending
+    return list.sort((a, b) => new Date(b.request.requested_at).getTime() - new Date(a.request.requested_at).getTime());
+  }, [merchants]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[100dvh] bg-slate-950">
@@ -444,12 +462,40 @@ export default function AdminDashboard() {
           >
             <Activity size={18} /> Lead Funnel Tracker
           </button>
-          <button 
-            onClick={() => { setActiveMenu('UPSELL'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'UPSELL' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
-          >
-            <ShoppingCart size={18} /> Manage Upsell
-          </button>
+          <div>
+            <button 
+              onClick={() => setIsUpsellMenuExpanded(!isUpsellMenuExpanded)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${['UPSELL_REQUESTS', 'UPSELL_CATALOG', 'UPSELL_SETTINGS'].includes(activeMenu) ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            >
+              <div className="flex items-center gap-3">
+                <ShoppingCart size={18} /> Manage Upsell
+              </div>
+              {isUpsellMenuExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {(isUpsellMenuExpanded || ['UPSELL_REQUESTS', 'UPSELL_CATALOG', 'UPSELL_SETTINGS'].includes(activeMenu)) && (
+              <div className="mt-1 ml-4 pl-3 border-l border-slate-700/50 flex flex-col gap-1">
+                <button 
+                  onClick={() => { setActiveMenu('UPSELL_REQUESTS'); setIsSidebarOpen(false); }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeMenu === 'UPSELL_REQUESTS' ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                >
+                  🛒 Permintaan Upsell
+                </button>
+                <button 
+                  onClick={() => { setActiveMenu('UPSELL_CATALOG'); setIsSidebarOpen(false); }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeMenu === 'UPSELL_CATALOG' ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                >
+                  📦 Katalog Produk
+                </button>
+                <button 
+                  onClick={() => { setActiveMenu('UPSELL_SETTINGS'); setIsSidebarOpen(false); }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeMenu === 'UPSELL_SETTINGS' ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                >
+                  ⚙️ Link & Affiliate
+                </button>
+              </div>
+            )}
+          </div>
           
           <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 mt-6">Settings</p>
           <button 
@@ -474,7 +520,12 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-white">
-                {activeMenu === 'FUNNEL' ? 'Lead Funnel & CRM' : activeMenu === 'UPSELL' ? 'Ecosystem Upsell Hub' : 'Dashboard Overview'}
+                {activeMenu === 'FUNNEL' ? 'Lead Funnel & CRM' : 
+                 activeMenu === 'UPSELL_REQUESTS' ? 'Permintaan Upsell (Incoming)' : 
+                 activeMenu === 'UPSELL_CATALOG' ? 'Katalog Produk Ekosistem' : 
+                 activeMenu === 'UPSELL_SETTINGS' ? 'Pengaturan Link & Affiliate' : 
+                 activeMenu === 'SETTINGS' ? 'Provider & Pricing' : 
+                 'Dashboard Overview'}
               </h2>
               <p className="text-sm text-slate-400 font-medium">Internal data management & monitoring.</p>
             </div>
@@ -679,7 +730,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeMenu === 'UPSELL' && (
+          {activeMenu === 'UPSELL_CATALOG' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="bg-gradient-to-r from-blue-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between border border-blue-800/30">
                 <div>
@@ -723,6 +774,73 @@ export default function AdminDashboard() {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'UPSELL_REQUESTS' && (
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-[600px] overflow-hidden">
+              <div className="p-5 border-b border-slate-800 bg-slate-900/50">
+                <h3 className="text-lg font-black text-white flex items-center gap-2"><ShoppingCart size={20} className="text-amber-500" /> Incoming Upsell Requests</h3>
+              </div>
+              <div className="overflow-y-auto flex-1 custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead className="sticky top-0 bg-slate-900 shadow-md z-10">
+                    <tr className="border-b border-slate-800">
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Tanggal</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Merchant</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Produk Diminta</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {incomingUpsells.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-4 text-xs font-medium text-slate-400">
+                          {new Date(item.request.requested_at).toLocaleDateString('id-ID', {day: 'numeric', month:'short', year:'numeric'})}
+                        </td>
+                        <td className="p-4">
+                          <p className="text-sm font-bold text-slate-200">{item.merchant.nama_usaha || 'Tanpa Nama'}</p>
+                          <p className="text-xs text-slate-500 font-medium">{item.merchant.whatsapp || '-'}</p>
+                        </td>
+                        <td className="p-4 text-sm font-bold text-blue-400">
+                          {item.request.product}
+                        </td>
+                        <td className="p-4">
+                          <select 
+                            value={item.request.status} 
+                            onChange={(e) => updateUpsellStatus(item.merchant.id, item.index, e.target.value, item.merchant.upsell_history)}
+                            className={`text-xs font-bold px-2 py-1 rounded outline-none cursor-pointer border ${item.request.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : item.request.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}
+                          >
+                            <option value="Pending" className="bg-slate-900 text-amber-400">Pending</option>
+                            <option value="Followed Up" className="bg-slate-900 text-blue-400">Followed Up</option>
+                            <option value="Completed" className="bg-slate-900 text-emerald-400">Completed</option>
+                          </select>
+                        </td>
+                        <td className="p-4 text-right">
+                          <a href={`https://wa.me/62${item.merchant.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(item.merchant.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(item.request.product)}...`} target="_blank" rel="noreferrer" className="inline-flex py-1.5 px-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg items-center gap-1.5 transition-colors">
+                            <MessageCircle size={14} /> Hubungi via WA
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                    {incomingUpsells.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center text-slate-500">Tidak ada data permintaan upsell masuk.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'UPSELL_SETTINGS' && (
+            <div className="flex items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-3xl">
+              <div className="text-center">
+                <Settings size={48} className="mx-auto text-slate-700 mb-4" />
+                <p className="text-slate-400 font-medium">Modul Pengaturan Affiliate Link sedang dalam pengembangan.</p>
               </div>
             </div>
           )}
