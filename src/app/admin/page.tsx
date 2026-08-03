@@ -177,6 +177,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const updateUpsellStatus = async (merchantId: string, requestIndex: number, newStatus: string, currentHistory: any[]) => {
+    try {
+      const updatedHistory = [...currentHistory];
+      updatedHistory[requestIndex].status = newStatus;
+      
+      const { error } = await supabase
+        .from('merchants')
+        .update({ upsell_history: updatedHistory })
+        .eq('id', merchantId);
+        
+      if (error) throw error;
+      toast.success('Status upsell berhasil diubah!');
+      fetchData();
+    } catch (err) {
+      toast.error('Gagal mengubah status upsell.');
+    }
+  };
+
   const filteredMerchants = useMemo(() => {
     return merchants.filter(m => {
       const matchSearch = 
@@ -398,7 +416,14 @@ export default function AdminDashboard() {
                               {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </td>
                             <td className="p-4">
-                              <div className="font-bold text-slate-900">{m.nama_usaha || 'Tanpa Nama'}</div>
+                              <div className="font-bold text-slate-900 flex items-center gap-2">
+                                {m.nama_usaha || 'Tanpa Nama'}
+                                {m.upsell_history && Array.isArray(m.upsell_history) && m.upsell_history.some((r:any) => r.status === 'Pending') && (
+                                  <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-amber-200">
+                                    UPSELL REQ
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-xs text-slate-500 font-medium">{m.whatsapp || '-'}</span>
                                 {m.whatsapp && (
@@ -443,9 +468,36 @@ export default function AdminDashboard() {
                                     <p className="text-xs font-medium text-slate-500 mb-1">Current / Last Page Visited:</p>
                                     <code className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{m.current_page || '/'}</code>
                                   </div>
-                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><ShoppingCart size={12} /> Upsell History</p>
-                                    <p className="text-xs font-medium text-slate-500 italic">Belum ada upsell yang dikirimkan.</p>
+                                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full max-h-40">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><ShoppingCart size={12} /> Permintaan Upsell Aktif</p>
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 hide-scrollbar">
+                                      {!m.upsell_history || !Array.isArray(m.upsell_history) || m.upsell_history.length === 0 ? (
+                                        <p className="text-xs font-medium text-slate-500 italic">Belum ada upsell yang diminta.</p>
+                                      ) : (
+                                        m.upsell_history.map((req: any, idx: number) => (
+                                          <div key={idx} className="bg-slate-50 p-2 rounded-lg border border-slate-100 flex flex-col gap-2">
+                                            <div className="flex justify-between items-start">
+                                              <div>
+                                                <p className="text-xs font-bold text-slate-900 leading-tight">{req.product}</p>
+                                                <p className="text-[9px] text-slate-500">{new Date(req.requested_at).toLocaleDateString('id-ID', {day: 'numeric', month:'short'})}</p>
+                                              </div>
+                                              <select 
+                                                value={req.status} 
+                                                onChange={(e) => updateUpsellStatus(m.id, idx, e.target.value, m.upsell_history)}
+                                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded outline-none cursor-pointer border ${req.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}
+                                              >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Followed Up">Followed Up</option>
+                                                <option value="Completed">Completed</option>
+                                              </select>
+                                            </div>
+                                            <a href={`https://wa.me/62${m.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors shadow-sm shadow-green-500/20">
+                                              <MessageCircle size={10} /> Follow Up via WA
+                                            </a>
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </td>

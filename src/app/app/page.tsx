@@ -19,6 +19,7 @@ export default function MemberDashboard() {
   const [waitingForm, setWaitingForm] = useState({ nama: '', whatsapp: '' });
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -131,6 +132,35 @@ export default function MemberDashboard() {
       toast.error('Terjadi kesalahan, silakan coba lagi.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleUpsellRequest = async (product: string) => {
+    if (!merchant) return;
+    setRequestingUpsell(product);
+    try {
+      const currentHistory = Array.isArray(merchant.upsell_history) ? merchant.upsell_history : [];
+      const newRequest = {
+        product,
+        status: 'Pending',
+        requested_at: new Date().toISOString()
+      };
+      const updatedHistory = [...currentHistory, newRequest];
+      
+      const { error } = await supabase
+        .from('merchants')
+        .update({ upsell_history: updatedHistory })
+        .eq('id', merchant.id);
+        
+      if (error) throw error;
+      
+      setMerchant({ ...merchant, upsell_history: updatedHistory });
+      toast.success('Permintaan Anda telah dicatat! Tim Logaritma akan segera menghubungi Anda via WA.', { duration: 5000 });
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memproses permintaan, coba lagi nanti.');
+    } finally {
+      setRequestingUpsell(null);
     }
   };
 
@@ -375,8 +405,12 @@ export default function MemberDashboard() {
               </div>
               <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">📢 Iklankan Bisnis Anda (Meta Ads)</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Services pengelolaan iklan Meta Ads dari Tim Logaritma untuk datangkan pelanggan secara otomatis.</p>
-              <button className="w-full border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-bold py-3 rounded-xl transition-all">
-                Pilih Paket Iklan
+              <button 
+                onClick={() => handleUpsellRequest('Jasa Iklan Meta Ads')}
+                disabled={requestingUpsell === 'Jasa Iklan Meta Ads'}
+                className="w-full border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {requestingUpsell === 'Jasa Iklan Meta Ads' ? <Loader2 size={18} className="animate-spin"/> : 'Pilih Paket Iklan'}
               </button>
             </div>
 
@@ -386,8 +420,12 @@ export default function MemberDashboard() {
               </div>
               <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🖨️ Mini Printer Thermal Logaritma</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Cetak struk kasir tanpa kabel via Bluetooth. Kompatibel 100% dengan aplikasi kasir UBOS.</p>
-              <button className="w-full border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold py-3 rounded-xl transition-all">
-                Pesan Mini Printer
+              <button 
+                onClick={() => handleUpsellRequest('Mini Printer Thermal')}
+                disabled={requestingUpsell === 'Mini Printer Thermal'}
+                className="w-full border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {requestingUpsell === 'Mini Printer Thermal' ? <Loader2 size={18} className="animate-spin"/> : 'Pesan Mini Printer'}
               </button>
             </div>
 
@@ -397,8 +435,12 @@ export default function MemberDashboard() {
               </div>
               <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🤝 Program Affiliate Logaritma</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Dapatkan komisi berulang dengan merekomendasikan Metoda Logaritma & UBOS ke jaringan UMKM Anda.</p>
-              <button className="w-full border-2 border-slate-200 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold py-3 rounded-xl transition-all">
-                Daftar Affiliator
+              <button 
+                onClick={() => handleUpsellRequest('Program Affiliate')}
+                disabled={requestingUpsell === 'Program Affiliate'}
+                className="w-full border-2 border-slate-200 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {requestingUpsell === 'Program Affiliate' ? <Loader2 size={18} className="animate-spin"/> : 'Daftar Affiliator'}
               </button>
             </div>
           </div>
