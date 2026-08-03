@@ -7,7 +7,7 @@ import {
   Users, Clock, PlusCircle, AlertCircle, LogOut, MessageCircle, Crown, Search, Filter, 
   ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
   Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
-  ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3
+  ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -33,6 +33,10 @@ export default function AdminDashboard() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [funnelFilter, setFunnelFilter] = useState('All');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  
+  // Modal State
+  const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
+  const [visitorModalFilter, setVisitorModalFilter] = useState<'ALL' | 'ACTIVE_TRIAL' | 'VVIP' | 'TRAFFIC_7_DAYS'>('ALL');
   
   const [metrics, setMetrics] = useState({
     total: 0,
@@ -264,6 +268,32 @@ export default function AdminDashboard() {
     return `${Math.floor(diff/1440)} days ago`;
   };
 
+  const modalMerchants = useMemo(() => {
+    const now = Date.now();
+    const startOfToday = new Date();
+    startOfToday.setHours(0,0,0,0);
+    const startOf7DaysAgo = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
+
+    return merchants.filter(m => {
+      const expiresAt = m.trial_expires_at ? new Date(m.trial_expires_at).getTime() : 0;
+      const isVVIP = expiresAt > now + 3000 * 24 * 60 * 60 * 1000;
+      const isActive = expiresAt > now && !isVVIP;
+      
+      if (visitorModalFilter === 'ACTIVE_TRIAL') return isActive;
+      if (visitorModalFilter === 'VVIP') return isVVIP;
+      if (visitorModalFilter === 'TRAFFIC_7_DAYS') {
+        const lastActive = m.last_active_at ? new Date(m.last_active_at).getTime() : 0;
+        return lastActive >= startOf7DaysAgo.getTime();
+      }
+      return true;
+    });
+  }, [merchants, visitorModalFilter]);
+
+  const openVisitorModal = (filter: 'ALL' | 'ACTIVE_TRIAL' | 'VVIP' | 'TRAFFIC_7_DAYS') => {
+    setVisitorModalFilter(filter);
+    setIsVisitorModalOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[100dvh] bg-slate-950">
@@ -400,22 +430,26 @@ export default function AdminDashboard() {
           {/* Metric Cards */}
           {(activeMenu === 'FUNNEL' || activeMenu === 'DASHBOARD') && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden">
+              <div onClick={() => openVisitorModal('ALL')} className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden cursor-pointer hover:border-blue-500 hover:bg-slate-800/80 transition-all group">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-blue-400"/></div>
                 <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><Users size={80}/></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Leads</p>
                 <p className="text-3xl font-black text-white">{metrics.total}</p>
               </div>
-              <div className="bg-slate-900 p-5 rounded-2xl border border-emerald-900/50 shadow-sm relative overflow-hidden">
+              <div onClick={() => openVisitorModal('ACTIVE_TRIAL')} className="bg-slate-900 p-5 rounded-2xl border border-emerald-900/50 shadow-sm relative overflow-hidden cursor-pointer hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all group">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-emerald-400"/></div>
                 <div className="absolute right-[-10px] bottom-[-10px] opacity-10 text-emerald-500"><Clock size={80}/></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Trial Aktif</p>
                 <p className="text-3xl font-black text-emerald-400">{metrics.activeTrial}</p>
               </div>
-              <div className="bg-gradient-to-br from-blue-900/40 to-slate-900 p-5 rounded-2xl border border-blue-800/50 shadow-sm relative overflow-hidden">
+              <div onClick={() => openVisitorModal('VVIP')} className="bg-gradient-to-br from-blue-900/40 to-slate-900 p-5 rounded-2xl border border-blue-800/50 shadow-sm relative overflow-hidden cursor-pointer hover:border-blue-500 hover:from-blue-900/60 transition-all group">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-blue-300"/></div>
                 <div className="absolute right-[-10px] bottom-[-10px] opacity-20 text-blue-500"><Crown size={80}/></div>
                 <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Sparkles size={12}/> VVIP / Premium</p>
                 <p className="text-3xl font-black text-white">{metrics.vvip}</p>
               </div>
-              <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden">
+              <div onClick={() => openVisitorModal('TRAFFIC_7_DAYS')} className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden cursor-pointer hover:border-amber-500/50 hover:bg-slate-800/80 transition-all group">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-amber-400"/></div>
                 <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><Activity size={80}/></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Traffic 7 Hari</p>
                 <p className="text-3xl font-black text-amber-400">{metrics.traffic7Days} <span className="text-sm text-slate-500 font-medium ml-1">users</span></p>
@@ -712,6 +746,86 @@ export default function AdminDashboard() {
       {/* Mobile Overlay for Sidebar */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-slate-950/80 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
+      {/* Visitor Log Modal */}
+      {isVisitorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsVisitorModalOpen(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <div>
+                <h2 className="text-xl font-black text-white flex items-center gap-2"><BarChart3 size={24} className="text-blue-500"/> Riwayat Pengunjung & Activity Log</h2>
+                <p className="text-sm text-slate-400 font-medium mt-1">Log aktivitas real-time pengunjung halaman utama logaritma.id & aplikasi.</p>
+              </div>
+              <button onClick={() => setIsVisitorModalOpen(false)} className="text-slate-500 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 p-2 rounded-xl">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-4 bg-slate-900 border-b border-slate-800 flex gap-2 overflow-x-auto hide-scrollbar">
+              <button onClick={() => setVisitorModalFilter('ALL')} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors border ${visitorModalFilter === 'ALL' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>All Leads Registered</button>
+              <button onClick={() => setVisitorModalFilter('ACTIVE_TRIAL')} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors border ${visitorModalFilter === 'ACTIVE_TRIAL' ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>Active Trial Only</button>
+              <button onClick={() => setVisitorModalFilter('VVIP')} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors border ${visitorModalFilter === 'VVIP' ? 'bg-blue-600/20 text-blue-400 border-blue-500/30' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>Premium VVIP Only</button>
+              <button onClick={() => setVisitorModalFilter('TRAFFIC_7_DAYS')} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors border ${visitorModalFilter === 'TRAFFIC_7_DAYS' ? 'bg-amber-600/20 text-amber-400 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>Traffic (7 Days)</button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead className="sticky top-0 bg-slate-900 z-10 shadow-sm">
+                  <tr className="border-b border-slate-800">
+                    <th className="pb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Waktu</th>
+                    <th className="pb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Merchant / Kontak</th>
+                    <th className="pb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">IP & Lokasi</th>
+                    <th className="pb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Device Info</th>
+                    <th className="pb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Aktivitas Terakhir</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {modalMerchants.map((m) => {
+                    const timeDate = m.last_active_at ? new Date(m.last_active_at) : new Date(m.created_at);
+                    const formattedDate = timeDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const formattedTime = timeDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    // Mock location if not available since it's just an IP usually
+                    const locationMock = m.ip_address ? 'Indonesia (Estimated)' : 'Unknown';
+                    
+                    return (
+                      <tr key={m.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-4">
+                          <p className="text-sm font-bold text-slate-200">{formattedDate}</p>
+                          <p className="text-xs text-slate-500 font-medium">{formattedTime}</p>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-sm font-bold text-blue-400">{m.nama_usaha || 'Guest'}</p>
+                          <p className="text-xs text-slate-500 font-medium">{m.whatsapp || '-'}</p>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-sm font-bold text-slate-300 font-mono bg-slate-950 inline-block px-2 py-0.5 rounded border border-slate-800 mb-1">{m.ip_address || 'N/A'}</p>
+                          <p className="text-xs text-slate-500 font-medium flex items-center gap-1"><MapPin size={10}/> {locationMock}</p>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-start gap-2">
+                            <Smartphone size={14} className="text-slate-400 mt-0.5 shrink-0" />
+                            <p className="text-[11px] text-slate-400 leading-tight line-clamp-2 max-w-[200px]" title={m.device_info}>{m.device_info || 'Unknown Device'}</p>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-800 border border-slate-700 rounded-md text-[11px] font-bold text-slate-300 max-w-[250px] overflow-hidden text-ellipsis whitespace-nowrap" title={m.current_page || 'Unknown Page'}>
+                            <Activity size={12} className="text-blue-500" /> {m.current_page || 'Landing Page'}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {modalMerchants.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-12 text-center text-slate-500">Tidak ada riwayat aktivitas untuk filter ini.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
 
       <style jsx global>{`
