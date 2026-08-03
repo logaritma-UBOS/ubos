@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Target, Server, MessageCircle, BrainCircuit, TrendingUp, Wallet, CheckCircle2, ChevronRight, Loader2, Sparkles } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Target, Server, MessageCircle, BrainCircuit, TrendingUp, Wallet, CheckCircle2, ChevronRight, Loader2, Sparkles, Lock } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase/client';
 
 const FUNDING_ITEMS = [
   {
@@ -49,18 +50,53 @@ const FUNDING_ITEMS = [
 
 export default function InvestorPortal() {
   const [selectedItems, setSelectedItems] = useState<string[]>(FUNDING_ITEMS.map(i => i.id));
+  const [fundedItems, setFundedItems] = useState<string[]>([]);
+  const [accumulatedFund, setAccumulatedFund] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [investorName, setInvestorName] = useState('');
   const [investorEmail, setInvestorEmail] = useState('');
   const [investorPhone, setInvestorPhone] = useState('');
 
   const targetAmount = 1950000;
+
+  useEffect(() => {
+    const fetchFunding = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cash_transactions')
+          .select('description, amount')
+          .eq('type', 'IN');
+          
+        if (data && !error) {
+          let total = 0;
+          let descriptions: string[] = [];
+          
+          data.forEach(tx => {
+            total += Number(tx.amount || 0);
+            if (tx.description) {
+              descriptions.push(tx.description);
+            }
+          });
+          
+          const funded = FUNDING_ITEMS.filter(item => descriptions.some(d => d.includes(item.title))).map(i => i.id);
+          
+          setFundedItems(funded);
+          setAccumulatedFund(total);
+          setSelectedItems(FUNDING_ITEMS.filter(i => !funded.includes(i.id)).map(i => i.id));
+        }
+      } catch (err) {
+        console.error('Failed to fetch funding data', err);
+      }
+    };
+    
+    fetchFunding();
+  }, []);
   
   const currentTotal = useMemo(() => {
-    return FUNDING_ITEMS.filter(item => selectedItems.includes(item.id)).reduce((acc, curr) => acc + curr.price, 0);
-  }, [selectedItems]);
+    return FUNDING_ITEMS.filter(item => selectedItems.includes(item.id) && !fundedItems.includes(item.id)).reduce((acc, curr) => acc + curr.price, 0);
+  }, [selectedItems, fundedItems]);
 
-  const progressPercentage = (currentTotal / targetAmount) * 100;
+  const progressPercentage = Math.min((accumulatedFund / targetAmount) * 100, 100);
 
   const toggleItem = (id: string) => {
     if (selectedItems.includes(id)) {
@@ -71,7 +107,7 @@ export default function InvestorPortal() {
   };
 
   const selectAll = () => {
-    setSelectedItems(FUNDING_ITEMS.map(i => i.id));
+    setSelectedItems(FUNDING_ITEMS.filter(i => !fundedItems.includes(i.id)).map(i => i.id));
   };
 
   const handleCheckout = async (e: React.FormEvent) => {
@@ -151,8 +187,8 @@ export default function InvestorPortal() {
                   <p className="text-3xl font-black text-white">Rp {targetAmount.toLocaleString('id-ID')}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Terpilih</p>
-                  <p className="text-2xl font-black text-blue-400">Rp {currentTotal.toLocaleString('id-ID')}</p>
+                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Terkumpul</p>
+                  <p className="text-2xl font-black text-blue-400">Rp {accumulatedFund.toLocaleString('id-ID')}</p>
                 </div>
               </div>
               
@@ -162,7 +198,10 @@ export default function InvestorPortal() {
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-slate-500 font-medium text-right relative z-10">{progressPercentage.toFixed(0)}% dari target</p>
+              <div className="flex justify-between items-center text-xs font-medium relative z-10">
+                <p className="text-slate-500">{progressPercentage.toFixed(0)}% dari target</p>
+                <p className="text-amber-400/80 font-bold">Sisa: Rp {Math.max(targetAmount - accumulatedFund, 0).toLocaleString('id-ID')}</p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between mt-8 mb-4">
@@ -172,23 +211,26 @@ export default function InvestorPortal() {
 
             <div className="space-y-4">
               {FUNDING_ITEMS.map((item) => {
-                const isSelected = selectedItems.includes(item.id);
+                const isFunded = fundedItems.includes(item.id);
+                const isSelected = selectedItems.includes(item.id) && !isFunded;
                 const Icon = item.icon;
                 
                 return (
                   <div 
                     key={item.id}
-                    onClick={() => toggleItem(item.id)}
-                    className={`group relative p-5 rounded-2xl border transition-all cursor-pointer ${isSelected ? 'bg-slate-800/80 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'bg-slate-900 border-slate-800 hover:border-slate-700 hover:bg-slate-800/50'}`}
+                    onClick={() => { if (!isFunded) toggleItem(item.id); }}
+                    className={`group relative p-5 rounded-2xl border transition-all ${isFunded ? 'bg-slate-900/40 border-emerald-900/30 opacity-70 cursor-not-allowed' : 'cursor-pointer'} ${isSelected ? 'bg-slate-800/80 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : !isFunded ? 'bg-slate-900 border-slate-800 hover:border-slate-700 hover:bg-slate-800/50' : ''}`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-950 text-slate-400 border border-slate-800'}`}>
-                        <Icon size={24} />
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isFunded ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' : isSelected ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-950 text-slate-400 border border-slate-800'}`}>
+                        {isFunded ? <CheckCircle2 size={24} /> : <Icon size={24} />}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
-                          <h3 className={`font-black text-lg transition-colors ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>{item.title}</h3>
-                          <p className={`font-black transition-colors ${isSelected ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400'}`}>
+                          <h3 className={`font-black text-lg transition-colors ${isFunded ? 'text-emerald-400' : isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                            {item.title}
+                          </h3>
+                          <p className={`font-black transition-colors ${isFunded ? 'text-emerald-500' : isSelected ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400'}`}>
                             Rp {item.price.toLocaleString('id-ID')}
                           </p>
                         </div>
@@ -197,10 +239,17 @@ export default function InvestorPortal() {
                     </div>
                     
                     {/* Checkbox absolute pos */}
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
-                      <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-700'}`}>
-                        {isSelected && <CheckCircle2 size={16} />}
-                      </div>
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      {isFunded && (
+                        <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1">
+                          <Lock size={10} /> Terfunded
+                        </span>
+                      )}
+                      {!isFunded && (
+                        <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-700'}`}>
+                          {isSelected && <CheckCircle2 size={16} />}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
