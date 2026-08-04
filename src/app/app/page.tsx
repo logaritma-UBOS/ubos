@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -830,13 +830,13 @@ export default function MemberDashboard() {
               
               <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mt-4">
                 <p className="text-xs font-bold text-blue-700 leading-relaxed">
-                  â„¹ï¸ Sisa hari aktif trial/lisensi Anda saat ini tidak akan hangus, melainkan langsung otomatis ditambahkan <span className="text-blue-800 font-black bg-blue-200 px-1 rounded">+30 hari</span> setelah pembayaran selesai.
+                  <Info className="w-4 h-4 text-blue-600 inline mr-1 mb-0.5" /> Sisa hari aktif trial/lisensi Anda saat ini tidak akan hangus, melainkan langsung otomatis ditambahkan <span className="text-blue-800 font-black bg-blue-200 px-1 rounded">+30 hari</span> setelah pembayaran selesai.
                 </p>
               </div>
               
               <div className="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-200 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-red-500/20">
-                  ðŸ”¥ Diskon Khusus UMKM 50%
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-red-500/20 whitespace-nowrap">
+                  <Flame className="w-3.5 h-3.5 text-white inline" /> Diskon Khusus UMKM 50%
                 </div>
                 
                 <p className="text-slate-400 font-bold line-through mt-2 mb-0">Rp 99.000/bulan</p>
