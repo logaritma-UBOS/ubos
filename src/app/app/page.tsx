@@ -568,21 +568,21 @@ export default function MemberDashboard() {
 
       {/* Paywall Renewal Modal */}
       {showPaywallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col border border-slate-200 relative custom-scrollbar">
             
             <button onClick={() => setShowPaywallModal(false)} className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 z-10 transition-colors">
               <X size={18} />
             </button>
             
-            <div className="p-8 text-center space-y-4">
-              <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-2 rotate-12 shadow-sm border border-amber-200">
-                <Lock size={40} />
+            <div className="p-6 md:p-8 text-center space-y-4">
+              <div className="w-14 h-14 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-1 rotate-12 shadow-sm border border-amber-200">
+                <Lock size={28} />
               </div>
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">
                 {trialDaysLeft > 0 ? 'Upgrade Premium UBOS' : 'Masa Coba Gratis Anda Telah Berakhir'}
               </h3>
-              <p className="text-slate-500 font-medium max-w-sm mx-auto">Tetap kunci batas belanja harian, pantau profit bersih, dan operasionalkan kasir toko Anda tanpa henti.</p>
+              <p className="text-slate-500 font-medium max-w-sm mx-auto text-sm">Tetap kunci batas belanja harian, pantau profit bersih, dan operasionalkan kasir toko Anda tanpa henti.</p>
               
               <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mt-4">
                 <p className="text-xs font-bold text-blue-700 leading-relaxed">
@@ -590,19 +590,19 @@ export default function MemberDashboard() {
                 </p>
               </div>
               
-              <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-xs font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-red-500/20">
+              <div className="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-200 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-red-500/20">
                   🔥 Diskon Khusus UMKM 50%
                 </div>
                 
-                <p className="text-slate-400 font-bold line-through mt-2 mb-1">Rp 99.000/bulan</p>
+                <p className="text-slate-400 font-bold line-through mt-2 mb-0">Rp 99.000/bulan</p>
                 <div className="flex items-end justify-center gap-1 text-primary">
                   <span className="text-3xl font-black">Rp 49.000</span>
                   <span className="font-bold mb-1">/ bulan</span>
                 </div>
               </div>
 
-              <div className="pt-4 space-y-3">
+              <div className="pt-2 space-y-3">
                 <button 
                   onClick={handlePayWithMayar}
                   disabled={isCreatingPayment}
