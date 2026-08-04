@@ -1,19 +1,31 @@
 export async function sendFonnteWA(target: string, message: string) {
-  const token = process.env.NEXT_PUBLIC_FONNTE_TOKEN || 'rw47gsoTHcy86wGbxAtW';
   try {
-    const response = await fetch('https://api.fonnte.com/send', {
+    const response = await fetch('/api/send-wa', {
       method: 'POST',
-      headers: {
-        'Authorization': token,
-      },
-      body: new URLSearchParams({
-        target: target,
-        message: message,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, message }),
     });
-    return await response.json();
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to send via Fonnte API Route');
+    }
+    
+    return data;
   } catch (error) {
-    console.error('Error sending Fonnte WA:', error);
+    console.error('Error sending Fonnte WA, falling back to direct link:', error);
+    
+    // Fallback: Open direct WhatsApp link
+    let finalPhone = target.replace(/\D/g, '');
+    if (finalPhone.startsWith('0')) {
+      finalPhone = '62' + finalPhone.substring(1);
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    }
+    
     return { status: false, error };
   }
 }
