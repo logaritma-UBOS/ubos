@@ -6,7 +6,7 @@ import { Store, Mail, Lock } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [password, setPassword] = useState('');
   const [merchantName, setMerchantName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,11 +18,15 @@ export default function AuthPage() {
     setError(null);
 
     try {
+      const cleanWA = whatsapp.replace(/\D/g, '');
+      if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid.');
+      const dummyEmail = `${cleanWA}@logaritma.id`;
+
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: dummyEmail, password });
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email: dummyEmail, password });
         if (error) throw error;
         
         // After signup, create merchant profile if user is created
@@ -33,6 +37,7 @@ export default function AuthPage() {
               user_id: data.user.id,
               nama_usaha: merchantName,
               kategori_usaha: 'F&B',
+              whatsapp: cleanWA
             }]);
             
           if (profileError) {
@@ -84,18 +89,18 @@ export default function AuthPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Email</label>
+            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Nomor WhatsApp</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <Mail size={18} />
               </div>
               <input
-                type="email"
+                type="tel"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
-                placeholder="owner@toko.com"
+                placeholder="08123456789"
               />
             </div>
           </div>

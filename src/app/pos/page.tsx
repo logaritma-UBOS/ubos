@@ -559,8 +559,8 @@ export default function POSPage() {
                 <button onClick={handleReset} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
                   Transaksi Baru
                 </button>
-                <button onClick={() => { handleReset(); router.push('/'); }} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
-                  Kembali ke Beranda
+                <button onClick={handleReset} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                  Kembali ke Dashboard POS
                 </button>
               </div>
            </div>

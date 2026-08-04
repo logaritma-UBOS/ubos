@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ArrowLeft, UploadCloud, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, UploadCloud, Plus, Trash2, ImagePlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -183,16 +183,16 @@ export default function NewProductPage() {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Foto Produk</label>
               <div className="relative">
                 <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                <div className={`w-full h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${imagePreview ? 'border-primary bg-primary/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
+                <div className={`w-full h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${imagePreview ? 'border-primary/50 bg-primary/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
                   {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={imagePreview} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <>
-                      <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-2 text-slate-400">
-                        <UploadCloud size={24} />
+                      <div className="text-slate-400 mb-2">
+                        <ImagePlus size={32} strokeWidth={1.5} />
                       </div>
-                      <span className="text-sm font-medium text-slate-600">Tap untuk upload foto</span>
-                      <span className="text-xs text-slate-400 mt-1">PNG, JPG up to 5MB</span>
+                      <span className="text-sm font-bold text-slate-600">Ketuk untuk unggah foto produk</span>
+                      <span className="text-xs text-slate-400 mt-1">PNG, JPG maks 5MB</span>
                     </>
                   )}
                 </div>

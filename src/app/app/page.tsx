@@ -28,6 +28,18 @@ export default function MemberDashboard() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          const leadStr = localStorage.getItem('ubos_lead');
+          if (leadStr) {
+            try {
+              const leadData = JSON.parse(leadStr);
+              if (isMounted) {
+                setMerchant(leadData);
+                setTrialDaysLeft(7);
+                setLoading(false);
+              }
+              return;
+            } catch (e) {}
+          }
           if (isMounted) setLoading(false);
           router.push('/');
           return;
@@ -279,12 +291,20 @@ export default function MemberDashboard() {
                   <p className="text-slate-500 font-medium mb-6">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
                   
                   {trialDaysLeft > 0 ? (
-                    <a 
-                      href="/ubos"
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!merchant?.user_id) {
+                          toast.error('Silakan login/daftar untuk menggunakan modul ini.');
+                          router.push('/auth');
+                          return;
+                        }
+                        router.push('/ubos');
+                      }}
                       className="w-full md:w-auto self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                     >
                       Pilih Modul F&B <ArrowRight size={18} />
-                    </a>
+                    </button>
                   ) : (
                     <button 
                       onClick={() => setShowPaywallModal(true)}
@@ -524,7 +544,20 @@ export default function MemberDashboard() {
                     <h4 className="text-base font-bold text-slate-900 mb-1">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
                     <p className="text-slate-500 text-sm font-medium mb-4">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
                     {trialDaysLeft > 0 ? (
-                      <a href="/ubos" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Buka Modul F&B <ArrowRight size={16} /></a>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!merchant?.user_id) {
+                            toast.error('Silakan login/daftar untuk menggunakan modul ini.');
+                            router.push('/auth');
+                            return;
+                          }
+                          router.push('/ubos');
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"
+                      >
+                        Buka Modul F&B <ArrowRight size={16} />
+                      </button>
                     ) : (
                       <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
                     )}

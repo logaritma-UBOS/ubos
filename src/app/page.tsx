@@ -57,84 +57,48 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      // 1. Generate Dummy Email & Password based on WhatsApp
-      // Remove any non-numeric characters from WA
       const cleanWA = formData.whatsapp.replace(/\D/g, '');
       if (cleanWA.length < 10) {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
       
-      const dummyEmail = `${cleanWA}@logaritma.id`;
-      const dummyPassword = `Logaritma${cleanWA}`;
-
-      // 2. Sign Up User (Background)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: dummyEmail,
-        password: dummyPassword,
-      });
-
-      if (authError) {
-        // If user already exists (maybe they registered before), let's try to sign in
-        if (authError.message.includes('already registered')) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: dummyEmail,
-            password: dummyPassword
-          });
-          if (signInError) throw signInError;
-        } else {
-          throw authError;
-        }
-      }
-
-      // Ensure we have a user
-      const currentUser = (await supabase.auth.getSession()).data.session?.user;
-      if (!currentUser) throw new Error("Gagal mendaftarkan sesi.");
-
-      // 3. Create or Update Merchant Profile
-      const { data: existingMerchant } = await supabase
+      // 1. Cek apakah WA sudah terdaftar di database merchants
+      const { data: existingWa } = await supabase
         .from('merchants')
         .select('id')
-        .eq('user_id', currentUser.id)
+        .eq('whatsapp', cleanWA)
         .maybeSingle();
 
-      let merchantError;
-      if (existingMerchant) {
-        const { error } = await supabase
-          .from('merchants')
-          .update({
-            nama_usaha: formData.merchantName,
-            kategori_usaha: formData.category,
-            whatsapp: cleanWA,
-            trial_start: new Date().toISOString(),
-            trial_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          })
-          .eq('id', existingMerchant.id);
-        merchantError = error;
-      } else {
-        const { error } = await supabase
-          .from('merchants')
-          .insert({
-            user_id: currentUser.id,
-            nama_usaha: formData.merchantName,
-            kategori_usaha: formData.category,
-            whatsapp: cleanWA,
-            trial_start: new Date().toISOString(),
-            trial_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            is_admin: false,
-          });
-        merchantError = error;
+      if (existingWa) {
+        toast.error("Nomor WhatsApp ini sudah terdaftar. Silakan login untuk melanjutkan.");
+        router.push('/auth');
+        return;
       }
 
-      if (merchantError) throw merchantError;
-
-      toast.success("Pendaftaran berhasil! Mengarahkan ke Dashboard...");
+      // 2. Simpan sebagai lead di localStorage
+      const leadData = {
+        nama_usaha: formData.merchantName,
+        owner_name: formData.ownerName,
+        whatsapp: cleanWA,
+        kategori_usaha: formData.category,
+      };
       
-      // Close modal and push
-      setShowModal(false);
+      localStorage.setItem('ubos_lead', JSON.stringify(leadData));
+
+      // 3. (Opsional) Catat ke waiting_list
+      await supabase.from('waiting_list').insert([
+        {
+          nama_usaha: formData.merchantName,
+          whatsapp: cleanWA,
+          kategori_usaha: formData.category
+        }
+      ]);
+
+      toast.success("Berhasil! Mengalihkan ke Member Area...");
       router.push('/app');
       
     } catch (err: any) {
-      toast.error(err.message || 'Gagal melakukan pendaftaran.');
+      toast.error(err.message || 'Terjadi kesalahan.');
     } finally {
       setLoading(false);
     }
