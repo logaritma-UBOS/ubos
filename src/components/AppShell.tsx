@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
-import Copilot from './Copilot';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -169,8 +168,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <BottomNav />
         </div>
       )}
-      
-      {!hideSidebar && <Copilot />}
     </div>
   );
 }
