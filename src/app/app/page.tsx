@@ -240,7 +240,7 @@ export default function MemberDashboard() {
               onClick={() => setShowPaywallModal(true)}
               className="bg-amber-400 hover:bg-amber-300 text-amber-900 font-black px-4 py-3 rounded-xl transition-transform active:scale-95 shadow-lg shadow-amber-400/20 w-full md:w-auto flex items-center justify-center gap-2"
             >
-              âš¡ Upgrade Premium Rp 49.000
+              ⚡ Upgrade Premium Rp 49.000
             </button>
           </div>
         </div>
@@ -416,7 +416,7 @@ export default function MemberDashboard() {
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
                 <Megaphone size={24} />
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">ðŸ“¢ Iklankan Bisnis Anda (Meta Ads)</h3>
+              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">📢 Iklankan Bisnis Anda (Meta Ads)</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Services pengelolaan iklan Meta Ads dari Tim Logaritma untuk datangkan pelanggan secara otomatis.</p>
               <button 
                 onClick={() => handleUpsellRequest('Jasa Iklan Meta Ads')}
@@ -431,7 +431,7 @@ export default function MemberDashboard() {
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
                 <Printer size={24} />
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">ðŸ–¨ï¸ Mini Printer Thermal Logaritma</h3>
+              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🖨️ Mini Printer Thermal Logaritma</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Cetak struk kasir tanpa kabel via Bluetooth. Kompatibel 100% dengan aplikasi kasir UBOS.</p>
               <button 
                 onClick={() => handleUpsellRequest('Mini Printer Thermal')}
@@ -446,7 +446,7 @@ export default function MemberDashboard() {
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
                 <Handshake size={24} />
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">ðŸ¤ Program Affiliate Logaritma</h3>
+              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🤝 Program Affiliate Logaritma</h3>
               <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Dapatkan komisi berulang dengan merekomendasikan Metoda Logaritma & UBOS ke jaringan UMKM Anda.</p>
               <button 
                 onClick={() => handleUpsellRequest('Program Affiliate')}
