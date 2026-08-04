@@ -12,25 +12,27 @@ export default function LandingPage() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ── Analytics Tracker ──────────────────────────────────────
-  const trackEvent = async (eventType: 'page_view' | 'cta_click', ctaName?: string) => {
+  // ── Analytics Tracker (via /api/track → analytics_events table) ──
+  const trackEvent = async (eventType: 'page_view' | 'click_cta_register' | 'click_wa_consultation') => {
     try {
       const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-      const params = new URLSearchParams(window.location.search);
-      await supabase.from('visitor_analytics').insert({
-        event_type: eventType,
-        cta_name: ctaName || null,
-        device_type: isMobile ? 'Mobile' : 'Desktop',
-        referrer: document.referrer || 'Direct',
-        utm_source: params.get('utm_source') || null,
-        utm_medium: params.get('utm_medium') || null,
-        utm_campaign: params.get('utm_campaign') || null,
+      await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: eventType,
+          metadata: {
+            referrer: document.referrer || 'Direct',
+            is_mobile: isMobile,
+            timestamp: new Date().toISOString(),
+          },
+        }),
       });
     } catch (_) { /* silent — analytics should never break UX */ }
   };
 
   useEffect(() => { trackEvent('page_view'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  // ────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
 
   const [formData, setFormData] = useState({
     ownerName: '',
@@ -85,12 +87,14 @@ export default function LandingPage() {
       
       localStorage.setItem('ubos_lead', JSON.stringify(leadData));
 
-      // 3. (Opsional) Catat ke waiting_list
-      await supabase.from('waiting_list').insert([
+      // 3. Simpan ke tabel leads
+      await supabase.from('leads').insert([
         {
+          nama_pemilik: formData.ownerName,
           nama_usaha: formData.merchantName,
-          whatsapp: cleanWA,
-          kategori_usaha: formData.category
+          no_wa: cleanWA,
+          kategori: formData.category,
+          status: 'New Lead'
         }
       ]);
       toast.success("Berhasil! Mengalihkan ke Member Area...");
@@ -127,7 +131,7 @@ export default function LandingPage() {
           </div>
 
           <button 
-            onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
+            onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
             className="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full transition-colors shadow-md shadow-blue-600/20"
           >
             Mulai Gratis
@@ -161,7 +165,7 @@ export default function LandingPage() {
 
           <div className="pt-4 md:pt-8 flex flex-col items-center gap-6">
             <button 
-              onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
+              onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base md:text-xl font-black py-4 md:py-5 px-4 md:px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-2 md:gap-3 w-full max-w-md mx-auto justify-center group leading-snug"
             >
               Aktifkan Sistem UBOS & Logaritma AI (Coba Gratis) <ArrowRight className="ml-1 md:ml-2 shrink-0 group-hover:translate-x-1 transition-transform" />
@@ -757,7 +761,7 @@ export default function LandingPage() {
         href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..."
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => trackEvent('cta_click', 'WhatsApp')}
+        onClick={() => trackEvent('click_wa_consultation')}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, duration: 0.5 }}

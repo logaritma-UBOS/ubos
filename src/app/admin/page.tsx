@@ -86,7 +86,6 @@ export default function AdminDashboard() {
     categories: {} as Record<string, number>
   });
 
-  // Landing Page Analytics State
   const [analyticsData, setAnalyticsData] = useState({
     totalVisitors: 0,
     registerClicks: 0,
@@ -94,6 +93,7 @@ export default function AdminDashboard() {
     mobilePercent: 0,
     referrers: [] as { source: string; count: number }[],
   });
+  const [totalLeadsCount, setTotalLeadsCount] = useState(0);
 
   const [isSendingWA, setIsSendingWA] = useState<Record<string, boolean>>({});
 
@@ -270,39 +270,32 @@ export default function AdminDashboard() {
         setCashTransactions(txData);
       }
 
-      // Fetch Visitor Analytics
-      const { data: analyticsRaw } = await supabase
-        .from('visitor_analytics')
-        .select('event_type, cta_name, device_type, referrer, utm_source')
-        .order('created_at', { ascending: false })
-        .limit(5000);
+      // ── Fetch Real Analytics from analytics_events + leads ──────────────
+      const [
+        { count: totalVisitors },
+        { count: ctaClicks },
+        { count: waClicks },
+        { count: totalLeads },
+      ] = await Promise.all([
+        supabase.from('analytics_events').select('*', { count: 'exact', head: true }).eq('event_type', 'page_view'),
+        supabase.from('analytics_events').select('*', { count: 'exact', head: true }).eq('event_type', 'click_cta_register'),
+        supabase.from('analytics_events').select('*', { count: 'exact', head: true }).eq('event_type', 'click_wa_consultation'),
+        supabase.from('leads').select('*', { count: 'exact', head: true }),
+      ]);
 
-      if (analyticsRaw) {
-        const views = analyticsRaw.filter(r => r.event_type === 'page_view');
-        const clicks = analyticsRaw.filter(r => r.event_type === 'cta_click');
-        const mobileViews = views.filter(r => r.device_type === 'Mobile').length;
-        const registerClicks = clicks.filter(r => r.cta_name === 'Register').length;
-        const waClicks = clicks.filter(r => r.cta_name === 'WhatsApp').length;
-        
-        // Build referrer list
-        const refMap: Record<string, number> = {};
-        views.forEach(r => {
-          const src = r.utm_source || (r.referrer && r.referrer !== 'Direct' ? new URL(r.referrer).hostname : 'Direct');
-          refMap[src] = (refMap[src] || 0) + 1;
-        });
-        const referrers = Object.entries(refMap)
-          .map(([source, count]) => ({ source, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 6);
+      const totalV = totalVisitors ?? 0;
+      const totalCta = ctaClicks ?? 0;
+      const totalWa = waClicks ?? 0;
+      const totalL = totalLeads ?? 0;
 
-        setAnalyticsData({
-          totalVisitors: views.length,
-          registerClicks,
-          whatsappClicks: waClicks,
-          mobilePercent: views.length > 0 ? Math.round((mobileViews / views.length) * 100) : 0,
-          referrers,
-        });
-      }
+      setTotalLeadsCount(totalL);
+      setAnalyticsData({
+        totalVisitors: totalV,
+        registerClicks: totalCta,
+        whatsappClicks: totalWa,
+        mobilePercent: 0,
+        referrers: [],
+      });
 
     } catch (err: any) {
       console.error(err);
@@ -886,7 +879,8 @@ export default function AdminDashboard() {
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-blue-400"/></div>
                 <div className="absolute right-[-10px] bottom-[-10px] opacity-10"><Users size={80}/></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Leads</p>
-                <p className="text-3xl font-black text-white">{metrics.total}</p>
+                <p className="text-3xl font-black text-white">{totalLeadsCount}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{metrics.total} merchant aktif</p>
               </div>
               <div onClick={() => openVisitorModal('ACTIVE_TRIAL')} className="bg-slate-900 p-5 rounded-2xl border border-emerald-900/50 shadow-sm relative overflow-hidden cursor-pointer hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all group">
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"><ExternalLink size={14} className="text-emerald-400"/></div>
