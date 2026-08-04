@@ -8,7 +8,7 @@ import {
   ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
   Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
   ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin,
-  Eye, EyeOff, Save, Trash2
+  Eye, EyeOff, Save, Trash2, Import, UserPlus, PhoneCall, CheckCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const [isUpsellMenuExpanded, setIsUpsellMenuExpanded] = useState(false);
 
   // Dashboard State
-  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'ACCOUNTING' | 'DASHBOARD' | 'SETTINGS'>('DASHBOARD');
+  const [activeMenu, setActiveMenu] = useState<'FUNNEL' | 'WA_CRM' | 'UPSELL_REQUESTS' | 'UPSELL_CATALOG' | 'UPSELL_SETTINGS' | 'ACCOUNTING' | 'DASHBOARD' | 'SETTINGS'>('DASHBOARD');
   const [merchants, setMerchants] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -60,6 +60,13 @@ export default function AdminDashboard() {
   const [accFormAmount, setAccFormAmount] = useState('');
   const [isSubmittingAcc, setIsSubmittingAcc] = useState(false);
   const [isInvestorViewOnly, setIsInvestorViewOnly] = useState(false);
+  
+  // WA CRM State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [waSearchQuery, setWaSearchQuery] = useState('');
+  const [waFunnelFilter, setWaFunnelFilter] = useState('All');
   
   const [metrics, setMetrics] = useState({
     total: 0,
@@ -226,6 +233,64 @@ export default function AdminDashboard() {
     setEmail('');
     setPassword('');
     toast.success('Berhasil logout dari Admin Panel');
+  };
+
+  const handleBulkImport = async () => {
+    if (!importText.trim()) {
+      toast.error('Data tidak boleh kosong');
+      return;
+    }
+    
+    setIsImporting(true);
+    try {
+      // Parser logic
+      const lines = importText.split('\n').map(line => line.trim()).filter(line => line);
+      const parsedData = lines.map(line => {
+        const parts = line.split(',');
+        let nama = parts[0]?.trim() || 'New Lead';
+        let wa = parts[1]?.trim() || parts[0]?.trim();
+        let cat = parts[2]?.trim() || 'Imported';
+        
+        if (parts.length === 1 && !line.includes(',')) {
+          wa = line.trim();
+        }
+        
+        // Auto-formatter WA
+        wa = wa.replace(/\D/g, ''); // hapus non digit
+        if (wa.startsWith('0')) wa = '62' + wa.substring(1);
+        if (wa.startsWith('8')) wa = '62' + wa;
+        
+        return {
+          nama_usaha: nama,
+          no_whatsapp: wa,
+          kategori_usaha: cat,
+          status_funnel: 'New Lead'
+        };
+      }).filter(d => d.no_whatsapp.length > 8);
+
+      if (parsedData.length === 0) {
+        toast.error('Tidak ada data valid yang bisa diimport');
+        setIsImporting(false);
+        return;
+      }
+      
+      const { error } = await supabase.from('merchants').insert(parsedData);
+      
+      if (error) {
+        console.error('Import error:', error);
+        toast.error('Gagal import. Cek log console. (Mungkin constraint user_id)');
+      } else {
+        toast.success(`Berhasil mengimpor ${parsedData.length} kontak baru`);
+        setIsImportModalOpen(false);
+        setImportText('');
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Terjadi kesalahan saat parsing.');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const addTrialDays = async (id: string, currentExpiry: string) => {
@@ -570,6 +635,12 @@ export default function AdminDashboard() {
           >
             <Activity size={18} /> Lead Funnel Tracker
           </button>
+          <button 
+            onClick={() => { setActiveMenu('WA_CRM'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${activeMenu === 'WA_CRM' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <MessageCircle size={18} /> WA CRM & Database
+          </button>
           <div>
             <button 
               onClick={() => setIsUpsellMenuExpanded(!isUpsellMenuExpanded)}
@@ -851,6 +922,74 @@ export default function AdminDashboard() {
                            <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 border border-slate-800 text-slate-500 rounded-full mb-4 shadow-sm"><Search size={24} /></div>
                            <p className="text-slate-400 font-medium">Tidak ada data leads yang sesuai dengan pencarian.</p>
                         </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'WA_CRM' && (
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-[600px] overflow-hidden">
+              <div className="p-4 sm:p-5 border-b border-slate-800 flex flex-col xl:flex-row gap-4 justify-between items-center bg-slate-900/50">
+                <div className="flex gap-2">
+                  <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/20">
+                    <Import size={16} /> Import Massal
+                  </button>
+                  <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                    <UserPlus size={16} /> Manual
+                  </button>
+                </div>
+                
+                <div className="flex w-full xl:w-auto items-center gap-3">
+                  <div className="relative flex-1 xl:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Search size={14} /></div>
+                    <input type="text" placeholder="Cari Kontak..." value={waSearchQuery} onChange={(e) => setWaSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Filter size={14} /></div>
+                    <select value={waFunnelFilter} onChange={(e) => setWaFunnelFilter(e.target.value)} className="pl-9 pr-8 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-slate-300 appearance-none focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                      <option value="All">Semua Status</option>
+                      <option value="New Lead">New Lead</option>
+                      <option value="Trial">Trial</option>
+                      <option value="Expired">Expired</option>
+                      <option value="VVIP">VVIP</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto flex-1 custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead className="sticky top-0 bg-slate-900 shadow-md z-10">
+                    <tr className="border-b border-slate-800">
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama / Usaha</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nomor WA</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Kategori</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status Funnel</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Aksi Cepat</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {merchants.filter(m => (waFunnelFilter === 'All' || m.status_funnel === waFunnelFilter || (waFunnelFilter === 'New Lead' && !m.status_funnel)) && (m.nama_usaha?.toLowerCase().includes(waSearchQuery.toLowerCase()) || m.whatsapp?.includes(waSearchQuery) || m.no_whatsapp?.includes(waSearchQuery))).map((m) => (
+                      <tr key={m.id} className="hover:bg-slate-800/50 transition-colors">
+                        <td className="p-4 font-bold text-slate-200">{m.nama_usaha || 'Tanpa Nama'}</td>
+                        <td className="p-4 text-slate-300">{m.no_whatsapp || m.whatsapp || '-'}</td>
+                        <td className="p-4 text-slate-400 text-sm">{m.kategori_usaha || '-'}</td>
+                        <td className="p-4">
+                          <span className="bg-slate-800 text-slate-300 text-xs px-2 py-1 rounded border border-slate-700">{m.status_funnel || 'New Lead'}</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <a href={`https://wa.me/62${(m.no_whatsapp || m.whatsapp || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%2C%20ini%20dengan%20tim%20Logaritma...`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-green-900/20">
+                            <MessageCircle size={14} /> Chat WA
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                    {merchants.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center text-slate-500">Tidak ada kontak ditemukan.</td>
                       </tr>
                     )}
                   </tbody>
