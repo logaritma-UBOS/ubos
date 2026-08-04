@@ -62,7 +62,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && pathname !== '/auth' && pathname !== '/' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      if (!session && pathname !== '/auth' && pathname !== '/' && pathname !== '/member' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
       } else if (session && (pathname === '/auth' || pathname === '/')) {
         router.push('/member');
@@ -76,7 +76,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }
         const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
         if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
-          router.push('/app?expired=true');
+          router.push('/member?expired=true');
         }
       }
     };
@@ -112,7 +112,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           }
           const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
           if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
-            router.push('/app?expired=true');
+            router.push('/member?expired=true');
           }
         }
       } else {
