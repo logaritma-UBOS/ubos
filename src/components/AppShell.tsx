@@ -7,7 +7,6 @@ import { Session } from '@supabase/supabase-js';
 import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
 import Copilot from './Copilot';
-import FloatingAIPilot from './FloatingAIPilot';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -172,7 +171,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
       
       {!hideSidebar && <Copilot />}
-      {!isLandingPage && !isAuthPage && !isAdminPage && !isMemberArea && <FloatingAIPilot />}
     </div>
   );
 }

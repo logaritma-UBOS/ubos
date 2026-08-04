@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CurrencyInput from '@/components/CurrencyInput';
+import FloatingAIPilot from '@/components/FloatingAIPilot';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -149,11 +150,14 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-slate-50 relative z-50 animate-in slide-in-from-right-full duration-300">
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="font-bold text-lg text-white">Pengaturan Akun</h1>
+      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="font-bold text-lg text-white">Pengaturan Akun</h1>
+        </div>
+        <FloatingAIPilot />
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-28 pt-24">

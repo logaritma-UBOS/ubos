@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, RefreshCcw, Landmark, ShieldCheck, History, X, CheckCircle, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import FloatingAIPilot from '@/components/FloatingAIPilot';
 
 export default function FinancePage() {
   const router = useRouter();
@@ -171,9 +172,12 @@ export default function FinancePage() {
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Keuangan</h1>
           <p className="text-white/80 text-xs mt-0.5">Uang otomatis terpisah setiap transaksi.</p>
         </div>
-        <div className="inline-flex items-center space-x-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/30 backdrop-blur-sm">
-          <ShieldCheck size={14} className="text-white" />
-          <span>Auto-Split Aktif</span>
+        <div className="flex items-center gap-2">
+          <FloatingAIPilot />
+          <div className="inline-flex items-center space-x-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/30 backdrop-blur-sm">
+            <ShieldCheck size={12} className="text-emerald-300" />
+            <span>Auto-Split Aktif</span>
+          </div>
         </div>
       </header>
 

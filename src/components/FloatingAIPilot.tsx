@@ -82,12 +82,13 @@ export default function FloatingAIPilot() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Top Header Button */}
       <button 
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-24 right-6 md:bottom-8 md:right-8 z-50 p-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl hover:shadow-indigo-500/30 transition-transform active:scale-95 ${isOpen ? 'hidden' : 'flex'}`}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
       >
-        <Sparkles size={24} className="animate-pulse" />
+        <Sparkles size={14} className={!isOpen ? "animate-pulse" : ""} />
+        <span className="hidden md:inline">AI Copilot</span>
       </button>
 
       {/* AI Panel Modal/Popover */}
