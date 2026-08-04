@@ -118,7 +118,7 @@ export default function UBOSDashboard() {
           </div>
           
           <Link 
-            href="/pos" 
+            href={`/ubos/${params.category}/${params.slug}/pos`} 
             className="w-full md:w-auto bg-white px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30" 
             style={{ color: primaryColor }}
           >
