@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, AlertCircle, X, ChevronRight, Store, ChefHat, Printer, ShoppingBag, Shirt, Smartphone, LineChart, Banknote, HelpCircle, Check, ArrowRight, ShoppingCart, Wallet, TrendingUp, Activity, Package, Megaphone, User, Sparkles, MessageCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, ChevronRight, Store, ChefHat, Printer, ShoppingBag, Shirt, Smartphone, LineChart, Banknote, HelpCircle, Check, ArrowRight, ShoppingCart, Wallet, TrendingUp, Activity, Package, Megaphone, User, Sparkles, MessageCircle, Bot } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LandingPage() {
@@ -183,11 +183,11 @@ export default function LandingPage() {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-            Atur Bisnis UMKM Bebas Tekor & Profit Terukur, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Cukup dari HP Anda</span>
+            Stop Cuma Pakai Aplikasi Kasir Biasa! Waktunya Gunakan UBOS: <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sistem Otomatis Terpadu</span> yang Menuntut Usaha Anda Mencapai Target Profit Bersih Bulan Ini.
           </h1>
           
           <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-            Kunci batas belanja harian, cek margin untung, dan atur SOP kasir langsung dari smartphone. Praktis tanpa perlu beli komputer mahal.
+            Menggabungkan Kasir, Laba-Rugi, Inventory, Margin Guard, dan Logaritma AI ke dalam Ekosistem Metoda Tarik Mundur. Cukup tentukan target profit bulanan, UBOS pecah jadi Action Plan Harian di HP Anda.
           </p>
 
           <div className="pt-4 md:pt-8 flex flex-col items-center gap-6">
@@ -195,13 +195,12 @@ export default function LandingPage() {
               onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-lg md:text-xl font-black py-5 px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-3 w-full max-w-sm justify-center group"
             >
-              Coba Gratis 7 Hari
-              <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+              Aktifkan Sistem UBOS & Logaritma AI (Coba Gratis) <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </button>
             <div className="flex flex-wrap justify-center gap-4 text-sm font-bold text-slate-500">
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-500" /> Ringan di Semua HP</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-500" /> Setup 2 Menit</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-500" /> Tanpa Kartu Kredit</span>
+              <span className="flex items-center gap-1.5"><Sparkles size={16} className="text-blue-500" /> All-in-One Tools</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-500" /> Action Plan Otomatis</span>
+              <span className="flex items-center gap-1.5"><Bot size={16} className="text-blue-500" /> Berbasis Logaritma AI</span>
             </div>
           </div>
         </motion.div>
@@ -393,6 +392,112 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-black text-slate-900 mb-3">Laporan Profit Real-time</h3>
               <p className="text-slate-500 font-medium leading-relaxed">Pantau keuntungan bersih hari ini kapan saja dan di mana saja langsung dari saku Anda. Bebas khawatir uang hilang/selisih.</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Metoda Logaritma & Logaritma AI Section */}
+      <section className="py-20 px-6 bg-slate-900 text-white relative overflow-hidden">
+        {/* Glow effect */}
+        <div className="absolute top-0 right-0 -mr-40 -mt-40 w-96 h-96 bg-blue-600/20 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-96 h-96 bg-indigo-600/20 blur-[100px] rounded-full"></div>
+        
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide border border-blue-500/30 uppercase mb-4"
+            >
+              <Sparkles size={14} /> Rahasia Sukses Logaritma
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-3xl md:text-4xl font-black mb-6"
+            >
+              Metoda Tarik Mundur & Logaritma AI
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-slate-300 text-lg max-w-3xl mx-auto"
+            >
+              Berhenti menebak-nebak! UBOS bekerja mundur dari target keuntungan Anda, memberikan batasan dan panduan harian yang pasti untuk dicapai.
+            </motion.p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Metoda Tarik Mundur */}
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+              className="space-y-8"
+            >
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shrink-0 font-black text-xl shadow-lg shadow-blue-900/50">1</div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Input Target Profit Bersih</h3>
+                  <p className="text-slate-400 leading-relaxed">Anda cukup tentukan berapa rupiah profit bersih yang INGIN dibawa pulang bulan ini.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shrink-0 font-black text-xl shadow-lg shadow-indigo-900/50">2</div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">UBOS Breakdown Action Plan</h3>
+                  <p className="text-slate-400 leading-relaxed">Sistem secara otomatis memecah target Anda menjadi kewajiban omset harian dan MENGUNCI batas maksimal belanja bahan baku harian (Margin Guard).</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shrink-0 font-black text-xl shadow-lg shadow-emerald-900/50">3</div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Eksekusi 15 Menit / Hari</h3>
+                  <p className="text-slate-400 leading-relaxed">Karyawan Anda hanya bertugas mengeksekusi di lapangan tanpa pusing berhitung. Anda cukup pantau hasil eksekusinya 15 menit per hari via HP.</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Logaritma AI */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-slate-800/50 border border-slate-700 rounded-3xl p-8 backdrop-blur-sm relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-6 opacity-10">
+                <Bot size={120} />
+              </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl relative z-10">
+                <Bot size={32} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-black mb-4 relative z-10">Didampingi Logaritma AI</h3>
+              <p className="text-slate-300 leading-relaxed mb-6 relative z-10">
+                Lupakan dashboard angka yang membingungkan. <strong>Logaritma AI</strong> bertindak sebagai Asisten Cerdas Harian Anda. AI kami akan secara proaktif:
+              </p>
+              <ul className="space-y-4 relative z-10">
+                <li className="flex gap-3 items-start">
+                  <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-300">Memberi tahu barang apa yang harus di-restock HARI INI agar omset besok aman.</span>
+                </li>
+                <li className="flex gap-3 items-start">
+                  <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-300">Menyembunyikan menu Kasir yang margin-nya sedang tipis (HPP bahan melonjak).</span>
+                </li>
+                <li className="flex gap-3 items-start">
+                  <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-300">Mengirim WA harian ringkasan kinerja outlet langsung ke nomor Anda.</span>
+                </li>
+              </ul>
             </motion.div>
           </div>
         </div>
