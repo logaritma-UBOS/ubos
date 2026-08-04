@@ -65,7 +65,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (!session && pathname !== '/auth' && pathname !== '/' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
       } else if (session && (pathname === '/auth' || pathname === '/')) {
-        router.push('/app');
+        router.push('/member');
       } else if (session && fetchedMerchant) {
         let expiresDate = new Date();
         if (fetchedMerchant.trial_expires_at) {
@@ -123,7 +123,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (!newSession && pathname !== '/auth' && pathname !== '/' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
       } else if (newSession && (pathname === '/auth' || pathname === '/')) {
-        router.push('/app');
+        router.push('/member');
       }
     });
 
@@ -145,7 +145,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname === '/auth';
   const isAdminPage = pathname.startsWith('/admin');
   const isInvestorPage = pathname.startsWith('/investor');
-  const isMemberArea = pathname === '/app';
+  const isMemberArea = pathname === '/member';
   const isSubPage = pathname.includes('/new') || pathname.includes('/edit') || pathname.includes('/settings');
   const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage;
   const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage;

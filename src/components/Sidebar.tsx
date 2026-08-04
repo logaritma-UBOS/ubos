@@ -69,7 +69,7 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
           <span>Pengaturan</span>
         </Link>
         <Link 
-          href="/app"
+          href="/member"
           className="flex items-center gap-3 px-3 py-3 mt-4 rounded-xl text-blue-600 hover:bg-blue-50 font-bold transition-all border border-transparent hover:border-blue-100"
         >
           <LogOut size={20} className="rotate-180" />

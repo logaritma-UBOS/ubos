@@ -288,7 +288,7 @@ export default function SettingsPage() {
               <p className="text-sm font-bold text-slate-800">{userEmail}</p>
             </div>
             
-            <Link href="/app" className="w-full flex items-center justify-center gap-2 p-4 text-primary font-bold bg-primary/10 rounded-3xl shadow-sm border border-primary/20 hover:bg-primary/20 transition-colors">
+            <Link href="/member" className="w-full flex items-center justify-center gap-2 p-4 text-primary font-bold bg-primary/10 rounded-3xl shadow-sm border border-primary/20 hover:bg-primary/20 transition-colors">
               <Store size={20} /> Kembali ke Portal Member
             </Link>
             
