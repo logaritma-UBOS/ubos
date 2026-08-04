@@ -675,12 +675,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-12 px-6 mt-10 text-center text-slate-500 font-medium text-sm">
         <p>© 2026 LOGARITMA.ID. All rights reserved.</p>
-        <p className="mt-4 inline-flex items-center gap-2">Customer Support: <a href="https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..." target="_blank" rel="noopener noreferrer" className="text-[#25D366] font-bold hover:underline flex items-center gap-1"><MessageCircle size={16} /> 085179660408</a></p>
+        <p className="mt-4 inline-flex items-center gap-2">Customer Support: <a href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..." target="_blank" rel="noopener noreferrer" className="text-[#25D366] font-bold hover:underline flex items-center gap-1"><MessageCircle size={16} /> 081211638357</a></p>
       </footer>
 
       {/* Floating WhatsApp CTA */}
       <motion.a 
-        href="https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..."
+        href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..."
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => trackEvent('cta_click', 'WhatsApp')}
@@ -695,3 +695,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
