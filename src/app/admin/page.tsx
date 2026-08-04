@@ -877,7 +877,7 @@ export default function AdminDashboard() {
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-xs text-slate-400 font-medium">{m.kategori_usaha || 'Kategori Lain'} • {m.whatsapp || '-'}</span>
                                 {m.whatsapp && (
-                                  <a href={`https://wa.me/62${m.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded text-[10px] font-bold border border-green-500/20 hover:bg-green-500/20 transition-colors">
+                                  <a href={`https://wa.me/62${(m.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded text-[10px] font-bold border border-green-500/20 hover:bg-green-500/20 transition-colors">
                                     <MessageCircle size={10} /> WA
                                   </a>
                                 )}
@@ -952,7 +952,7 @@ export default function AdminDashboard() {
                                                 <option value="Completed" className="bg-slate-900 text-emerald-400">Completed</option>
                                               </select>
                                             </div>
-                                            <a href={`https://wa.me/62${m.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors">
+                                            <a href={`https://wa.me/62${(m.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors">
                                               <MessageCircle size={10} /> Follow Up via WA
                                             </a>
                                           </div>
@@ -1138,7 +1138,7 @@ export default function AdminDashboard() {
                           </select>
                         </td>
                         <td className="p-4 text-right">
-                          <a href={`https://wa.me/62${item.merchant.whatsapp?.replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(item.merchant.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(item.request.product)}...`} target="_blank" rel="noreferrer" className="inline-flex py-1.5 px-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg items-center gap-1.5 transition-colors">
+                          <a href={`https://wa.me/62${(item.merchant.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(item.merchant.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(item.request.product)}...`} target="_blank" rel="noreferrer" className="inline-flex py-1.5 px-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg items-center gap-1.5 transition-colors">
                             <MessageCircle size={14} /> Hubungi via WA
                           </a>
                         </td>
