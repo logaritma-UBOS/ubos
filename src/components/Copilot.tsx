@@ -15,10 +15,10 @@ type Insight = {
   actionPayload?: any;
 };
 
-export default function Copilot() {
+export default function Copilot({ inline = false }: { inline?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(inline);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
   const [merchantId, setMerchantId] = useState<string | null>(null);
@@ -219,26 +219,28 @@ export default function Copilot() {
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50">
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="relative group bg-slate-900 text-white p-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-105 transition-all duration-300 flex items-center justify-center border border-slate-700"
-        >
-          <div className="absolute inset-0 rounded-full bg-slate-800 animate-ping opacity-20"></div>
-          <Sparkles size={24} className="text-emerald-400 group-hover:rotate-12 transition-transform duration-300" />
-        </button>
-      </div>
+      {/* Floating Trigger Button - only if not inline */}
+      {!inline && (
+        <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50">
+          <button 
+            onClick={() => setIsOpen(true)}
+            className="relative group bg-slate-900 text-white p-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-105 transition-all duration-300 flex items-center justify-center border border-slate-700"
+          >
+            <div className="absolute inset-0 rounded-full bg-slate-800 animate-ping opacity-20"></div>
+            <Sparkles size={24} className="text-emerald-400 group-hover:rotate-12 transition-transform duration-300" />
+          </button>
+        </div>
+      )}
 
-      {/* Bottom Sheet / Drawer */}
+      {/* Drawer or Inline Content */}
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          {/* Overlay to close */}
-          <div className="absolute inset-0 cursor-pointer" onClick={() => setIsOpen(false)}></div>
+        <div className={inline ? "w-full bg-slate-50 flex flex-col rounded-3xl border border-slate-200 overflow-hidden shadow-sm" : "fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end"}>
+          {/* Overlay to close - only if not inline */}
+          {!inline && <div className="absolute inset-0 cursor-pointer" onClick={() => setIsOpen(false)}></div>}
           
-          <div className="relative w-full max-w-md bg-slate-50 h-full max-h-[85vh] md:max-h-screen mt-auto md:mt-0 flex flex-col shadow-2xl rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none animate-in slide-in-from-bottom-full md:slide-in-from-right-full duration-300">
+          <div className={inline ? "relative w-full h-full flex flex-col" : "relative w-full max-w-md bg-slate-50 h-full max-h-[85vh] md:max-h-screen mt-auto md:mt-0 flex flex-col shadow-2xl rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none animate-in slide-in-from-bottom-full md:slide-in-from-right-full duration-300"}>
             {/* Header */}
-            <div className="flex items-center justify-between p-6 bg-slate-900 text-white rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none">
+            <div className={`flex items-center justify-between p-6 bg-slate-900 text-white ${inline ? '' : 'rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700">
                   <Bot size={20} className="text-emerald-400" />
@@ -248,9 +250,11 @@ export default function Copilot() {
                   <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Business Copilot</p>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition-colors">
-                <X size={18} />
-              </button>
+              {!inline && (
+                <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition-colors">
+                  <X size={18} />
+                </button>
+              )}
             </div>
 
             {/* Content */}

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
-import FloatingAIPilot from '@/components/FloatingAIPilot';
+import Copilot from '@/components/Copilot';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -90,7 +90,6 @@ export default function UBOSDashboard() {
                   <Sparkles size={12} className="text-white" />
                   <span className="text-[10px] md:text-xs font-bold tracking-wider text-white">AI LOGARITMA</span>
                 </div>
-                <FloatingAIPilot />
               </div>
               <p className="text-white/90 text-xs md:text-base font-medium max-w-md mt-1.5 md:mt-0">Ringkasan performa dan rekomendasi cerdas untuk memacu profit outlet Anda hari ini.</p>
             </div>
@@ -178,37 +177,13 @@ export default function UBOSDashboard() {
           </div>
         </div>
 
-        {/* 3. Section AI Logaritma Action */}
+        {/* 3. AI Logaritma Copilot (Inline Widget) */}
         <div>
           <h2 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-            <Sparkles className="text-indigo-600" size={20} /> Rekomendasi Cerdas Hari Ini
+            <Sparkles className="text-indigo-600" size={20} /> Asisten AI Logaritma
           </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className={`border p-5 rounded-2xl flex items-start gap-4 ${aiState.isOverBudget ? 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-200' : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200'}`}>
-              <div className={`bg-white p-2 rounded-full shadow-sm shrink-0 ${aiState.isOverBudget ? 'text-rose-500' : 'text-amber-500'}`}>
-                <AlertCircle size={24} />
-              </div>
-              <div>
-                <h3 className={`font-bold text-sm tracking-wide uppercase mb-1 ${aiState.isOverBudget ? 'text-rose-900' : 'text-amber-900'}`}>Peringatan Belanja Pagi</h3>
-                <p className={`text-sm font-medium ${aiState.isOverBudget ? 'text-rose-800' : 'text-amber-800'}`}>
-                  {aiState.isOverBudget ? `OVER BUDGET! Anda telah melewati batas belanja harian sebesar ` : `Sisa batas maksimal belanja bahan hari ini adalah `}
-                  <span className="font-bold">{formatIDR(Math.abs(aiState.remainingMorningBudget))}</span> untuk menjaga profit.
-                </p>
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 p-5 rounded-2xl flex items-start gap-4">
-              <div className="bg-white p-2 rounded-full shadow-sm text-emerald-500 shrink-0">
-                <Megaphone size={24} />
-              </div>
-              <div>
-                <h3 className="font-bold text-emerald-900 text-sm tracking-wide uppercase mb-1">Saran Promo Sore</h3>
-                <p className="text-emerald-800 text-sm font-medium">
-                  {aiState.lowStockItems.length > 0 
-                    ? `Segera restock: ${aiState.lowStockItems.slice(0,2).map((i: any) => i.nama_produk).join(', ')} menipis.` 
-                    : `Stok aman. Rekomendasi broadcast WA promo jam 15:00 untuk memacu omzet sore hari.`}
-                </p>
-              </div>
-            </div>
+          <div className="h-[450px]">
+            <Copilot inline={true} />
           </div>
         </div>
 
