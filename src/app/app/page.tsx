@@ -237,7 +237,7 @@ export default function MemberDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
-              <p className="text-slate-500 font-medium">Akses aplikasi dan tools khusus sesuai kategori bisnis Anda.</p>
+              <p className="text-slate-500 font-medium">Sistem navigasi harian untuk mengunci profit, mengamankan margin, dan menghemat waktu operasional Anda.</p>
             </div>
           </div>
 
@@ -256,15 +256,15 @@ export default function MemberDashboard() {
                   </div>
                 </div>
                 <div className="p-8 flex-1 flex flex-col justify-center">
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Aplikasi Kasir & Margin Guard</h4>
-                  <p className="text-slate-500 font-medium mb-6">Kelola Point of Sales (POS), Manajemen Stok Bahan Baku, HPP Porsi, dan Kontrol Profit harian Anda dalam satu dashboard.</p>
+                  <h4 className="text-xl font-bold text-slate-900 mb-2">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
+                  <p className="text-slate-500 font-medium mb-6">Kunci profit bersih harian via Metode Tarik Mundur (15 menit/hari), amankan margin dari potongan komisi delivery dengan Margin Guard, dan pisahkan kas toko secara otomatis.</p>
                   
                   {trialDaysLeft > 0 ? (
                     <a 
                       href="/ubos"
                       className="w-full md:w-auto self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                     >
-                      Buka Application UBOS Kuliner <ArrowRight size={18} />
+                      Buka Modul UBOS Kuliner <ArrowRight size={18} />
                     </a>
                   ) : (
                     <button 
