@@ -7,7 +7,6 @@ import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle
 import toast from 'react-hot-toast';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
-import FloatingAIPilot from '@/components/FloatingAIPilot';
 
 type Channel = 'DINE_IN' | 'GOFOOD' | 'GRABFOOD' | 'SHOPEEFOOD';
 type PaymentMethod = 'TUNAI' | 'QRIS';
@@ -382,7 +381,6 @@ export default function POSPage() {
             Margin Guard Aktif <span className="text-emerald-300 drop-shadow-sm">({CHANNEL_COMMISSIONS[channel]*100}% Komisi Ter-cover)</span>
           </p>
         </div>
-        <FloatingAIPilot />
       </header>
 
       <div className="flex flex-col md:flex-row min-h-full pb-[100px] md:pb-0 animate-in fade-in duration-500 relative pt-24">

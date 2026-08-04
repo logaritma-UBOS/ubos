@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
+import FloatingAIPilot from '@/components/FloatingAIPilot';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -89,6 +90,7 @@ export default function UBOSDashboard() {
                   <Sparkles size={12} className="text-white" />
                   <span className="text-[10px] md:text-xs font-bold tracking-wider text-white">AI LOGARITMA</span>
                 </div>
+                <FloatingAIPilot />
               </div>
               <p className="text-white/90 text-xs md:text-base font-medium max-w-md mt-1.5 md:mt-0">Ringkasan performa dan rekomendasi cerdas untuk memacu profit outlet Anda hari ini.</p>
             </div>

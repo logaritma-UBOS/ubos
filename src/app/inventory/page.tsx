@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import DummyDataInjector from '@/components/DummyDataInjector';
 import toast from 'react-hot-toast';
-import FloatingAIPilot from '@/components/FloatingAIPilot';
+// We don't import anything specific yet for Inventory context
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -114,13 +114,10 @@ export default function InventoryPage() {
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Stok & HPP</h1>
           <p className="text-white/80 text-xs mt-0.5">Master Produk & Resep</p>
         </div>
-        <div className="flex items-center gap-2">
-          <FloatingAIPilot />
-          <Link href="/inventory/new" className="bg-white text-primary hover:bg-slate-50 px-3 py-2 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1.5 font-bold text-sm">
-            <Plus size={16} strokeWidth={3} />
-            <span className="hidden sm:inline">Tambah</span>
-          </Link>
-        </div>
+        <Link href="/inventory/new" className="bg-white text-primary hover:bg-slate-50 px-3 py-2 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1.5 font-bold text-sm">
+          <Plus size={16} strokeWidth={3} />
+          <span className="hidden sm:inline">Tambah</span>
+        </Link>
       </header>
 
       <div className="p-5 pt-24 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 animate-in fade-in duration-500">
