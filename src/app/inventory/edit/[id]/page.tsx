@@ -41,8 +41,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         if (prodErr) throw prodErr;
         
         if (product) {
-          setNamaProduk(product.nama_produk);
-          setHargaJual(product.harga_jual.toString());
+          setNamaProduk(product.nama_produk || '');
+          setHargaJual(product.harga_jual?.toString() || '');
           setIsAvailable(product.is_available ?? true);
           if (product.photo_url) {
             setImagePreview(product.photo_url);
@@ -64,7 +64,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             setRecipes([{ nama_bahan: '', gramatur_dibutuhkan: '', satuan: 'gram', harga_per_satuan: '' }]);
           } else {
             setHppMode('detail');
-            setRecipes(recipeData);
+            setRecipes(recipeData.map((r: any) => ({
+              ...r,
+              gramatur_dibutuhkan: r.gramatur_dibutuhkan?.toString() || '',
+              harga_per_satuan: r.harga_per_satuan?.toString() || ''
+            })));
           }
         } else {
           setHppMode('detail');
@@ -113,8 +117,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     }
     
     return recipes.reduce((sum, r) => {
-      const qty = parseFloat(r.gramatur_dibutuhkan.replace(/\D/g, '')) || 0;
-      const price = parseFloat(r.harga_per_satuan.replace(/\D/g, '')) || 0;
+      const qty = parseFloat(String(r.gramatur_dibutuhkan || '').replace(/\D/g, '')) || 0;
+      const price = parseFloat(String(r.harga_per_satuan || '').replace(/\D/g, '')) || 0;
       return sum + (qty * price);
     }, 0);
   }, [hppMode, totalBiayaBelanja, estimasiPorsi, biayaKemasan, recipes]);
@@ -180,9 +184,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           recipeInserts = validRecipes.map(r => ({
             product_id: productId,
             nama_bahan: r.nama_bahan,
-            gramatur_dibutuhkan: parseFloat(r.gramatur_dibutuhkan.replace(/\D/g, '')),
+            gramatur_dibutuhkan: parseFloat(String(r.gramatur_dibutuhkan || '').replace(/\D/g, '')),
             satuan: r.satuan,
-            harga_per_satuan: parseFloat(r.harga_per_satuan.replace(/\D/g, ''))
+            harga_per_satuan: parseFloat(String(r.harga_per_satuan || '').replace(/\D/g, ''))
           }));
         }
       }
