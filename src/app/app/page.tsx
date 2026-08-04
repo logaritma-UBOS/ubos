@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, TrendingUp, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -20,6 +20,7 @@ export default function MemberDashboard() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'modul' | 'support' | 'services' | 'edukasi' | 'bantuan'>('modul');
 
   useEffect(() => {
     let isMounted = true;
@@ -211,7 +212,7 @@ export default function MemberDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 pt-24 space-y-10">
+      <main className="max-w-5xl mx-auto px-6 py-10 pt-24 space-y-10 pb-28 md:pb-10">
         
         {/* A. Header Status Akun & License */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-600 to-slate-900 text-white rounded-3xl p-8 shadow-xl shadow-blue-900/20 relative overflow-hidden">
@@ -245,8 +246,8 @@ export default function MemberDashboard() {
           </div>
         </div>
 
-        {/* B. Main Module Launchpad */}
-        <div className="space-y-6">
+        {/* B. Main Module Launchpad — DESKTOP ONLY (mobile uses tabbed nav below) */}
+        <div className="hidden md:block space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
@@ -402,8 +403,9 @@ export default function MemberDashboard() {
           </div>
         </div>
 
-        {/* C. Support System & Services Logaritma */}
-        <div className="space-y-6 pt-6 border-t border-slate-200">
+        {/* ── DESKTOP: all sections stacked ──────────────────────────────── */}
+        {/* C. Support System & Services Logaritma — DESKTOP ONLY */}
+        <div className="hidden md:block space-y-6 pt-6 border-t border-slate-200">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Support System & Services</h2>
@@ -459,8 +461,8 @@ export default function MemberDashboard() {
           </div>
         </div>
 
-        {/* D. Pusat Edukasi & Komunitas */}
-        <div className="space-y-6 pt-6 border-t border-slate-200">
+        {/* D. Pusat Edukasi & Bantuan — DESKTOP ONLY */}
+        <div className="hidden md:block space-y-6 pt-6 border-t border-slate-200">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pusat Edukasi & Bantuan</h2>
@@ -495,7 +497,231 @@ export default function MemberDashboard() {
           </div>
         </div>
 
+        {/* ── MOBILE: tabbed content (hidden on desktop) ─────────────────── */}
+        <div className="md:hidden space-y-6">
+
+          {/* Tab: Modul */}
+          {activeTab === 'modul' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
+                <p className="text-slate-500 text-sm font-medium">Navigasi profit harian bisnis Anda.</p>
+              </div>
+              {isKuliner && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-slate-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS F&B</h3>
+                  </div>
+                  <div className="p-5">
+                    <h4 className="text-base font-bold text-slate-900 mb-1">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
+                    <p className="text-slate-500 text-sm font-medium mb-4">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
+                    {trialDaysLeft > 0 ? (
+                      <a href="/ubos" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Buka Modul F&B <ArrowRight size={16} /></a>
+                    ) : (
+                      <button onClick={() => setShowPaywallModal(true)} className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {isPercetakan && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> VVIP TRIAL
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Percetakan & Fotokopi</h3>
+                  </div>
+                  <div className="p-5">
+                    <h4 className="text-base font-bold text-slate-900 mb-1">Tools Kontrol Antrean & HPP Kertas</h4>
+                    <p className="text-slate-500 text-sm font-medium mb-4">Kalkulator HPP bahan (kertas/tinta/meteran), estimasi harga cetak cepat, dan manajemen antrean antinumpuk.</p>
+                    <button onClick={() => openWaitingList('Jasa Percetakan')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Daftar Trial Percetakan <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isRitel && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> WAITING LIST
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Toko & Ritel</h3>
+                  </div>
+                  <div className="p-5">
+                    <h4 className="text-base font-bold text-slate-900 mb-1">Manajemen Stok Anti Dead-Stock</h4>
+                    <p className="text-slate-500 text-sm font-medium mb-4">Sistem inventaris anti-stok mati (dead stock), cetak barcode, dan batas belanja stok harian.</p>
+                    <button onClick={() => openWaitingList('Toko & Ritel')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isLaundry && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> WAITING LIST
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Laundry & Jasa</h3>
+                  </div>
+                  <div className="p-5">
+                    <h4 className="text-base font-bold text-slate-900 mb-1">Tracking Slot Jam Kerja & Nota Otomatis</h4>
+                    <p className="text-slate-500 text-sm font-medium mb-4">Pelacak status cucian/orderan, sistem nota WhatsApp otomatis, dan hitung komisi staf/karyawan.</p>
+                    <button onClick={() => openWaitingList('Laundry & Jasa')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isLainnya && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-slate-700 relative p-6 flex flex-col justify-center">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-slate-300 mb-1">Waiting List</div>
+                    <h3 className="text-2xl font-black text-white">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
+                  </div>
+                  <div className="p-5">
+                    <h4 className="text-base font-bold text-slate-900 mb-1">Dalam Tahap Pengembangan</h4>
+                    <p className="text-slate-500 text-sm font-medium mb-4">Fitur spesifik untuk kategori usaha Anda saat ini sedang dikembangkan oleh tim Logaritma.</p>
+                    <button onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')} className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Dapatkan Akses Prioritas <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab: Support */}
+          {activeTab === 'support' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Program Affiliate</h2>
+                <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang bersama Logaritma.</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
+                  <Handshake size={24} />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 mb-2">🤝 Program Affiliate Logaritma</h3>
+                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Dapatkan komisi berulang dengan merekomendasikan Metoda Logaritma & UBOS ke jaringan UMKM Anda.</p>
+                <button
+                  onClick={() => handleUpsellRequest('Program Affiliate')}
+                  disabled={requestingUpsell === 'Program Affiliate'}
+                  className="w-full border-2 border-slate-200 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {requestingUpsell === 'Program Affiliate' ? <Loader2 size={18} className="animate-spin"/> : 'Daftar Affiliator'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Services */}
+          {activeTab === 'services' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Logaritma</h2>
+                <p className="text-slate-500 text-sm font-medium">Iklan & perangkat untuk percepat bisnis Anda.</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+                  <Megaphone size={24} />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 mb-2">📢 Iklankan Bisnis Anda (Meta Ads)</h3>
+                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Services pengelolaan iklan Meta Ads dari Tim Logaritma untuk datangkan pelanggan secara otomatis.</p>
+                <button
+                  onClick={() => handleUpsellRequest('Jasa Iklan Meta Ads')}
+                  disabled={requestingUpsell === 'Jasa Iklan Meta Ads'}
+                  className="w-full border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {requestingUpsell === 'Jasa Iklan Meta Ads' ? <Loader2 size={18} className="animate-spin"/> : 'Pilih Paket Iklan'}
+                </button>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
+                  <Printer size={24} />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 mb-2">🖨️ Mini Printer Thermal Logaritma</h3>
+                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Cetak struk kasir tanpa kabel via Bluetooth. Kompatibel 100% dengan aplikasi kasir UBOS.</p>
+                <button
+                  onClick={() => handleUpsellRequest('Mini Printer Thermal')}
+                  disabled={requestingUpsell === 'Mini Printer Thermal'}
+                  className="w-full border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {requestingUpsell === 'Mini Printer Thermal' ? <Loader2 size={18} className="animate-spin"/> : 'Pesan Mini Printer'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Edukasi */}
+          {activeTab === 'edukasi' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Pusat Edukasi</h2>
+                <p className="text-slate-500 text-sm font-medium">Kuasai metoda profit UMKM dari Logaritma.</p>
+              </div>
+              <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-slate-800 transition-colors">
+                <div className="flex-1 mr-4">
+                  <h3 className="text-lg font-black mb-1">Masterclass Metoda Logaritma</h3>
+                  <p className="text-sm text-slate-400 font-medium">Pelajari rahasia pola pikir "Tarik Mundur Target Profit".</p>
+                </div>
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <MonitorPlay size={24} className="text-white" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Bantuan */}
+          {activeTab === 'bantuan' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Bantuan & CS</h2>
+                <p className="text-slate-500 text-sm font-medium">Hubungi tim support Logaritma langsung.</p>
+              </div>
+              <a
+                href="https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20terkait%20akun%20member%20saya..."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-emerald-500 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-emerald-600 transition-colors block"
+              >
+                <div className="flex-1 mr-4">
+                  <h3 className="text-lg font-black mb-1">Konsultasi Langsung</h3>
+                  <p className="text-sm text-emerald-100 font-medium">Ada kendala? Hubungi tim support via WhatsApp Admin.</p>
+                </div>
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <MessageCircle size={24} className="text-white" />
+                </div>
+              </a>
+            </div>
+          )}
+
+        </div>
+
       </main>
+
+      {/* ── MOBILE BOTTOM NAVIGATION BAR ──────────────────────────────────── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+        <div className="flex items-stretch h-16">
+          {([
+            { key: 'modul',    icon: Home,      label: 'Modul'    },
+            { key: 'support',  icon: Star,      label: 'Affiliate' },
+            { key: 'services', icon: Wrench,    label: 'Services' },
+            { key: 'edukasi',  icon: BookOpen,  label: 'Edukasi'  },
+            { key: 'bantuan',  icon: HelpCircle, label: 'Bantuan' },
+          ] as { key: typeof activeTab; icon: any; label: string }[]).map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                activeTab === key
+                  ? 'text-blue-600'
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {activeTab === key && <span className="absolute bottom-0 w-8 h-0.5 bg-blue-600 rounded-t-full" />}
+              <Icon size={20} strokeWidth={activeTab === key ? 2.5 : 2} />
+              <span className={`text-[10px] font-${activeTab === key ? 'black' : 'bold'} leading-none`}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {/* Waiting List Modal */}
       {showWaitingModal && (
