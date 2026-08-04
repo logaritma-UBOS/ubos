@@ -123,19 +123,29 @@ export default function LandingPage() {
             </div>
           </div>
           
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-6">
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Metoda Logaritma</a>
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Produk & Tools</a>
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Harga</a>
-            <a href="/auth" className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors">Member Login</a>
+            <a href="/auth?mode=login" className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors">Member Login</a>
           </div>
 
-          <button 
-            onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-            className="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full transition-colors shadow-md shadow-blue-600/20"
-          >
-            Mulai Gratis
-          </button>
+          {/* Right CTA group — visible on both mobile & desktop */}
+          <div className="flex items-center gap-2">
+            <a
+              href="/auth?mode=login"
+              className="text-xs font-semibold text-blue-600 px-2.5 py-1.5 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 md:hidden"
+            >
+              Login
+            </a>
+            <button
+              onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
+              className="text-xs md:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 md:px-5 py-1.5 md:py-2 rounded-lg md:rounded-full transition-colors shadow-md shadow-blue-600/20"
+            >
+              Mulai Gratis
+            </button>
+          </div>
         </div>
       </nav>
 
