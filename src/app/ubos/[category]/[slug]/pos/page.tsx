@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Banknote, QrCode, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -20,6 +20,7 @@ const CHANNEL_COMMISSIONS: Record<Channel, number> = {
 
 export default function POSPage() {
   const router = useRouter();
+  const params = useParams();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [merchant, setMerchant] = useState<any>(null);
@@ -559,8 +560,8 @@ export default function POSPage() {
                 <button onClick={handleReset} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
                   Transaksi Baru
                 </button>
-                <button onClick={handleReset} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
-                  Kembali ke Dashboard POS
+                <button onClick={() => router.push(`/ubos/${params.category}/${params.slug}`)} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                  Kembali ke Dashboard Utama
                 </button>
               </div>
            </div>
