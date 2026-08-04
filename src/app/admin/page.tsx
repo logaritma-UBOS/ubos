@@ -11,6 +11,7 @@ import {
   Eye, EyeOff, Save, Trash2, Import, UserPlus, PhoneCall, CheckCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { sendFonnteWA } from '@/lib/fonnte';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -93,6 +94,63 @@ export default function AdminDashboard() {
     mobilePercent: 0,
     referrers: [] as { source: string; count: number }[],
   });
+
+  const [isSendingWA, setIsSendingWA] = useState<Record<string, boolean>>({});
+
+  const handleFonnteAction = async (id: string, target: string, message: string, successMessage: string) => {
+    if (isInvestorViewOnly) return;
+    setIsSendingWA(prev => ({ ...prev, [id]: true }));
+    const loadingToast = toast.loading('Mengirim WhatsApp via Fonnte...');
+    
+    try {
+      // Format number to local standard if needed, or rely on Fonnte which usually accepts both
+      const cleanTarget = (target || '').replace(/\D/g, '').replace(/^0+/, '62');
+      const res = await sendFonnteWA(cleanTarget, message);
+      
+      if (res && res.status !== false) {
+        toast.success(successMessage, { id: loadingToast });
+      } else {
+        toast.error('Gagal mengirim WhatsApp via Fonnte', { id: loadingToast });
+      }
+    } catch (e) {
+      toast.error('Terjadi kesalahan jaringan saat mengirim WA', { id: loadingToast });
+    } finally {
+      setIsSendingWA(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleBulkFollowUpExpired = async () => {
+    if (isInvestorViewOnly) return;
+    const expiredMerchants = merchants.filter(m => {
+      const expiresAt = m.trial_expires_at ? new Date(m.trial_expires_at).getTime() : 0;
+      return expiresAt > 0 && expiresAt <= new Date().getTime();
+    });
+
+    if (expiredMerchants.length === 0) {
+      toast.error('Tidak ada lead expired untuk di-follow up.');
+      return;
+    }
+
+    const toastId = toast.loading(`Mengirim ${expiredMerchants.length} pesan WA Fonnte...`);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const m of expiredMerchants) {
+      const cleanTarget = (m.whatsapp || '').toString().replace(/\D/g, '').replace(/^0+/, '62');
+      if (!cleanTarget) { failCount++; continue; }
+      
+      const res = await sendFonnteWA(cleanTarget, `Halo kak dari ${m.nama_usaha || 'Toko'}, masa aktif trial UBOS Anda sudah habis. Yuk perpanjang dengan promo spesial Rp 49.000/bulan agar bisa terus dipakai!`);
+      if (res && res.status !== false) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+      // slight delay to prevent rate limit
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    toast.success(`Selesai! ${successCount} Terkirim, ${failCount} Gagal.`, { id: toastId });
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -992,9 +1050,9 @@ export default function AdminDashboard() {
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-xs text-slate-400 font-medium">{m.kategori_usaha || 'Kategori Lain'} • {m.whatsapp || '-'}</span>
                                 {m.whatsapp && (
-                                  <a href={`https://wa.me/62${(m.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}`} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded text-[10px] font-bold border border-green-500/20 hover:bg-green-500/20 transition-colors">
-                                    <MessageCircle size={10} /> WA
-                                  </a>
+                                  <button onClick={(e) => { e.stopPropagation(); handleFonnteAction(`wa-${m.id}`, m.whatsapp || '', `Halo kak dari ${m.nama_usaha || 'Toko'}, ini dari tim Logaritma...`, 'Pesan WA Terkirim'); }} disabled={isSendingWA[`wa-${m.id}`]} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded text-[10px] font-bold border border-green-500/20 hover:bg-green-500/20 transition-colors disabled:opacity-50">
+                                    {isSendingWA[`wa-${m.id}`] ? <Loader2 size={10} className="animate-spin" /> : <MessageCircle size={10} />} WA
+                                  </button>
                                 )}
                               </div>
                             </td>
@@ -1067,9 +1125,9 @@ export default function AdminDashboard() {
                                                 <option value="Completed" className="bg-slate-900 text-emerald-400">Completed</option>
                                               </select>
                                             </div>
-                                            <a href={`https://wa.me/62${(m.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(m.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(req.product)}...`} target="_blank" rel="noreferrer" className="w-full text-center py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors">
-                                              <MessageCircle size={10} /> Follow Up via WA
-                                            </a>
+                                            <button onClick={(e) => { e.stopPropagation(); handleFonnteAction(`funnel-${m.id}-${req.id}`, m.whatsapp || '', `Halo kak dari ${m.nama_usaha || 'Toko'}, kami melihat Anda tertarik dengan ${req.product}. Apakah ada yang bisa kami bantu?`, 'Follow Up WA Terkirim'); }} disabled={isSendingWA[`funnel-${m.id}-${req.id}`]} className="w-full text-center py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-md flex items-center justify-center gap-1 transition-colors disabled:opacity-50">
+                                              {isSendingWA[`funnel-${m.id}-${req.id}`] ? <Loader2 size={10} className="animate-spin" /> : <MessageCircle size={10} />} Follow Up via WA
+                                            </button>
                                           </div>
                                         ))
                                       )}
@@ -1147,9 +1205,9 @@ export default function AdminDashboard() {
                           <span className="bg-slate-800 text-slate-300 text-xs px-2 py-1 rounded border border-slate-700">{m.status_funnel || 'New Lead'}</span>
                         </td>
                         <td className="p-4 text-right">
-                          <a href={`https://wa.me/62${(m.whatsapp || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%2C%20ini%20dengan%20tim%20Logaritma...`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-green-900/20">
-                            <MessageCircle size={14} /> Chat WA
-                          </a>
+                          <button onClick={() => handleFonnteAction(`crm-${m.id}`, m.whatsapp || '', `Halo kak ${m.nama_usaha || ''}, ini dengan tim Logaritma...`, 'Pesan WA Terkirim')} disabled={isSendingWA[`crm-${m.id}`]} className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-green-900/20 disabled:opacity-50">
+                            {isSendingWA[`crm-${m.id}`] ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />} Chat WA
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1253,9 +1311,9 @@ export default function AdminDashboard() {
                           </select>
                         </td>
                         <td className="p-4 text-right">
-                          <a href={`https://wa.me/62${(item.merchant.whatsapp?.toString() || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%20dari%20${encodeURIComponent(item.merchant.nama_usaha || 'Toko')},%20kami%20melihat%20Anda%20tertarik%20dengan%20${encodeURIComponent(item.request.product)}...`} target="_blank" rel="noreferrer" className="inline-flex py-1.5 px-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg items-center gap-1.5 transition-colors">
-                            <MessageCircle size={14} /> Hubungi via WA
-                          </a>
+                          <button onClick={() => handleFonnteAction(`upsell-${item.request.id}`, item.merchant.whatsapp || '', `Halo kak dari ${item.merchant.nama_usaha || 'Toko'}, kami melihat Anda tertarik dengan ${item.request.product}. Mari kita proses!`, 'Pesan WA Terkirim')} disabled={isSendingWA[`upsell-${item.request.id}`]} className="inline-flex py-1.5 px-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg items-center gap-1.5 transition-colors disabled:opacity-50">
+                            {isSendingWA[`upsell-${item.request.id}`] ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />} Hubungi via WA
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1460,7 +1518,7 @@ export default function AdminDashboard() {
                   <button onClick={() => { setActiveMenu('FUNNEL'); }} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors shadow-md shadow-blue-600/20">
                     <PlusCircle size={16} /> Tambah Lead Baru
                   </button>
-                  <button onClick={() => { setFunnelFilter('Expired'); setActiveMenu('FUNNEL'); }} className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-sm font-bold rounded-xl border border-amber-500/20 transition-colors">
+                  <button onClick={handleBulkFollowUpExpired} className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-sm font-bold rounded-xl border border-amber-500/20 transition-colors">
                     <MessageCircle size={16} /> Follow-up WA Expired
                   </button>
                   <button onClick={() => setActiveMenu('UPSELL_REQUESTS')} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold rounded-xl transition-colors">
