@@ -126,7 +126,7 @@ export default function LandingPage() {
           </div>
 
           <button 
-            onClick={() => { trackEvent('cta_click', 'Register'); router.push('/auth'); }}
+            onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
             className="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full transition-colors shadow-md shadow-blue-600/20"
           >
             Mulai Gratis
@@ -160,7 +160,7 @@ export default function LandingPage() {
 
           <div className="pt-4 md:pt-8 flex flex-col items-center gap-6">
             <button 
-              onClick={() => { trackEvent('cta_click', 'Register'); router.push('/auth'); }}
+              onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base md:text-xl font-black py-4 md:py-5 px-4 md:px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-2 md:gap-3 w-full max-w-md mx-auto justify-center group leading-snug"
             >
               Aktifkan Sistem UBOS & Logaritma AI (Coba Gratis) <ArrowRight className="ml-1 md:ml-2 shrink-0 group-hover:translate-x-1 transition-transform" />
