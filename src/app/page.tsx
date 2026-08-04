@@ -171,7 +171,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 md:pt-32 pb-10 md:pb-16 px-6 max-w-4xl mx-auto text-center">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-16 px-4 md:px-6 max-w-4xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -182,7 +182,7 @@ export default function LandingPage() {
             <span>📱</span> 100% Nyaman di Smartphone Anda
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-snug md:leading-tight">
             Stop Cuma Pakai Aplikasi Kasir Biasa! Waktunya Gunakan UBOS: <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sistem Otomatis Terpadu</span> yang Menuntut Usaha Anda Mencapai Target Profit Bersih Bulan Ini.
           </h1>
           
@@ -193,9 +193,9 @@ export default function LandingPage() {
           <div className="pt-4 md:pt-8 flex flex-col items-center gap-6">
             <button 
               onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-lg md:text-xl font-black py-5 px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-3 w-full max-w-sm justify-center group"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base md:text-xl font-black py-4 md:py-5 px-4 md:px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-2 md:gap-3 w-full max-w-md mx-auto justify-center group leading-snug"
             >
-              Aktifkan Sistem UBOS & Logaritma AI (Coba Gratis) <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              Aktifkan Sistem UBOS & Logaritma AI (Coba Gratis) <ArrowRight className="ml-1 md:ml-2 shrink-0 group-hover:translate-x-1 transition-transform" />
             </button>
             <div className="flex flex-wrap justify-center gap-4 text-sm font-bold text-slate-500">
               <span className="flex items-center gap-1.5"><Sparkles size={16} className="text-blue-500" /> All-in-One Tools</span>
@@ -337,7 +337,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Pegang Kontrol Bisnis dari HP</h2>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-black text-slate-900 mb-4 leading-normal">Pegang Kontrol Bisnis dari HP</h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">Kelola omset, awasi karyawan, dan pastikan margin aman tanpa harus standby di toko.</p>
           </motion.div>
 
@@ -419,7 +419,7 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl md:text-4xl font-black mb-6"
+              className="text-lg sm:text-xl md:text-3xl font-black mb-6 leading-normal"
             >
               Metoda Tarik Mundur & Logaritma AI
             </motion.h2>
@@ -545,7 +545,7 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5 }}
-              className="text-3xl font-black text-slate-900 mb-4"
+              className="text-lg sm:text-xl md:text-3xl font-black text-slate-900 mb-4 leading-normal"
             >
               Solusi Pilihan Jenis Usaha Anda
             </motion.h2>
@@ -652,7 +652,7 @@ export default function LandingPage() {
       <section className="py-20 px-6 bg-slate-900 text-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black mb-4">Pertanyaan Seputar Akses HP</h2>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-black mb-4 leading-normal">Pertanyaan Seputar Akses HP</h2>
             <p className="text-slate-400">Paling sering ditanyakan oleh rekan-rekan UMKM.</p>
           </div>
 
@@ -792,7 +792,7 @@ export default function LandingPage() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
-        className="fixed bottom-6 left-6 z-40 bg-[#25D366] hover:bg-[#1ebd5a] text-white shadow-lg shadow-[#25D366]/30 px-5 py-3.5 rounded-full flex items-center gap-2 font-bold text-sm transition-transform hover:-translate-y-1"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 bg-[#25D366] hover:bg-[#1ebd5a] text-white shadow-lg shadow-[#25D366]/30 px-4 md:px-5 py-3 md:py-3.5 rounded-full flex items-center gap-2 font-bold text-sm transition-transform hover:-translate-y-1"
       >
         <span className="text-xl leading-none">💬</span> <span className="hidden md:inline">Tanya CS / </span>Konsultasi WA
       </motion.a>
