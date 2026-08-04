@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,7 +11,27 @@ export default function LandingPage() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
+  // ── Analytics Tracker ──────────────────────────────────────
+  const trackEvent = async (eventType: 'page_view' | 'cta_click', ctaName?: string) => {
+    try {
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      const params = new URLSearchParams(window.location.search);
+      await supabase.from('visitor_analytics').insert({
+        event_type: eventType,
+        cta_name: ctaName || null,
+        device_type: isMobile ? 'Mobile' : 'Desktop',
+        referrer: document.referrer || 'Direct',
+        utm_source: params.get('utm_source') || null,
+        utm_medium: params.get('utm_medium') || null,
+        utm_campaign: params.get('utm_campaign') || null,
+      });
+    } catch (_) { /* silent — analytics should never break UX */ }
+  };
+
+  useEffect(() => { trackEvent('page_view'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // ────────────────────────────────────────────────────────────
+
   const [formData, setFormData] = useState({
     ownerName: '',
     merchantName: '',
@@ -142,7 +162,7 @@ export default function LandingPage() {
           </div>
 
           <button 
-            onClick={() => openRegisterModal()}
+            onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
             className="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full transition-colors shadow-md shadow-blue-600/20"
           >
             Mulai Gratis
@@ -172,7 +192,7 @@ export default function LandingPage() {
 
           <div className="pt-4 md:pt-8 flex flex-col items-center gap-6">
             <button 
-              onClick={() => openRegisterModal()}
+              onClick={() => { trackEvent('cta_click', 'Register'); openRegisterModal(); }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-lg md:text-xl font-black py-5 px-10 rounded-2xl shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-3 w-full max-w-sm justify-center group"
             >
               Coba Gratis 7 Hari
@@ -663,6 +683,7 @@ export default function LandingPage() {
         href="https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20bertanya%20mengenai%20aplikasi%20UBOS..."
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackEvent('cta_click', 'WhatsApp')}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, duration: 0.5 }}

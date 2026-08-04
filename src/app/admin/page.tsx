@@ -85,6 +85,15 @@ export default function AdminDashboard() {
     categories: {} as Record<string, number>
   });
 
+  // Landing Page Analytics State
+  const [analyticsData, setAnalyticsData] = useState({
+    totalVisitors: 0,
+    registerClicks: 0,
+    whatsappClicks: 0,
+    mobilePercent: 0,
+    referrers: [] as { source: string; count: number }[],
+  });
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -201,6 +210,40 @@ export default function AdminDashboard() {
         
       if (txData) {
         setCashTransactions(txData);
+      }
+
+      // Fetch Visitor Analytics
+      const { data: analyticsRaw } = await supabase
+        .from('visitor_analytics')
+        .select('event_type, cta_name, device_type, referrer, utm_source')
+        .order('created_at', { ascending: false })
+        .limit(5000);
+
+      if (analyticsRaw) {
+        const views = analyticsRaw.filter(r => r.event_type === 'page_view');
+        const clicks = analyticsRaw.filter(r => r.event_type === 'cta_click');
+        const mobileViews = views.filter(r => r.device_type === 'Mobile').length;
+        const registerClicks = clicks.filter(r => r.cta_name === 'Register').length;
+        const waClicks = clicks.filter(r => r.cta_name === 'WhatsApp').length;
+        
+        // Build referrer list
+        const refMap: Record<string, number> = {};
+        views.forEach(r => {
+          const src = r.utm_source || (r.referrer && r.referrer !== 'Direct' ? new URL(r.referrer).hostname : 'Direct');
+          refMap[src] = (refMap[src] || 0) + 1;
+        });
+        const referrers = Object.entries(refMap)
+          .map(([source, count]) => ({ source, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 6);
+
+        setAnalyticsData({
+          totalVisitors: views.length,
+          registerClicks,
+          whatsappClicks: waClicks,
+          mobilePercent: views.length > 0 ? Math.round((mobileViews / views.length) * 100) : 0,
+          referrers,
+        });
       }
 
     } catch (err: any) {
@@ -805,6 +848,78 @@ export default function AdminDashboard() {
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Traffic 7 Hari</p>
                 <p className="text-3xl font-black text-amber-400">{metrics.traffic7Days} <span className="text-sm text-slate-500 font-medium ml-1">users</span></p>
                 <p className="text-[10px] font-bold text-slate-400 mt-1">Hari ini: {metrics.trafficToday} aktif</p>
+              </div>
+            </div>
+          )}
+
+          {/* Landing Page Traffic Analytics */}
+          {activeMenu === 'DASHBOARD' && (
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-5">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
+                  <BarChart3 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Landing Page Traffic & Conversion</h3>
+                  <p className="text-[11px] text-slate-500 font-medium">Analytics trafik anonim & klik CTA logaritma.id</p>
+                </div>
+                <button onClick={fetchData} className="ml-auto text-[10px] font-bold text-slate-500 hover:text-blue-400 border border-slate-700 hover:border-blue-500 px-2.5 py-1 rounded-lg transition-colors">⟳ Refresh</button>
+              </div>
+
+              {/* Metric Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Visitors</p>
+                  <p className="text-2xl font-black text-white">{analyticsData.totalVisitors.toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Page views tercatat</p>
+                </div>
+                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CTR Register</p>
+                  <p className="text-2xl font-black text-emerald-400">
+                    {analyticsData.totalVisitors > 0
+                      ? `${((analyticsData.registerClicks / analyticsData.totalVisitors) * 100).toFixed(1)}%`
+                      : '—'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{analyticsData.registerClicks} klik tombol daftar</p>
+                </div>
+                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">% Mobile Users</p>
+                  <p className="text-2xl font-black text-blue-400">{analyticsData.mobilePercent}%</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">dari total visitors</p>
+                </div>
+                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">WA Clicked</p>
+                  <p className="text-2xl font-black text-[#25D366]">{analyticsData.whatsappClicks}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Tombol konsultasi WA</p>
+                </div>
+              </div>
+
+              {/* Referrer Sources */}
+              <div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Top Referral Sources</p>
+                {analyticsData.referrers.length === 0 ? (
+                  <p className="text-sm text-slate-600 italic">Belum ada data. Jalankan SQL schema terlebih dahulu.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {analyticsData.referrers.map((ref, i) => {
+                      const pct = analyticsData.totalVisitors > 0
+                        ? Math.round((ref.count / analyticsData.totalVisitors) * 100)
+                        : 0;
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="w-[140px] text-xs font-bold text-slate-300 truncate">{ref.source}</span>
+                          <div className="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-black text-slate-400 w-14 text-right">{ref.count} ({pct}%)</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
