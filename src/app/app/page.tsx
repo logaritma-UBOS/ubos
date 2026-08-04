@@ -215,7 +215,7 @@ export default function MemberDashboard() {
       <main className="max-w-5xl mx-auto px-4 md:px-6 py-3 pt-20 space-y-4 pb-28 md:pb-8">
         
         {/* A. Compact Sub-Header – persistent across all tabs */}
-        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl flex items-center justify-between shadow-md gap-3">
+        <div className="bg-primary text-white px-4 py-2.5 rounded-xl flex items-center justify-between shadow-md gap-3">
           {/* Left: greeting + status badge */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-base shrink-0">
@@ -264,7 +264,7 @@ export default function MemberDashboard() {
             
             {isKuliner && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-slate-900 relative p-8 flex flex-col justify-center overflow-hidden">
+                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
                   <div className="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     READY / BISA DIPAKAI
@@ -288,7 +288,7 @@ export default function MemberDashboard() {
                   ) : (
                     <button 
                       onClick={() => setShowPaywallModal(true)}
-                      className="w-full md:w-auto self-start bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
+                      className="w-full md:w-auto self-start bg-blue-900 hover:bg-blue-950 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
                     >
                       <Lock size={18} className="text-amber-400" />
                       Lisensi Expired - Upgrade Sekarang
@@ -300,7 +300,7 @@ export default function MemberDashboard() {
 
             {isPercetakan && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
+                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
                   <div className="absolute top-4 left-4 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                     VVIP TRIAL DIBUKA
@@ -328,9 +328,9 @@ export default function MemberDashboard() {
 
             {isRitel && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
+                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                     WAITING LIST
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Toko & Ritel</h3>
@@ -356,9 +356,9 @@ export default function MemberDashboard() {
 
             {isLaundry && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
+                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                     WAITING LIST
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Laundry & Jasa</h3>
@@ -384,8 +384,8 @@ export default function MemberDashboard() {
 
             {isLainnya && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-slate-700 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-slate-500/20 border border-slate-400/30 text-slate-300 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
+                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
+                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-200 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
                     Waiting List
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
@@ -398,7 +398,7 @@ export default function MemberDashboard() {
                   <p className="text-slate-500 font-medium mb-6">Fitur spesifik untuk kategori usaha Anda saat ini sedang dikembangkan oleh tim Logaritma. Bergabunglah dengan antrean prioritas.</p>
                   <button 
                     onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')}
-                    className="w-full md:w-auto self-start bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
+                    className="w-full md:w-auto self-start bg-primary hover:bg-primary-dark text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
                   >
                     Dapatkan Akses Prioritas Launching <ArrowRight size={18} />
                   </button>
@@ -475,7 +475,7 @@ export default function MemberDashboard() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-slate-800 transition-colors">
+            <div className="bg-blue-900 text-white p-8 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-blue-950 transition-colors">
               <div>
                 <h3 className="text-xl font-black mb-2">Masterclass Metoda Logaritma</h3>
                 <p className="text-sm text-slate-400 font-medium">Pelajari rahasia pola pikir "Tarik Mundur Target Profit".</p>
@@ -514,7 +514,7 @@ export default function MemberDashboard() {
               </div>
               {isKuliner && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
                     </div>
@@ -526,14 +526,14 @@ export default function MemberDashboard() {
                     {trialDaysLeft > 0 ? (
                       <a href="/ubos" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Buka Modul F&B <ArrowRight size={16} /></a>
                     ) : (
-                      <button onClick={() => setShowPaywallModal(true)} className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
+                      <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
                     )}
                   </div>
                 </div>
               )}
               {isPercetakan && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> VVIP TRIAL
                     </div>
@@ -548,9 +548,9 @@ export default function MemberDashboard() {
               )}
               {isRitel && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
-                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> WAITING LIST
+                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
                     </div>
                     <h3 className="text-2xl font-black text-white mt-5">UBOS Toko & Ritel</h3>
                   </div>
@@ -563,9 +563,9 @@ export default function MemberDashboard() {
               )}
               {isLaundry && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-800 relative p-6 flex flex-col justify-center overflow-hidden">
-                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> WAITING LIST
+                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
                     </div>
                     <h3 className="text-2xl font-black text-white mt-5">UBOS Laundry & Jasa</h3>
                   </div>
@@ -578,14 +578,14 @@ export default function MemberDashboard() {
               )}
               {isLainnya && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-700 relative p-6 flex flex-col justify-center">
-                    <div className="text-[9px] font-black uppercase tracking-wider text-slate-300 mb-1">Waiting List</div>
+                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-blue-200 mb-1">Waiting List</div>
                     <h3 className="text-2xl font-black text-white">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
                   </div>
                   <div className="p-5">
                     <h4 className="text-base font-bold text-slate-900 mb-1">Dalam Tahap Pengembangan</h4>
                     <p className="text-slate-500 text-sm font-medium mb-4">Fitur spesifik untuk kategori usaha Anda saat ini sedang dikembangkan oleh tim Logaritma.</p>
-                    <button onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')} className="w-full bg-slate-800 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Dapatkan Akses Prioritas <ArrowRight size={16} /></button>
+                    <button onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Dapatkan Akses Prioritas <ArrowRight size={16} /></button>
                   </div>
                 </div>
               )}
@@ -661,7 +661,7 @@ export default function MemberDashboard() {
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Pusat Edukasi</h2>
                 <p className="text-slate-500 text-sm font-medium">Kuasai metoda profit UMKM dari Logaritma.</p>
               </div>
-              <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-slate-800 transition-colors">
+              <div className="bg-blue-900 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-blue-950 transition-colors">
                 <div className="flex-1 mr-4">
                   <h3 className="text-lg font-black mb-1">Masterclass Metoda Logaritma</h3>
                   <p className="text-sm text-slate-400 font-medium">Pelajari rahasia pola pikir "Tarik Mundur Target Profit".</p>
