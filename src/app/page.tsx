@@ -182,11 +182,15 @@ export default function LandingPage() {
             <span>📱</span> 100% Nyaman di Smartphone Anda
           </div>
           
-          <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-snug md:leading-tight">
-            Stop Cuma Pakai Aplikasi Kasir Biasa! Waktunya Gunakan UBOS: <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sistem Otomatis Terpadu</span> yang Menuntut Usaha Anda Mencapai Target Profit Bersih Bulan Ini.
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+            Stop Cuma Pakai Aplikasi Kasir Biasa! Waktunya Gunakan UBOS.
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 mt-3 leading-snug">
+            Sistem Otomatis Terpadu yang Menuntut Usaha Anda Mencapai Target Profit Bersih Bulan Ini.
+          </h2>
+
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 mt-4 max-w-2xl mx-auto leading-relaxed">
             Menggabungkan Kasir, Laba-Rugi, Inventory, Margin Guard, dan Logaritma AI ke dalam Ekosistem Metoda Tarik Mundur. Cukup tentukan target profit bulanan, UBOS pecah jadi Action Plan Harian di HP Anda.
           </p>
 
@@ -504,14 +508,14 @@ export default function LandingPage() {
       </section>
 
       {/* Testimoni Section */}
-      <section className="pb-20 px-6 bg-slate-50">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-12 md:py-20 px-6 bg-slate-50">
+        <div className="max-w-4xl mx-auto my-6 relative z-10">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden text-center md:text-left flex flex-col md:flex-row items-center gap-8"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white shadow-xl shadow-blue-900/20 relative overflow-visible text-center md:text-left flex flex-col md:flex-row items-center gap-8"
           >
             {/* Quote Icon Background */}
             <div className="absolute top-0 right-4 text-[120px] leading-none font-serif opacity-10 select-none">"</div>
