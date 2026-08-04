@@ -248,7 +248,7 @@ export default function MemberDashboard() {
                 <div className="md:w-1/3 bg-slate-900 relative p-8 flex flex-col justify-center overflow-hidden">
                   <div className="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Tersedia
+                    READY / BISA DIPAKAI
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS F&B</h3>
                   <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
@@ -257,14 +257,14 @@ export default function MemberDashboard() {
                 </div>
                 <div className="p-8 flex-1 flex flex-col justify-center">
                   <h4 className="text-xl font-bold text-slate-900 mb-2">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
-                  <p className="text-slate-500 font-medium mb-6">Kunci profit bersih harian via Metode Tarik Mundur (15 menit/hari), amankan margin dari potongan komisi delivery dengan Margin Guard, dan pisahkan kas toko secara otomatis.</p>
+                  <p className="text-slate-500 font-medium mb-6">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
                   
                   {trialDaysLeft > 0 ? (
                     <a 
                       href="/ubos"
                       className="w-full md:w-auto self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                     >
-                      Buka Modul UBOS Kuliner <ArrowRight size={18} />
+                      Pilih Modul F&B <ArrowRight size={18} />
                     </a>
                   ) : (
                     <button 
@@ -284,7 +284,7 @@ export default function MemberDashboard() {
                 <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
                   <div className="absolute top-4 left-4 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    Sedang Disiapkan
+                    VVIP TRIAL DIBUKA
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Percetakan & Fotokopi</h3>
                   <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
@@ -296,12 +296,12 @@ export default function MemberDashboard() {
                     <AlertTriangle size={16} /> Akses VVIP Prioritas untuk Anda
                   </div>
                   <h4 className="text-xl font-bold text-slate-900 mb-2">Tools Kontrol Antrean & HPP Kertas</h4>
-                  <p className="text-slate-500 font-medium mb-6">Kami sedang meracik fitur khusus untuk menghitung HPP tinta/kertas dan manajemen order cetak. Anda berada di daftar prioritas kami.</p>
+                  <p className="text-slate-500 font-medium mb-6">Kalkulator HPP bahan (kertas/tinta/meteran), estimasi harga cetak cepat, dan manajemen antrean antinumpuk.</p>
                   <button 
                     onClick={() => openWaitingList('Jasa Percetakan')}
                     className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                   >
-                    Dapatkan Akses Prioritas Launching <ArrowRight size={18} />
+                    Daftar Trial Percetakan <ArrowRight size={18} />
                   </button>
                 </div>
               </div>
@@ -310,9 +310,9 @@ export default function MemberDashboard() {
             {isRitel && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
                 <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    SEDANG DISIAPKAN (WAITING LIST)
+                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    WAITING LIST
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Toko & Ritel</h3>
                   <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
@@ -324,12 +324,12 @@ export default function MemberDashboard() {
                     <AlertTriangle size={16} /> Akses VVIP Prioritas Launching untuk Anda
                   </div>
                   <h4 className="text-xl font-bold text-slate-900 mb-2">Manajemen Stok Anti Dead-Stock & Peringatan Barcode Expired</h4>
-                  <p className="text-slate-500 font-medium mb-6">Sistem Kasir Minimarket & Olshop dengan Hitung Target Sales Harian sedang dalam tahap finalisasi.</p>
+                  <p className="text-slate-500 font-medium mb-6">Sistem inventaris anti-stok mati (dead stock), cetak barcode, dan batas belanja stok harian untuk toko & olshop.</p>
                   <button 
                     onClick={() => openWaitingList('Toko & Ritel')}
                     className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                   >
-                    Dapatkan Akses Prioritas UBOS Ritel <ArrowRight size={18} />
+                    Ikut Waiting List Ritel <ArrowRight size={18} />
                   </button>
                 </div>
               </div>
@@ -338,9 +338,9 @@ export default function MemberDashboard() {
             {isLaundry && (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
                 <div className="md:w-1/3 bg-slate-800 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    SEDANG DISIAPKAN (WAITING LIST)
+                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-slate-500/20 border border-slate-400/30 text-slate-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    WAITING LIST
                   </div>
                   <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Laundry & Jasa</h3>
                   <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
@@ -352,12 +352,12 @@ export default function MemberDashboard() {
                     <AlertTriangle size={16} /> Akses VVIP Prioritas Launching untuk Anda
                   </div>
                   <h4 className="text-xl font-bold text-slate-900 mb-2">Tracking Slot Jam Kerja, Layanan Cuci/Setrika Kiloan & Satuan</h4>
-                  <p className="text-slate-500 font-medium mb-6">Kalkulator Otomatis Komisi Staf/Karyawan Cuci sedang dalam tahap pengerjaan prioritas oleh tim.</p>
+                  <p className="text-slate-500 font-medium mb-6">Pelacak status cucian/orderan, sistem nota WhatsApp otomatis, dan hitung komisi staf/karyawan tanpa ribet.</p>
                   <button 
                     onClick={() => openWaitingList('Laundry & Jasa')}
                     className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                   >
-                    Dapatkan Akses Prioritas UBOS Laundry <ArrowRight size={18} />
+                    Ikut Waiting List Laundry <ArrowRight size={18} />
                   </button>
                 </div>
               </div>
