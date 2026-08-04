@@ -93,9 +93,9 @@ export default function LandingPage() {
           kategori_usaha: formData.category
         }
       ]);
-
       toast.success("Berhasil! Mengalihkan ke Member Area...");
-      router.push('/member');
+      const categoryParam = encodeURIComponent(formData.category.toLowerCase().split(' ')[0] || 'kuliner');
+      router.push(`/member?category=${categoryParam}`);
       
     } catch (err: any) {
       toast.error(err.message || 'Terjadi kesalahan.');

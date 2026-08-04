@@ -296,10 +296,10 @@ export default function MemberDashboard() {
                         e.preventDefault();
                         if (!merchant?.user_id) {
                           toast.error('Silakan login/daftar untuk menggunakan modul ini.');
-                          router.push('/auth');
+                          router.push('/auth?mode=register&category=' + encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner'));
                           return;
                         }
-                        router.push('/ubos');
+                        const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); router.push('/ubos/' + encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner') + '/' + slug);
                       }}
                       className="w-full md:w-auto self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                     >
@@ -547,12 +547,14 @@ export default function MemberDashboard() {
                       <button 
                         onClick={(e) => {
                           e.preventDefault();
+                          const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
                           if (!merchant?.user_id) {
                             toast.error('Silakan login/daftar untuk menggunakan modul ini.');
-                            router.push('/auth');
+                            router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
                             return;
                           }
-                          router.push('/ubos');
+                          const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                          router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
                         }}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"
                       >

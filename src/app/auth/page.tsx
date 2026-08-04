@@ -1,11 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Store, Mail, Lock } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AuthPage() {
+function AuthForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
+  
+  useEffect(() => {
+    if (searchParams.get('mode') === 'register') {
+      setIsLogin(false);
+    }
+  }, [searchParams]);
   const [whatsapp, setWhatsapp] = useState('');
   const [password, setPassword] = useState('');
   const [merchantName, setMerchantName] = useState('');
@@ -23,11 +32,25 @@ export default function AuthPage() {
       const dummyEmail = `${cleanWA}@logaritma.id`;
 
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email: dummyEmail, password });
+        const { error, data } = await supabase.auth.signInWithPassword({ email: dummyEmail, password });
         if (error) throw error;
+        
+        // Fetch merchant to redirect
+        if (data.user) {
+          const { data: merchantData } = await supabase.from('merchants').select('nama_usaha, kategori_usaha').eq('user_id', data.user.id).maybeSingle();
+          if (merchantData) {
+            const category = (merchantData.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
+            const slug = (merchantData.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+            return;
+          }
+        }
+        router.push('/member');
       } else {
         const { data, error } = await supabase.auth.signUp({ email: dummyEmail, password });
         if (error) throw error;
+        
+        const categoryParam = searchParams.get('category') || 'F&B';
         
         // After signup, create merchant profile if user is created
         if (data.user) {
@@ -36,7 +59,7 @@ export default function AuthPage() {
             .insert([{
               user_id: data.user.id,
               nama_usaha: merchantName,
-              kategori_usaha: 'F&B',
+              kategori_usaha: categoryParam,
               whatsapp: cleanWA
             }]);
             
@@ -44,6 +67,11 @@ export default function AuthPage() {
              console.error('Error creating merchant:', profileError);
              throw new Error(`Gagal membuat profil toko: ${profileError.message || profileError.details || 'Unknown Error'}`);
           }
+          
+          const category = categoryParam.toLowerCase().split(' ')[0] || 'kuliner';
+          const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+          router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+          return;
         }
       }
     } catch (err: any) {
@@ -149,5 +177,13 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>}>
+      <AuthForm />
+    </Suspense>
   );
 }

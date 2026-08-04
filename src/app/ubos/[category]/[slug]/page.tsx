@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { ShoppingBag, Package, Wallet, Activity, TrendingUp, Target, CreditCard, ShieldCheck, Store, Sparkles, Megaphone, AlertCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import toast from 'react-hot-toast';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Copilot from '@/components/Copilot';
@@ -15,6 +16,7 @@ export default function UBOSDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingTarget, setOnboardingTarget] = useState('5000000');
   const router = useRouter();
+  const params = useParams();
   
   const { aiState } = useAILogaritmaEngine();
 
@@ -23,11 +25,27 @@ export default function UBOSDashboard() {
   const [budgetBelanja, setBudgetBelanja] = useState<string>('300000');
 
   useEffect(() => {
+    let isMounted = true;
     const fetchMerchant = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error(`Silakan login dengan Nomor WhatsApp dan Password terdaftar untuk mengakses modul ${params.slug || 'Usaha'}.`);
+        router.push('/auth');
+        return;
+      }
+
       if (user) {
         const { data } = await supabase.from('merchants').select('*').eq('user_id', user.id).single();
-        setMerchant(data);
+        if (isMounted) setMerchant(data);
+        
+        // Verify slug
+        if (data && params.slug) {
+          const expectedSlug = (data.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+          if (expectedSlug !== params.slug) {
+            router.push(`/ubos/${params.category || 'kuliner'}/${expectedSlug}`);
+            return;
+          }
+        }
 
         // Check if no products exist for onboarding
         if (data) {
@@ -41,10 +59,14 @@ export default function UBOSDashboard() {
           }
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     };
     fetchMerchant();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [router, params]);
 
   if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse flex flex-col items-center justify-center min-h-[50vh]"><Store size={48} className="mb-4 text-blue-200" /><p>Memuat Dashboard...</p></div>;
 
