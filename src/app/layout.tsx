@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import AppShell from "@/components/AppShell";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -45,6 +46,7 @@ export default function RootLayout({
         <AppShell>
           {children}
         </AppShell>
+        <PwaInstallPrompt />
         <Toaster position="top-center" toastOptions={{
           style: {
             borderRadius: '16px',
