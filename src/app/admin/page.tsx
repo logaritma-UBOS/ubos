@@ -65,6 +65,13 @@ export default function AdminDashboard() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  
+  const [isManualAddModalOpen, setIsManualAddModalOpen] = useState(false);
+  const [manualName, setManualName] = useState('');
+  const [manualWa, setManualWa] = useState('');
+  const [manualCategory, setManualCategory] = useState('Lainnya');
+  const [isAddingManual, setIsAddingManual] = useState(false);
+
   const [waSearchQuery, setWaSearchQuery] = useState('');
   const [waFunnelFilter, setWaFunnelFilter] = useState('All');
   
@@ -290,6 +297,42 @@ export default function AdminDashboard() {
       toast.error('Terjadi kesalahan saat parsing.');
     } finally {
       setIsImporting(false);
+    }
+  };
+
+  const handleManualAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim() || !manualWa.trim()) {
+      toast.error('Nama dan Nomor WA wajib diisi');
+      return;
+    }
+
+    setIsAddingManual(true);
+    try {
+      let wa = manualWa.replace(/\D/g, '');
+      if (wa.startsWith('0')) wa = '62' + wa.substring(1);
+      if (wa.startsWith('8')) wa = '62' + wa;
+
+      const { error } = await supabase.from('merchants').insert([{
+        nama_usaha: manualName,
+        no_whatsapp: wa,
+        kategori_usaha: manualCategory,
+        status_funnel: 'New Lead'
+      }]);
+
+      if (error) throw error;
+      
+      toast.success('Berhasil menambahkan kontak manual');
+      setIsManualAddModalOpen(false);
+      setManualName('');
+      setManualWa('');
+      setManualCategory('Lainnya');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Gagal menambahkan kontak.');
+    } finally {
+      setIsAddingManual(false);
     }
   };
 
@@ -937,7 +980,7 @@ export default function AdminDashboard() {
                   <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/20">
                     <Import size={16} /> Import Massal
                   </button>
-                  <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                  <button onClick={() => setIsManualAddModalOpen(true)} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">
                     <UserPlus size={16} /> Manual
                   </button>
                 </div>
@@ -1548,6 +1591,86 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Import Modal */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsImportModalOpen(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
+              <div>
+                <h3 className="text-xl font-black text-white flex items-center gap-2">
+                  <Database className="text-emerald-500" /> Import Massal Database
+                </h3>
+                <p className="text-slate-400 text-sm mt-1">Paste CSV atau daftar kontak di bawah ini. Auto-format 08 jadi 628.</p>
+              </div>
+              <button onClick={() => setIsImportModalOpen(false)} className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-300 mb-2">Data CSV / Teks (Nama, NoWA, Kategori)</label>
+              <textarea 
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder="Budi Jaya, 08123456789, Kuliner&#10;08987654321&#10;Toko Anugerah, +628511223344"
+                className="w-full h-64 p-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all custom-scrollbar"
+              />
+              <div className="mt-6 flex justify-end gap-3">
+                <button onClick={() => setIsImportModalOpen(false)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800 transition-colors">Batal</button>
+                <button onClick={handleBulkImport} disabled={isImporting} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-900/20 transition-all disabled:opacity-50">
+                  {isImporting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <CheckCircle2 size={16} />}
+                  Mulai Import ke Database
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Add Modal */}
+      {isManualAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsManualAddModalOpen(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <h2 className="text-lg font-black text-white flex items-center gap-2"><UserPlus size={20} className="text-emerald-500"/> Tambah Kontak Manual</h2>
+              <button onClick={() => setIsManualAddModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleManualAdd} className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Kontak / Usaha</label>
+                <input type="text" required value={manualName} onChange={(e) => setManualName(e.target.value)} placeholder="Misal: Toko Anugerah" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor WhatsApp</label>
+                <input type="text" required value={manualWa} onChange={(e) => setManualWa(e.target.value)} placeholder="08123456789" className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kategori</label>
+                <select required value={manualCategory} onChange={(e) => setManualCategory(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                  <option value="Kuliner & F&B">Kuliner & F&B</option>
+                  <option value="Fotokopi & Percetakan">Fotokopi & Percetakan</option>
+                  <option value="Toko / Ritel">Toko / Ritel</option>
+                  <option value="Laundry & Jasa">Laundry & Jasa</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsManualAddModalOpen(false)} className="px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-white transition-colors">Batal</button>
+                <button type="submit" disabled={isAddingManual} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md shadow-emerald-600/20 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+                  {isAddingManual ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div> : <Save size={16} />}
+                  Simpan Kontak
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
