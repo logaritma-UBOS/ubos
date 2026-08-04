@@ -145,8 +145,8 @@ export default function NewProductPage() {
       }
       
       
-      toast.success('Produk berhasil disimpan!');
-      router.push('/inventory');
+      toast.success('Produk berhasil ditambahkan!');
+      router.push(`/ubos/${params.category}/${params.slug}/inventory`);
       
     } catch (err) {
       console.error(err);

@@ -154,7 +154,7 @@ export default function UBOSDashboard() {
               <button 
                 onClick={() => {
                   localStorage.setItem('targetProfit', onboardingTarget);
-                  router.push('/inventory?onboarding=true');
+                  router.push(`/ubos/${params.category}/${params.slug}/inventory?onboarding=true`);
                 }}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
               >

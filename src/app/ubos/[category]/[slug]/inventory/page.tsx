@@ -143,7 +143,7 @@ export default function InventoryPage() {
               </div>
             </div>
             <button 
-              onClick={() => router.push('/pos')}
+              onClick={() => router.push(`/ubos/${params.category}/${params.slug}/pos`)}
               className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95"
             >
               Siap Buka Kasir <ArrowRight size={20} />
