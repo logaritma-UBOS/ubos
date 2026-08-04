@@ -224,7 +224,7 @@ export default function MemberDashboard() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-3">
             <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-blue-500/30 transition-colors" onClick={() => setShowPaywallModal(true)}>
-               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">{trialDaysLeft > 0 ? 'ðŸŽ' : 'ðŸ”’'}</div>
+               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">{trialDaysLeft > 0 ? '🎁' : '🔒'}</div>
                <div>
                  <p className="text-xs font-bold text-blue-300 uppercase tracking-wider">Status Lisensi</p>
                  <p className="font-bold text-lg text-white leading-tight">
