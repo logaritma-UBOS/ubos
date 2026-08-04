@@ -269,11 +269,11 @@ export default function AdminDashboard() {
         
         return {
           nama_usaha: nama,
-          no_whatsapp: wa,
+          whatsapp: wa,
           kategori_usaha: cat,
           status_funnel: 'New Lead'
         };
-      }).filter(d => d.no_whatsapp.length > 8);
+      }).filter(d => d.whatsapp.length > 8);
 
       if (parsedData.length === 0) {
         toast.error('Tidak ada data valid yang bisa diimport');
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
 
       const { error } = await supabase.from('merchants').insert([{
         nama_usaha: manualName,
-        no_whatsapp: wa,
+        whatsapp: wa,
         kategori_usaha: manualCategory,
         status_funnel: 'New Lead'
       }]);
@@ -1015,16 +1015,16 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50">
-                    {merchants.filter(m => (waFunnelFilter === 'All' || m.status_funnel === waFunnelFilter || (waFunnelFilter === 'New Lead' && !m.status_funnel)) && (m.nama_usaha?.toLowerCase().includes(waSearchQuery.toLowerCase()) || m.whatsapp?.includes(waSearchQuery) || m.no_whatsapp?.includes(waSearchQuery))).map((m) => (
+                    {merchants.filter(m => (waFunnelFilter === 'All' || m.status_funnel === waFunnelFilter || (waFunnelFilter === 'New Lead' && !m.status_funnel)) && (m.nama_usaha?.toLowerCase().includes(waSearchQuery.toLowerCase()) || m.whatsapp?.includes(waSearchQuery))).map((m) => (
                       <tr key={m.id} className="hover:bg-slate-800/50 transition-colors">
                         <td className="p-4 font-bold text-slate-200">{m.nama_usaha || 'Tanpa Nama'}</td>
-                        <td className="p-4 text-slate-300">{m.no_whatsapp || m.whatsapp || '-'}</td>
+                        <td className="p-4 text-slate-300">{m.whatsapp || '-'}</td>
                         <td className="p-4 text-slate-400 text-sm">{m.kategori_usaha || '-'}</td>
                         <td className="p-4">
                           <span className="bg-slate-800 text-slate-300 text-xs px-2 py-1 rounded border border-slate-700">{m.status_funnel || 'New Lead'}</span>
                         </td>
                         <td className="p-4 text-right">
-                          <a href={`https://wa.me/62${(m.no_whatsapp || m.whatsapp || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%2C%20ini%20dengan%20tim%20Logaritma...`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-green-900/20">
+                          <a href={`https://wa.me/62${(m.whatsapp || '').replace(/\D/g, '').replace(/^0+/, '')}?text=Halo%20kak%2C%20ini%20dengan%20tim%20Logaritma...`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-green-900/20">
                             <MessageCircle size={14} /> Chat WA
                           </a>
                         </td>
