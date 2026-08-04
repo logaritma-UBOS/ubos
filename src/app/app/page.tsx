@@ -183,7 +183,7 @@ export default function MemberDashboard() {
     <div className="min-h-[100dvh] bg-slate-50 selection:bg-primary/20">
       
       {/* Portal Header */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
+      <nav className="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-40">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-8 h-8 object-contain" />
@@ -198,7 +198,7 @@ export default function MemberDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+      <main className="max-w-5xl mx-auto px-6 py-10 pt-24 space-y-10">
         
         {/* A. Header Status Akun & License */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-600 to-slate-900 text-white rounded-3xl p-8 shadow-xl shadow-blue-900/20 relative overflow-hidden">
