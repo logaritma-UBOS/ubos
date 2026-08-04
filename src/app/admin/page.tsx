@@ -243,15 +243,18 @@ export default function AdminDashboard() {
   };
 
   const handleBulkImport = async () => {
-    if (!importText.trim()) {
-      toast.error('Data tidak boleh kosong');
-      return;
-    }
+    if (!importText.trim()) return;
     
     setIsImporting(true);
     try {
-      // Parser logic
-      const lines = importText.split('\n').map(line => line.trim()).filter(line => line);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Sesi tidak valid');
+        setIsImporting(false);
+        return;
+      }
+
+      const lines = importText.split('\n').filter(l => l.trim().length > 0);
       const parsedData = lines.map(line => {
         const parts = line.split(',');
         let nama = parts[0]?.trim() || 'New Lead';
@@ -268,6 +271,7 @@ export default function AdminDashboard() {
         if (wa.startsWith('8')) wa = '62' + wa;
         
         return {
+          user_id: user.id,
           nama_usaha: nama,
           whatsapp: wa,
           kategori_usaha: cat,
@@ -309,11 +313,15 @@ export default function AdminDashboard() {
 
     setIsAddingManual(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Sesi tidak valid');
+
       let wa = manualWa.replace(/\D/g, '');
       if (wa.startsWith('0')) wa = '62' + wa.substring(1);
       if (wa.startsWith('8')) wa = '62' + wa;
 
       const { error } = await supabase.from('merchants').insert([{
+        user_id: user.id,
         nama_usaha: manualName,
         whatsapp: wa,
         kategori_usaha: manualCategory,
