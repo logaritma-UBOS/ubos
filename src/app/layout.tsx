@@ -15,16 +15,22 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#f8fafc",
+  themeColor: "#1e40af",
 };
 
 export const metadata: Metadata = {
-  title: 'LOGARITMA.ID - Universal Business Operation System',
+  title: 'UBOS - Universal Business Operation System',
   description: 'Pusat Kontrol Ekosistem & Operasional Bisnis UMKM',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'UBOS',
+  },
   icons: {
-    icon: '/icon.png',
+    icon: '/icon192.png',
     shortcut: '/favicon.ico',
-    apple: '/icon.png',
+    apple: '/icon192.png',
   },
 };
 
