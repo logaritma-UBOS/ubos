@@ -8,7 +8,7 @@ import {
   ArrowRight, Activity, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Smartphone,
   Menu, X, Sparkles, Bot, Zap, Database, LayoutDashboard, Settings, LayoutPanelLeft,
   ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin,
-  Eye, EyeOff, Save, Trash2, Import, UserPlus, PhoneCall, CheckCircle2
+  Eye, EyeOff, Save, Trash2, Import, UserPlus, PhoneCall, CheckCircle2, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { sendFonnteWA } from '@/lib/fonnte';
