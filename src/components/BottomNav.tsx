@@ -5,16 +5,18 @@ import { usePathname } from 'next/navigation';
 import { Home, ShoppingCart, Package, Wallet, Settings } from 'lucide-react';
 import clsx from 'clsx';
 
-const navItems = [
-  { name: 'Dashboard', href: '/ubos', icon: Home },
-  { name: 'POS', href: '/pos', icon: ShoppingCart },
-  { name: 'Stok', href: '/inventory', icon: Package },
-  { name: 'Finance', href: '/finance', icon: Wallet },
-  { name: 'Pengaturan', href: '/settings', icon: Settings },
-];
-
 export default function BottomNav() {
   const pathname = usePathname();
+  const basePathMatch = pathname.match(/^\/ubos\/[^\/]+\/[^\/]+/);
+  const basePath = basePathMatch ? basePathMatch[0] : '';
+
+  const navItems = [
+    { name: 'Dashboard', href: `${basePath}`, icon: Home },
+    { name: 'POS', href: `${basePath}/pos`, icon: ShoppingCart },
+    { name: 'Stok', href: `${basePath}/inventory`, icon: Package },
+    { name: 'Finance', href: `${basePath}/finance`, icon: Wallet },
+    { name: 'Pengaturan', href: '/settings', icon: Settings },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-primary shadow-[0_-5px_20px_-10px_rgba(0,0,0,0.1)] mx-auto max-w-md w-full pb-[env(safe-area-inset-bottom)]">

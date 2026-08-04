@@ -4,16 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings } from 'lucide-react';
 
-const navItems = [
-  { name: 'Dashboard', href: '/ubos', icon: Home },
-  { name: 'POS', href: '/pos', icon: ShoppingBag },
-  { name: 'Stok', href: '/inventory', icon: Package },
-  { name: 'Finance', href: '/finance', icon: Wallet },
-  { name: 'CRM', href: '/crm', icon: Users },
-];
-
 export default function Sidebar({ merchant }: { merchant?: any }) {
   const pathname = usePathname();
+  const basePathMatch = pathname.match(/^\/ubos\/[^\/]+\/[^\/]+/);
+  const basePath = basePathMatch ? basePathMatch[0] : '';
+
+  const navItems = [
+    { name: 'Dashboard', href: `${basePath}`, icon: Home },
+    { name: 'POS', href: `${basePath}/pos`, icon: ShoppingBag },
+    { name: 'Stok', href: `${basePath}/inventory`, icon: Package },
+    { name: 'Finance', href: `${basePath}/finance`, icon: Wallet },
+    { name: 'CRM', href: `${basePath}/crm`, icon: Users },
+  ];
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-slate-200 z-50 shadow-sm">
