@@ -165,7 +165,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       
       {!hideBottomNav && (
         <div className="md:hidden">
-          <BottomNav />
+          <BottomNav merchant={merchant} />
         </div>
       )}
     </div>

@@ -5,10 +5,21 @@ import { usePathname } from 'next/navigation';
 import { Home, ShoppingCart, Package, Wallet, Settings } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function BottomNav() {
+export default function BottomNav({ merchant }: { merchant?: any }) {
   const pathname = usePathname();
+  
+  const category = encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner');
+  const slug = merchant?.nama_usaha ? (merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) : '';
+  
+  let basePath = '';
   const basePathMatch = pathname.match(/^\/ubos\/[^\/]+\/[^\/]+/);
-  const basePath = basePathMatch ? basePathMatch[0] : '';
+  if (basePathMatch) {
+    basePath = basePathMatch[0];
+  } else if (slug) {
+    basePath = `/ubos/${category}/${slug}`;
+  } else {
+    basePath = '/member';
+  }
 
   const navItems = [
     { name: 'Dashboard', href: `${basePath}`, icon: Home },
