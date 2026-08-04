@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, TrendingUp, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -212,38 +212,43 @@ export default function MemberDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 pt-24 space-y-10 pb-28 md:pb-10">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-3 pt-20 space-y-4 pb-28 md:pb-8">
         
-        {/* A. Header Status Akun & License */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-600 to-slate-900 text-white rounded-3xl p-8 shadow-xl shadow-blue-900/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Target size={150} />
-          </div>
-          <div className="relative z-10 space-y-2">
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight">Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!</h1>
-            <p className="text-blue-100 font-medium">Selamat datang di Pusat Kontrol Ekosistem Logaritma.</p>
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-3">
-            <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-blue-500/30 transition-colors" onClick={() => setShowPaywallModal(true)}>
-               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">{trialDaysLeft > 0 ? '🎁' : '🔒'}</div>
-               <div>
-                 <p className="text-xs font-bold text-blue-300 uppercase tracking-wider">Status Lisensi</p>
-                 <p className="font-bold text-lg text-white leading-tight">
-                   {trialDaysLeft > 0 ? `Aktif` : `Expired`} 
-                   <span className="text-sm font-medium opacity-80 ml-1">
-                     {trialDaysLeft > 0 ? `(Sisa ${trialDaysLeft} Hari)` : `(Silakan Upgrade)`}
-                   </span>
-                 </p>
-               </div>
+        {/* A. Compact Sub-Header – persistent across all tabs */}
+        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl flex items-center justify-between shadow-md gap-3">
+          {/* Left: greeting + status badge */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-base shrink-0">
+              {trialDaysLeft > 0 ? '🎁' : '🔒'}
             </div>
-            
-            <button 
-              onClick={() => setShowPaywallModal(true)}
-              className="bg-amber-400 hover:bg-amber-300 text-amber-900 font-black px-4 py-3 rounded-xl transition-transform active:scale-95 shadow-lg shadow-amber-400/20 w-full md:w-auto flex items-center justify-center gap-2"
-            >
-              ⚡ Upgrade Premium Rp 49.000
-            </button>
+            <div className="min-w-0">
+              <p className="font-black text-sm leading-tight truncate">
+                Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!
+              </p>
+              <button
+                onClick={() => setShowPaywallModal(true)}
+                className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 transition-colors ${
+                  trialDaysLeft > 0
+                    ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                    : 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                }`}
+              >
+                {trialDaysLeft > 0 ? (
+                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif – Sisa {trialDaysLeft} Hari</>
+                ) : (
+                  <><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> Lisensi Expired</>
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Right: upgrade button */}
+          <button
+            onClick={() => setShowPaywallModal(true)}
+            className="shrink-0 bg-amber-400 hover:bg-amber-300 active:scale-95 text-amber-900 font-black text-xs px-3 py-2 rounded-lg transition-all shadow shadow-amber-400/20 flex items-center gap-1 whitespace-nowrap"
+          >
+            ⚡ Upgrade Rp 49.000
+          </button>
         </div>
 
         {/* B. Main Module Launchpad — DESKTOP ONLY (mobile uses tabbed nav below) */}
