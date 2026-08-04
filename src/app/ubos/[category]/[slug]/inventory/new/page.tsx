@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, UploadCloud, Plus, Trash2, ImagePlus } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ import CurrencyInput from '@/components/CurrencyInput';
 
 export default function NewProductPage() {
   const router = useRouter();
+  const params = useParams();
   const [loading, setLoading] = useState(false);
   
   // Product state

@@ -77,7 +77,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       } catch (err) {
         console.error(err);
         toast.error('Gagal memuat produk.');
-        router.push(`/ubos/${params.category}/${params.slug}/inventory`);
+        router.push(`/ubos/${resolvedParams.category}/${resolvedParams.slug}/inventory`);
       } finally {
         setLoading(false);
       }
@@ -198,7 +198,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       
       
       toast.success('Produk berhasil diperbarui!');
-      router.push(`/ubos/${params.category}/${params.slug}/inventory`);
+      router.push(`/ubos/${resolvedParams.category}/${resolvedParams.slug}/inventory`);
       
     } catch (err) {
       console.error(err);

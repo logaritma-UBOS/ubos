@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
@@ -15,6 +15,7 @@ export default function InventoryPage() {
   
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
   const isOnboarding = searchParams.get('onboarding') === 'true';
 
   // Search State
