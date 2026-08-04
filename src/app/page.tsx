@@ -94,6 +94,7 @@ export default function LandingPage() {
         }
       ]);
       toast.success("Berhasil! Mengalihkan ke Member Area...");
+      setShowModal(false);
       const categoryParam = encodeURIComponent(formData.category.toLowerCase().split(' ')[0] || 'kuliner');
       router.push(`/member?category=${categoryParam}`);
       
