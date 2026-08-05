@@ -41,11 +41,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create payment link', details: data }, { status: response.status });
     }
 
-    // Use checkout URL from Mayar API - replace with custom domain if configured
+    // Use checkout URL from Mayar API - replace old subdomain with new one
     let checkoutUrl = data.data?.link || data.link || data.url;
 
-    const customCheckoutDomain = process.env.MAYAR_CHECKOUT_DOMAIN;
-    if (checkoutUrl && customCheckoutDomain && checkoutUrl.includes('logaritma-id.myr.id')) {
+    const customCheckoutDomain = process.env.MAYAR_CHECKOUT_DOMAIN || 'logaritma-pay.myr.id';
+    if (checkoutUrl && checkoutUrl.includes('logaritma-id.myr.id')) {
       checkoutUrl = checkoutUrl.replace('logaritma-id.myr.id', customCheckoutDomain);
     }
 
