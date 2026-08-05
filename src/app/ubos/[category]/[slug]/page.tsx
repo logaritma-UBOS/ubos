@@ -23,6 +23,7 @@ export default function UBOSDashboard() {
   // States for Calculators
   const [targetProfit, setTargetProfit] = useState<string>('5000000');
   const [budgetBelanja, setBudgetBelanja] = useState<string>('300000');
+  const [showTargetModal, setShowTargetModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -57,6 +58,11 @@ export default function UBOSDashboard() {
           if (!products || products.length === 0) {
             setShowOnboarding(true);
           }
+        }
+        // Load existing target if any
+        const savedTarget = localStorage.getItem('targetProfit');
+        if (savedTarget && isMounted) {
+          setTargetProfit(savedTarget);
         }
       }
       if (isMounted) setLoading(false);
@@ -117,14 +123,14 @@ export default function UBOSDashboard() {
             </div>
           </div>
           
-          <Link 
-            href={`/ubos/${params.category}/${params.slug}/pos`} 
+          <button 
+            onClick={() => setShowTargetModal(true)}
             className="w-full md:w-auto bg-white px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30" 
             style={{ color: primaryColor }}
           >
-            <ShoppingBag size={20} />
+            <Target size={20} />
             TENTUKAN TARGET
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -159,6 +165,57 @@ export default function UBOSDashboard() {
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
               >
                 Lanjut: Input Produk Pertama <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tentukan Target Modal */}
+      {showTargetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowTargetModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-20"
+            >
+              <AlertCircle size={20} />
+            </button>
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <Target size={120} />
+            </div>
+            <div className="relative z-10 text-center space-y-6">
+              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+                <Target size={32} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">Tentukan Target Baru</h2>
+                {localStorage.getItem('targetProfit') ? (
+                  <div className="bg-amber-50 text-amber-800 p-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
+                    Target Anda sebelumnya adalah <strong>{formatIDR(parseInt(localStorage.getItem('targetProfit') || '0'))}</strong>.<br/>Yakin ingin mengubah target ini?
+                  </div>
+                ) : (
+                  <p className="text-slate-500 font-medium text-sm mb-4">Tentukan target profit bersih bulanan Anda.</p>
+                )}
+              </div>
+              <div className="relative">
+                <CurrencyInput
+                  value={targetProfit}
+                  onChange={setTargetProfit}
+                  icon="Rp"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-indigo-900 focus:outline-none focus:border-indigo-500 transition-colors text-center"
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  localStorage.setItem('targetProfit', targetProfit);
+                  toast.success('Target berhasil dikunci!');
+                  setShowTargetModal(false);
+                  window.dispatchEvent(new Event('storage')); // Trigger update for other components if needed
+                }}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+              >
+                Kunci Target
               </button>
             </div>
           </div>
