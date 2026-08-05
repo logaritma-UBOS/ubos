@@ -2,9 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+
+const faqData = {
+  kasir: [
+    { q: 'Apakah UBOS bisa jalan tanpa internet (Offline)?', a: 'Bisa! Kasir UBOS tetap bisa digunakan saat internet mati. Data transaksi akan otomatis tersinkronisasi ke server saat koneksi internet kembali normal.' },
+    { q: 'Bagaimana cara update stok menu yang habis?', a: 'Buka modul F&B > Pilih menu Inventori > Pilih bahan baku/menu > Klik Sesuaikan Stok. Stok akan langsung update secara real-time di kasir.' }
+  ],
+  margin: [
+    { q: 'Bagaimana Margin Guard menghitung HPP otomatis?', a: 'Margin Guard membaca resep yang sudah kamu input. Jika harga bahan baku di pasar naik, sistem otomatis memberikan notifikasi dan menyarankan harga jual baru.' },
+    { q: 'Bagaimana cara memisahkan komisi Gofood/Grabfood?', a: 'Gunakan fitur Markup Harga Platform di pengaturan menu. Sistem akan otomatis memisahkan komisi 20% milik aplikator sehingga profit bersihmu tetap utuh.' }
+  ],
+  akun: [
+    { q: 'Ganti HP atau Browser, kenapa disuruh daftar lagi?', a: 'Tenang, data Anda aman. Pastikan memasukkan nomor WhatsApp yang sama. Anda akan diarahkan ke halaman login untuk memasukkan password, bukan mendaftar ulang.' },
+    { q: 'Bagaimana cara perpanjang lisensi member?', a: 'Klik tombol "Perpanjang Lisensi" di halaman depan Member Area, lakukan pembayaran, dan akun Anda akan aktif kembali secara instan.' },
+    { q: 'Saya lupa password, bagaimana cara resetnya?', a: 'Saat ini reset password bisa dibantu oleh tim CS kami. Silakan klik tombol "Chat CS Admin" di bawah dan informasikan nomor WhatsApp Anda.' }
+  ]
+};
 
 export default function MemberDashboard() {
   const router = useRouter();
@@ -23,6 +39,10 @@ export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState<'modul' | 'affiliate' | 'services' | 'edukasi' | 'bantuan'>('modul');
   const [showFeatureComingSoonModal, setShowFeatureComingSoonModal] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+  const [isFAQModalOpen, setIsFAQModalOpen] = useState(false);
+  const [faqSearchTerm, setFaqSearchTerm] = useState('');
+  const [faqActiveTab, setFaqActiveTab] = useState<'kasir' | 'margin' | 'akun'>('kasir');
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -705,7 +725,7 @@ export default function MemberDashboard() {
                     </button>
 
                     <button 
-                      onClick={() => toast.info('Membuka pusat panduan FAQ...')}
+                      onClick={() => setIsFAQModalOpen(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><HelpCircle size={18} className="text-purple-500" /> Baca FAQ & Solusi Kendala</span>
@@ -824,6 +844,111 @@ export default function MemberDashboard() {
                   </button>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAQ & Troubleshooting Modal */}
+      {isFAQModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="p-6 md:p-8 pb-6 border-b border-slate-100 flex-shrink-0 relative">
+              <button 
+                onClick={() => { setIsFAQModalOpen(false); setFaqSearchTerm(''); }} 
+                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors"
+              >
+                <X size={18} />
+              </button>
+              
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                  <HelpCircle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Pusat Solusi Cepat & FAQ UBOS 💡</h3>
+                  <p className="text-sm text-slate-500 font-medium">Jawaban praktis seputar operasional kasir, Margin Guard, hingga pengelolaan akun.</p>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mt-6 relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Cari solusi atau kata kunci masalah..." 
+                  value={faqSearchTerm}
+                  onChange={(e) => setFaqSearchTerm(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                />
+              </div>
+
+              {/* Tabs */}
+              <div className="flex overflow-x-auto hide-scrollbar gap-2 mt-4 pb-1">
+                {[
+                  { id: 'kasir', label: 'Kasir & Stok' },
+                  { id: 'margin', label: 'Margin Guard & HPP' },
+                  { id: 'akun', label: 'Akun & Akses' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setFaqActiveTab(tab.id as any); setExpandedFAQ(null); }}
+                    className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-colors ${faqActiveTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accordion List Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50 custom-scrollbar">
+              <div className="space-y-3">
+                {faqData[faqActiveTab]
+                  .filter(faq => faq.q.toLowerCase().includes(faqSearchTerm.toLowerCase()) || faq.a.toLowerCase().includes(faqSearchTerm.toLowerCase()))
+                  .map((faq, index) => (
+                    <div key={index} className="bg-white border border-slate-200 rounded-xl overflow-hidden transition-all duration-200 shadow-sm hover:shadow-md">
+                      <button 
+                        onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
+                        className="w-full text-left p-4 flex items-center justify-between gap-4"
+                      >
+                        <span className="font-bold text-slate-900 text-sm">{faq.q}</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${expandedFAQ === index ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400'}`}>
+                          {expandedFAQ === index ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </div>
+                      </button>
+                      
+                      {expandedFAQ === index && (
+                        <div className="p-4 pt-0 text-slate-600 text-sm leading-relaxed border-t border-slate-50 mt-2 bg-slate-50/30">
+                          {faq.a}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                {faqData[faqActiveTab].filter(faq => faq.q.toLowerCase().includes(faqSearchTerm.toLowerCase()) || faq.a.toLowerCase().includes(faqSearchTerm.toLowerCase())).length === 0 && (
+                  <div className="text-center py-8 text-slate-500 font-medium text-sm">
+                    Tidak menemukan jawaban untuk "{faqSearchTerm}"
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Action */}
+            <div className="p-6 border-t border-slate-100 bg-white flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-slate-500 font-medium">Masih belum menemukan jawaban?</p>
+              <button 
+                onClick={() => {
+                  window.open('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20teknis%20dan%20ingin%20bertanya...', '_blank');
+                  setIsFAQModalOpen(false);
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-lg shadow-purple-600/20 flex items-center gap-2"
+              >
+                <MessageCircle size={18} />
+                Chat CS Admin
+              </button>
             </div>
           </div>
         </div>
