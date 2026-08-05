@@ -41,8 +41,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create payment link', details: data }, { status: response.status });
     }
 
-    // Use checkout URL directly from Mayar API response
+    // Use checkout URL from Mayar API - replace with custom domain if configured
     let checkoutUrl = data.data?.link || data.link || data.url;
+
+    const customCheckoutDomain = process.env.MAYAR_CHECKOUT_DOMAIN;
+    if (checkoutUrl && customCheckoutDomain && checkoutUrl.includes('logaritma-id.myr.id')) {
+      checkoutUrl = checkoutUrl.replace('logaritma-id.myr.id', customCheckoutDomain);
+    }
 
     if (!checkoutUrl) {
       console.error('Could not find checkout URL in Mayar response:', data);
