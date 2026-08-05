@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, amount, fundedItems } = await req.json();
+    const { name, email, phone, amount, fundedItems, itemIds } = await req.json();
 
     if (!amount || amount <= 0) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -20,8 +20,8 @@ export async function POST(req: Request) {
     }
 
     // Join funded items for description
-    const itemsDescription = Array.isArray(fundedItems) && fundedItems.length > 0 
-      ? fundedItems.join(', ') 
+    const itemsDescription = Array.isArray(fundedItems) && fundedItems.length > 0
+      ? fundedItems.join(', ')
       : 'Pendanaan Umum';
 
     const payload = {
@@ -31,10 +31,11 @@ export async function POST(req: Request) {
       mobile: phone || '080000000000',
       description: `Pendanaan Modal Logaritma UBOS: ${itemsDescription}`,
       redirectUrl: 'https://logaritma.id/investor?payment=success',
-      // We pass custom field stringified to be parsed in webhook
+      // custom_field dikirim ke webhook untuk identifikasi item
       custom_field: JSON.stringify({
-        type: 'INVESTOR_FUNDING',
-        items: itemsDescription
+        type:     'INVESTOR_FUNDING',
+        items:    itemsDescription,
+        item_ids: Array.isArray(itemIds) ? itemIds : [],
       })
     };
 

@@ -62,35 +62,55 @@ export default function InvestorPortal() {
   useEffect(() => {
     const fetchFunding = async () => {
       try {
-        const { data, error } = await supabase
-          .from('cash_transactions')
-          .select('description, amount')
-          .eq('type', 'IN');
-          
-        if (data && !error) {
-          let total = 0;
-          let descriptions: string[] = [];
-          
-          data.forEach(tx => {
-            total += Number(tx.amount || 0);
-            if (tx.description) {
-              descriptions.push(tx.description);
-            }
-          });
-          
-          const funded = FUNDING_ITEMS.filter(item => descriptions.some(d => d.includes(item.title))).map(i => i.id);
-          
+        // ── 1. Fetch status is_funded dari tabel funding_items ─────────────
+        const { data: fundingData } = await supabase
+          .from('funding_items')
+          .select('title, is_funded');
+
+        if (fundingData) {
+          const funded = FUNDING_ITEMS.filter(item =>
+            fundingData.some(f => f.title === ITEM_ID_MAP[item.id] && f.is_funded === true)
+          ).map(i => i.id);
           setFundedItems(funded);
-          setAccumulatedFund(total);
+          // Hanya pilih item yang belum terfunded
           setSelectedItems(FUNDING_ITEMS.filter(i => !funded.includes(i.id)).map(i => i.id));
         }
+
+        // ── 2. Hitung total dana terkumpul dari capital_transactions ────────
+        let total = 0;
+        const { data: capData } = await supabase
+          .from('capital_transactions')
+          .select('nominal')
+          .eq('tipe', 'INFLOW');
+
+        if (capData) {
+          capData.forEach(tx => { total += Number(tx.nominal || 0); });
+        } else {
+          // Fallback ke cash_transactions jika capital_transactions belum ada
+          const { data: cashData } = await supabase
+            .from('cash_transactions')
+            .select('amount')
+            .eq('type', 'IN');
+          if (cashData) cashData.forEach(tx => { total += Number(tx.amount || 0); });
+        }
+
+        setAccumulatedFund(total);
       } catch (err) {
         console.error('Failed to fetch funding data', err);
       }
     };
-    
+
     fetchFunding();
   }, []);
+
+  // Mapping item.id → title (untuk query funding_items)
+  const ITEM_ID_MAP: Record<string, string> = {
+    'hosting':      'Hosting & Database (Vercel, Supabase)',
+    'wa_gateway':   'WhatsApp Gateway API',
+    'ai_token':     'OpenAI / Gemini API Tokens',
+    'gtm_ads':      'Pemasaran Awal (GTM / Meta Ads)',
+    'cash_reserve': 'Cadangan Kas Operasional',
+  };
   
   const currentTotal = useMemo(() => {
     return FUNDING_ITEMS.filter(item => selectedItems.includes(item.id) && !fundedItems.includes(item.id)).reduce((acc, curr) => acc + curr.price, 0);
@@ -135,7 +155,8 @@ export default function InvestorPortal() {
           email: investorEmail,
           phone: investorPhone || '080000000000',
           amount: currentTotal,
-          fundedItems: selectedItemNames
+          fundedItems: selectedItemNames,
+          itemIds: selectedItems.filter(id => !fundedItems.includes(id)),
         })
       });
 

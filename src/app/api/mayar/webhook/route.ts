@@ -1,157 +1,177 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// We need a server role key to bypass RLS since Webhook comes from external server
+// Server-role client untuk bypass RLS (webhook dari server eksternal)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// Mapping ID item ke nama tabel funding_items
+const ITEM_ID_MAP: Record<string, string> = {
+  'hosting':      'Hosting & Database (Vercel, Supabase)',
+  'wa_gateway':   'WhatsApp Gateway API',
+  'ai_token':     'OpenAI / Gemini API Tokens',
+  'gtm_ads':      'Pemasaran Awal (GTM / Meta Ads)',
+  'cash_reserve': 'Cadangan Kas Operasional',
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
-    // In a production scenario, verify Mayar Webhook Signature here
-    // const signature = req.headers.get('x-mayar-signature');
-    
-    // Typical Mayar webhook format: body.event, body.data
-    const event = body.event || body.status; 
-    
-    // Check if event is PAID or success
-    if (event === 'PAID' || event === 'payment.received' || body.status === 'success') {
-      const payload = body.data || body;
-      
-      let customFieldObj: any = null;
-      try {
-        if (payload.custom_field) {
-          customFieldObj = JSON.parse(payload.custom_field);
+
+    // Mayar mengirim event dalam beberapa format berbeda
+    const event = body.event || body.status;
+    const isPaid =
+      event === 'PAID' ||
+      event === 'payment.received' ||
+      event === 'payment.success' ||
+      body.status === 'success' ||
+      body.status === 'PAID';
+
+    if (!isPaid) {
+      // Event lain (pending, failed, dll) – ack tanpa aksi
+      return NextResponse.json({ received: true, event });
+    }
+
+    const payload = body.data || body;
+
+    // ── Parse custom_field (bisa JSON atau string biasa) ─────────────────
+    let customFieldObj: any = null;
+    try {
+      if (payload.custom_field) {
+        customFieldObj =
+          typeof payload.custom_field === 'string'
+            ? JSON.parse(payload.custom_field)
+            : payload.custom_field;
+      }
+    } catch (_) {}
+
+    // ════════════════════════════════════════════════════════════════════
+    // PATH A: INVESTOR FUNDING
+    // ════════════════════════════════════════════════════════════════════
+    if (customFieldObj?.type === 'INVESTOR_FUNDING') {
+      const amount    = Number(payload.amount || 0);
+      const itemIds   = (customFieldObj.item_ids  || []) as string[];
+      const itemNames = (customFieldObj.items      || '') as string;
+      const email     = payload.email   || payload.customer?.email || '';
+      const name      = payload.name    || payload.customer?.name  || 'Investor';
+
+      // 1. Update is_funded di tabel funding_items ────────────────────────
+      if (itemIds.length > 0) {
+        const titles = itemIds.map(id => ITEM_ID_MAP[id]).filter(Boolean);
+        if (titles.length > 0) {
+          const { error: fundErr } = await supabaseAdmin
+            .from('funding_items')
+            .update({ is_funded: true, funded_by: name, funded_at: new Date().toISOString() })
+            .in('title', titles);
+
+          if (fundErr) console.error('funding_items update error:', fundErr);
         }
-      } catch (e) {
-        // Not a JSON custom field, ignore
       }
 
-      // Handle Investor Funding
-      if (customFieldObj && customFieldObj.type === 'INVESTOR_FUNDING') {
-        const amount = payload.amount || 0;
-        const items = customFieldObj.items || 'Pendanaan Project';
-        const email = payload.email || payload.customer?.email;
-        const name = payload.name || payload.customer?.name || 'Investor';
-
-        if (!email) {
-          console.error('Webhook payload missing email for investor:', payload);
-          return NextResponse.json({ error: 'Missing email' }, { status: 400 });
-        }
-
-        // 1. Insert Cash Transaction
+      // 2. Insert ke capital_transactions (tipe INFLOW) ───────────────────
+      const desc = `Pendanaan Investor: ${itemNames || itemIds.join(', ')}`;
+      const { error: txErr } = await supabaseAdmin.from('capital_transactions').insert([{
+        tipe:       'INFLOW',
+        kategori:   'Modal Investor',
+        nominal:    amount,
+        deskripsi:  desc,
+        nama:       name,
+        email:      email,
+        created_at: new Date().toISOString(),
+      }]);
+      if (txErr) {
+        // Fallback ke cash_transactions jika capital_transactions belum ada
         await supabaseAdmin.from('cash_transactions').insert([{
           transaction_date: new Date().toISOString().split('T')[0],
-          type: 'IN',
-          category: 'Inject Modal Investor',
-          description: items,
-          amount: amount
+          type:        'IN',
+          category:    'Inject Modal Investor',
+          description: desc,
+          amount:      amount,
         }]);
+      }
 
-        // 2. Create User Account in Supabase Auth
-        // Generate a standard password for the investor
+      // 3. Buat akun Supabase Auth untuk investor ─────────────────────────
+      if (email) {
         const password = 'LogaritmaInvestor123!';
         const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
-          email: email,
-          password: password,
+          email,
+          password,
           email_confirm: true,
-          user_metadata: { name: name }
+          user_metadata: { name },
         });
 
         if (userError) {
-          // If user exists, we might just want to update their role. 
-          // For simplicity, we assume they might already have an account.
-          console.error('Failed to create investor user (may already exist):', userError);
+          console.error('Create investor user error (may already exist):', userError.message);
         }
 
         const userId = userData?.user?.id;
-
-        // 3. Create or update profile in merchants
         if (userId) {
-          const { error: profileError } = await supabaseAdmin.from('merchants').upsert({
-            id: userId, // Primary key
-            user_id: userId,
-            nama_usaha: name,
-            whatsapp: payload.mobile || payload.customer?.phone,
+          await supabaseAdmin.from('merchants').upsert({
+            user_id:              userId,
+            nama_usaha:           name,
+            whatsapp:             payload.mobile || payload.customer?.phone || '',
             is_investor_view_only: true,
-            is_admin: false,
-            kategori_usaha: 'Investor',
-            created_at: new Date().toISOString(),
-            last_active_at: new Date().toISOString()
-          }, { onConflict: 'user_id' }); // Assuming user_id has unique constraint, or ID is used.
-          
-          if (profileError) {
-             console.error('Failed to create merchant profile for investor:', profileError);
-          }
+            kategori_usaha:       'Investor',
+            created_at:           new Date().toISOString(),
+            last_active_at:       new Date().toISOString(),
+          }, { onConflict: 'user_id' });
         } else {
-           // Fallback if user creation failed because they exist: fetch user by email
-           // Supabase admin api to list users by email
-           const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
-           const existingUser = usersData.users.find(u => u.email === email);
-           if (existingUser) {
-              await supabaseAdmin.from('merchants').update({
-                 is_investor_view_only: true
-              }).eq('user_id', existingUser.id);
-           }
-        }
-
-        return NextResponse.json({ success: true, message: 'Investor funding processed successfully' });
-      }
-
-      // Handle Regular Merchant Subscription Renewal
-      const merchantId = payload.custom_field || payload.reference_id;
-      
-      if (!merchantId) {
-        console.error('Webhook payload missing merchantId identifier:', body);
-        return NextResponse.json({ error: 'Missing identifier' }, { status: 400 });
-      }
-
-      // Fetch current merchant
-      const { data: merchant, error: fetchError } = await supabaseAdmin
-        .from('merchants')
-        .select('trial_expires_at')
-        .eq('id', merchantId)
-        .single();
-        
-      if (fetchError || !merchant) {
-        console.error('Failed to fetch merchant for webhook:', fetchError);
-        return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
-      }
-
-      // Calculate new expiration date
-      let expiresDate = new Date();
-      if (merchant.trial_expires_at) {
-        const currentExpiry = new Date(merchant.trial_expires_at);
-        if (currentExpiry.getTime() > expiresDate.getTime()) {
-          // If still active, add 30 days to the remaining active days
-          expiresDate = currentExpiry;
+          // Fallback: investor sudah punya akun – tandai saja
+          const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+          const existing = usersData?.users.find(u => u.email === email);
+          if (existing) {
+            await supabaseAdmin.from('merchants').update({ is_investor_view_only: true }).eq('user_id', existing.id);
+          }
         }
       }
-      // Add 30 days
-      expiresDate.setDate(expiresDate.getDate() + 30);
 
-      // Update merchant
-      const { error: updateError } = await supabaseAdmin
-        .from('merchants')
-        .update({ trial_expires_at: expiresDate.toISOString() })
-        .eq('id', merchantId);
-
-      if (updateError) {
-        console.error('Failed to update merchant trial_expires_at:', updateError);
-        return NextResponse.json({ error: 'Failed to update database' }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: 'License renewed for 30 days' });
+      return NextResponse.json({ success: true, message: 'Investor funding processed' });
     }
 
-    // Acknowledge other events without action
-    return NextResponse.json({ received: true, event: event });
+    // ════════════════════════════════════════════════════════════════════
+    // PATH B: MERCHANT SUBSCRIPTION RENEWAL
+    // ════════════════════════════════════════════════════════════════════
+    const merchantId = customFieldObj?.merchant_id || payload.custom_field || payload.reference_id;
 
-  } catch (error: any) {
-    console.error('Webhook error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    if (!merchantId) {
+      console.error('Missing merchantId in webhook payload:', body);
+      return NextResponse.json({ error: 'Missing identifier' }, { status: 400 });
+    }
+
+    const { data: merchant, error: fetchErr } = await supabaseAdmin
+      .from('merchants')
+      .select('trial_expires_at')
+      .eq('id', merchantId)
+      .single();
+
+    if (fetchErr || !merchant) {
+      console.error('Merchant not found for renewal:', fetchErr);
+      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+    }
+
+    let expiresDate = new Date();
+    if (merchant.trial_expires_at) {
+      const current = new Date(merchant.trial_expires_at);
+      if (current.getTime() > expiresDate.getTime()) expiresDate = current;
+    }
+    expiresDate.setDate(expiresDate.getDate() + 30);
+
+    const { error: updateErr } = await supabaseAdmin
+      .from('merchants')
+      .update({ trial_expires_at: expiresDate.toISOString() })
+      .eq('id', merchantId);
+
+    if (updateErr) {
+      console.error('Failed to renew merchant:', updateErr);
+      return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'License renewed 30 days' });
+
+  } catch (err: any) {
+    console.error('Webhook error:', err);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }

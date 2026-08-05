@@ -259,7 +259,7 @@ export default function AdminDashboard() {
         if (settings.mayar_mode) setMayarMode(settings.mayar_mode);
       }
 
-      // Fetch Cash Transactions
+      // Fetch Cash Transactions (legacy)
       const { data: txData } = await supabase
         .from('cash_transactions')
         .select('*')
@@ -268,6 +268,31 @@ export default function AdminDashboard() {
         
       if (txData) {
         setCashTransactions(txData);
+      }
+
+      // Fetch capital_transactions (INFLOW/OUTFLOW — baru)
+      const { data: capitalData } = await supabase
+        .from('capital_transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (capitalData && capitalData.length > 0) {
+        // Jika tabel baru sudah ada data, merge ke cashTransactions agar accMetrics ikut terhitung
+        const mapped = capitalData.map((c: any) => ({
+          id:               c.id,
+          transaction_date: c.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          type:             c.tipe === 'INFLOW' ? 'IN' : 'OUT',
+          category:         c.kategori || 'Modal Investor',
+          description:      c.deskripsi || '',
+          amount:           c.nominal || 0,
+          created_at:       c.created_at,
+        }));
+        // Gabungkan — hindari duplikasi dengan id
+        setCashTransactions(prev => {
+          const existingIds = new Set(prev.map((t: any) => t.id));
+          const newItems = mapped.filter((m: any) => !existingIds.has(m.id));
+          return [...newItems, ...prev];
+        });
       }
 
       // ── Fetch Real Analytics from analytics_events + leads ──────────────
