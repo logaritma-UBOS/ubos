@@ -330,10 +330,29 @@ export default function MemberDashboard() {
                     {trialDaysLeft > 0 ? (
                       <div className="space-y-3">
                         <button 
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.preventDefault();
                             const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
+                            
                             if (!merchant?.user_id) {
+                              // Cek apakah nomor WA sudah terdaftar di database via server API
+                              const phone = (merchant?.no_wa || merchant?.whatsapp || '').replace(/\D/g, '');
+                              if (phone) {
+                                try {
+                                  const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
+                                  const result = await res.json();
+                                  
+                                  if (result.found) {
+                                    // Nomor terdaftar, arahkan ke halaman login password
+                                    toast.info("Silakan masukkan password untuk mengakses modul.");
+                                    router.push(`/auth?mode=login`);
+                                    return;
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }
+
                               toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
                                 description: "Akses terbatas khusus member terdaftar.",
                                 icon: <Lock className="w-5 h-5 text-amber-500" />
@@ -341,6 +360,7 @@ export default function MemberDashboard() {
                               router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
                               return;
                             }
+                            
                             const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
                             router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
                           }}
