@@ -142,8 +142,12 @@ export default function MemberLoginPage() {
       <div className="w-full max-w-sm mx-auto space-y-6">
 
         {/* Logo */}
-        <div className="text-center">
-          <img src="/logo-ubos.png" alt="UBOS" className="w-28 mx-auto object-contain" />
+        <div className="flex items-center justify-center gap-3">
+          <img src="/assets/images/logo-logaritma.png" alt="Logaritma" className="w-10 h-10 object-contain" />
+          <div className="flex flex-col leading-none">
+            <span className="font-black text-slate-800 tracking-tight text-2xl">LOGARITMA.ID</span>
+            <span className="text-[11px] font-bold text-blue-600 tracking-wide">Member Area</span>
+          </div>
         </div>
 
         {/* ── STEP: SUCCESS ──────────────────────────────────────────────── */}
