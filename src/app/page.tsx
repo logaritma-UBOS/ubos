@@ -720,6 +720,8 @@ export default function LandingPage() {
                   <input 
                     required
                     type="tel" 
+                    name="whatsapp"
+                    autoComplete="tel-national"
                     value={formData.whatsapp}
                     onChange={e => setFormData({...formData, whatsapp: e.target.value})}
                     placeholder="081234567890"

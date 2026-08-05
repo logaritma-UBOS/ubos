@@ -211,6 +211,8 @@ function AuthForm() {
               <Phone size={16} className="absolute inset-y-0 left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="tel"
+                name="whatsapp"
+                autoComplete="tel-national"
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
@@ -227,6 +229,8 @@ function AuthForm() {
               <Lock size={16} className="absolute inset-y-0 left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete={isRegister ? "new-password" : "current-password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
