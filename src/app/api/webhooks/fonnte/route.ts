@@ -13,6 +13,12 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 const SYSTEM_PROMPT = `Anda adalah CS Support AI Logaritma.id yang ramah, sopan, empati, dan menggunakan gaya bahasa persuasif. Tugas Anda adalah membantu member bisnis kuliner (UBOS) menyelesaikan kendala teknis kasir, penjelasan fitur Margin Guard, HPP, atau panduan penggunaan sistem secara cepat dan ringkas. Jangan terlalu panjang lebar, langsung to the point namun tetap bersahabat.`;
 
+// GET handler — required by Fonnte to verify the webhook URL
+export async function GET() {
+  return NextResponse.json({ status: 'ok', service: 'Logaritma WhatsApp Bot Webhook' });
+}
+
+// POST handler — receives incoming WhatsApp messages from Fonnte
 export async function POST(req: NextRequest) {
   try {
     // Fonnte webhook can send JSON or Form Data
@@ -23,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (contentType.includes('application/json')) {
       const body = await req.json();
       sender = body.sender;
-      message = body.message || body.text; // Fonnte sometimes uses 'text' or 'message'
+      message = body.message || body.text;
     } else {
       const formData = await req.formData();
       sender = formData.get('sender') as string;
@@ -34,8 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: 'ignored', reason: 'Missing sender or message' });
     }
 
-    // Fonnte usually sends sender format like 628xxx or 08xxx
-    // Let's normalize it to check in Supabase
+    // Normalize phone number to check both 08xxx and 628xxx formats
     let rawWA = sender.replace(/\D/g, '');
     let format62 = rawWA;
     let format0 = rawWA;
@@ -49,7 +54,7 @@ export async function POST(req: NextRequest) {
       format0 = '0' + rawWA.slice(2);
     }
 
-    // 1. Cek apakah member terdaftar
+    // 1. Cek apakah nomor terdaftar di merchants
     const { data: merchant } = await supabaseAdmin
       .from('merchants')
       .select('nama_usaha')
@@ -57,12 +62,13 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
+    // Buat prompt kontekstual
     let aiPrompt = message;
     if (merchant && merchant.nama_usaha) {
       aiPrompt = `User adalah pemilik usaha: ${merchant.nama_usaha}.\n\nPertanyaan user:\n${message}`;
     }
 
-    // 2. Kirim ke Gemini
+    // 2. Generate jawaban via Gemini
     const aiResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: aiPrompt,
@@ -72,7 +78,7 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    let answer = aiResponse.text || 'Maaf, saya sedang mengalami kendala. Silakan coba lagi nanti.';
+    const answer = aiResponse.text || 'Maaf, saya sedang mengalami kendala. Silakan coba lagi nanti.';
     
     // 3. Tambahkan footer
     const finalMessage = `${answer}\n\n_Pesan otomatis dari Logaritma Support. Ketik 'ADMIN' jika butuh bicara dengan tim manusia._`;
@@ -91,12 +97,12 @@ export async function POST(req: NextRequest) {
         })
       });
     } else {
-      console.error('FONNTE_TOKEN is missing in environment variables');
+      console.error('[Fonnte Bot] FONNTE_TOKEN is missing in environment variables');
     }
 
     return NextResponse.json({ status: 'success' });
   } catch (error: any) {
-    console.error('Fonnte Webhook Error:', error);
+    console.error('[Fonnte Bot] Webhook Error:', error);
     return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
   }
 }
