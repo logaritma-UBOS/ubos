@@ -45,7 +45,11 @@ export async function POST(req: Request) {
     }
 
     // Usually Mayar returns the link in data.link or data.url
-    const checkoutUrl = data.data?.link || data.link || data.url;
+    let checkoutUrl = data.data?.link || data.link || data.url;
+
+    if (checkoutUrl && checkoutUrl.includes('logaritma-id.myr.id')) {
+      checkoutUrl = checkoutUrl.replace('logaritma-id.myr.id', 'mayar.link');
+    }
 
     if (!checkoutUrl) {
       console.error('Could not find checkout URL in Mayar response:', data);

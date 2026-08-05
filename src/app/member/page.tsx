@@ -157,7 +157,7 @@ export default function MemberDashboard() {
       if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan saat memproses pembayaran');
 
       if (data.url) {
-        window.location.href = data.url;
+        window.open(data.url, '_blank', 'noopener,noreferrer');
       } else {
         throw new Error('Gagal mendapatkan link pembayaran');
       }

@@ -186,7 +186,7 @@ export default function InvestorPortal() {
       const data = await response.json();
 
       if (response.ok && data.url) {
-        window.location.href = data.url;
+        window.open(data.url, '_blank', 'noopener,noreferrer');
       } else {
         throw new Error(data.error || 'Gagal membuat link pembayaran.');
       }
