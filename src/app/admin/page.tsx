@@ -295,6 +295,49 @@ export default function AdminDashboard() {
         });
       }
 
+      // ── Fetch funding_items yang sudah terfunded ──────────────────────────
+      // Ini menangkap data historis (pembayaran sebelum webhook aktif)
+      const { data: fundedItemsData } = await supabase
+        .from('funding_items')
+        .select('id, title, price, is_funded, funded_by, funded_at')
+        .eq('is_funded', true);
+
+      if (fundedItemsData && fundedItemsData.length > 0) {
+        // Buat virtual transaction records dari funded items
+        const ITEM_PRICES: Record<string, number> = {
+          'Hosting & Database (Vercel, Supabase)': 350000,
+          'WhatsApp Gateway API':                  100000,
+          'OpenAI / Gemini API Tokens':            200000,
+          'Pemasaran Awal (GTM / Meta Ads)':      1000000,
+          'Cadangan Kas Operasional':               300000,
+        };
+
+        setCashTransactions(prev => {
+          // Kumpulkan semua deskripsi yang sudah ada agar tidak duplikat
+          const existingDescriptions = new Set(prev.map((t: any) => t.description));
+          const existingCategories   = new Set(prev.filter((t: any) => t.category === 'Modal Investor' || t.category === 'Inject Modal Investor').map((t: any) => t.description));
+
+          const virtualTx = fundedItemsData
+            .filter((fi: any) => {
+              const desc = `Pendanaan Investor: ${fi.title}`;
+              return !existingDescriptions.has(desc) && !existingCategories.has(desc);
+            })
+            .map((fi: any) => ({
+              id:               `funded_item_${fi.id}`,
+              transaction_date: fi.funded_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              type:             'IN',
+              category:         'Modal Investor',
+              description:      `Pendanaan Investor: ${fi.title}`,
+              amount:           fi.price || ITEM_PRICES[fi.title] || 0,
+              created_at:       fi.funded_at || new Date().toISOString(),
+              _source:          'funding_items', // marker agar tidak bisa dihapus manual
+            }));
+
+          if (virtualTx.length === 0) return prev;
+          return [...virtualTx, ...prev];
+        });
+      }
+
       // ── Fetch Real Analytics from analytics_events + leads ──────────────
       const [
         { count: totalVisitors },
@@ -1436,7 +1479,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className={`p-4 text-right text-sm font-black ${tx.type === 'IN' ? 'text-emerald-400' : 'text-red-400'}`}>
                             {tx.type === 'IN' ? '+' : '-'} {Number(tx.amount).toLocaleString('id-ID')}
-                            {!isInvestorViewOnly && (
+                            {!isInvestorViewOnly && !tx._source && (
                               <button onClick={() => handleDeleteTransaction(tx.id)} className="ml-3 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors inline-flex align-middle" title="Hapus Transaksi">
                                 <Trash2 size={14} />
                               </button>
@@ -1528,7 +1571,7 @@ export default function AdminDashboard() {
           )}
 
           {activeMenu === 'DASHBOARD' && (() => {
-            const investorCapital = cashTransactions.filter(tx => tx.category === 'Inject Modal Investor').reduce((sum, tx) => sum + Number(tx.amount), 0);
+            const investorCapital = cashTransactions.filter(tx => tx.category === 'Inject Modal Investor' || tx.category === 'Modal Investor').reduce((sum, tx) => sum + Number(tx.amount), 0);
             return (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 
