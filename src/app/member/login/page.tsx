@@ -15,73 +15,101 @@ function MemberLoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const normalizeWA = (raw: string) => {
+    let cleaned = raw.replace(/\D/g, '');
+    // normalize: 08xx → 628xx
+    if (cleaned.startsWith('0')) cleaned = '62' + cleaned.slice(1);
+    if (cleaned.startsWith('8')) cleaned = '62' + cleaned;
+    return cleaned;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const cleanWA = whatsapp.replace(/\D/g, '');
-      if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
+      const rawWA = whatsapp.replace(/\D/g, '');
+      if (rawWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
 
-      // Cek nomor WA di tabel leads
-      const { data: leadData, error: leadError } = await supabase
-        .from('leads')
-        .select('nama_pemilik, nama_usaha, no_wa, kategori, status')
-        .eq('no_wa', cleanWA)
-        .maybeSingle();
+      const normalizedInput = normalizeWA(whatsapp);
 
-      if (leadError) throw new Error('Gagal memeriksa data. Silakan coba lagi.');
+      // ── Prioritas 1: Cek localStorage ubos_lead (dari form pendaftaran) ──
+      let foundSession: any = null;
+      try {
+        const leadStr = localStorage.getItem('ubos_lead');
+        if (leadStr) {
+          const leadData = JSON.parse(leadStr);
+          const storedWA = (leadData.whatsapp || leadData.no_wa || '').replace(/\D/g, '');
+          const normalizedStored = normalizeWA(storedWA);
 
-      if (!leadData) {
-        // Coba juga cari di tabel waiting_list (format lama)
+          // Cocokkan nomor (bandingkan normalized version)
+          if (normalizedStored === normalizedInput || storedWA === rawWA) {
+            foundSession = {
+              nama_pemilik: leadData.owner_name || leadData.nama_pemilik || '',
+              nama_usaha: leadData.nama_usaha || '',
+              no_wa: storedWA,
+              kategori: leadData.kategori_usaha || leadData.kategori || 'Kuliner & F&B',
+              status: 'New Lead',
+            };
+          }
+        }
+      } catch (_) {}
+
+      // ── Prioritas 2: Cek tabel leads di Supabase ──────────────────────
+      if (!foundSession) {
+        const { data: leadData } = await supabase
+          .from('leads')
+          .select('nama_pemilik, nama_usaha, no_wa, kategori, status')
+          .or(`no_wa.eq.${rawWA},no_wa.eq.${normalizedInput}`)
+          .maybeSingle();
+
+        if (leadData) {
+          foundSession = leadData;
+        }
+      }
+
+      // ── Prioritas 3: Cek tabel waiting_list (format lama) ────────────
+      if (!foundSession) {
         const { data: waitingData } = await supabase
           .from('waiting_list')
           .select('nama_usaha, whatsapp, kategori_usaha')
-          .eq('whatsapp', cleanWA)
+          .or(`whatsapp.eq.${rawWA},whatsapp.eq.${normalizedInput}`)
           .maybeSingle();
 
-        if (!waitingData) {
-          throw new Error(
-            'Nomor WhatsApp ini belum terdaftar. Silakan isi formulir pendaftaran terlebih dahulu di halaman utama.'
-          );
+        if (waitingData) {
+          foundSession = {
+            nama_usaha: waitingData.nama_usaha,
+            no_wa: waitingData.whatsapp,
+            kategori: waitingData.kategori_usaha || 'Kuliner & F&B',
+            status: 'New Lead',
+          };
         }
-
-        // Simpan sesi dari waiting_list
-        const sessionData = {
-          nama_usaha: waitingData.nama_usaha,
-          no_wa: waitingData.whatsapp,
-          kategori: waitingData.kategori_usaha || 'Kuliner & F&B',
-        };
-        localStorage.setItem('wa_member_session', JSON.stringify(sessionData));
-        localStorage.setItem('ubos_lead', JSON.stringify({
-          nama_usaha: waitingData.nama_usaha,
-          whatsapp: waitingData.whatsapp,
-          kategori_usaha: waitingData.kategori_usaha,
-        }));
-      } else {
-        // Simpan sesi dari leads
-        const sessionData = {
-          nama_pemilik: leadData.nama_pemilik,
-          nama_usaha: leadData.nama_usaha,
-          no_wa: leadData.no_wa,
-          kategori: leadData.kategori,
-          status: leadData.status,
-        };
-        localStorage.setItem('wa_member_session', JSON.stringify(sessionData));
-        localStorage.setItem('ubos_lead', JSON.stringify({
-          owner_name: leadData.nama_pemilik,
-          nama_usaha: leadData.nama_usaha,
-          whatsapp: leadData.no_wa,
-          kategori_usaha: leadData.kategori,
-        }));
       }
+
+      // ── Jika tidak ditemukan di mana pun ─────────────────────────────
+      if (!foundSession) {
+        throw new Error(
+          'Nomor WhatsApp ini belum terdaftar. Silakan isi formulir pendaftaran di halaman utama terlebih dahulu.'
+        );
+      }
+
+      // ── Simpan sesi ke localStorage ──────────────────────────────────
+      localStorage.setItem('wa_member_session', JSON.stringify(foundSession));
+      // Update ubos_lead juga agar member page bisa membacanya
+      localStorage.setItem('ubos_lead', JSON.stringify({
+        owner_name: foundSession.nama_pemilik || '',
+        nama_usaha: foundSession.nama_usaha || '',
+        whatsapp: foundSession.no_wa || rawWA,
+        kategori_usaha: foundSession.kategori || 'Kuliner & F&B',
+      }));
 
       setSuccess(true);
       setTimeout(() => {
         const category = searchParams.get('category') || '';
         router.push(`/member${category ? `?category=${category}` : ''}`);
-      }, 1200);
+      }, 1000);
+
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
@@ -106,18 +134,17 @@ function MemberLoginForm() {
 
         {/* Form */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
-
           {success ? (
-            <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
               <CheckCircle2 size={48} className="text-emerald-500" />
-              <p className="font-bold text-slate-800">Berhasil! Mengalihkan...</p>
-              <p className="text-sm text-slate-500">Selamat datang di Member Area Anda</p>
+              <p className="font-bold text-slate-800 text-lg">Berhasil!</p>
+              <p className="text-sm text-slate-500">Mengalihkan ke Member Area Anda...</p>
             </div>
           ) : (
             <form onSubmit={handleLogin} className="space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl leading-relaxed">
-                  {error}
+                  ⚠️ {error}
                 </div>
               )}
 
@@ -157,7 +184,7 @@ function MemberLoginForm() {
           )}
         </div>
 
-        {/* Divider info */}
+        {/* Footer links */}
         <div className="text-center space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-slate-200" />
@@ -168,7 +195,7 @@ function MemberLoginForm() {
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-left space-y-2">
             <p className="text-xs font-bold text-blue-700">Punya akun UBOS (dengan password)?</p>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Langsung masuk ke dashboard bisnis lengkap Anda dengan WhatsApp + password.
+              Langsung masuk ke dashboard bisnis lengkap Anda.
             </p>
             <a
               href="/auth?mode=login"

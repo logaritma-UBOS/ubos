@@ -26,39 +26,49 @@ export default function MemberDashboard() {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        // Cek 1: Supabase session (user sudah login ke UBOS App)
+        // Cek 1: Supabase session (user login ke UBOS App dengan password)
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          // Cek 2: WA Member Session (user login via nomor WA saja)
-          const waSession = localStorage.getItem('wa_member_session');
-          const leadStr = localStorage.getItem('ubos_lead');
-          
-          if (waSession) {
+          // Cek 2: Semua kemungkinan sesi di localStorage
+          let sessionData: any = null;
+
+          try {
+            // Prioritas: wa_member_session (dari /member/login)
+            const waSession = localStorage.getItem('wa_member_session');
+            if (waSession) {
+              sessionData = JSON.parse(waSession);
+            }
+          } catch (_) {}
+
+          if (!sessionData) {
             try {
-              const sessionData = JSON.parse(waSession);
-              if (isMounted) {
-                setMerchant(sessionData);
-                setTrialDaysLeft(7);
-                setLoading(false);
+              // Fallback: ubos_lead (dari form pendaftaran landing page)
+              const leadStr = localStorage.getItem('ubos_lead');
+              if (leadStr) {
+                const leadData = JSON.parse(leadStr);
+                // ubos_lead format: { nama_usaha, owner_name, whatsapp, kategori_usaha }
+                sessionData = {
+                  nama_usaha: leadData.nama_usaha || '',
+                  nama_pemilik: leadData.owner_name || leadData.nama_pemilik || '',
+                  no_wa: leadData.whatsapp || '',
+                  kategori: leadData.kategori_usaha || 'Kuliner & F&B',
+                };
               }
-              return;
-            } catch (e) {}
-          } else if (leadStr) {
-            // Fallback: data lead dari form pendaftaran masih ada
-            try {
-              const leadData = JSON.parse(leadStr);
-              if (isMounted) {
-                setMerchant(leadData);
-                setTrialDaysLeft(7);
-                setLoading(false);
-              }
-              return;
-            } catch (e) {}
+            } catch (_) {}
           }
-          
-          // Tidak ada sesi apapun → redirect ke halaman login member
-          if (isMounted) setLoading(false);
-          router.push('/member/login');
+
+          if (sessionData && isMounted) {
+            setMerchant(sessionData);
+            setTrialDaysLeft(7);
+            setLoading(false);
+            return;
+          }
+
+          // Benar-benar tidak ada sesi → redirect ke halaman login member
+          if (isMounted) {
+            setLoading(false);
+            router.push('/member/login');
+          }
           return;
         }
 
