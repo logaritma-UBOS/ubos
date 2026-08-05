@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client'; // Server routes should ideally use a server client, but we'll use this if it works or a service role key. Wait, client might not have admin rights, but for reading merchant it's fine if RLS allows it, or we just rely on client sending the data. Actually, RLS might block if no active session in server. Let's just expect the client to send the necessary merchant data directly in the POST body to avoid RLS issues, or we use Supabase admin.
 
 export async function POST(req: Request) {
   try {
     const { merchantId, name, phone, email } = await req.json();
 
-    if (!merchantId) {
-      return NextResponse.json({ error: 'Missing merchantId' }, { status: 400 });
-    }
+    // merchantId is optional — use phone as fallback identifier
+    const identifier = merchantId || phone || email || 'unknown';
 
     const MAYAR_API_KEY = process.env.MAYAR_API_KEY;
     const MAYAR_API_URL = process.env.MAYAR_API_URL || 'https://api.mayar.id/hl/v1';
@@ -24,8 +22,7 @@ export async function POST(req: Request) {
       mobile: phone || '080000000000',
       description: `Perpanjangan Lisensi Premium UBOS (1 Bulan) - ${name || 'Toko'}`,
       redirectUrl: 'https://logaritma.id/app?payment=success',
-      // We pass merchantId in custom fields or metadata if Mayar supports it. Or append to redirectUrl, but we'll handle webhook via email/mobile or custom field. Let's add custom_field if possible.
-      custom_field: merchantId
+      custom_field: identifier
     };
 
     const response = await fetch(`${MAYAR_API_URL}/payment/create`, {

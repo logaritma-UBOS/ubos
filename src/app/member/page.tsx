@@ -146,9 +146,9 @@ export default function MemberDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          merchantId: merchant?.id,
-          name: merchant?.nama_usaha || merchant?.owner_name,
-          phone: merchant?.whatsapp,
+          merchantId: merchant?.id || merchant?.no_wa || merchant?.whatsapp || null,
+          name: merchant?.nama_usaha || merchant?.owner_name || merchant?.nama_pemilik,
+          phone: merchant?.whatsapp || merchant?.no_wa,
           email: merchant?.email
         })
       });
