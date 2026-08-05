@@ -233,11 +233,12 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 selection:bg-primary/20">
+    <div className="min-h-screen bg-slate-100 selection:bg-primary/20 flex flex-col items-center">
+      <div className="w-full max-w-md md:max-w-xl mx-auto min-h-screen bg-slate-50 pb-24 shadow-sm border-x border-slate-100 relative">
       
       {/* Portal Header */}
-      <nav className="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-40">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
+        <div className="px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-8 h-8 object-contain" />
             <div className="flex flex-col">
@@ -251,22 +252,22 @@ export default function MemberDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 py-3 pt-20 space-y-4 pb-28 md:pb-8">
+      <main className="px-4 py-4 space-y-4">
         
         {/* A. Compact Sub-Header – persistent across all tabs */}
-        <div className="bg-primary text-white px-4 py-2.5 rounded-xl flex items-center justify-between shadow-md gap-3">
+        <div className="flex items-center justify-between p-4 bg-blue-600 rounded-2xl text-white shadow-md gap-3">
           {/* Left: greeting + status badge */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-base shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg shrink-0 shadow-inner">
               {trialDaysLeft > 0 ? '🎁' : '🔒'}
             </div>
             <div className="min-w-0">
-              <p className="font-black text-sm leading-tight truncate">
+              <p className="font-black text-sm md:text-base leading-tight truncate max-w-[140px] md:max-w-[180px]">
                 Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!
               </p>
               <button
                 onClick={() => setShowPaywallModal(true)}
-                className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 transition-colors ${
+                className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mt-1 transition-colors ${
                   trialDaysLeft > 0
                     ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
                     : 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
@@ -284,273 +285,14 @@ export default function MemberDashboard() {
           {/* Right: upgrade button */}
           <button
             onClick={() => setShowPaywallModal(true)}
-            className="shrink-0 bg-amber-400 hover:bg-amber-300 active:scale-95 text-amber-900 font-black text-xs px-3 py-2 rounded-lg transition-all shadow shadow-amber-400/20 flex items-center gap-1 whitespace-nowrap"
+            className="shrink-0 text-xs md:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-2 rounded-xl transition-transform active:scale-95 shadow-md flex items-center gap-1 whitespace-nowrap"
           >
             ⚡ Upgrade Rp 49.000
           </button>
         </div>
 
-        {/* B. Main Module Launchpad — DESKTOP ONLY (mobile uses tabbed nav below) */}
-        <div className="hidden md:block space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
-              <p className="text-slate-500 font-medium">Sistem navigasi harian untuk mengunci profit, mengamankan margin, dan menghemat waktu operasional Anda.</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-1 gap-6">
-            
-            {isKuliner && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    READY / BISA DIPAKAI
-                  </div>
-                  <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS F&B</h3>
-                  <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
-                    <Package size={150} />
-                  </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col justify-center">
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
-                  <p className="text-slate-500 font-medium mb-6">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
-                  
-                  {trialDaysLeft > 0 ? (
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!merchant?.user_id) {
-                          toast.error('Silakan login/daftar untuk menggunakan modul ini.');
-                          router.push('/auth?mode=register&category=' + encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner'));
-                          return;
-                        }
-                        const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); router.push('/ubos/' + encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner') + '/' + slug);
-                      }}
-                      className="w-full md:w-auto self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
-                    >
-                      Pilih Modul F&B <ArrowRight size={18} />
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => setShowPaywallModal(true)}
-                      className="w-full md:w-auto self-start bg-blue-900 hover:bg-blue-950 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
-                    >
-                      <Lock size={18} className="text-amber-400" />
-                      Lisensi Expired - Upgrade Sekarang
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {isPercetakan && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    VVIP TRIAL DIBUKA
-                  </div>
-                  <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Percetakan & Fotokopi</h3>
-                  <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
-                    <Printer size={150} />
-                  </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-sm font-bold mb-4 w-fit border border-amber-200">
-                    <AlertTriangle size={16} /> Akses VVIP Prioritas untuk Anda
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Tools Kontrol Antrean & HPP Kertas</h4>
-                  <p className="text-slate-500 font-medium mb-6">Kalkulator HPP bahan (kertas/tinta/meteran), estimasi harga cetak cepat, dan manajemen antrean antinumpuk.</p>
-                  <button 
-                    onClick={() => openWaitingList('Jasa Percetakan')}
-                    className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-                  >
-                    Daftar Trial Percetakan <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {isRitel && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                    WAITING LIST
-                  </div>
-                  <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Toko & Ritel</h3>
-                  <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
-                    <ShoppingBag size={150} />
-                  </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-sm font-bold mb-4 w-fit border border-amber-200">
-                    <AlertTriangle size={16} /> Akses VVIP Prioritas Launching untuk Anda
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Manajemen Stok Anti Dead-Stock & Peringatan Barcode Expired</h4>
-                  <p className="text-slate-500 font-medium mb-6">Sistem inventaris anti-stok mati (dead stock), cetak barcode, dan batas belanja stok harian untuk toko & olshop.</p>
-                  <button 
-                    onClick={() => openWaitingList('Toko & Ritel')}
-                    className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-                  >
-                    Ikut Waiting List Ritel <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {isLaundry && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                    WAITING LIST
-                  </div>
-                  <h3 className="text-3xl font-black text-white relative z-10 mt-6">UBOS Laundry & Jasa</h3>
-                  <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
-                    <Shirt size={150} />
-                  </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-sm font-bold mb-4 w-fit border border-amber-200">
-                    <AlertTriangle size={16} /> Akses VVIP Prioritas Launching untuk Anda
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Tracking Slot Jam Kerja, Layanan Cuci/Setrika Kiloan & Satuan</h4>
-                  <p className="text-slate-500 font-medium mb-6">Pelacak status cucian/orderan, sistem nota WhatsApp otomatis, dan hitung komisi staf/karyawan tanpa ribet.</p>
-                  <button 
-                    onClick={() => openWaitingList('Laundry & Jasa')}
-                    className="w-full md:w-auto self-start bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-                  >
-                    Ikut Waiting List Laundry <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {isLainnya && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row group hover:shadow-xl transition-all duration-300">
-                <div className="md:w-1/3 bg-blue-900 relative p-8 flex flex-col justify-center overflow-hidden">
-                  <div className="absolute top-4 left-4 px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-200 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm flex items-center gap-1.5">
-                    Waiting List
-                  </div>
-                  <h3 className="text-3xl font-black text-white relative z-10 mt-6">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
-                  <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
-                    <Target size={150} />
-                  </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col justify-center">
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">Dalam Tahap Pengembangan</h4>
-                  <p className="text-slate-500 font-medium mb-6">Fitur spesifik untuk kategori usaha Anda saat ini sedang dikembangkan oleh tim Logaritma. Bergabunglah dengan antrean prioritas.</p>
-                  <button 
-                    onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')}
-                    className="w-full md:w-auto self-start bg-primary hover:bg-primary-dark text-white font-bold py-4 px-8 rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    Dapatkan Akses Prioritas Launching <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── DESKTOP: all sections stacked ──────────────────────────────── */}
-        {/* C. Support System & Services Logaritma — DESKTOP ONLY */}
-        <div className="hidden md:block space-y-6 pt-6 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Support System & Services</h2>
-              <p className="text-slate-500 font-medium">Layanan tambahan untuk mempercepat pertumbuhan bisnis Anda.</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
-                <Megaphone size={24} />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">📢 Iklankan Bisnis Anda (Meta Ads)</h3>
-              <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Services pengelolaan iklan Meta Ads dari Tim Logaritma untuk datangkan pelanggan secara otomatis.</p>
-              <button 
-                onClick={() => handleUpsellRequest('Jasa Iklan Meta Ads')}
-                disabled={requestingUpsell === 'Jasa Iklan Meta Ads'}
-                className="w-full border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-              >
-                {requestingUpsell === 'Jasa Iklan Meta Ads' ? <Loader2 size={18} className="animate-spin"/> : 'Pilih Paket Iklan'}
-              </button>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
-                <Printer size={24} />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🖨️ Mini Printer Thermal Logaritma</h3>
-              <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Cetak struk kasir tanpa kabel via Bluetooth. Kompatibel 100% dengan aplikasi kasir UBOS.</p>
-              <button 
-                onClick={() => handleUpsellRequest('Mini Printer Thermal')}
-                disabled={requestingUpsell === 'Mini Printer Thermal'}
-                className="w-full border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-              >
-                {requestingUpsell === 'Mini Printer Thermal' ? <Loader2 size={18} className="animate-spin"/> : 'Pesan Mini Printer'}
-              </button>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                <Handshake size={24} />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight">🤝 Program Affiliate Logaritma</h3>
-              <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Dapatkan komisi berulang dengan merekomendasikan Metoda Logaritma & UBOS ke jaringan UMKM Anda.</p>
-              <button 
-                onClick={() => handleUpsellRequest('Program Affiliate')}
-                disabled={requestingUpsell === 'Program Affiliate'}
-                className="w-full border-2 border-slate-200 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-              >
-                {requestingUpsell === 'Program Affiliate' ? <Loader2 size={18} className="animate-spin"/> : 'Daftar Affiliator'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* D. Pusat Edukasi & Bantuan — DESKTOP ONLY */}
-        <div className="hidden md:block space-y-6 pt-6 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pusat Edukasi & Bantuan</h2>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-blue-900 text-white p-8 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-blue-950 transition-colors">
-              <div>
-                <h3 className="text-xl font-black mb-2">Masterclass Metoda Logaritma</h3>
-                <p className="text-sm text-slate-400 font-medium">Pelajari rahasia pola pikir "Tarik Mundur Target Profit".</p>
-              </div>
-              <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <MonitorPlay size={28} className="text-white" />
-              </div>
-            </div>
-
-            <a 
-              href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20terkait%20akun%20member%20saya..."
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-emerald-500 text-white p-8 rounded-3xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-emerald-600 transition-colors block"
-            >
-              <div>
-                <h3 className="text-xl font-black mb-2">Konsultasi Langsung</h3>
-                <p className="text-sm text-emerald-100 font-medium">Ada kendala? Hubungi tim support via WhatsApp Admin.</p>
-              </div>
-              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                <MessageCircle size={28} className="text-white" />
-              </div>
-            </a>
-          </div>
-        </div>
-
-        {/* ── MOBILE: tabbed content (hidden on desktop) ─────────────────── */}
-        <div className="md:hidden space-y-6">
+        {/* ── UNIFIED MOBILE-FIRST LAYOUT: tabbed content ─────────────────── */}
+        <div className="space-y-6 pt-2">
 
           {/* Tab: Modul */}
           {activeTab === 'modul' && (
@@ -764,7 +506,7 @@ export default function MemberDashboard() {
       </main>
 
       {/* ── MOBILE BOTTOM NAVIGATION BAR ──────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+      <nav className="fixed bottom-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] w-full max-w-md md:max-w-xl border-x border-slate-100">
         <div className="flex items-stretch h-16">
           {([
             { key: 'modul',    icon: Home,      label: 'Modul'    },
@@ -776,7 +518,7 @@ export default function MemberDashboard() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative ${
                 activeTab === key
                   ? 'text-blue-600'
                   : 'text-slate-400 hover:text-slate-600'
@@ -935,8 +677,7 @@ export default function MemberDashboard() {
         </div>
       )}
 
-
+    </div>
     </div>
   );
 }
-
