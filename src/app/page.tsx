@@ -114,15 +114,16 @@ export default function LandingPage() {
       
       {/* Top Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-40">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-8 h-8 object-contain" />
-            <div className="flex flex-col">
-              <span className="font-black text-slate-800 tracking-tight text-xl leading-none">LOGARITMA.ID</span>
-              <span className="text-[10px] font-bold text-blue-600 tracking-wide">by Logaritma Ecosystem</span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-slate-800 tracking-tight text-base sm:text-xl leading-none">LOGARITMA.ID</span>
+              <span className="hidden sm:inline-block text-[10px] font-bold text-blue-600 tracking-wide">by Logaritma Ecosystem</span>
             </div>
           </div>
-          
+
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-6">
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Metoda Logaritma</a>
@@ -131,17 +132,17 @@ export default function LandingPage() {
             <a href="/auth?mode=login" className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors">Member Login</a>
           </div>
 
-          {/* Right CTA group — visible on both mobile & desktop */}
-          <div className="flex items-center gap-2">
+          {/* Right CTA group */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <a
               href="/auth?mode=login"
-              className="text-xs font-semibold text-blue-600 px-2.5 py-1.5 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 md:hidden"
+              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 px-2 py-1.5 rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap md:hidden"
             >
               Login
             </a>
             <button
               onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-              className="text-xs md:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 md:px-5 py-1.5 md:py-2 rounded-lg md:rounded-full transition-colors shadow-md shadow-blue-600/20"
+              className="text-xs sm:text-sm font-bold bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-sm hover:bg-blue-700 transition-all whitespace-nowrap"
             >
               Mulai Gratis
             </button>
