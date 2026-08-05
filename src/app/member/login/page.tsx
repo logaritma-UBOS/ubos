@@ -77,7 +77,9 @@ export default function MemberLoginPage() {
       // Data ditemukan → simpan sesi → masuk
       saveSession(found);
       setStep('success');
-      setTimeout(() => router.push('/member'), 1000);
+      setTimeout(() => {
+        window.location.href = '/member';
+      }, 1000);
     } else {
       // Data tidak ditemukan → tampilkan form registrasi
       setRegWA(loginWA);
@@ -118,7 +120,9 @@ export default function MemberLoginPage() {
 
     setLoading(false);
     setStep('success');
-    setTimeout(() => router.push('/member'), 1000);
+    setTimeout(() => {
+      window.location.href = '/member';
+    }, 1000);
   };
 
   const saveSession = (data: any) => {
