@@ -59,10 +59,12 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      const cleanWA = formData.whatsapp.replace(/\D/g, '');
+      let cleanWA = formData.whatsapp.replace(/\D/g, '');
       if (cleanWA.length < 10) {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
+      if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
+      else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
       
       // 1. Cek apakah WA sudah terdaftar di database merchants
       const { data: existingWa } = await supabase

@@ -30,16 +30,34 @@ function AuthForm() {
     setError(null);
 
     try {
-      const cleanWA = whatsapp.replace(/\D/g, '');
+      let cleanWA = whatsapp.replace(/\D/g, '');
       if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
+      if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
+      else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
+      
       const dummyEmail = `${cleanWA}@logaritma.id`;
 
       if (!isRegister) {
         // ── LOGIN: WA + Password ──────────────────────────────────────────
-        const { error: signInError, data } = await supabase.auth.signInWithPassword({
-          email: dummyEmail,
-          password,
-        });
+        let signInError = null;
+        let data = null;
+        
+        // Coba login dengan format 62...
+        const res = await supabase.auth.signInWithPassword({ email: dummyEmail, password });
+        signInError = res.error;
+        data = res.data;
+
+        // Fallback: Jika gagal dan user memasukkan 08..., coba login dengan 08... (legacy support)
+        if (signInError && whatsapp.replace(/\D/g, '').startsWith('0')) {
+          const rawWA = whatsapp.replace(/\D/g, '');
+          const legacyDummyEmail = `${rawWA}@logaritma.id`;
+          const legacyRes = await supabase.auth.signInWithPassword({ email: legacyDummyEmail, password });
+          if (!legacyRes.error) {
+            signInError = null;
+            data = legacyRes.data;
+          }
+        }
+
         if (signInError) throw new Error('Nomor WA atau password salah. Silakan coba lagi.');
 
         if (data.user) {
