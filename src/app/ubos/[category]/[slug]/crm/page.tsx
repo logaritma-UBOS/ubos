@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Users, MessageCircle, Send, Plus, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function CRMPage() {
   const [customers, setCustomers] = useState<any[]>([]);

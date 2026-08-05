@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
 export default function SettingsPage() {

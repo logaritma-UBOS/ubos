@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { PackagePlus, Sparkles } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function DummyDataInjector({ onComplete }: { onComplete: () => void }) {
   const [loading, setLoading] = useState(false);

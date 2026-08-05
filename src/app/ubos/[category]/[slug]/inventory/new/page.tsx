@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, UploadCloud, Plus, Trash2, ImagePlus } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
 export default function NewProductPage() {

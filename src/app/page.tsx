@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, X, ChevronRight, Store, ChefHat, Printer, ShoppingBag, Shirt, Smartphone, LineChart, Banknote, HelpCircle, Check, ArrowRight, ShoppingCart, Wallet, TrendingUp, Activity, Package, Megaphone, User, Sparkles, MessageCircle, Bot } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
   const router = useRouter();

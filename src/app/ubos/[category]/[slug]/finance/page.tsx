@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, RefreshCcw, Landmark, ShieldCheck, History, X, CheckCircle, Package } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Copilot from '@/components/Copilot';
 
 export default function FinancePage() {

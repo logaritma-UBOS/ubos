@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function MemberDashboard() {
   const router = useRouter();
@@ -323,7 +323,10 @@ export default function MemberDashboard() {
                           e.preventDefault();
                           const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
                           if (!merchant?.user_id) {
-                            toast.error('Silakan login/daftar untuk menggunakan modul ini.');
+                            toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
+                              description: "Akses terbatas khusus member terdaftar.",
+                              icon: <Lock className="w-5 h-5 text-amber-500" />
+                            });
                             router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
                             return;
                           }

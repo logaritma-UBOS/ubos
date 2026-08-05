@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 type Insight = {
   id: string;

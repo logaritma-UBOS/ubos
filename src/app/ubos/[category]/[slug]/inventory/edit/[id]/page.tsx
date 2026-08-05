@@ -4,7 +4,7 @@ import { useEffect, useState, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, Save, UploadCloud, Plus, Trash2, HelpCircle, ImagePlus } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {

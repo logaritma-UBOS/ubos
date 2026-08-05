@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import DummyDataInjector from '@/components/DummyDataInjector';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 // We don't import anything specific yet for Inventory context
 
 export default function InventoryPage() {

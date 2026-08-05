@@ -10,7 +10,7 @@ import {
   ChevronRight, ChevronLeft, CreditCard, DollarSign, TrendingUp, BarChart3, MapPin,
   Eye, EyeOff, Save, Trash2, Import, UserPlus, PhoneCall, CheckCircle2, Loader2
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { sendFonnteWA } from '@/lib/fonnte';
 
 export default function AdminDashboard() {

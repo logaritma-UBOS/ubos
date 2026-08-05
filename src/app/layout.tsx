@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import AppShell from "@/components/AppShell";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 
 const poppins = Poppins({ 
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700', '900'],
   variable: '--font-poppins',
 });
 
@@ -16,17 +16,17 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#1e40af",
+  themeColor: "#ffffff",
 };
 
 export const metadata: Metadata = {
-  title: 'UBOS - Universal Business Operation System',
-  description: 'Pusat Kontrol Ekosistem & Operasional Bisnis UMKM',
+  title: 'Logaritma - Kalkulator Profit & Margin Guard UMKM',
+  description: 'Aplikasi kasir anti dead-stock dan margin guard untuk warung, toko, percetakan, dan laundry. Temukan HPP aslimu sekarang.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'UBOS',
+    title: 'Logaritma',
   },
   icons: {
     icon: '/icon192.png',
@@ -47,13 +47,19 @@ export default function RootLayout({
           {children}
         </AppShell>
         <PwaInstallPrompt />
-        <Toaster position="top-center" toastOptions={{
-          style: {
-            borderRadius: '16px',
-            background: '#333',
-            color: '#fff',
-          },
-        }} />
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            classNames: {
+              toast: 'group shadow-lg border border-slate-100/80 rounded-xl bg-white font-medium',
+              title: 'text-slate-800 text-[13px] font-bold',
+              description: 'text-slate-500 text-[12px]',
+              success: 'group-[.toaster]:border-emerald-200 group-[.toaster]:bg-emerald-50',
+              error: 'group-[.toaster]:border-red-200 group-[.toaster]:bg-red-50',
+              info: 'group-[.toaster]:border-blue-200 group-[.toaster]:bg-blue-50'
+            }
+          }} 
+        />
       </body>
     </html>
   );
