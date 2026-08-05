@@ -320,8 +320,23 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
-                      <p className="text-slate-500 text-sm font-medium">Kunci profit harian warung, resto & cafe Anda secara otomatis.</p>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Sistem Operasi Bisnis Kuliner berbasis Metoda Tarik Mundur</h4>
+                      <p className="text-slate-500 text-sm font-medium mb-3">Kunci target profit bulanan, amankan margin komisi delivery, dan kontrol kas belanja harian otomatis langsung dari HP Anda.</p>
+                      
+                      <div className="space-y-2 mb-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm">🎯</span>
+                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Target Profit Harian</strong> <span className="text-slate-500">(Action Plan Otomatis)</span></p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm">🛡️</span>
+                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Margin Guard Delivery</strong> <span className="text-slate-500">(Formula Komisi Platform)</span></p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm">🛒</span>
+                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Kontrol Kas Belanja Pagi</strong> <span className="text-slate-500">(Cegah Bocor Halus)</span></p>
+                        </div>
+                      </div>
                     </div>
                     
                     {trialDaysLeft > 0 ? (
