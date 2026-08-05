@@ -230,9 +230,12 @@ export default function POSPage() {
       setShowCheckout(false);
       setShowSuccess(true);
       
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memproses transaksi');
+    } catch (err: any) {
+      console.error('POS Checkout Error:', err);
+      const msg = err?.message || err?.msg || JSON.stringify(err);
+      toast.error('Gagal memproses transaksi', {
+        description: msg || 'Periksa koneksi internet atau hubungi admin.',
+      });
     } finally {
       setCheckingOut(false);
     }

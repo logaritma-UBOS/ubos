@@ -62,7 +62,7 @@ export function useAILogaritmaEngine() {
 
       const { data: transactions } = await supabase
         .from('transactions')
-        .select('*')
+        .select('*, transaction_items(*)')
         .eq('merchant_id', merchant.id)
         .gte('created_at', today.toISOString())
         .lt('created_at', tomorrow.toISOString());
@@ -74,8 +74,16 @@ export function useAILogaritmaEngine() {
       if (transactions) {
         totalTx = transactions.length;
         transactions.forEach(tx => {
-          dailyOmzet += (tx.total_amount || 0);
-          dailyProfit += (tx.net_profit || 0);
+          dailyOmzet += (tx.total_gross || 0);
+          
+          if (tx.transaction_items && tx.transaction_items.length > 0) {
+             const totalHPP = tx.transaction_items.reduce((sum: number, item: any) => sum + ((item.hpp_satuan || 0) * (item.qty || 0)), 0);
+             const profit = (tx.total_net || 0) - totalHPP;
+             dailyProfit += (profit * 0.8); // 80% profit bersih as per Margin Guard rules
+          } else {
+             // Fallback
+             dailyProfit += (tx.total_net || 0) * 0.4;
+          }
         });
       }
 
