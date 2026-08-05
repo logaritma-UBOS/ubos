@@ -28,12 +28,8 @@ export default function UBOSDashboard() {
   useEffect(() => {
     let isMounted = true;
     const fetchMerchant = async () => {
+      // 1. Cek Supabase Auth session (login via WA + Password)
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error(`Silakan login dengan Nomor WhatsApp dan Password terdaftar untuk mengakses modul ${params.slug || 'Usaha'}.`);
-        router.push('/auth');
-        return;
-      }
 
       if (user) {
         const { data } = await supabase.from('merchants').select('*').eq('user_id', user.id).single();
@@ -48,24 +44,57 @@ export default function UBOSDashboard() {
           }
         }
 
-        // Check if no products exist for onboarding
         if (data) {
           if (data.brand_color) {
             document.documentElement.style.setProperty('--brand-color', data.brand_color);
           }
-          
           const { data: products } = await supabase.from('products').select('id').eq('merchant_id', data.id).limit(1);
-          if (!products || products.length === 0) {
-            setShowOnboarding(true);
+          if (!products || products.length === 0) setShowOnboarding(true);
+        }
+
+        const savedTarget = localStorage.getItem('targetProfit');
+        if (savedTarget && isMounted) setTargetProfit(savedTarget);
+        if (isMounted) setLoading(false);
+        return;
+      }
+
+      // 2. Fallback: Cek wa_member_session (login via WA saja dari /member/login)
+      try {
+        const waSession = localStorage.getItem('wa_member_session');
+        if (waSession) {
+          const session = JSON.parse(waSession);
+          const phone = (session.no_wa || '').replace(/\D/g, '');
+
+          if (phone) {
+            // Ambil data merchant dari server (bypass RLS)
+            const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
+            const result = await res.json();
+
+            if (result.found) {
+              // Build merchant object dari session + API result
+              const merchantData = {
+                nama_usaha: result.nama_usaha || session.nama_usaha || '',
+                kategori_usaha: result.kategori_usaha || session.kategori || 'Kuliner & F&B',
+                whatsapp: phone,
+                // data lain dari session jika ada
+                ...session,
+              };
+              if (isMounted) setMerchant(merchantData);
+
+              const savedTarget = localStorage.getItem('targetProfit');
+              if (savedTarget && isMounted) setTargetProfit(savedTarget);
+              if (isMounted) setLoading(false);
+              return;
+            }
           }
         }
-        // Load existing target if any
-        const savedTarget = localStorage.getItem('targetProfit');
-        if (savedTarget && isMounted) {
-          setTargetProfit(savedTarget);
-        }
+      } catch (_) {}
+
+      // 3. Tidak ada sesi → arahkan ke halaman login member
+      if (isMounted) {
+        toast.error(`Silakan login dengan Nomor WhatsApp untuk mengakses modul ${params.slug || 'Usaha'}.`);
+        router.push('/member/login');
       }
-      if (isMounted) setLoading(false);
     };
     fetchMerchant();
     
