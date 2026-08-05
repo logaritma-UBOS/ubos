@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -20,7 +20,7 @@ export default function MemberDashboard() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'modul' | 'support' | 'services' | 'edukasi' | 'bantuan'>('modul');
+  const [activeTab, setActiveTab] = useState<'modul' | 'affiliate' | 'services' | 'edukasi' | 'bantuan'>('modul');
 
   useEffect(() => {
     let isMounted = true;
@@ -301,42 +301,62 @@ export default function MemberDashboard() {
 
           {/* Tab: Modul */}
           {activeTab === 'modul' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
                 <p className="text-slate-500 text-sm font-medium">Navigasi profit harian bisnis Anda.</p>
               </div>
+              
               {isKuliner && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
                     </div>
-                    <h3 className="text-2xl font-black text-white mt-5">UBOS F&B</h3>
+                    <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+                      <ShoppingBag size={100} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5 relative z-10">UBOS F&B</h3>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-base font-bold text-slate-900 mb-1">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
-                    <p className="text-slate-500 text-sm font-medium mb-4">Fitur Margin Guard, kalkulasi HPP porsi presisi, dan Auto-Split Wallet untuk mengunci profit harian warung, resto & cafe.</p>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Aplikasi Kasir, Margin Guard & Auto-Split Wallet</h4>
+                      <p className="text-slate-500 text-sm font-medium">Kunci profit harian warung, resto & cafe Anda secara otomatis.</p>
+                    </div>
+                    
                     {trialDaysLeft > 0 ? (
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
-                          if (!merchant?.user_id) {
-                            toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
-                              description: "Akses terbatas khusus member terdaftar.",
-                              icon: <Lock className="w-5 h-5 text-amber-500" />
-                            });
-                            router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
-                            return;
-                          }
-                          const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-                          router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
-                        }}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"
-                      >
-                        Buka Modul F&B <ArrowRight size={16} />
-                      </button>
+                      <div className="space-y-3">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
+                            if (!merchant?.user_id) {
+                              toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
+                                description: "Akses terbatas khusus member terdaftar.",
+                                icon: <Lock className="w-5 h-5 text-amber-500" />
+                              });
+                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              return;
+                            }
+                            const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                            router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md"
+                        >
+                          Buka Modul F&B <ArrowRight size={16} />
+                        </button>
+                        
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul F&B terlebih dahulu.')}>
+                             <ShoppingCart size={18} className="text-blue-500" />
+                             Kasir (POS)
+                           </button>
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul F&B terlebih dahulu.')}>
+                             <Package size={18} className="text-emerald-500" />
+                             Stok Menu
+                           </button>
+                        </div>
+                      </div>
                     ) : (
                       <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
                     )}
@@ -344,59 +364,67 @@ export default function MemberDashboard() {
                 </div>
               )}
               {isPercetakan && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> VVIP TRIAL
                     </div>
                     <h3 className="text-2xl font-black text-white mt-5">UBOS Percetakan & Fotokopi</h3>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-base font-bold text-slate-900 mb-1">Tools Kontrol Antrean & HPP Kertas</h4>
-                    <p className="text-slate-500 text-sm font-medium mb-4">Kalkulator HPP bahan (kertas/tinta/meteran), estimasi harga cetak cepat, dan manajemen antrean antinumpuk.</p>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Tools Kontrol Antrean & HPP Kertas</h4>
+                      <p className="text-slate-500 text-sm font-medium">Kalkulator HPP bahan, estimasi harga cepat, dan manajemen antrean antinumpuk.</p>
+                    </div>
                     <button onClick={() => openWaitingList('Jasa Percetakan')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Daftar Trial Percetakan <ArrowRight size={16} /></button>
                   </div>
                 </div>
               )}
               {isRitel && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
                     </div>
                     <h3 className="text-2xl font-black text-white mt-5">UBOS Toko & Ritel</h3>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-base font-bold text-slate-900 mb-1">Manajemen Stok Anti Dead-Stock</h4>
-                    <p className="text-slate-500 text-sm font-medium mb-4">Sistem inventaris anti-stok mati (dead stock), cetak barcode, dan batas belanja stok harian.</p>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Manajemen Stok Anti Dead-Stock</h4>
+                      <p className="text-slate-500 text-sm font-medium">Sistem inventaris anti-stok mati, cetak barcode, dan batas belanja harian.</p>
+                    </div>
                     <button onClick={() => openWaitingList('Toko & Ritel')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
                   </div>
                 </div>
               )}
               {isLaundry && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
                     <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
                     </div>
                     <h3 className="text-2xl font-black text-white mt-5">UBOS Laundry & Jasa</h3>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-base font-bold text-slate-900 mb-1">Tracking Slot Jam Kerja & Nota Otomatis</h4>
-                    <p className="text-slate-500 text-sm font-medium mb-4">Pelacak status cucian/orderan, sistem nota WhatsApp otomatis, dan hitung komisi staf/karyawan.</p>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Tracking Slot & Nota Otomatis</h4>
+                      <p className="text-slate-500 text-sm font-medium">Pelacak status cucian, sistem nota WhatsApp otomatis, dan hitung komisi staf.</p>
+                    </div>
                     <button onClick={() => openWaitingList('Laundry & Jasa')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
                   </div>
                 </div>
               )}
               {isLainnya && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-blue-900 relative p-6 flex flex-col justify-center">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center">
                     <div className="text-[9px] font-black uppercase tracking-wider text-blue-200 mb-1">Waiting List</div>
                     <h3 className="text-2xl font-black text-white">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
                   </div>
-                  <div className="p-5">
-                    <h4 className="text-base font-bold text-slate-900 mb-1">Dalam Tahap Pengembangan</h4>
-                    <p className="text-slate-500 text-sm font-medium mb-4">Fitur spesifik untuk kategori usaha Anda saat ini sedang dikembangkan oleh tim Logaritma.</p>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Dalam Tahap Pengembangan</h4>
+                      <p className="text-slate-500 text-sm font-medium">Fitur spesifik untuk kategori usaha Anda saat ini sedang diracik oleh tim Logaritma.</p>
+                    </div>
                     <button onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Dapatkan Akses Prioritas <ArrowRight size={16} /></button>
                   </div>
                 </div>
@@ -404,82 +432,176 @@ export default function MemberDashboard() {
             </div>
           )}
 
-          {/* Tab: Support */}
-          {activeTab === 'support' && (
-            <div className="space-y-4">
+          {/* Tab: Affiliate */}
+          {activeTab === 'affiliate' && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Program Affiliate</h2>
-                <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang bersama Logaritma.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Program Kemitraan</h2>
+                <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang dengan referral.</p>
               </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                  <Handshake size={24} />
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-700 to-purple-600 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-purple-200 mb-1">Affiliate Program</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Pasif Komisi<br/>Logaritma</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
+                    <Handshake size={80} className="text-white" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 mb-2">🤝 Program Affiliate Logaritma</h3>
-                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Dapatkan komisi berulang dengan merekomendasikan Metoda Logaritma & UBOS ke jaringan UMKM Anda.</p>
-                <button
-                  onClick={() => handleUpsellRequest('Program Affiliate')}
-                  disabled={requestingUpsell === 'Program Affiliate'}
-                  className="w-full border-2 border-slate-200 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-                >
-                  {requestingUpsell === 'Program Affiliate' ? <Loader2 size={18} className="animate-spin"/> : 'Daftar Affiliator'}
-                </button>
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Rekomendasikan UBOS ke sesama pemilik usaha. Dapatkan komisi <strong className="text-purple-600 font-black">20%</strong> setiap kali teman Anda mengaktifkan modul.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText('https://logaritma.id/?ref=' + (merchant?.id || 'demo'));
+                        toast.success('Link referral berhasil disalin!');
+                      }}
+                      className="w-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors shadow-sm"
+                    >
+                      <span className="flex items-center gap-3"><Copy size={18} /> Salin Link Referral</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                    
+                    <button 
+                      onClick={() => toast.info('Fitur sedang dalam pengembangan.')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Wallet size={18} className="text-emerald-500" /> Lihat Saldo & Komisi</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => toast.info('Materi promosi sedang disiapkan.')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Download size={18} className="text-blue-500" /> Download Bahan Promosi</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Tab: Services */}
           {activeTab === 'services' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Logaritma</h2>
-                <p className="text-slate-500 text-sm font-medium">Iklan & perangkat untuk percepat bisnis Anda.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Ekstra</h2>
+                <p className="text-slate-500 text-sm font-medium">Layanan pengembang bisnis dari Logaritma.</p>
               </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
-                  <Megaphone size={24} />
+              
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-orange-200 mb-1">Ecosystem Services</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Solusi Ekstra<br/>Pengembang Bisnis</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
+                    <Wrench size={80} className="text-white" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 mb-2">📢 Iklankan Bisnis Anda (Meta Ads)</h3>
-                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Services pengelolaan iklan Meta Ads dari Tim Logaritma untuk datangkan pelanggan secara otomatis.</p>
-                <button
-                  onClick={() => handleUpsellRequest('Jasa Iklan Meta Ads')}
-                  disabled={requestingUpsell === 'Jasa Iklan Meta Ads'}
-                  className="w-full border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-                >
-                  {requestingUpsell === 'Jasa Iklan Meta Ads' ? <Loader2 size={18} className="animate-spin"/> : 'Pilih Paket Iklan'}
-                </button>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
-                  <Printer size={24} />
+                
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Solusi cetak kemasan, stiker glossy, banner toko, hingga foto produk profesional dari Logaritma Ecosystem.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => handleUpsellRequest('Stiker & Spanduk')}
+                      disabled={requestingUpsell === 'Stiker & Spanduk'}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        {requestingUpsell === 'Stiker & Spanduk' ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} className="text-orange-500" />} 
+                        Pesan Stiker & Spanduk
+                      </span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => handleUpsellRequest('Foto Menu Kuliner')}
+                      disabled={requestingUpsell === 'Foto Menu Kuliner'}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        {requestingUpsell === 'Foto Menu Kuliner' ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} className="text-blue-500" />} 
+                        Jasa Foto Menu Pro
+                      </span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => handleUpsellRequest('Konsultasi Setup POS')}
+                      disabled={requestingUpsell === 'Konsultasi Setup POS'}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        {requestingUpsell === 'Konsultasi Setup POS' ? <Loader2 size={18} className="animate-spin" /> : <Users size={18} className="text-emerald-500" />} 
+                        Konsultasi Setup POS On-Site
+                      </span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 mb-2">🖨️ Mini Printer Thermal Logaritma</h3>
-                <p className="text-sm text-slate-500 font-medium mb-6 flex-1">Cetak struk kasir tanpa kabel via Bluetooth. Kompatibel 100% dengan aplikasi kasir UBOS.</p>
-                <button
-                  onClick={() => handleUpsellRequest('Mini Printer Thermal')}
-                  disabled={requestingUpsell === 'Mini Printer Thermal'}
-                  className="w-full border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-                >
-                  {requestingUpsell === 'Mini Printer Thermal' ? <Loader2 size={18} className="animate-spin"/> : 'Pesan Mini Printer'}
-                </button>
               </div>
             </div>
           )}
 
           {/* Tab: Edukasi */}
           {activeTab === 'edukasi' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Pusat Edukasi</h2>
-                <p className="text-slate-500 text-sm font-medium">Kuasai metoda profit UMKM dari Logaritma.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Logaritma Academy</h2>
+                <p className="text-slate-500 text-sm font-medium">Tingkatkan skill dan pengetahuan bisnis Anda.</p>
               </div>
-              <div className="bg-blue-900 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-blue-950 transition-colors">
-                <div className="flex-1 mr-4">
-                  <h3 className="text-lg font-black mb-1">Masterclass Metoda Logaritma</h3>
-                  <p className="text-sm text-slate-400 font-medium">Pelajari rahasia pola pikir "Tarik Mundur Target Profit".</p>
+              
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-teal-200 mb-1">Knowledge Base</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Pusat Belajar<br/>& Strategi</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 -rotate-12">
+                    <BookOpen size={80} className="text-white" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <MonitorPlay size={24} className="text-white" />
+                
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Kumpulan video panduan, template kalkulator HPP, dan e-book strategi membesarkan usaha kuliner.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => toast.info('Sedang dialihkan ke modul panduan...')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><BookOpen size={18} className="text-teal-600" /> Panduan Penggunaan POS</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => toast.info('Fitur E-Book akan segera hadir.')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><FileText size={18} className="text-amber-500" /> E-Book: Mengunci Profit</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => toast.info('Buka YouTube Logaritma...')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Video size={18} className="text-red-500" /> Tonton Tutorial Video</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -487,25 +609,57 @@ export default function MemberDashboard() {
 
           {/* Tab: Bantuan */}
           {activeTab === 'bantuan' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Bantuan & CS</h2>
-                <p className="text-slate-500 text-sm font-medium">Hubungi tim support Logaritma langsung.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Pusat Bantuan</h2>
+                <p className="text-slate-500 text-sm font-medium">Tim support siap membantu kendala Anda.</p>
               </div>
-              <a
-                href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20terkait%20akun%20member%20saya..."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-500 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between group cursor-pointer hover:bg-emerald-600 transition-colors block"
-              >
-                <div className="flex-1 mr-4">
-                  <h3 className="text-lg font-black mb-1">Konsultasi Langsung</h3>
-                  <p className="text-sm text-emerald-100 font-medium">Ada kendala? Hubungi tim support via WhatsApp Admin.</p>
+              
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-blue-200 mb-1">Priority Support</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Butuh Bantuan<br/>Teknis?</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 -rotate-12">
+                    <HelpCircle size={80} className="text-white" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <MessageCircle size={24} className="text-white" />
+                
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Tim support Logaritma siap membantu pertanyaan teknis, kendala kasir, dan penyesuaian akun Anda.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <a
+                      href="https://wa.me/6281211638357?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20terkait%20akun%20member%20saya..."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><MessageCircle size={18} /> Tanya CS via WhatsApp</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </a>
+
+                    <button 
+                      onClick={() => toast.info('Sedang dialihkan ke Grup Telegram...')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Users size={18} className="text-blue-500" /> Gabung Komunitas Owner</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => toast.info('Membuka pusat panduan FAQ...')}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><HelpCircle size={18} className="text-purple-500" /> Baca FAQ & Solusi Kendala</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
                 </div>
-              </a>
+              </div>
             </div>
           )}
 
@@ -518,7 +672,7 @@ export default function MemberDashboard() {
         <div className="flex items-stretch h-16">
           {([
             { key: 'modul',    icon: Home,      label: 'Modul'    },
-            { key: 'support',  icon: Star,      label: 'Affiliate' },
+            { key: 'affiliate', icon: Star,       label: 'Affiliate' },
             { key: 'services', icon: Wrench,    label: 'Services' },
             { key: 'edukasi',  icon: BookOpen,  label: 'Edukasi'  },
             { key: 'bantuan',  icon: HelpCircle, label: 'Bantuan' },
