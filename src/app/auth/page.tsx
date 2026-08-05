@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Store, Phone, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 // ─── Alur 2: Login ke UBOS App (WA + Password) ────────────────────────────
 function AuthForm() {
@@ -62,22 +63,57 @@ function AuthForm() {
       } else {
         // ── REGISTER: Buat akun UBOS App ─────────────────────────────────
         const categoryParam = searchParams.get('category') || 'kuliner';
+        let authUser = null;
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: dummyEmail,
           password,
         });
-        if (signUpError) throw new Error(signUpError.message);
 
-        if (data.user) {
-          const { error: profileError } = await supabase.from('merchants').insert([{
-            user_id: data.user.id,
-            nama_usaha: merchantName,
-            kategori_usaha: categoryParam,
-            whatsapp: cleanWA,
-          }]);
+        if (signUpError) {
+          if (signUpError.message.toLowerCase().includes('already registered')) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: dummyEmail,
+              password,
+            });
 
-          if (profileError) throw new Error(`Gagal membuat profil toko: ${profileError.message}`);
+            if (signInError) {
+              toast.info('Nomor WhatsApp ini sudah aktif. Kami telah mengalihkan Anda ke tab Masuk.');
+              setIsRegister(false);
+              return;
+            } else {
+              authUser = signInData.user;
+            }
+          } else {
+            throw new Error(signUpError.message);
+          }
+        } else {
+          authUser = data.user;
+        }
+
+        if (authUser) {
+          // Seamless upsert ke tabel merchants
+          const { data: existingMerchant } = await supabase
+            .from('merchants')
+            .select('id')
+            .eq('user_id', authUser.id)
+            .maybeSingle();
+
+          if (existingMerchant) {
+            await supabase.from('merchants').update({
+              nama_usaha: merchantName,
+              kategori_usaha: categoryParam,
+              whatsapp: cleanWA,
+            }).eq('id', existingMerchant.id);
+          } else {
+            const { error: profileError } = await supabase.from('merchants').insert([{
+              user_id: authUser.id,
+              nama_usaha: merchantName,
+              kategori_usaha: categoryParam,
+              whatsapp: cleanWA,
+            }]);
+            if (profileError) throw new Error(`Gagal membuat profil toko: ${profileError.message}`);
+          }
 
           const category = categoryParam.toLowerCase().split(' ')[0];
           const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
