@@ -62,7 +62,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && pathname !== '/auth' && pathname !== '/' && pathname !== '/member' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
       } else if (session && (pathname === '/auth' || pathname === '/')) {
         router.push('/member');
@@ -120,7 +120,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      if (!newSession && pathname !== '/auth' && pathname !== '/' && pathname !== '/member' && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
       } else if (newSession && (pathname === '/auth' || pathname === '/')) {
         router.push('/member');
