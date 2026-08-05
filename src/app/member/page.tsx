@@ -353,6 +353,11 @@ export default function MemberDashboard() {
                             <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">5</div>
                             <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Cek Finance di Akhir</strong> Tiap tutup warung, uang kasir otomatis terbagi rapi buat modal belanja besok & untung bersihmu.</p>
                           </div>
+                          
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">6</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Asisten AI Logaritma</strong> Dapatkan saran pintar otomatis tiap hari buat naikin omzet dan cegah stok bahan baku kehabisan!</p>
+                          </div>
                         </div>
                       </div>
                     </div>
