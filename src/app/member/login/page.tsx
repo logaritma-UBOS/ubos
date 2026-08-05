@@ -43,7 +43,7 @@ export default function MemberLoginPage() {
 
     let found: any = null;
 
-    // Cek localStorage dulu (paling cepat)
+    // 1. Cek localStorage dulu (paling cepat)
     try {
       const stored = localStorage.getItem('ubos_lead');
       if (stored) {
@@ -55,7 +55,23 @@ export default function MemberLoginPage() {
       }
     } catch (_) {}
 
-    // Cek tabel leads (jika belum ketemu)
+    // 2. Cek tabel merchants via server API (bypass RLS) — paling prioritas
+    if (!found) {
+      try {
+        const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(rawWA)}`);
+        const result = await res.json();
+        if (result.found) {
+          found = {
+            nama_pemilik: '',
+            nama_usaha: result.nama_usaha || '',
+            no_wa: rawWA,
+            kategori: result.kategori_usaha || 'Kuliner & F&B',
+          };
+        }
+      } catch (_) {}
+    }
+
+    // 3. Cek tabel leads (fallback)
     if (!found) {
       try {
         const { data } = await supabase.from('leads').select('nama_pemilik,nama_usaha,no_wa,kategori').or(`no_wa.eq.${rawWA},no_wa.eq.${normalWA}`).maybeSingle();
@@ -63,7 +79,7 @@ export default function MemberLoginPage() {
       } catch (_) {}
     }
 
-    // Cek waiting_list (fallback lama)
+    // 4. Cek waiting_list (fallback lama)
     if (!found) {
       try {
         const { data } = await supabase.from('waiting_list').select('nama_usaha,whatsapp,kategori_usaha').or(`whatsapp.eq.${rawWA},whatsapp.eq.${normalWA}`).maybeSingle();
