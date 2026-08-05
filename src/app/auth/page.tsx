@@ -26,17 +26,27 @@ function AuthForm() {
 
   const checkExistingPhone = async (phone: string) => {
     if (!phone) return;
-    let cleanWA = phone.replace(/\D/g, '');
-    if (cleanWA.length < 10) return;
+    let rawWA = phone.replace(/\D/g, '');
+    if (rawWA.length < 10) return;
     
-    if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
-    else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
+    let format62 = rawWA;
+    let format0 = rawWA;
+    
+    if (rawWA.startsWith('0')) {
+      format62 = '62' + rawWA.slice(1);
+    } else if (rawWA.startsWith('8')) {
+      format62 = '62' + rawWA;
+      format0 = '0' + rawWA;
+    } else if (rawWA.startsWith('62')) {
+      format0 = '0' + rawWA.slice(2);
+    }
     
     try {
       const { data: existingMerchant } = await supabase
         .from('merchants')
         .select('nama_usaha, kategori_usaha')
-        .eq('whatsapp', cleanWA)
+        .or(`whatsapp.eq.${format62},whatsapp.eq.${format0}`)
+        .limit(1)
         .maybeSingle();
 
       if (existingMerchant) {
