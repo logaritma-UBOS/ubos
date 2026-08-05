@@ -21,6 +21,7 @@ export default function MemberDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'modul' | 'affiliate' | 'services' | 'edukasi' | 'bantuan'>('modul');
+  const [showFeatureComingSoonModal, setShowFeatureComingSoonModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -494,10 +495,7 @@ export default function MemberDashboard() {
                   
                   <div className="space-y-3">
                     <button 
-                      onClick={() => {
-                        navigator.clipboard.writeText('https://logaritma.id/?ref=' + (merchant?.id || 'demo'));
-                        toast.success('Link referral berhasil disalin!');
-                      }}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors shadow-sm"
                     >
                       <span className="flex items-center gap-3"><Copy size={18} /> Salin Link Referral</span>
@@ -505,7 +503,7 @@ export default function MemberDashboard() {
                     </button>
                     
                     <button 
-                      onClick={() => toast.info('Fitur sedang dalam pengembangan.')}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><Wallet size={18} className="text-emerald-500" /> Lihat Saldo & Komisi</span>
@@ -513,7 +511,7 @@ export default function MemberDashboard() {
                     </button>
 
                     <button 
-                      onClick={() => toast.info('Materi promosi sedang disiapkan.')}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><Download size={18} className="text-blue-500" /> Download Bahan Promosi</span>
@@ -809,7 +807,30 @@ export default function MemberDashboard() {
                 </form>
               )}
             </div>
-            
+          </div>
+        </div>
+      )}
+
+      {/* Feature Coming Soon Modal */}
+      {showFeatureComingSoonModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <MonitorPlay size={120} />
+            </div>
+            <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 relative z-10">
+              <Wrench size={32} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2 relative z-10">Fitur Sedang Disiapkan!</h3>
+            <p className="text-slate-500 font-medium text-sm mb-6 relative z-10">
+              Kami sedang meracik fitur ini agar tampil maksimal untuk Anda. Nantikan update terbarunya segera!
+            </p>
+            <button 
+              onClick={() => setShowFeatureComingSoonModal(false)}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition-colors relative z-10"
+            >
+              Mengerti, Tutup
+            </button>
           </div>
         </div>
       )}
