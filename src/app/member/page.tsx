@@ -211,8 +211,13 @@ export default function MemberDashboard() {
       </div>
     );
   }
+  let urlCategory = '';
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    urlCategory = params.get('category') || '';
+  }
 
-  const kategori = merchant?.kategori_usaha?.toLowerCase() || '';
+  const rawCategory = (urlCategory || merchant?.kategori_usaha || merchant?.kategori || '').toLowerCase();
   
   let isKuliner = false;
   let isPercetakan = false;
@@ -220,13 +225,13 @@ export default function MemberDashboard() {
   let isLaundry = false;
   let isLainnya = false;
 
-  if (kategori.includes('kuliner') || kategori.includes('f&b')) {
+  if (rawCategory.includes('kuliner') || rawCategory.includes('f&b') || rawCategory.includes('warung')) {
     isKuliner = true;
-  } else if (kategori.includes('percetakan') || kategori.includes('fotokopi')) {
+  } else if (rawCategory.includes('percetakan') || rawCategory.includes('fotokopi')) {
     isPercetakan = true;
-  } else if (kategori.includes('ritel') || kategori.includes('toko')) {
+  } else if (rawCategory.includes('ritel') || rawCategory.includes('toko') || rawCategory.includes('grosir')) {
     isRitel = true;
-  } else if (kategori.includes('laundry') || kategori.includes('jasa')) {
+  } else if (rawCategory.includes('laundry') || rawCategory.includes('jasa')) {
     isLaundry = true;
   } else {
     isLainnya = true;
