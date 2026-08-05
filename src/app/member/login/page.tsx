@@ -138,11 +138,11 @@ export default function MemberLoginPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-5 justify-center">
-      <div className="w-full max-w-sm mx-auto space-y-6">
+    <div className="flex flex-col min-h-screen bg-slate-50 p-4 items-center justify-center">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 md:p-8 space-y-6">
 
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-3 pb-2 border-b border-slate-50">
           <img src="/assets/images/logo-logaritma.png" alt="Logaritma" className="w-10 h-10 object-contain" />
           <div className="flex flex-col leading-none">
             <span className="font-black text-slate-800 tracking-tight text-2xl">LOGARITMA.ID</span>
@@ -152,7 +152,7 @@ export default function MemberLoginPage() {
 
         {/* ── STEP: SUCCESS ──────────────────────────────────────────────── */}
         {step === 'success' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center space-y-3">
+          <div className="text-center space-y-3 py-4">
             <CheckCircle2 size={52} className="text-emerald-500 mx-auto" />
             <p className="font-black text-slate-800 text-xl">Berhasil!</p>
             <p className="text-sm text-slate-500">Mengalihkan ke Member Area...</p>
@@ -161,7 +161,7 @@ export default function MemberLoginPage() {
 
         {/* ── STEP: LOGIN (cek nomor WA) ─────────────────────────────────── */}
         {step === 'login' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5">
+          <div className="space-y-5">
             <div>
               <h1 className="text-xl font-black text-slate-800">Akses Member Area</h1>
               <p className="text-sm text-slate-500 mt-1">Masukkan nomor WhatsApp yang Anda daftarkan</p>
@@ -191,7 +191,7 @@ export default function MemberLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-60 flex justify-center items-center gap-2"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-60 flex justify-center items-center gap-2 shadow-sm"
               >
                 {loading
                   ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -199,7 +199,7 @@ export default function MemberLoginPage() {
               </button>
             </form>
 
-            <div className="pt-1 border-t border-slate-100 text-center">
+            <div className="pt-2 text-center">
               <a href="/auth?mode=login" className="text-xs text-blue-600 font-semibold hover:underline">
                 Punya akun UBOS dengan password? Login di sini →
               </a>
@@ -209,7 +209,7 @@ export default function MemberLoginPage() {
 
         {/* ── STEP: REGISTER (nomor WA tidak ditemukan) ─────────────────── */}
         {step === 'register' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5">
+          <div className="space-y-5">
             <div>
               <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200 mb-3">
                 📋 Nomor baru — lengkapi data Anda
