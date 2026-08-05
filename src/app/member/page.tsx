@@ -22,6 +22,7 @@ export default function MemberDashboard() {
   const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'modul' | 'affiliate' | 'services' | 'edukasi' | 'bantuan'>('modul');
   const [showFeatureComingSoonModal, setShowFeatureComingSoonModal] = useState(false);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -696,7 +697,7 @@ export default function MemberDashboard() {
                     </a>
 
                     <button 
-                      onClick={() => toast.info('Sedang dialihkan ke Grup Telegram...')}
+                      onClick={() => setIsCommunityModalOpen(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><Users size={18} className="text-blue-500" /> Gabung Komunitas Owner</span>
@@ -823,6 +824,64 @@ export default function MemberDashboard() {
                   </button>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Community Invitation Modal */}
+      {isCommunityModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-200">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsCommunityModalOpen(false)} 
+              className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 z-10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="p-6 md:p-8 text-center space-y-4">
+              {/* Header Visual */}
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10">
+                <Users size={32} />
+              </div>
+              
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang di Circle Profit Owner F&B! 🚀</h3>
+              
+              {/* Body Copywriting */}
+              <p className="text-slate-600 font-medium text-sm leading-relaxed mb-6">
+                Bergabunglah dengan pemilik usaha kuliner lainnya! Tempat berbagi strategi HPP, bedah kasus kebocoran kasir, hingga kolaborasi sesama owner F&B agar bisnis tumbuh konsisten.
+              </p>
+
+              {/* Benefits Checklist */}
+              <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Forum diskusi strategi HPP & Margin Guard</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Update fitur eksklusif UBOS Logaritma</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Akses langsung ke tim developer & mentor</span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button 
+                onClick={() => {
+                  window.open('https://chat.whatsapp.com/Jko4cZMWXca3aLhlR94shj', '_blank');
+                  setIsCommunityModalOpen(false);
+                }}
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={18} />
+                Gabung Grup WA Sekarang <ArrowRight size={16} />
+              </button>
             </div>
           </div>
         </div>
