@@ -123,7 +123,7 @@ export default function UBOSDashboard() {
             style={{ color: primaryColor }}
           >
             <ShoppingBag size={20} />
-            BUKA POS KASIR
+            TENTUKAN TARGET
           </Link>
         </div>
       </div>
