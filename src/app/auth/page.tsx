@@ -2,22 +2,24 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Store, Mail, Lock } from 'lucide-react';
+import { Store, Phone, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+// ─── Alur 2: Login ke UBOS App (WA + Password) ────────────────────────────
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isLogin, setIsLogin] = useState(true);
-  
+  const [isRegister, setIsRegister] = useState(false);
+
   useEffect(() => {
-    if (searchParams.get('mode') === 'register') {
-      setIsLogin(false);
-    }
+    if (searchParams.get('mode') === 'register') setIsRegister(true);
+    else if (searchParams.get('mode') === 'login') setIsRegister(false);
   }, [searchParams]);
+
   const [whatsapp, setWhatsapp] = useState('');
   const [password, setPassword] = useState('');
   const [merchantName, setMerchantName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,152 +30,195 @@ function AuthForm() {
 
     try {
       const cleanWA = whatsapp.replace(/\D/g, '');
-      if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid.');
+      if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
       const dummyEmail = `${cleanWA}@logaritma.id`;
 
-      if (isLogin) {
-        const { error, data } = await supabase.auth.signInWithPassword({ email: dummyEmail, password });
-        if (error) throw error;
-        
-        // Fetch merchant to redirect
+      if (!isRegister) {
+        // ── LOGIN: WA + Password ──────────────────────────────────────────
+        const { error: signInError, data } = await supabase.auth.signInWithPassword({
+          email: dummyEmail,
+          password,
+        });
+        if (signInError) throw new Error('Nomor WA atau password salah. Silakan coba lagi.');
+
         if (data.user) {
-          const { data: merchantData } = await supabase.from('merchants').select('nama_usaha, kategori_usaha').eq('user_id', data.user.id).maybeSingle();
+          const { data: merchantData } = await supabase
+            .from('merchants')
+            .select('nama_usaha, kategori_usaha')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
           if (merchantData) {
-            const category = (merchantData.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
-            const slug = (merchantData.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const category = (merchantData.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0];
+            const slug = (merchantData.nama_usaha || 'merchant')
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)+/g, '');
             router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
             return;
           }
         }
         router.push('/member');
       } else {
-        const { data, error } = await supabase.auth.signUp({ email: dummyEmail, password });
-        if (error) throw error;
-        
-        const categoryParam = searchParams.get('category') || 'F&B';
-        
-        // After signup, create merchant profile if user is created
+        // ── REGISTER: Buat akun UBOS App ─────────────────────────────────
+        const categoryParam = searchParams.get('category') || 'kuliner';
+
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: dummyEmail,
+          password,
+        });
+        if (signUpError) throw new Error(signUpError.message);
+
         if (data.user) {
-          const { error: profileError } = await supabase
-            .from('merchants')
-            .insert([{
-              user_id: data.user.id,
-              nama_usaha: merchantName,
-              kategori_usaha: categoryParam,
-              whatsapp: cleanWA
-            }]);
-            
-          if (profileError) {
-             console.error('Error creating merchant:', profileError);
-             throw new Error(`Gagal membuat profil toko: ${profileError.message || profileError.details || 'Unknown Error'}`);
-          }
-          
-          const category = categoryParam.toLowerCase().split(' ')[0] || 'kuliner';
+          const { error: profileError } = await supabase.from('merchants').insert([{
+            user_id: data.user.id,
+            nama_usaha: merchantName,
+            kategori_usaha: categoryParam,
+            whatsapp: cleanWA,
+          }]);
+
+          if (profileError) throw new Error(`Gagal membuat profil toko: ${profileError.message}`);
+
+          const category = categoryParam.toLowerCase().split(' ')[0];
           const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
           router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
           return;
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan. Periksa kredensial Anda.');
+      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen p-6 justify-center bg-slate-50">
-      <div className="w-full max-w-sm mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center mb-4">
-            <img src="/logo-ubos.png" alt="UBOS Logo" className="w-40 object-contain" />
-          </div>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 justify-center">
+      <div className="w-full max-w-sm mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <img src="/logo-ubos.png" alt="UBOS Logo" className="w-36 mx-auto object-contain" />
+          <p className="text-slate-500 text-sm">
+            {isRegister
+              ? 'Buat akun dan mulai kelola bisnis Anda'
+              : 'Masuk ke dashboard bisnis Anda'}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        {/* Tab Toggle */}
+        <div className="flex bg-slate-100 rounded-xl p-1">
+          <button
+            type="button"
+            onClick={() => { setIsRegister(false); setError(null); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isRegister ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Masuk
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsRegister(true); setError(null); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isRegister ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Daftar
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           {error && (
-            <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-xl">
+            <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
               {error}
             </div>
           )}
 
-          {!isLogin && (
+          {/* Nama Usaha — hanya saat register */}
+          {isRegister && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Nama Usaha / Toko</label>
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Nama Usaha / Toko</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Store size={18} />
-                </div>
+                <Store size={16} className="absolute inset-y-0 left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   required
                   value={merchantName}
                   onChange={(e) => setMerchantName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                   placeholder="Kopi Senja"
                 />
               </div>
             </div>
           )}
 
+          {/* Nomor WhatsApp */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Nomor WhatsApp</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Nomor WhatsApp</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail size={18} />
-              </div>
+              <Phone size={16} className="absolute inset-y-0 left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="tel"
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                 placeholder="08123456789"
               />
             </div>
           </div>
 
+          {/* Password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Password</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Password</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Lock size={18} />
-              </div>
+              <Lock size={16} className="absolute inset-y-0 left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
+                className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                 placeholder="••••••••"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 rounded-xl transition-all active:scale-[0.98] mt-2 disabled:opacity-70 flex justify-center items-center shadow-sm shadow-primary/30"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all active:scale-[0.98] mt-2 disabled:opacity-70 flex justify-center items-center gap-2 shadow-sm"
           >
             {loading ? (
-              <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              isLogin ? 'Masuk ke Dashboard' : 'Daftar Sekarang'
+              <>
+                {isRegister ? 'Buat Akun & Masuk' : 'Masuk ke Dashboard'}
+                <ArrowRight size={16} />
+              </>
             )}
           </button>
         </form>
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError(null);
-            }}
-            className="text-sm text-slate-500 hover:text-primary font-medium transition-colors"
-          >
-            {isLogin ? 'Belum punya akun? Daftar gratis' : 'Sudah punya akun? Masuk'}
-          </button>
+        {/* Footer link ke Member Area */}
+        <div className="text-center space-y-2">
+          <p className="text-xs text-slate-400">
+            Belum daftar tapi sudah isi formulir?{' '}
+            <a href="/member" className="text-blue-600 font-semibold hover:underline">
+              Cek Member Area →
+            </a>
+          </p>
+          <p className="text-xs text-slate-400">
+            Belum punya akun?{' '}
+            <a href="/" className="text-blue-600 font-semibold hover:underline">
+              Daftar dari halaman utama
+            </a>
+          </p>
         </div>
       </div>
     </div>

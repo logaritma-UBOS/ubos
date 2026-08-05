@@ -129,13 +129,13 @@ export default function LandingPage() {
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Metoda Logaritma</a>
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Produk & Tools</a>
             <a href="#" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Harga</a>
-            <a href="/auth?mode=login" className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors">Member Login</a>
+            <a href="/member/login" className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors">Member Login</a>
           </div>
 
           {/* Right CTA group */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <a
-              href="/auth?mode=login"
+              href="/member/login"
               className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 px-2 py-1.5 rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap md:hidden"
             >
               Login

@@ -26,10 +26,25 @@ export default function MemberDashboard() {
     let isMounted = true;
     const fetchData = async () => {
       try {
+        // Cek 1: Supabase session (user sudah login ke UBOS App)
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          // Cek 2: WA Member Session (user login via nomor WA saja)
+          const waSession = localStorage.getItem('wa_member_session');
           const leadStr = localStorage.getItem('ubos_lead');
-          if (leadStr) {
+          
+          if (waSession) {
+            try {
+              const sessionData = JSON.parse(waSession);
+              if (isMounted) {
+                setMerchant(sessionData);
+                setTrialDaysLeft(7);
+                setLoading(false);
+              }
+              return;
+            } catch (e) {}
+          } else if (leadStr) {
+            // Fallback: data lead dari form pendaftaran masih ada
             try {
               const leadData = JSON.parse(leadStr);
               if (isMounted) {
@@ -40,8 +55,10 @@ export default function MemberDashboard() {
               return;
             } catch (e) {}
           }
+          
+          // Tidak ada sesi apapun → redirect ke halaman login member
           if (isMounted) setLoading(false);
-          router.push('/');
+          router.push('/member/login');
           return;
         }
 
