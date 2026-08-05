@@ -284,10 +284,15 @@ export default function UBOSDashboard() {
                 <div className="relative">
                   <CurrencyInput
                     value={targetProfit}
-                    onChange={setTargetProfit}
+                    onChange={() => {}}
                     icon="Rp"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-xl text-indigo-900 focus:outline-none focus:border-indigo-500 transition-colors"
+                    disabled
+                    readOnly
+                    className="w-full pl-12 pr-4 py-4 bg-slate-100 border border-slate-200 rounded-xl font-black text-xl text-slate-500 cursor-not-allowed opacity-80"
                   />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <ShieldCheck size={18} className="text-slate-400" />
+                  </div>
                 </div>
               </div>
               
