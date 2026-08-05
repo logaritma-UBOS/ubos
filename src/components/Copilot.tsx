@@ -234,7 +234,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
 
       {/* Drawer or Inline Content */}
       {isOpen && (
-        <div className={inline ? "w-full bg-slate-50 flex flex-col rounded-3xl border border-slate-200 overflow-hidden shadow-sm" : "fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end"}>
+        <div className={inline ? "w-full h-full bg-slate-50 flex flex-col rounded-3xl border border-slate-200 overflow-hidden shadow-sm" : "fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end"}>
           {/* Overlay to close - only if not inline */}
           {!inline && <div className="absolute inset-0 cursor-pointer" onClick={() => setIsOpen(false)}></div>}
           
