@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: { 'Authorization': token },
     body: new URLSearchParams({
-      target: target || '6281211638357',
+      target: target || '6285179660408',
       message: 'Test pesan dari Logaritma Bot ✅ Bot aktif dan siap!'
     })
   });
