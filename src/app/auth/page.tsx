@@ -24,6 +24,31 @@ function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const checkExistingPhone = async (phone: string) => {
+    if (!phone) return;
+    let cleanWA = phone.replace(/\D/g, '');
+    if (cleanWA.length < 10) return;
+    
+    if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
+    else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
+    
+    try {
+      const { data: existingMerchant } = await supabase
+        .from('merchants')
+        .select('nama_usaha, kategori_usaha')
+        .eq('whatsapp', cleanWA)
+        .maybeSingle();
+
+      if (existingMerchant) {
+        setIsRegister(false);
+        setMerchantName(existingMerchant.nama_usaha || '');
+        toast.info('Nomor WA terdaftar. Silakan masukkan password Anda.', { id: 'auto-login' });
+      }
+    } catch (e) {
+      // fail silently
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -216,6 +241,7 @@ function AuthForm() {
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
+                onBlur={(e) => checkExistingPhone(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                 placeholder="08123456789"
               />
