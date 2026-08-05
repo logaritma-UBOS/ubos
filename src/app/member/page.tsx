@@ -549,36 +549,33 @@ export default function MemberDashboard() {
                   
                   <div className="space-y-3">
                     <button 
-                      onClick={() => handleUpsellRequest('Stiker & Spanduk')}
-                      disabled={requestingUpsell === 'Stiker & Spanduk'}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3">
-                        {requestingUpsell === 'Stiker & Spanduk' ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} className="text-orange-500" />} 
+                        <Printer size={18} className="text-orange-500" /> 
                         Pesan Stiker & Spanduk
                       </span>
                       <ArrowRight size={16} className="opacity-50" />
                     </button>
 
                     <button 
-                      onClick={() => handleUpsellRequest('Foto Menu Kuliner')}
-                      disabled={requestingUpsell === 'Foto Menu Kuliner'}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3">
-                        {requestingUpsell === 'Foto Menu Kuliner' ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} className="text-blue-500" />} 
+                        <Camera size={18} className="text-blue-500" /> 
                         Jasa Foto Menu Pro
                       </span>
                       <ArrowRight size={16} className="opacity-50" />
                     </button>
 
                     <button 
-                      onClick={() => handleUpsellRequest('Konsultasi Setup POS')}
-                      disabled={requestingUpsell === 'Konsultasi Setup POS'}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3">
-                        {requestingUpsell === 'Konsultasi Setup POS' ? <Loader2 size={18} className="animate-spin" /> : <Users size={18} className="text-emerald-500" />} 
+                        <Users size={18} className="text-emerald-500" /> 
                         Konsultasi Setup POS On-Site
                       </span>
                       <ArrowRight size={16} className="opacity-50" />
@@ -615,7 +612,7 @@ export default function MemberDashboard() {
                   
                   <div className="space-y-3">
                     <button 
-                      onClick={() => toast.info('Sedang dialihkan ke modul panduan...')}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><BookOpen size={18} className="text-teal-600" /> Panduan Penggunaan POS</span>
@@ -623,7 +620,7 @@ export default function MemberDashboard() {
                     </button>
 
                     <button 
-                      onClick={() => toast.info('Fitur E-Book akan segera hadir.')}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><FileText size={18} className="text-amber-500" /> E-Book: Mengunci Profit</span>
@@ -631,7 +628,7 @@ export default function MemberDashboard() {
                     </button>
 
                     <button 
-                      onClick={() => toast.info('Buka YouTube Logaritma...')}
+                      onClick={() => setShowFeatureComingSoonModal(true)}
                       className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-3"><Video size={18} className="text-red-500" /> Tonton Tutorial Video</span>
