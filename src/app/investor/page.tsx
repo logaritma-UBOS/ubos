@@ -62,39 +62,63 @@ export default function InvestorPortal() {
   useEffect(() => {
     const fetchFunding = async () => {
       try {
-        // ── 1. Fetch status is_funded dari tabel funding_items ─────────────
-        const { data: fundingData } = await supabase
-          .from('funding_items')
-          .select('title, is_funded');
+        // Jalankan semua query secara paralel untuk kecepatan
+        const [
+          { data: fundingItemsData },
+          { data: capTxData },
+          { data: cashTxData },
+        ] = await Promise.all([
+          supabase.from('funding_items').select('title, is_funded, price'),
+          supabase.from('capital_transactions').select('deskripsi, nominal').eq('tipe', 'INFLOW'),
+          supabase.from('cash_transactions').select('description, amount, category').eq('type', 'IN'),
+        ]);
 
-        if (fundingData) {
-          const funded = FUNDING_ITEMS.filter(item =>
-            fundingData.some(f => f.title === ITEM_ID_MAP[item.id] && f.is_funded === true)
-          ).map(i => i.id);
-          setFundedItems(funded);
-          // Hanya pilih item yang belum terfunded
-          setSelectedItems(FUNDING_ITEMS.filter(i => !funded.includes(i.id)).map(i => i.id));
-        }
-
-        // ── 2. Hitung total dana terkumpul dari capital_transactions ────────
+        // Kumpulkan semua title yang terfunded dari SEMUA sumber
+        const fundedTitles = new Set<string>();
         let total = 0;
-        const { data: capData } = await supabase
-          .from('capital_transactions')
-          .select('nominal')
-          .eq('tipe', 'INFLOW');
 
-        if (capData) {
-          capData.forEach(tx => { total += Number(tx.nominal || 0); });
-        } else {
-          // Fallback ke cash_transactions jika capital_transactions belum ada
-          const { data: cashData } = await supabase
-            .from('cash_transactions')
-            .select('amount')
-            .eq('type', 'IN');
-          if (cashData) cashData.forEach(tx => { total += Number(tx.amount || 0); });
+        // ── Sumber 1: funding_items.is_funded ────────────────────────────────
+        if (fundingItemsData) {
+          fundingItemsData.forEach(f => {
+            if (f.is_funded) fundedTitles.add(f.title);
+          });
         }
 
+        // ── Sumber 2: capital_transactions (INFLOW) ──────────────────────────
+        if (capTxData && capTxData.length > 0) {
+          capTxData.forEach(tx => {
+            total += Number(tx.nominal || 0);
+            // Cocokkan deskripsi dengan nama item
+            const matchedTitle = Object.values(ITEM_ID_MAP).find(t => (tx.deskripsi || '').includes(t));
+            if (matchedTitle) fundedTitles.add(matchedTitle);
+          });
+        }
+
+        // ── Sumber 3: cash_transactions legacy (fallback) ────────────────────
+        if (cashTxData) {
+          cashTxData.forEach(tx => {
+            const isInvestorTx = tx.category === 'Inject Modal Investor' || tx.category === 'Modal Investor';
+            if (isInvestorTx) {
+              // Hitung ke total hanya jika capital_transactions kosong (hindari double count)
+              if (!capTxData || capTxData.length === 0) {
+                total += Number(tx.amount || 0);
+              }
+              const matchedTitle = Object.values(ITEM_ID_MAP).find(t => (tx.description || '').includes(t));
+              if (matchedTitle) fundedTitles.add(matchedTitle);
+            }
+          });
+        }
+
+        // Map funded titles kembali ke item IDs
+        const funded = FUNDING_ITEMS.filter(item =>
+          fundedTitles.has(ITEM_ID_MAP[item.id])
+        ).map(i => i.id);
+
+        setFundedItems(funded);
         setAccumulatedFund(total);
+        // Hanya pilih item yang belum terfunded untuk checkout
+        setSelectedItems(FUNDING_ITEMS.filter(i => !funded.includes(i.id)).map(i => i.id));
+
       } catch (err) {
         console.error('Failed to fetch funding data', err);
       }

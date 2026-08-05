@@ -608,6 +608,15 @@ export default function AdminDashboard() {
     }
   };
 
+  // Daftar item pendanaan resmi — untuk matching otomatis
+  const FUNDING_ITEM_TITLES = [
+    'Hosting & Database (Vercel, Supabase)',
+    'WhatsApp Gateway API',
+    'OpenAI / Gemini API Tokens',
+    'Pemasaran Awal (GTM / Meta Ads)',
+    'Cadangan Kas Operasional',
+  ];
+
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isInvestorViewOnly) return;
@@ -615,13 +624,37 @@ export default function AdminDashboard() {
     try {
       const payload = {
         transaction_date: accFormDate,
-        type: accFormType,
-        category: accFormCategory,
-        description: accFormDesc,
-        amount: parseFloat(accFormAmount)
+        type:             accFormType,
+        category:         accFormCategory,
+        description:      accFormDesc,
+        amount:           parseFloat(accFormAmount),
       };
       const { error } = await supabase.from('cash_transactions').insert([payload]);
       if (error) throw error;
+
+      // ── Auto-sync ke funding_items jika INFLOW investor ──────────────────
+      if (accFormType === 'IN' && (accFormCategory === 'Inject Modal Investor' || accFormCategory === 'Modal Investor')) {
+        const matchedTitle = FUNDING_ITEM_TITLES.find(t => accFormDesc.includes(t));
+        if (matchedTitle) {
+          // Update is_funded di funding_items
+          await supabase
+            .from('funding_items')
+            .update({ is_funded: true, funded_by: 'Admin Manual', funded_at: new Date().toISOString() })
+            .eq('title', matchedTitle)
+            .eq('is_funded', false);
+
+          // Insert ke capital_transactions juga
+          await supabase.from('capital_transactions').insert([{
+            tipe:      'INFLOW',
+            kategori:  'Modal Investor',
+            nominal:   parseFloat(accFormAmount),
+            deskripsi: `Pendanaan Investor: ${matchedTitle}`,
+            nama:      'Admin Manual',
+            created_at: new Date().toISOString(),
+          }]);
+        }
+      }
+
       toast.success('Transaksi kas berhasil dicatat!');
       setIsAccountingModalOpen(false);
       setAccFormDesc('');
@@ -638,8 +671,34 @@ export default function AdminDashboard() {
   const handleDeleteTransaction = async (id: string) => {
     if (isInvestorViewOnly) return;
     if (!confirm('Yakin ingin menghapus transaksi kas ini? Aksi ini tidak dapat dibatalkan.')) return;
-    
+
     try {
+      // ── Cek apakah ini transaksi investor sebelum dihapus ─────────────────
+      const txToDelete = cashTransactions.find((t: any) => t.id === id);
+      if (txToDelete) {
+        const isInvestorTx = txToDelete.type === 'IN' &&
+          (txToDelete.category === 'Inject Modal Investor' || txToDelete.category === 'Modal Investor');
+
+        if (isInvestorTx) {
+          const matchedTitle = FUNDING_ITEM_TITLES.find(t => (txToDelete.description || '').includes(t));
+          if (matchedTitle) {
+            // Revert is_funded ke false hanya jika tidak ada transaksi lain untuk item yang sama
+            const otherTxExists = cashTransactions.some((t: any) =>
+              t.id !== id &&
+              t.type === 'IN' &&
+              (t.category === 'Inject Modal Investor' || t.category === 'Modal Investor') &&
+              (t.description || '').includes(matchedTitle)
+            );
+            if (!otherTxExists) {
+              await supabase
+                .from('funding_items')
+                .update({ is_funded: false, funded_by: null, funded_at: null })
+                .eq('title', matchedTitle);
+            }
+          }
+        }
+      }
+
       const { error } = await supabase.from('cash_transactions').delete().eq('id', id);
       if (error) throw error;
       toast.success('Transaksi kas berhasil dihapus!');
