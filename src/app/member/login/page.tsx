@@ -34,74 +34,71 @@ function MemberLoginForm() {
 
       const normalizedInput = normalizeWA(whatsapp);
 
-      // ── Prioritas 1: Cek localStorage ubos_lead (dari form pendaftaran) ──
-      let foundSession: any = null;
+      // Coba cari data yang cocok untuk memperkaya sesi (tidak blocking)
+      let enrichedData: any = null;
+
+      // ── Cek 1: localStorage ubos_lead ───────────────────────────────
       try {
         const leadStr = localStorage.getItem('ubos_lead');
         if (leadStr) {
           const leadData = JSON.parse(leadStr);
           const storedWA = (leadData.whatsapp || leadData.no_wa || '').replace(/\D/g, '');
-          const normalizedStored = normalizeWA(storedWA);
-
-          // Cocokkan nomor (bandingkan normalized version)
-          if (normalizedStored === normalizedInput || storedWA === rawWA) {
-            foundSession = {
+          if (storedWA === rawWA || normalizeWA(storedWA) === normalizedInput) {
+            enrichedData = {
               nama_pemilik: leadData.owner_name || leadData.nama_pemilik || '',
               nama_usaha: leadData.nama_usaha || '',
               no_wa: storedWA,
               kategori: leadData.kategori_usaha || leadData.kategori || 'Kuliner & F&B',
-              status: 'New Lead',
             };
           }
         }
       } catch (_) {}
 
-      // ── Prioritas 2: Cek tabel leads di Supabase ──────────────────────
-      if (!foundSession) {
-        const { data: leadData } = await supabase
-          .from('leads')
-          .select('nama_pemilik, nama_usaha, no_wa, kategori, status')
-          .or(`no_wa.eq.${rawWA},no_wa.eq.${normalizedInput}`)
-          .maybeSingle();
-
-        if (leadData) {
-          foundSession = leadData;
-        }
+      // ── Cek 2: Supabase leads (jika tabel sudah ada) ─────────────────
+      if (!enrichedData) {
+        try {
+          const { data: leadData } = await supabase
+            .from('leads')
+            .select('nama_pemilik, nama_usaha, no_wa, kategori')
+            .or(`no_wa.eq.${rawWA},no_wa.eq.${normalizedInput}`)
+            .maybeSingle();
+          if (leadData) enrichedData = leadData;
+        } catch (_) {}
       }
 
-      // ── Prioritas 3: Cek tabel waiting_list (format lama) ────────────
-      if (!foundSession) {
-        const { data: waitingData } = await supabase
-          .from('waiting_list')
-          .select('nama_usaha, whatsapp, kategori_usaha')
-          .or(`whatsapp.eq.${rawWA},whatsapp.eq.${normalizedInput}`)
-          .maybeSingle();
-
-        if (waitingData) {
-          foundSession = {
-            nama_usaha: waitingData.nama_usaha,
-            no_wa: waitingData.whatsapp,
-            kategori: waitingData.kategori_usaha || 'Kuliner & F&B',
-            status: 'New Lead',
-          };
-        }
+      // ── Cek 3: waiting_list (format lama) ────────────────────────────
+      if (!enrichedData) {
+        try {
+          const { data: waitingData } = await supabase
+            .from('waiting_list')
+            .select('nama_usaha, whatsapp, kategori_usaha')
+            .or(`whatsapp.eq.${rawWA},whatsapp.eq.${normalizedInput}`)
+            .maybeSingle();
+          if (waitingData) {
+            enrichedData = {
+              nama_usaha: waitingData.nama_usaha,
+              no_wa: waitingData.whatsapp,
+              kategori: waitingData.kategori_usaha || 'Kuliner & F&B',
+            };
+          }
+        } catch (_) {}
       }
 
-      // ── Jika tidak ditemukan di mana pun ─────────────────────────────
-      if (!foundSession) {
-        throw new Error(
-          'Nomor WhatsApp ini belum terdaftar. Silakan isi formulir pendaftaran di halaman utama terlebih dahulu.'
-        );
-      }
+      // ── Buat sesi guest dengan nomor WA (data enriched jika ditemukan) ─
+      const sessionData = enrichedData || {
+        nama_pemilik: '',
+        nama_usaha: '',
+        no_wa: rawWA,
+        kategori: 'Kuliner & F&B',
+      };
 
-      // ── Simpan sesi ke localStorage ──────────────────────────────────
-      localStorage.setItem('wa_member_session', JSON.stringify(foundSession));
-      // Update ubos_lead juga agar member page bisa membacanya
+      localStorage.setItem('wa_member_session', JSON.stringify(sessionData));
+      // Sinkronisasi ke ubos_lead agar member page bisa membacanya
       localStorage.setItem('ubos_lead', JSON.stringify({
-        owner_name: foundSession.nama_pemilik || '',
-        nama_usaha: foundSession.nama_usaha || '',
-        whatsapp: foundSession.no_wa || rawWA,
-        kategori_usaha: foundSession.kategori || 'Kuliner & F&B',
+        owner_name: sessionData.nama_pemilik || '',
+        nama_usaha: sessionData.nama_usaha || '',
+        whatsapp: sessionData.no_wa || rawWA,
+        kategori_usaha: sessionData.kategori || 'Kuliner & F&B',
       }));
 
       setSuccess(true);
