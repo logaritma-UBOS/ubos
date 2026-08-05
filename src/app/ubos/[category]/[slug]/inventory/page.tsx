@@ -115,7 +115,7 @@ export default function InventoryPage() {
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Stok & HPP</h1>
           <p className="text-white/80 text-xs mt-0.5">Master Produk & Resep</p>
         </div>
-        <Link href="/inventory/new" className="bg-white text-primary hover:bg-slate-50 px-3 py-2 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1.5 font-bold text-sm">
+        <Link href={`/ubos/${params.category as string}/${params.slug as string}/inventory/new`} className="bg-white text-primary hover:bg-slate-50 px-3 py-2 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1.5 font-bold text-sm">
           <Plus size={16} strokeWidth={3} />
           <span className="hidden sm:inline">Tambah</span>
         </Link>
@@ -249,7 +249,7 @@ export default function InventoryPage() {
                   </div>
                   
                   <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
+                    <Link href={`/ubos/${params.category as string}/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
                     <button onClick={() => handleDeleteClick(product.id, product.nama_produk)} className="flex-1 font-bold text-[11px] text-slate-500 hover:text-danger transition-colors py-2 bg-slate-50 hover:bg-danger/10 rounded-lg flex items-center justify-center gap-1.5"><Trash2 size={14} /> Hapus</button>
                   </div>
                 </div>
