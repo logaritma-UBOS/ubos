@@ -40,14 +40,14 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
+              className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors relative ${
                 isActive ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
-              <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-primary text-white shadow-md shadow-primary/30 scale-110' : ''}`}>
+              <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-primary text-white shadow-md shadow-primary/30 scale-110 -translate-y-2' : ''}`}>
                 <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-bold ${isActive ? 'opacity-100' : 'opacity-0 translate-y-1'} transition-all duration-300 absolute bottom-1.5`}>
+              <span className={`text-[10px] font-bold ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} transition-all duration-300 absolute bottom-1.5`}>
                 {item.name}
               </span>
             </Link>
