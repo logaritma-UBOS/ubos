@@ -320,21 +320,39 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Sistem Operasi Bisnis Kuliner berbasis Metoda Tarik Mundur</h4>
-                      <p className="text-slate-500 text-sm font-medium mb-3">Kunci target profit bulanan, amankan margin komisi delivery, dan kontrol kas belanja harian otomatis langsung dari HP Anda.</p>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Aplikasi Kasir F&B Anti-Bocor & Pengunci Profit</h4>
+                      <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                        UBOS F&B dibikin khusus buat bantuin kamu ngunci target untung bulanan tanpa ribet. Gak cuma buat kasir biasa, tapi otomatis pisahin uang modal belanja besok sama untung bersih kamu hari ini, jadi uang usaha gak kecampur uang pribadi!
+                      </p>
                       
-                      <div className="space-y-2 mb-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <div className="flex items-start gap-2">
-                          <span className="text-sm">🎯</span>
-                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Target Profit Harian</strong> <span className="text-slate-500">(Action Plan Otomatis)</span></p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="text-sm">🛡️</span>
-                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Margin Guard Delivery</strong> <span className="text-slate-500">(Formula Komisi Platform)</span></p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="text-sm">🛒</span>
-                          <p className="text-xs text-slate-700 leading-tight"><strong className="text-slate-900">Kontrol Kas Belanja Pagi</strong> <span className="text-slate-500">(Cegah Bocor Halus)</span></p>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Cara Gampang Mulainya:</p>
+                        
+                        <div className="space-y-3">
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">1</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Tentukan Target</strong> Set target untung bersih bulanan, UBOS bakal hitungin target harianmu otomatis.</p>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">2</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Tambah Produk</strong> Masukkan menu andalanmu beserta HPP (harga modal) supaya sistem bisa hitung profit.</p>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">3</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Atur Profil</strong> Lengkapi nama toko & jam buka supaya Asisten AI bisa kasih saran penjualan presisi.</p>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">4</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Gunakan POS Kasir</strong> Catat pesanan Dine-in/Online. Potongan komisi Ojol otomatis terhitung!</p>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">5</div>
+                            <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Cek Finance di Akhir</strong> Tiap tutup warung, uang kasir otomatis terbagi rapi buat modal belanja besok & untung bersihmu.</p>
+                          </div>
                         </div>
                       </div>
                     </div>
