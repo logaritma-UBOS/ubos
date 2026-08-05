@@ -20,9 +20,9 @@ export async function POST(req: Request) {
       email: email || 'member@logaritma.id',
       amount: 49000,
       mobile: phone || '080000000000',
-      description: `Perpanjangan Lisensi Premium UBOS (1 Bulan) - ${name || 'Toko'}`,
+      description: `Perpanjangan Lisensi Premium UBOS (1 Bulan) - ${name || 'Toko'} (${Date.now()})`,
       redirectUrl: 'https://logaritma.id/app?payment=success',
-      custom_field: identifier
+      custom_field: String(identifier)
     };
 
     const response = await fetch(`${MAYAR_API_URL}/payment/create`, {

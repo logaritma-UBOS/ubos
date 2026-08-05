@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       email: email,
       amount: amount,
       mobile: phone || '080000000000',
-      description: `Pendanaan Modal Logaritma UBOS: ${itemsDescription}`,
+      description: `Pendanaan Modal Logaritma UBOS: ${itemsDescription} (${Date.now()})`,
       redirectUrl: 'https://logaritma.id/investor?payment=success',
       // custom_field dikirim ke webhook untuk identifikasi item
       custom_field: JSON.stringify({
