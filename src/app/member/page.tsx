@@ -55,11 +55,21 @@ export default function MemberDashboard() {
   const [customBudget, setCustomBudget] = useState('');
   const [customNotes, setCustomNotes] = useState('');
 
-  const buildWhatsAppLink = (message: string) =>
+  const safeOpenUrl = (url?: string) => {
+    if (!url || typeof window === 'undefined') return;
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Failed to open URL', error);
+    }
+  };
+
+  const buildWhatsAppLink = (message: string = '') =>
     `https://wa.me/6285179660408?text=${encodeURIComponent(message)}`;
 
   const handleWhatsAppOpen = (message: string) => {
-    window.open(buildWhatsAppLink(message), '_blank', 'noopener,noreferrer');
+    if (!message) return;
+    safeOpenUrl(buildWhatsAppLink(message));
   };
 
   useEffect(() => {
@@ -186,9 +196,9 @@ export default function MemberDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           merchantId: merchant?.id || merchant?.no_wa || merchant?.whatsapp || null,
-          name: merchant?.nama_usaha || merchant?.owner_name || merchant?.nama_pemilik,
-          phone: merchant?.whatsapp || merchant?.no_wa,
-          email: merchant?.email
+          name: merchant?.nama_usaha || merchant?.owner_name || merchant?.nama_pemilik || 'Member',
+          phone: merchant?.whatsapp || merchant?.no_wa || '',
+          email: merchant?.email || ''
         })
       });
 
@@ -196,7 +206,7 @@ export default function MemberDashboard() {
       if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan saat memproses pembayaran');
 
       if (data.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer');
+        safeOpenUrl(data.url);
       } else {
         throw new Error('Gagal mendapatkan link pembayaran');
       }
@@ -237,7 +247,7 @@ export default function MemberDashboard() {
   };
 
   const handleUpsellRequest = async (product: string) => {
-    if (!merchant) return;
+    if (!merchant?.id) return;
     setRequestingUpsell(product);
     try {
       const currentHistory = Array.isArray(merchant.upsell_history) ? merchant.upsell_history : [];
@@ -421,7 +431,7 @@ export default function MemberDashboard() {
                               return;
                             }
                             
-                            const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                            const slug = ((merchant?.nama_usaha || merchant?.owner_name || 'merchant').toLowerCase() || 'merchant').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
                             router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
                           }}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md"
@@ -1123,7 +1133,7 @@ export default function MemberDashboard() {
               <p className="text-sm text-slate-500 font-medium">Masih belum menemukan jawaban?</p>
               <button 
                 onClick={() => {
-                  window.open('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20teknis%20dan%20ingin%20bertanya...', '_blank');
+                  safeOpenUrl('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20teknis%20dan%20ingin%20bertanya...');
                   setIsFAQModalOpen(false);
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-lg shadow-purple-600/20 flex items-center gap-2"
@@ -1181,7 +1191,7 @@ export default function MemberDashboard() {
               {/* Action Button */}
               <button 
                 onClick={() => {
-                  window.open('https://chat.whatsapp.com/Jko4cZMWXca3aLhlR94shj', '_blank');
+                  safeOpenUrl('https://chat.whatsapp.com/Jko4cZMWXca3aLhlR94shj');
                   setIsCommunityModalOpen(false);
                 }}
                 className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
