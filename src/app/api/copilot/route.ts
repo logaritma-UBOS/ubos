@@ -43,6 +43,12 @@ Data Konteks Halaman: ${JSON.stringify(contextData?.insights || [])}`;
     return NextResponse.json({ text: response.text });
   } catch (error: any) {
     console.error('Gemini API Error Detail:', error?.message || error);
-    return NextResponse.json({ error: error?.message || 'Gagal terhubung ke Gemini API' }, { status: 500 });
+    const msg = error?.message || '';
+    const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
+    return NextResponse.json({
+      error: isQuotaError
+        ? '__MAINTENANCE__'
+        : 'Maaf, AI sedang tidak bisa menjawab saat ini. Coba lagi nanti.'
+    }, { status: 500 });
   }
 }

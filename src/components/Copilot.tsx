@@ -25,7 +25,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
   const [merchantProfile, setMerchantProfile] = useState<any>(null);
   
   const [chatMessage, setChatMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', text: string }[]>([]);
+  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', text: React.ReactNode }[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -253,7 +253,23 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
         throw new Error(data.error || 'Failed to get response');
       }
     } catch (err: any) {
-      toast.error(err.message || 'Gagal menghubungi AI Copilot');
+      if (err.message === '__MAINTENANCE__') {
+        setChatHistory(prev => [...prev, { 
+          role: 'model', 
+          text: (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-600">
+                <span>🔧</span> AI Logaritma Sedang Maintenance
+              </div>
+              <p className="text-slate-600 text-xs leading-relaxed">
+                Sistem AI kami sedang diperbarui atau kuota harian telah tercapai. Silakan coba kembali beberapa saat lagi.
+              </p>
+            </div>
+          )
+        }]);
+      } else {
+        toast.error(err.message || 'Gagal menghubungi AI Copilot');
+      }
     } finally {
       setIsTyping(false);
     }
