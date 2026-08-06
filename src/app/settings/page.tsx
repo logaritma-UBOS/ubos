@@ -147,6 +147,9 @@ export default function SettingsPage() {
     );
   }
 
+  const openTime = operatingHours?.split('-')[0]?.trim() || '08:00';
+  const closeTime = operatingHours?.split('-')[1]?.trim() || '22:00';
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-slate-50 relative z-50 animate-in slide-in-from-right-full duration-300">
       <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex items-center gap-3">
@@ -255,15 +258,26 @@ export default function SettingsPage() {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1.5">
                 Jam Operasional <span className="text-primary text-[10px] bg-primary/10 px-1.5 py-0.5 rounded">Wajib untuk AI Copilot</span>
               </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Clock size={18} /></span>
-                <input 
-                  type="text" 
-                  value={operatingHours} 
-                  onChange={e => setOperatingHours(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
-                  placeholder="Contoh: 08:00 - 22:00" 
-                />
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Clock size={16} /></span>
+                  <input 
+                    type="time" 
+                    value={openTime} 
+                    onChange={e => setOperatingHours(`${e.target.value} - ${closeTime}`)} 
+                    className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer" 
+                  />
+                </div>
+                <span className="text-slate-400 font-bold">-</span>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Clock size={16} /></span>
+                  <input 
+                    type="time" 
+                    value={closeTime} 
+                    onChange={e => setOperatingHours(`${openTime} - ${e.target.value}`)} 
+                    className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer" 
+                  />
+                </div>
               </div>
             </div>
             
