@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { Component, FormEvent, ReactNode, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,6 +21,33 @@ const faqData = {
     { q: 'Saya lupa password, bagaimana cara resetnya?', a: 'Saat ini reset password bisa dibantu oleh tim CS kami. Silakan klik tombol "Chat CS Admin" di bawah dan informasikan nomor WhatsApp Anda.' }
   ]
 };
+
+class ServicesErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: any) {
+    console.error('Services tab error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
+          Terjadi kesalahan saat memuat layanan. Silakan muat ulang halaman atau hubungi admin.
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function MemberDashboard() {
   const router = useRouter();
@@ -615,7 +642,8 @@ export default function MemberDashboard() {
 
           {/* Tab: Services */}
           {activeTab === 'services' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <ServicesErrorBoundary>
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Ekstra</h2>
                 <p className="text-slate-500 text-sm font-medium">Layanan tambahan Logaritma untuk mengakselerasi bisnis Anda.</p>
@@ -817,6 +845,7 @@ export default function MemberDashboard() {
                 </div>
               </div>
             </div>
+          </ServicesErrorBoundary>
           )}
 
           {/* Tab: Edukasi */}
