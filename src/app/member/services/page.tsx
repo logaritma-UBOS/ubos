@@ -9,7 +9,7 @@ import {
   Printer,
   ShoppingBag,
   Sparkles,
-  Tool,
+  Wrench,
   MessageCircle,
   ShieldCheck,
   Send,
@@ -268,7 +268,7 @@ export default function MemberServicesPage() {
                   <div key={item.name} className="rounded-3xl border border-slate-800 bg-slate-950/90 p-5 transition hover:border-amber-500/40 hover:bg-slate-900">
                     <div className="flex items-center gap-3">
                       <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-500/10 text-amber-300">
-                        <Tool size={20} />
+                        <Wrench size={20} />
                       </div>
                       <div>
                         <p className="font-black text-white">{item.name}</p>
