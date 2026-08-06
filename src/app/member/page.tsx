@@ -643,13 +643,13 @@ export default function MemberDashboard() {
           {/* Tab: Services */}
           {activeTab === 'services' && (
             <ServicesErrorBoundary>
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 pb-24">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Ekstra</h2>
                 <p className="text-slate-500 text-sm font-medium">Layanan tambahan Logaritma untuk mengakselerasi bisnis Anda.</p>
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className="flex flex-col gap-6 md:grid md:grid-cols-1">
                 <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 relative overflow-hidden">
                     <div className="relative z-10">
@@ -692,7 +692,7 @@ export default function MemberDashboard() {
                     <Printer size={18} className="text-orange-500" /> Cetak & Branding
                   </div>
                   <p className="text-sm text-slate-600 mb-5">Pilih layanan cetak stiker, spanduk, atau foto produk F&B, lalu kirim permintaan ke admin.</p>
-                  <div className="grid gap-3 sm:grid-cols-3 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {['Cetak Stiker', 'Cetak Spanduk', 'Foto Produk F&B'].map((service) => (
                       <button
                         key={service}
@@ -751,7 +751,7 @@ export default function MemberDashboard() {
                 </div>
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+              <div className="flex flex-col gap-6 md:grid md:grid-cols-1">
                 <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
                   <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-amber-500 font-bold mb-4">
                     <ShoppingBag size={18} /> Hardware Kasir Shopee
