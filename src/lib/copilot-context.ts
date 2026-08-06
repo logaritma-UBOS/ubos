@@ -1,4 +1,11 @@
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Buat Supabase client langsung — aman untuk Server API Route
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 
 export async function getMerchantRealtimeContext(merchantId: string) {
   try {
@@ -104,7 +111,7 @@ export async function getMerchantRealtimeContext(merchantId: string) {
       stockAlerts
     };
   } catch (error: any) {
-    console.error('Error fetching context:', error);
+    console.error('[copilot-context] Error fetching merchant context:', error?.message || error);
     return null;
   }
 }

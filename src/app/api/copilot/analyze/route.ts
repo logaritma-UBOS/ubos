@@ -15,10 +15,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
     }
 
-    // Fetch realtime context
     const context = await getMerchantRealtimeContext(merchantId);
     if (!context) {
-      return NextResponse.json({ error: 'Failed to retrieve context' }, { status: 500 });
+      return NextResponse.json({ error: 'Gagal ambil data toko. Pastikan akun Anda sudah punya data merchant di database.' }, { status: 500 });
     }
 
     const ai = new GoogleGenAI({ apiKey });
