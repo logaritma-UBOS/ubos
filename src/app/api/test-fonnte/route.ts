@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Test endpoint: GET /api/test-fonnte → cek apakah FONNTE_TOKEN tersedia

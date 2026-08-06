@@ -31,7 +31,32 @@ export default function LandingPage() {
     } catch (_) { /* silent — analytics should never break UX */ }
   };
 
-  useEffect(() => { trackEvent('page_view'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Existing trackEvent (for analytics_events)
+  useEffect(() => {
+    trackEvent('page_view');
+    
+    // Extreme Funneling: Record visitor log for Cold Market Tracker
+    const trackVisitor = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        await fetch('/api/track-visitor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            referrer: document.referrer,
+            utm_source: urlParams.get('utm_source'),
+            utm_medium: urlParams.get('utm_medium'),
+            utm_campaign: urlParams.get('utm_campaign'),
+            path: window.location.pathname,
+            session_id: sessionStorage.getItem('logaritma_session_id') || Math.random().toString(36).substring(2)
+          })
+        });
+      } catch (e) {
+        console.error('Failed to log visitor', e);
+      }
+    };
+    trackVisitor();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // ───────────────────────────────────────────────────────────────────
 
   const [formData, setFormData] = useState({

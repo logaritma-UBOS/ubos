@@ -1,11 +1,6 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-// Uses service role key to bypass RLS — safe because this runs server-side only
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 function normalizePhone(raw: string): { format62: string; format0: string } {
   let phone = raw.replace(/\D/g, '');
@@ -32,6 +27,12 @@ export async function GET(req: NextRequest) {
   if (!phone || phone.replace(/\D/g, '').length < 10) {
     return NextResponse.json({ found: false });
   }
+
+  // Instantiate inside handler so env vars are available at runtime
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const { format62, format0 } = normalizePhone(phone);
 

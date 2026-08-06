@@ -1,15 +1,7 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
-
-// Initialize Supabase Admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Initialize Gemini AI
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 const SYSTEM_PROMPT = `Anda adalah CS Support AI Logaritma.id yang ramah, sopan, empati, dan menggunakan gaya bahasa persuasif. Tugas Anda adalah membantu member bisnis kuliner (UBOS) menyelesaikan kendala teknis kasir, penjelasan fitur Margin Guard, HPP, atau panduan penggunaan sistem secara cepat dan ringkas. Jangan terlalu panjang lebar, langsung to the point namun tetap bersahabat.`;
 
@@ -20,6 +12,13 @@ export async function GET() {
 
 // POST handler — receives incoming WhatsApp messages from Fonnte
 export async function POST(req: NextRequest) {
+  // Instantiate inside handler so env vars are available at runtime only
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
   try {
     // Fonnte webhook can send JSON or Form Data
     const contentType = req.headers.get('content-type') || '';

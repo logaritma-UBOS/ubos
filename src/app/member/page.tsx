@@ -133,6 +133,27 @@ export default function MemberDashboard() {
     return () => { isMounted = false; };
   }, [router]);
 
+  // Extreme Funneling: Track member area visit (Warm Market signal)
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        await fetch('/api/track-visitor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            referrer: document.referrer,
+            utm_source: urlParams.get('utm_source') || 'member_area',
+            utm_medium: urlParams.get('utm_medium'),
+            utm_campaign: urlParams.get('utm_campaign'),
+            path: '/member',
+          })
+        });
+      } catch (_) { /* silent */ }
+    };
+    trackVisitor();
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');

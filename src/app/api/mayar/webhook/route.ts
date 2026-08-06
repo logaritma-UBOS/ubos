@@ -1,11 +1,6 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-// Server-role client untuk bypass RLS (webhook dari server eksternal)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 // Mapping ID item ke nama tabel funding_items
 const ITEM_ID_MAP: Record<string, string> = {
@@ -17,6 +12,11 @@ const ITEM_ID_MAP: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
+  // Instantiate inside handler so env vars are available at runtime only
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   try {
     const body = await req.json();
 
