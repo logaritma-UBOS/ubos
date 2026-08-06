@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -80,13 +80,13 @@ export default function MemberServicesPage() {
     window.open(buildWhatsAppLink(message), '_blank', 'noopener,noreferrer');
   };
 
-  const handleCetakSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCetakSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const message = `Halo Admin Logaritma, saya ingin pesan layanan ${cetakType}.\nNama Usaha: ${cetakName || '-'}\nNomor WA: ${cetakPhone || '-'}\nJumlah/Ukuran: ${cetakQty}\nKeterangan: ${cetakNotes || '-'}\nMohon bantu infokan paket dan estimasi harga.`;
     handleWhatsAppOpen(message);
   };
 
-  const handleCustomSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCustomSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const message = `Halo Admin Logaritma, saya ingin konsultasi Custom Enterprise Operating System untuk bisnis saya.\nNama Perusahaan/Usaha: ${customCompany || '-'}\nNomor WA: ${customPhone || '-'}\nKategori Bisnis: ${customIndustry}\nEstimasi Anggaran: ${customBudget || '-'}\nKebutuhan / Masalah: ${customNotes || '-'}\nTolong bantu jadwalkan konsultasi.`;
     handleWhatsAppOpen(message);
