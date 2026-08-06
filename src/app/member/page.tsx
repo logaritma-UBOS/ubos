@@ -804,6 +804,8 @@ export default function MemberDashboard() {
                       Ajukan Konsultasi via WhatsApp
                     </button>
                   </form>
+                </div>
+              </div>
             </div>
           )}
 
