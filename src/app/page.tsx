@@ -171,7 +171,7 @@ export default function LandingPage() {
           </div>
           
           {/* Main Headline */}
-          <h1 className="text-[28px] sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-snug sm:leading-[1.1] tracking-tight">
+          <h1 className="text-[32px] sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-snug sm:leading-[1.1] tracking-tight">
             Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-rose-600 border-b-[4px] border-rose-500 pb-0.5 inline-block">Ternyata Malah Tekor!</span>
           </h1>
           
