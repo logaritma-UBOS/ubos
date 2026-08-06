@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Activity, Target, ArrowRight, Loader2, Bot } from 'lucide-react';
-import { toast } from 'sonner';
+import { Sparkles, Activity, Target, ArrowRight, Loader2, Bot, WrenchIcon, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
+type WidgetState = 'idle' | 'loading' | 'result' | 'maintenance';
+
 export default function CopilotWidget({ merchantId }: { merchantId: string }) {
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<WidgetState>('idle');
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [maintenanceMsg, setMaintenanceMsg] = useState('');
 
   const requestAnalysis = async () => {
-    setLoading(true);
+    setState('loading');
     setAnalysis(null);
     try {
-      // Ambil access token user yang sedang login
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
@@ -25,15 +26,15 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
         },
         body: JSON.stringify({ merchantId })
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal memuat Copilot');
-      
+
       setAnalysis(data.result);
+      setState('result');
     } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
+      setMaintenanceMsg(err.message || 'Terjadi gangguan teknis pada AI.');
+      setState('maintenance');
     }
   };
 
@@ -48,7 +49,7 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
       <div className="absolute top-0 right-0 p-8 opacity-10">
         <Bot size={120} />
       </div>
-      
+
       <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
         <div className="space-y-2 max-w-xl">
           <div className="flex items-center gap-2">
@@ -59,20 +60,62 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
             Asisten AI pribadi yang menganalisa performa penjualan hari ini, mengecek HPP, dan memberikan langkah strategis instan untuk mengamankan profit harian Anda.
           </p>
         </div>
-        
-        {!analysis && (
-          <button 
+
+        {(state === 'idle' || state === 'result') && (
+          <button
             onClick={requestAnalysis}
-            disabled={loading}
-            className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
+            className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
           >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : <Target size={20} />}
-            Minta Solusi Copilot Hari Ini
+            <Target size={20} />
+            {state === 'result' ? 'Perbarui Analisa' : 'Minta Solusi Copilot Hari Ini'}
           </button>
+        )}
+
+        {state === 'loading' && (
+          <div className="shrink-0 flex items-center gap-3 text-emerald-400 font-bold text-sm">
+            <Loader2 size={20} className="animate-spin" />
+            AI sedang menganalisa toko Anda...
+          </div>
         )}
       </div>
 
-      {analysis && (
+      {/* ── MAINTENANCE STATE ── */}
+      {state === 'maintenance' && (
+        <div className="mt-8 bg-amber-500/10 border border-amber-400/30 rounded-2xl p-6 animate-in slide-in-from-bottom-4 duration-500 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 flex items-center justify-center shrink-0 animate-pulse">
+              <WrenchIcon size={28} className="text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-black text-lg leading-tight">
+                🔧 AI Logaritma Sedang Maintenance
+              </h3>
+              <p className="text-amber-200/80 text-sm mt-1 leading-relaxed">
+                Sistem AI kami sedang diperbarui untuk memberikan analisa yang lebih akurat. Silakan coba kembali beberapa saat lagi.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 bg-slate-900/50 rounded-xl px-4 py-3">
+            <Clock size={14} className="text-slate-400 shrink-0" />
+            <p className="text-slate-400 text-xs leading-relaxed">
+              Estimasi selesai: <span className="text-slate-300 font-bold">beberapa menit lagi</span>. Tim teknisi Logaritma sudah mengetahui dan sedang memperbaiki.
+            </p>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={requestAnalysis}
+              className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
+            >
+              <Loader2 size={13} /> Coba Lagi Sekarang
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── RESULT STATE ── */}
+      {state === 'result' && analysis && (
         <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 animate-in slide-in-from-bottom-4 duration-500 relative z-10">
           <div className="space-y-4 text-white text-sm">
             {analysis.split('\n').map((line, i) => {
@@ -117,16 +160,6 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
               }
               return line.trim() ? <p key={i} className="text-slate-300">{line}</p> : null;
             })}
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button 
-              onClick={requestAnalysis}
-              disabled={loading}
-              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
-            >
-              {loading ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />} 
-              Perbarui Analisa
-            </button>
           </div>
         </div>
       )}
