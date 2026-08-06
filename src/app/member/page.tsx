@@ -2,7 +2,7 @@
 
 import { Component, FormEvent, ReactNode, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp, LayoutGrid } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp, LayoutGrid, Rocket, TrendingUp, ShieldCheck, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -362,7 +362,7 @@ export default function MemberDashboard() {
           {/* Left: greeting + status badge */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg shrink-0 shadow-inner">
-              {trialDaysLeft > 0 ? '????' : '????'}
+              {trialDaysLeft > 0 ? '🔥' : '⚠️'}
             </div>
             <div className="min-w-0">
               <p className="font-black text-sm md:text-base leading-tight truncate max-w-[140px] md:max-w-[180px]">
@@ -377,7 +377,7 @@ export default function MemberDashboard() {
                 }`}
               >
                 {trialDaysLeft > 0 ? (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif ??? Sisa {trialDaysLeft} Hari</>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif • Sisa {trialDaysLeft} Hari</>
                 ) : (
                   <><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> Lisensi Expired</>
                 )}
@@ -390,7 +390,7 @@ export default function MemberDashboard() {
             onClick={() => setShowPaywallModal(true)}
             className="shrink-0 text-xs md:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-2 rounded-xl transition-transform active:scale-95 shadow-md flex items-center gap-1 whitespace-nowrap"
           >
-            ??? Upgrade Rp 49.000
+            ⚡ Upgrade Rp 49.000
           </button>
         </div>
 
@@ -418,9 +418,9 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Aplikasi Kasir F&B Anti-Bocor & Pengunci Profit</h4>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Toolset Eksekusi Logaritma Anti-Bocor & Pengunci Profit</h4>
                       <p className="text-slate-600 text-sm mb-0 leading-relaxed">
-                        UBOS F&B dibikin khusus buat bantuin kamu ngunci target untung bulanan tanpa ribet. Gak cuma buat kasir biasa, tapi otomatis pisahin uang modal belanja besok sama untung bersih kamu hari ini, jadi uang usaha gak kecampur uang pribadi!
+                        UBOS BUKAN SEKADAR Aplikasi Kasir/POS biasa! Ini adalah Toolset Eksekusi Utama dari Metode Logaritma yang dibikin khusus buat bantuin kamu ngunci target untung bulanan. Secara otomatis sistem akan memisahkan uang modal belanja besok dan profit bersih hari ini, jadi uang usaha gak pernah kecampur uang pribadi!
                       </p>
                     </div>
 
@@ -482,7 +482,7 @@ export default function MemberDashboard() {
                     )}
                     
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Cara Gampang Mulainya:</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Cara Eksekusi Metode Logaritma dengan UBOS:</p>
                       
                       <div className="space-y-3">
                         <div className="flex gap-3">
@@ -529,7 +529,7 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Tools Kontrol Antrean & HPP Kertas</h4>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Toolset Logaritma: Kontrol Antrean & HPP Kertas</h4>
                       <p className="text-slate-500 text-sm font-medium">Kalkulator HPP bahan, estimasi harga cepat, dan manajemen antrean antinumpuk.</p>
                     </div>
                     <button onClick={() => openWaitingList('Jasa Percetakan')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Daftar Trial Percetakan <ArrowRight size={16} /></button>
@@ -546,7 +546,7 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Manajemen Stok Anti Dead-Stock</h4>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Toolset Logaritma: Stok & Kontrol Margin Ritel</h4>
                       <p className="text-slate-500 text-sm font-medium">Sistem inventaris anti-stok mati, cetak barcode, dan batas belanja harian.</p>
                     </div>
                     <button onClick={() => openWaitingList('Toko & Ritel')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
@@ -563,7 +563,7 @@ export default function MemberDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Tracking Slot & Nota Otomatis</h4>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Toolset Logaritma: Tracking & Profitabilitas Jasa</h4>
                       <p className="text-slate-500 text-sm font-medium">Pelacak status cucian, sistem nota WhatsApp otomatis, dan hitung komisi staf.</p>
                     </div>
                     <button onClick={() => openWaitingList('Laundry & Jasa')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
@@ -1167,7 +1167,7 @@ export default function MemberDashboard() {
                   <HelpCircle size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900">Pusat Solusi Cepat & FAQ UBOS ????</h3>
+                  <h3 className="text-xl font-black text-slate-900">Pusat Solusi Cepat & FAQ UBOS 💡</h3>
                   <p className="text-sm text-slate-500 font-medium">Jawaban praktis seputar operasional kasir, Margin Guard, hingga pengelolaan akun.</p>
                 </div>
               </div>
@@ -1272,7 +1272,7 @@ export default function MemberDashboard() {
                 <Users size={32} />
               </div>
               
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang di Circle Profit Owner F&B! ????</h3>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang di Circle Profit Owner F&B! 🤝</h3>
               
               {/* Body Copywriting */}
               <p className="text-slate-600 font-medium text-sm leading-relaxed mb-6">
