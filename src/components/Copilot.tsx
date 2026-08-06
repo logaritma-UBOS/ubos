@@ -125,13 +125,57 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
       }
       else {
         // POS / Dashboard Insight (Run-rate)
-        // Just mock a run rate analysis for demo
-        newInsights.push({
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { data: todayTrx } = await supabase.from('transactions')
+          .select('created_at, total_net')
+          .eq('merchant_id', merchantId)
+          .gte('created_at', `${todayStr}T00:00:00Z`);
+
+        if (todayTrx && todayTrx.length > 0) {
+          const totalOmzet = todayTrx.reduce((sum, t) => sum + (t.total_net || 0), 0);
+          const orderCount = todayTrx.length;
+          
+          // Cari jam paling ramai hari ini
+          const hourCounts = todayTrx.reduce((acc: any, t) => {
+            const hour = new Date(t.created_at).getHours();
+            acc[hour] = (acc[hour] || 0) + 1;
+            return acc;
+          }, {});
+          
+          let peakHour = -1;
+          let maxOrders = 0;
+          Object.keys(hourCounts).forEach(h => {
+            if (hourCounts[h] > maxOrders) {
+              maxOrders = hourCounts[h];
+              peakHour = parseInt(h);
+            }
+          });
+
+          let desc = `Hari ini Anda sudah mendapat ${orderCount} pesanan dengan total omzet ${formatIDR(totalOmzet)}.`;
+          if (peakHour !== -1) {
+            const nextHour = (peakHour + 1) % 24;
+            const hourStr = `${peakHour.toString().padStart(2, '0')}:00 - ${nextHour.toString().padStart(2, '0')}:00`;
+            if (orderCount > 2) {
+                desc += ` Penjualan berjalan aktif! Analisis AI Logaritma memprediksi jam sibuk selanjutnya di sekitar pukul ${hourStr}.`;
+            } else {
+                desc += ` Anda bisa mencoba share promo ke WA pelanggan untuk mendongkrak pesanan.`;
+            }
+          }
+
+          newInsights.push({
             id: 'pos-runrate',
             type: 'success',
             title: 'Insight Penjualan Harian',
-            description: 'Penjualan hari ini berjalan 15% lebih cepat dari rata-rata hari biasa. Prediksi AI Logaritma: jam sibuk berikutnya akan terjadi pada pukul 19:00 - 21:00.',
-        });
+            description: desc,
+          });
+        } else {
+           newInsights.push({
+            id: 'pos-runrate',
+            type: 'info',
+            title: 'Insight Penjualan Harian',
+            description: 'Belum ada penjualan terekam untuk hari ini. Jangan lupa buka kasir dan bagikan promo toko untuk memancing pelanggan pertama Anda!',
+          });
+        }
         
         // Cek stok cepat
         const { data: products } = await supabase.from('products').select('*').eq('merchant_id', merchantId).eq('is_available', true).limit(3);
