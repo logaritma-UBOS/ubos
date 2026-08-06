@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -166,8 +166,8 @@ export default function LandingPage() {
           className="flex flex-col items-center space-y-4 sm:space-y-6"
         >
           {/* Pre-headline */}
-          <div className="inline-flex items-center justify-center w-fit max-w-[95%] mx-auto gap-1.5 bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black tracking-widest border border-rose-200 uppercase shadow-sm leading-tight">
-            🔴 Peringatan untuk Owner F&B, Ritel, & Percetakan
+          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-rose-100 text-rose-700 px-4 py-1.5 rounded-[1.25rem] sm:rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-rose-200 uppercase shadow-sm leading-tight">
+            <span>🔴 Peringatan untuk Owner F&B,<br className="block sm:hidden" /> Ritel, & Percetakan</span>
           </div>
           
           {/* Main Headline */}
@@ -553,3 +553,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
