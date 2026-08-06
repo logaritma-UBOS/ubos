@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const pageContent = `'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -78,7 +80,7 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      let cleanWA = formData.whatsapp.replace(/\D/g, '');
+      let cleanWA = formData.whatsapp.replace(/\\D/g, '');
       if (cleanWA.length < 10) {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
@@ -118,7 +120,7 @@ export default function LandingPage() {
       toast.success("Berhasil! Mengalihkan ke Member Area...");
       setShowModal(false);
       const categoryParam = encodeURIComponent(formData.category.toLowerCase().split(' ')[0] || 'kuliner');
-      router.push(`/member?category=${categoryParam}`);
+      router.push(\`/member?category=\${categoryParam}\`);
       
     } catch (err) {
       toast.error(err.message || 'Terjadi kesalahan.');
@@ -442,7 +444,7 @@ export default function LandingPage() {
                     <div className="mt-0.5 text-blue-500 group-hover:text-rose-600 transition-colors"><HelpCircle size={18} className="sm:w-5 sm:h-5" /></div>
                     <h3 className="text-sm sm:text-lg font-bold text-slate-800">{faq.q}</h3>
                   </div>
-                  <ChevronRight className={`mt-1 shrink-0 transition-transform duration-300 ${openFaq === idx ? 'rotate-90 text-rose-600' : 'text-slate-400'}`} size={18} />
+                  <ChevronRight className={\`mt-1 shrink-0 transition-transform duration-300 \${openFaq === idx ? 'rotate-90 text-rose-600' : 'text-slate-400'}\`} size={18} />
                 </button>
                 <AnimatePresence>
                   {openFaq === idx && (
@@ -553,3 +555,7 @@ export default function LandingPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/app/page.tsx', pageContent, 'utf8');
+console.log("Landing page updated with mobile layout optimizations and scroll animations.");
