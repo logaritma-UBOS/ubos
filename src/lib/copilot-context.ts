@@ -1,13 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Buat Supabase client langsung — aman untuk Server API Route
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export async function getMerchantRealtimeContext(merchantId: string, accessToken?: string | null) {
+  // Buat client dengan auth token user agar lolos RLS
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    accessToken ? {
+      global: {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
+    } : undefined
+  );
 
-
-export async function getMerchantRealtimeContext(merchantId: string) {
   try {
     // 1. Fetch Merchant Profile & Target Profit
     const { data: merchant, error: merchantError } = await supabase

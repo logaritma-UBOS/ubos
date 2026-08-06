@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sparkles, Activity, Target, ArrowRight, Loader2, Bot } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase/client';
 
 export default function CopilotWidget({ merchantId }: { merchantId: string }) {
   const [loading, setLoading] = useState(false);
@@ -12,9 +13,16 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
     setLoading(true);
     setAnalysis(null);
     try {
+      // Ambil access token user yang sedang login
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
       const res = await fetch('/api/copilot/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ merchantId })
       });
       

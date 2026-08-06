@@ -4,6 +4,9 @@ import { getMerchantRealtimeContext } from '@/lib/copilot-context';
 
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get('Authorization');
+    const accessToken = authHeader?.replace('Bearer ', '') || null;
+
     const { merchantId } = await req.json();
 
     if (!merchantId) {
@@ -15,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
     }
 
-    const context = await getMerchantRealtimeContext(merchantId);
+    const context = await getMerchantRealtimeContext(merchantId, accessToken);
     if (!context) {
       return NextResponse.json({ error: 'Gagal ambil data toko. Pastikan akun Anda sudah punya data merchant di database.' }, { status: 500 });
     }
