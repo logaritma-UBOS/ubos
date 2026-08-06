@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Copilot from '@/components/Copilot';
+import CopilotWidget from '@/components/CopilotWidget';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -285,7 +286,12 @@ export default function UBOSDashboard() {
           </div>
         </div>
 
-        {/* 3. AI Logaritma Copilot (Inline Widget) */}
+        {/* 3. AI Logaritma Copilot Widget */}
+        <div className="mb-6">
+          {merchant?.id && <CopilotWidget merchantId={merchant.id} />}
+        </div>
+
+        {/* 3b. AI Logaritma Copilot (Inline Widget) */}
         <div>
           <h2 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
             <Sparkles className="text-indigo-600" size={20} /> Asisten AI Logaritma
