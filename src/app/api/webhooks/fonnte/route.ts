@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Generate jawaban via Gemini
     const aiResponse = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: aiPrompt,
       config: {
         systemInstruction: SYSTEM_PROMPT,

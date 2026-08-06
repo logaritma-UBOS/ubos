@@ -50,7 +50,7 @@ Output Anda HARUS persis mengikuti format ini:
 2. (Langkah aksi spesifik kedua, misal: Buat promo bundling menu Z)`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: 'Berikan analisa Copilot untuk hari ini.',
       config: {
         systemInstruction: systemInstruction,
