@@ -1,163 +1,10 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useEffect, useState } from 'react';
+import { Component, FormEvent, ReactNode, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-
-interface ProductItem {
-  id: string;
-  title: string;
-  category: string;
-  price: number;
-  discountPrice?: number;
-  badge: string;
-  thumbnail: string;
-  description: string;
-  features: string[];
-  ctaType: 'whatsapp' | 'checkout' | 'link' | 'modul_fb';
-  ctaUrl: string;
-}
-
-const modulItems: ProductItem[] = [
-  {
-    id: 'm1',
-    title: 'UBOS F&B',
-    category: 'Aplikasi Kasir',
-    price: 99000,
-    discountPrice: 49000,
-    badge: 'READY',
-    thumbnail: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=600&auto=format&fit=crop',
-    description: 'Aplikasi Kasir F&B Anti-Bocor & Pengunci Profit. Khusus dibuat untuk memisahkan uang modal belanja besok dan profit bersih hari ini.',
-    features: ['Set Target Profit Otomatis', 'Catat Dine-in/Online', 'Hitung Komisi Ojol Otomatis', 'Manajemen Stok Anti Dead-Stock', 'Asisten AI Logaritma'],
-    ctaType: 'modul_fb',
-    ctaUrl: '/ubos'
-  },
-  {
-    id: 'm2',
-    title: 'UBOS Percetakan & Fotokopi',
-    category: 'Kontrol Antrean',
-    price: 150000,
-    discountPrice: 75000,
-    badge: 'VVIP TRIAL',
-    thumbnail: 'https://images.unsplash.com/photo-1629429408209-1f912961dbd8?q=80&w=600&auto=format&fit=crop',
-    description: 'Tools Kontrol Antrean & HPP Kertas. Kalkulator HPP bahan, estimasi harga cepat, dan manajemen antrean antinumpuk.',
-    features: ['Kalkulator HPP Kertas', 'Estimasi Harga Otomatis', 'Manajemen Slot Antrean', 'Tracking Status Pesanan'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20ingin%20akses%20VVIP%20Trial%20UBOS%20Percetakan'
-  },
-  {
-    id: 'm3',
-    title: 'UBOS Toko & Ritel',
-    category: 'Manajemen Stok',
-    price: 120000,
-    discountPrice: 60000,
-    badge: 'WAITING LIST',
-    thumbnail: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=600&auto=format&fit=crop',
-    description: 'Manajemen Stok Anti Dead-Stock. Sistem inventaris anti-stok mati, cetak barcode, dan batas belanja harian.',
-    features: ['Cetak Barcode Otomatis', 'Tracking Stok Real-time', 'Alert Stok Menipis', 'Laporan Laba/Rugi Harian'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20masukkan%20saya%20ke%20Waiting%20List%20UBOS%20Ritel'
-  },
-  {
-    id: 'm4',
-    title: 'UBOS Laundry & Jasa',
-    category: 'Tracking & Nota',
-    price: 110000,
-    discountPrice: 55000,
-    badge: 'WAITING LIST',
-    thumbnail: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?q=80&w=600&auto=format&fit=crop',
-    description: 'Tracking Slot & Nota Otomatis. Pelacak status cucian, sistem nota WhatsApp otomatis, dan hitung komisi staf.',
-    features: ['Nota WhatsApp Otomatis', 'Tracking Status Cucian', 'Hitung Komisi Karyawan', 'Manajemen Slot Mesin'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20masukkan%20saya%20ke%20Waiting%20List%20UBOS%20Laundry'
-  }
-];
-
-const affiliateItems: ProductItem[] = [
-  {
-    id: 'a1',
-    title: 'Program Pasif Komisi Logaritma',
-    category: 'Affiliate',
-    price: 0,
-    badge: 'HOT',
-    thumbnail: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?q=80&w=600&auto=format&fit=crop',
-    description: 'Rekomendasikan UBOS ke sesama pemilik usaha. Dapatkan komisi 20% setiap kali teman Anda mengaktifkan modul.',
-    features: ['Komisi 20% Per Referral', 'Dashboard Tracking Komisi Real-time', 'Materi Promosi Gratis Lengkap', 'Pencairan Dana Instan'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20join%20Program%20Affiliate'
-  }
-];
-
-const servicesItems: ProductItem[] = [
-  {
-    id: 's1',
-    title: 'Cetak Stiker & Spanduk Custom',
-    category: 'Brand Support',
-    price: 150000,
-    badge: 'POPULAR',
-    thumbnail: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=600&auto=format&fit=crop',
-    description: 'Tingkatkan brand awareness usahamu. Melayani cetak stiker glossy, banner toko, spanduk, hingga packaging custom.',
-    features: ['Desain Gratis (S&K Berlaku)', 'Bahan Berkualitas Tinggi', 'Pengerjaan Cepat (2-3 Hari)', 'Bisa Custom Ukuran'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20mau%20pesan%20Cetak%20Stiker/Spanduk'
-  },
-  {
-    id: 's2',
-    title: 'Jasa Foto Produk / Menu Pro',
-    category: 'Creative Service',
-    price: 350000,
-    badge: 'PREMIUM',
-    thumbnail: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop',
-    description: 'Foto menu dan produk yang bikin pelanggan ngiler. Dikerjakan oleh tim fotografer profesional F&B dan ritel.',
-    features: ['Pencahayaan Studio Professional', 'Properti Foto Disediakan', '5 Foto High-Res Hasil Edit', 'Lisensi Komersial Penuh'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20tertarik%20dengan%20Jasa%20Foto%20Produk'
-  },
-  {
-    id: 's3',
-    title: 'Konsultasi Setup POS On-Site',
-    category: 'Tech Support',
-    price: 250000,
-    badge: 'EXPERT',
-    thumbnail: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=600&auto=format&fit=crop',
-    description: 'Tim kami datang ke lokasimu untuk bantu setup sistem kasir, input menu, alat kasir, dan training karyawan secara langsung.',
-    features: ['Kunjungan Langsung (Jabodetabek)', 'Training Karyawan Hingga Bisa', 'Setup Printer & Hardware Kasir', 'Input Menu & HPP Massal'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20mau%20request%20Konsultasi%20Setup%20POS%20On-Site'
-  }
-];
-
-const edukasiItems: ProductItem[] = [
-  {
-    id: 'e1',
-    title: 'E-Book: Mengunci Profit UMKM',
-    category: 'E-Book / PDF',
-    price: 99000,
-    discountPrice: 49000,
-    badge: 'BEST SELLER',
-    thumbnail: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=600&auto=format&fit=crop',
-    description: 'Bongkar rahasia mengunci target profit bersih bulanan tanpa ribet memikirkan potongan platform dan kebocoran stok.',
-    features: ['Teknik Menentukan HPP', 'Strategi Anti Dead-Stock', 'Cara Pisahkan Uang Pribadi & Bisnis', 'Bonus Template Excel Keuangan'],
-    ctaType: 'whatsapp',
-    ctaUrl: 'https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20mau%20pesan%20E-Book%20Mengunci%20Profit'
-  },
-  {
-    id: 'e2',
-    title: 'Panduan Masterclass POS Kasir',
-    category: 'Video Tutorial',
-    price: 0,
-    badge: 'FREE',
-    thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop',
-    description: 'Kumpulan video tutorial lengkap cara mahir menggunakan fitur-fitur UBOS Logaritma dalam 30 menit.',
-    features: ['Akses Seumur Hidup', 'Materi Lengkap dari Basic ke Pro', 'Tips Trik AI Logaritma'],
-    ctaType: 'link',
-    ctaUrl: '#'
-  }
-];
 
 const faqData = {
   kasir: [
@@ -175,6 +22,33 @@ const faqData = {
   ]
 };
 
+class ServicesErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: any) {
+    console.error('Services tab error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
+          Terjadi kesalahan saat memuat layanan. Silakan muat ulang halaman atau hubungi admin.
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function MemberDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -188,25 +62,55 @@ export default function MemberDashboard() {
   const [waitingForm, setWaitingForm] = useState({ nama: '', whatsapp: '' });
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+  const [requestingUpsell, setRequestingUpsell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'modul' | 'affiliate' | 'services' | 'edukasi' | 'bantuan'>('modul');
+  const [showFeatureComingSoonModal, setShowFeatureComingSoonModal] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isFAQModalOpen, setIsFAQModalOpen] = useState(false);
   const [faqSearchTerm, setFaqSearchTerm] = useState('');
   const [faqActiveTab, setFaqActiveTab] = useState<'kasir' | 'margin' | 'akun'>('kasir');
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
-  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [cetakType, setCetakType] = useState('Cetak Stiker');
+  const [cetakQty, setCetakQty] = useState('100');
+  const [cetakName, setCetakName] = useState('');
+  const [cetakPhone, setCetakPhone] = useState('');
+  const [cetakNotes, setCetakNotes] = useState('');
+  const [customCompany, setCustomCompany] = useState('');
+  const [customPhone, setCustomPhone] = useState('');
+  const [customIndustry, setCustomIndustry] = useState('Kuliner & F&B');
+  const [customBudget, setCustomBudget] = useState('');
+  const [customNotes, setCustomNotes] = useState('');
+
+  const safeOpenUrl = (url?: string) => {
+    if (!url || typeof window === 'undefined') return;
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Failed to open URL', error);
+    }
+  };
+
+  const buildWhatsAppLink = (message: string = '') =>
+    `https://wa.me/6285179660408?text=${encodeURIComponent(message)}`;
+
+  const handleWhatsAppOpen = (message: string) => {
+    if (!message) return;
+    safeOpenUrl(buildWhatsAppLink(message));
+  };
 
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       try {
+        // Cek 1: Supabase session (user login ke UBOS App dengan password)
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          // Cek 2: Semua kemungkinan sesi di localStorage
           let sessionData: any = null;
 
           try {
+            // Prioritas: wa_member_session (dari /member/login)
             const waSession = localStorage.getItem('wa_member_session');
             if (waSession) {
               sessionData = JSON.parse(waSession);
@@ -215,9 +119,11 @@ export default function MemberDashboard() {
 
           if (!sessionData) {
             try {
+              // Fallback: ubos_lead (dari form pendaftaran landing page)
               const leadStr = localStorage.getItem('ubos_lead');
               if (leadStr) {
                 const leadData = JSON.parse(leadStr);
+                // ubos_lead format: { nama_usaha, owner_name, whatsapp, kategori_usaha }
                 sessionData = {
                   nama_usaha: leadData.nama_usaha || '',
                   nama_pemilik: leadData.owner_name || leadData.nama_pemilik || '',
@@ -235,6 +141,7 @@ export default function MemberDashboard() {
             return;
           }
 
+          // Benar-benar tidak ada sesi ??? redirect ke halaman login member
           if (isMounted) {
             setLoading(false);
             router.push('/member/login');
@@ -281,6 +188,7 @@ export default function MemberDashboard() {
     return () => { isMounted = false; };
   }, [router]);
 
+  // Extreme Funneling: Track member area visit (Warm Market signal)
   useEffect(() => {
     const trackVisitor = async () => {
       try {
@@ -306,6 +214,7 @@ export default function MemberDashboard() {
     router.push('/');
   };
 
+
   const handlePayWithMayar = async () => {
     setIsCreatingPayment(true);
     try {
@@ -314,9 +223,9 @@ export default function MemberDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           merchantId: merchant?.id || merchant?.no_wa || merchant?.whatsapp || null,
-          name: merchant?.nama_usaha || merchant?.owner_name || merchant?.nama_pemilik,
-          phone: merchant?.whatsapp || merchant?.no_wa,
-          email: merchant?.email
+          name: merchant?.nama_usaha || merchant?.owner_name || merchant?.nama_pemilik || 'Member',
+          phone: merchant?.whatsapp || merchant?.no_wa || '',
+          email: merchant?.email || ''
         })
       });
 
@@ -324,7 +233,7 @@ export default function MemberDashboard() {
       if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan saat memproses pembayaran');
 
       if (data.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer');
+        safeOpenUrl(data.url);
       } else {
         throw new Error('Gagal mendapatkan link pembayaran');
       }
@@ -334,6 +243,13 @@ export default function MemberDashboard() {
     } finally {
       setIsCreatingPayment(false);
     }
+  };
+
+  const openWaitingList = (kategori: string) => {
+    setWaitingCategory(kategori);
+    setWaitingForm({ nama: merchant?.nama_usaha || merchant?.owner_name || '', whatsapp: merchant?.whatsapp || '' });
+    setSubmitSuccess(false);
+    setShowWaitingModal(true);
   };
 
   const handleWaitingListSubmit = async (e: React.FormEvent) => {
@@ -357,36 +273,33 @@ export default function MemberDashboard() {
     }
   };
 
-  const handleModulNavigation = async (category: string) => {
-    if (!merchant?.user_id) {
-      const phone = (merchant?.no_wa || merchant?.whatsapp || '').replace(/\D/g, '');
-      if (phone) {
-        try {
-          const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
-          const result = await res.json();
-          if (result.found) {
-            toast.info("Silakan masukkan password untuk mengakses modul.");
-            router.push(`/auth?mode=login`);
-            return;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
-        description: "Akses terbatas khusus member terdaftar.",
-        icon: <Lock className="w-5 h-5 text-amber-500" />
-      });
-      router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
-      return;
+  const handleUpsellRequest = async (product: string) => {
+    if (!merchant?.id) return;
+    setRequestingUpsell(product);
+    try {
+      const currentHistory = Array.isArray(merchant.upsell_history) ? merchant.upsell_history : [];
+      const newRequest = {
+        product,
+        status: 'Pending',
+        requested_at: new Date().toISOString()
+      };
+      const updatedHistory = [...currentHistory, newRequest];
+      
+      const { error } = await supabase
+        .from('merchants')
+        .update({ upsell_history: updatedHistory })
+        .eq('id', merchant.id);
+        
+      if (error) throw error;
+      
+      setMerchant({ ...merchant, upsell_history: updatedHistory });
+      toast.success('Permintaan Anda telah dicatat! Tim Logaritma akan segera menghubungi Anda via WA.', { duration: 5000 });
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memproses permintaan, coba lagi nanti.');
+    } finally {
+      setRequestingUpsell(null);
     }
-    
-    const slug = (merchant.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
-  };
-
-  const formatPrice = (price: number) => {
-    return `Rp ${price.toLocaleString('id-ID')}`;
   };
 
   if (loading) {
@@ -396,46 +309,35 @@ export default function MemberDashboard() {
       </div>
     );
   }
+  let urlCategory = '';
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    urlCategory = params.get('category') || '';
+  }
 
-  const ProductCard = ({ item }: { item: ProductItem }) => (
-    <div 
-      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow group relative"
-      onClick={() => setSelectedProduct(item)}
-    >
-      <div className="h-40 w-full relative overflow-hidden bg-slate-100">
-        <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        <div className="absolute top-2 left-2 px-2 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
-          {item.badge}
-        </div>
-      </div>
-      <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs font-bold text-slate-400 mb-1">{item.category}</p>
-        <h4 className="text-sm font-black text-slate-800 line-clamp-2 leading-tight mb-3">{item.title}</h4>
-        
-        <div className="mt-auto flex flex-col gap-1">
-          {item.price === 0 ? (
-            <p className="text-emerald-500 font-black text-lg">GRATIS</p>
-          ) : (
-            <>
-              {item.discountPrice !== undefined && (
-                <p className="text-slate-400 text-xs line-through font-medium">{formatPrice(item.price)}</p>
-              )}
-              <p className="text-primary font-black text-lg">
-                {formatPrice(item.discountPrice !== undefined ? item.discountPrice : item.price)}
-              </p>
-            </>
-          )}
-        </div>
-        <button className="mt-4 w-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
-          Lihat Detail <ArrowRight size={14} />
-        </button>
-      </div>
-    </div>
-  );
+  const rawCategory = (urlCategory || merchant?.kategori_usaha || merchant?.kategori || '').toLowerCase();
+  
+  let isKuliner = false;
+  let isPercetakan = false;
+  let isRitel = false;
+  let isLaundry = false;
+  let isLainnya = false;
+
+  if (rawCategory.includes('kuliner') || rawCategory.includes('f&b') || rawCategory.includes('warung')) {
+    isKuliner = true;
+  } else if (rawCategory.includes('percetakan') || rawCategory.includes('fotokopi')) {
+    isPercetakan = true;
+  } else if (rawCategory.includes('ritel') || rawCategory.includes('toko') || rawCategory.includes('grosir')) {
+    isRitel = true;
+  } else if (rawCategory.includes('laundry') || rawCategory.includes('jasa')) {
+    isLaundry = true;
+  } else {
+    isLainnya = true;
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 selection:bg-primary/20 flex flex-col items-center">
-      <div className="w-full max-w-md md:max-w-4xl mx-auto min-h-screen bg-slate-50 pb-28 shadow-sm border-x border-slate-100 relative">
+      <div className="w-full max-w-md md:max-w-xl mx-auto min-h-screen bg-slate-50 pb-24 shadow-sm border-x border-slate-100 relative">
       
       {/* Portal Header */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
@@ -455,14 +357,15 @@ export default function MemberDashboard() {
 
       <main className="px-4 py-4 space-y-4">
         
-        {/* Compact Sub-Header */}
+        {/* A. Compact Sub-Header ??? persistent across all tabs */}
         <div className="flex items-center justify-between p-4 bg-blue-600 rounded-2xl text-white shadow-md gap-3">
+          {/* Left: greeting + status badge */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg shrink-0 shadow-inner">
-              {trialDaysLeft > 0 ? '🎁' : '🔒'}
+              {trialDaysLeft > 0 ? '????' : '????'}
             </div>
             <div className="min-w-0">
-              <p className="font-black text-sm md:text-base leading-tight truncate max-w-[140px] md:max-w-[200px]">
+              <p className="font-black text-sm md:text-base leading-tight truncate max-w-[140px] md:max-w-[180px]">
                 Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!
               </p>
               <button
@@ -474,73 +377,610 @@ export default function MemberDashboard() {
                 }`}
               >
                 {trialDaysLeft > 0 ? (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif – Sisa {trialDaysLeft} Hari</>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif ??? Sisa {trialDaysLeft} Hari</>
                 ) : (
                   <><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> Lisensi Expired</>
                 )}
               </button>
             </div>
           </div>
+
+          {/* Right: upgrade button */}
           <button
             onClick={() => setShowPaywallModal(true)}
             className="shrink-0 text-xs md:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-2 rounded-xl transition-transform active:scale-95 shadow-md flex items-center gap-1 whitespace-nowrap"
           >
-            ⚡ Upgrade Rp 49.000
+            ??? Upgrade Rp 49.000
           </button>
         </div>
 
-        {/* Tabbed Content */}
+        {/* ?????? UNIFIED MOBILE-FIRST LAYOUT: tabbed content ????????????????????????????????????????????????????????? */}
         <div className="space-y-6 pt-2">
 
+          {/* Tab: Modul */}
           {activeTab === 'modul' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Katalog Modul UBOS</h2>
-                <p className="text-slate-500 text-sm font-medium">Temukan modul yang cocok untuk usahamu.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Modul Utama Anda</h2>
+                <p className="text-slate-500 text-sm font-medium">Navigasi profit harian bisnis Anda.</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {modulItems.map(item => <ProductCard key={item.id} item={item} />)}
-              </div>
+              
+              {isKuliner && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+                      <ShoppingBag size={100} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5 relative z-10">UBOS F&B</h3>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Aplikasi Kasir F&B Anti-Bocor & Pengunci Profit</h4>
+                      <p className="text-slate-600 text-sm mb-0 leading-relaxed">
+                        UBOS F&B dibikin khusus buat bantuin kamu ngunci target untung bulanan tanpa ribet. Gak cuma buat kasir biasa, tapi otomatis pisahin uang modal belanja besok sama untung bersih kamu hari ini, jadi uang usaha gak kecampur uang pribadi!
+                      </p>
+                    </div>
+
+                    {trialDaysLeft > 0 ? (
+                      <div className="space-y-3">
+                        <button 
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
+                            
+                            if (!merchant?.user_id) {
+                              // Cek apakah nomor WA sudah terdaftar di database via server API
+                              const phone = (merchant?.no_wa || merchant?.whatsapp || '').replace(/\D/g, '');
+                              if (phone) {
+                                try {
+                                  const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
+                                  const result = await res.json();
+                                  
+                                  if (result.found) {
+                                    // Nomor terdaftar, arahkan ke halaman login password
+                                    toast.info("Silakan masukkan password untuk mengakses modul.");
+                                    router.push(`/auth?mode=login`);
+                                    return;
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }
+
+                              toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
+                                description: "Akses terbatas khusus member terdaftar.",
+                                icon: <Lock className="w-5 h-5 text-amber-500" />
+                              });
+                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              return;
+                            }
+                            
+                            const slug = ((merchant?.nama_usaha || merchant?.owner_name || 'merchant').toLowerCase() || 'merchant').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                            router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md"
+                        >
+                          Buka Modul F&B <ArrowRight size={16} />
+                        </button>
+                        
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul F&B terlebih dahulu.')}>
+                             <ShoppingCart size={18} className="text-blue-500" />
+                             Kasir (POS)
+                           </button>
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul F&B terlebih dahulu.')}>
+                             <Package size={18} className="text-emerald-500" />
+                             Stok Menu
+                           </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
+                    )}
+                    
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Cara Gampang Mulainya:</p>
+                      
+                      <div className="space-y-3">
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">1</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Tentukan Target</strong> Set target untung bersih bulanan, UBOS bakal hitungin target harianmu otomatis.</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">2</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Tambah Produk</strong> Masukkan menu andalanmu beserta HPP (harga modal) supaya sistem bisa hitung profit.</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">3</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Atur Profil</strong> Lengkapi nama toko & jam buka supaya Asisten AI bisa kasih saran penjualan presisi.</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">4</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Gunakan POS Kasir</strong> Catat pesanan Dine-in/Online. Potongan komisi Ojol otomatis terhitung!</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">5</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Cek Finance di Akhir</strong> Tiap tutup warung, uang kasir otomatis terbagi rapi buat modal belanja besok & untung bersihmu.</p>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">6</div>
+                          <p className="text-xs text-slate-700 leading-snug"><strong className="text-slate-900 block">Asisten AI Logaritma</strong> Dapatkan saran pintar otomatis tiap hari buat naikin omzet dan cegah stok bahan baku kehabisan!</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isPercetakan && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> VVIP TRIAL
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Percetakan & Fotokopi</h3>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Tools Kontrol Antrean & HPP Kertas</h4>
+                      <p className="text-slate-500 text-sm font-medium">Kalkulator HPP bahan, estimasi harga cepat, dan manajemen antrean antinumpuk.</p>
+                    </div>
+                    <button onClick={() => openWaitingList('Jasa Percetakan')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Daftar Trial Percetakan <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isRitel && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Toko & Ritel</h3>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Manajemen Stok Anti Dead-Stock</h4>
+                      <p className="text-slate-500 text-sm font-medium">Sistem inventaris anti-stok mati, cetak barcode, dan batas belanja harian.</p>
+                    </div>
+                    <button onClick={() => openWaitingList('Toko & Ritel')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isLaundry && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5">UBOS Laundry & Jasa</h3>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Tracking Slot & Nota Otomatis</h4>
+                      <p className="text-slate-500 text-sm font-medium">Pelacak status cucian, sistem nota WhatsApp otomatis, dan hitung komisi staf.</p>
+                    </div>
+                    <button onClick={() => openWaitingList('Laundry & Jasa')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+              {isLainnya && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-blue-200 mb-1">Waiting List</div>
+                    <h3 className="text-2xl font-black text-white">Modul {merchant?.kategori_usaha || 'Lainnya'}</h3>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 mb-1">Dalam Tahap Pengembangan</h4>
+                      <p className="text-slate-500 text-sm font-medium">Fitur spesifik untuk kategori usaha Anda saat ini sedang diracik oleh tim Logaritma.</p>
+                    </div>
+                    <button onClick={() => openWaitingList(merchant?.kategori_usaha || 'Lainnya')} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Dapatkan Akses Prioritas <ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
+
+          {/* Tab: Edukasi */}
+          {activeTab === 'edukasi' && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Logaritma Academy</h2>
+                <p className="text-slate-500 text-sm font-medium">Bongkar rahasia profit owner cerdas.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group">
+                  <div className="h-40 w-full relative overflow-hidden bg-slate-100">
+                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=600&auto=format&fit=crop" alt="E-Book" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-2 left-2 px-2 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
+                      BEST SELLER
+                    </div>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <h4 className="text-sm font-black text-slate-800 line-clamp-2 leading-tight mb-2">E-Book: Rahasia Mengunci Profit UMKM</h4>
+                    <p className="text-xs text-slate-500 mb-4 line-clamp-2">Pelajari fondasi Metode Logaritma untuk memisahkan uang modal & untung.</p>
+                    <div className="mt-auto">
+                      <p className="text-slate-400 text-xs line-through font-medium">Rp 99.000</p>
+                      <p className="text-primary font-black text-lg mb-4">Rp 49.000</p>
+                      <button onClick={() => window.open('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20mau%20pesan%20E-Book%20Mengunci%20Profit', '_blank')} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                        Pesan via WhatsApp <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group">
+                  <div className="h-40 w-full relative overflow-hidden bg-slate-100">
+                    <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop" alt="Masterclass" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-2 left-2 px-2 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
+                      FREE VIDEO
+                    </div>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <h4 className="text-sm font-black text-slate-800 line-clamp-2 leading-tight mb-2">Panduan Masterclass POS Kasir</h4>
+                    <p className="text-xs text-slate-500 mb-4 line-clamp-2">Kumpulan tutorial cara eksekusi Metode Logaritma pakai UBOS dalam 30 menit.</p>
+                    <div className="mt-auto">
+                      <p className="text-emerald-500 font-black text-lg mb-4 mt-4">GRATIS</p>
+                      <button onClick={() => alert('Video tutorial sedang dalam penyusunan.')} className="w-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                        Tonton Sekarang <MonitorPlay size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mini Landing Page Edukasi */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 mt-8 shadow-sm">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-black uppercase tracking-wider text-teal-600">
+                  <ShieldCheck size={14} /> Upgrade Mindset
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mb-4">
+                  Skill Mentok, Bisnis Otomatis Mentok!
+                </h3>
+                <p className="text-slate-600 font-medium leading-relaxed mb-6 text-sm sm:text-base">
+                  Banyak pengusaha UMKM gagal scale-up bukan karena kurang kerja keras, tapi karena buta finansial usahanya sendiri. Di Logaritma Academy, kami bongkar rahasia owner sukses yang bisa jalan-jalan sementara bisnisnya tetap jalan rapi tanpa bocor operasional. <strong>Penting banget buat paham Mindset dan fondasi Metode Logaritma</strong> sebelum atau sambil kamu eksekusi operasional di UBOS.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4 mb-8">
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="text-teal-500 shrink-0 mt-0.5" size={20} />
+                    <p className="text-sm text-slate-700 font-bold">Materi teruji langsung dari praktisi lapangan.</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="text-teal-500 shrink-0 mt-0.5" size={20} />
+                    <p className="text-sm text-slate-700 font-bold">Kuasai ilmunya, lalu jalankan sistemnya pakai UBOS.</p>
+                  </div>
+                </div>
+                <button onClick={() => window.open('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20mau%20konsultasi%20modul%20edukasi%20Logaritma...', '_blank')} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-black py-4 px-8 rounded-2xl transition-transform active:scale-95 shadow-xl shadow-teal-600/20 flex items-center justify-center gap-2">
+                  Upgrade Ilmu Sekarang <ArrowRight size={18} />
+                </button>
+              </div>
+
+            </div>
+          )}
+          {/* Tab: Affiliate */}
           {activeTab === 'affiliate' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Program Kemitraan</h2>
                 <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang dengan referral.</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {affiliateItems.map(item => <ProductCard key={item.id} item={item} />)}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-700 to-purple-600 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-purple-200 mb-1">Affiliate Program</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Pasif Komisi<br/>Logaritma</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
+                    <Handshake size={80} className="text-white" />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Rekomendasikan UBOS ke sesama pemilik usaha. Dapatkan komisi <strong className="text-purple-600 font-black">20%</strong> setiap kali teman Anda mengaktifkan modul.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors shadow-sm"
+                    >
+                      <span className="flex items-center gap-3"><Copy size={18} /> Salin Link Referral</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                    
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Wallet size={18} className="text-emerald-500" /> Lihat Saldo & Komisi</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Download size={18} className="text-blue-500" /> Download Bahan Promosi</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Tab: Services */}
           {activeTab === 'services' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <ServicesErrorBoundary>
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 pb-24">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Ecosystem Services</h2>
-                <p className="text-slate-500 text-sm font-medium">Layanan pengembang bisnis dari Logaritma.</p>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Ekstra</h2>
+                <p className="text-slate-500 text-sm font-medium">Layanan tambahan Logaritma untuk mengakselerasi bisnis Anda.</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {servicesItems.map(item => <ProductCard key={item.id} item={item} />)}
+
+              <div className="flex flex-col gap-6 md:grid md:grid-cols-1">
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <div className="text-[9px] font-black uppercase tracking-wider text-orange-100 mb-1">Meta Ads Setup</div>
+                      <h3 className="text-2xl font-black text-white leading-tight">Paket Iklan Meta Ads</h3>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
+                      <Wrench size={80} className="text-white" />
+                    </div>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    {[
+                      { name: 'Paket 7 Hari', price: 'Rp 150.000', detail: 'Optimasi awal untuk awareness dan traffic cepat.' },
+                      { name: 'Paket 14 Hari', price: 'Rp 250.000', detail: 'Kampanye terukur untuk promo menu dan event.' },
+                      { name: 'Paket 30 Hari', price: 'Rp 450.000', detail: 'Pendampingan iklan untuk hasil jangka panjang.' },
+                    ].map((pkg) => (
+                      <div key={pkg.name} className="rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="text-sm font-bold text-slate-600 uppercase tracking-[0.24em]">{pkg.name}</p>
+                            <p className="mt-2 text-lg font-black text-slate-900">{pkg.price}</p>
+                          </div>
+                          <span className="rounded-2xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">Meta Ads</span>
+                        </div>
+                        <p className="mt-3 text-sm text-slate-500">{pkg.detail}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin pesan ${pkg.name} Meta Ads. Mohon kirim detail paket dan biaya.`)}
+                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                        >
+                          Pesan via WhatsApp <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-slate-500 font-bold mb-4">
+                    <Printer size={18} className="text-orange-500" /> Cetak & Branding
+                  </div>
+                  <p className="text-sm text-slate-600 mb-5">Pilih layanan cetak stiker, spanduk, atau foto produk F&B, lalu kirim permintaan ke admin.</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {['Cetak Stiker', 'Cetak Spanduk', 'Foto Produk F&B'].map((service) => (
+                      <button
+                        key={service}
+                        type="button"
+                        onClick={() => setCetakType(service)}
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition ${cetakType === service ? 'border-amber-500 bg-amber-500/10 text-slate-900' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'}`}
+                      >
+                        {service}
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin pesan layanan ${cetakType}. Nama Usaha: ${cetakName || '-'} Nomor WA: ${cetakPhone || '-'} Jumlah/Ukuran: ${cetakQty} Keterangan: ${cetakNotes || '-'}.`);
+                  }} className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nama Usaha / Kontak
+                      <input
+                        value={cetakName}
+                        onChange={(event) => setCetakName(event.target.value)}
+                        placeholder="Warung Makan Sejahtera"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nomor WhatsApp
+                      <input
+                        value={cetakPhone}
+                        onChange={(event) => setCetakPhone(event.target.value)}
+                        placeholder="0812xxxxxxx"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Jumlah / Ukuran
+                      <input
+                        value={cetakQty}
+                        onChange={(event) => setCetakQty(event.target.value)}
+                        placeholder="100 pcs / 200x50 mm"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Keterangan
+                      <input
+                        value={cetakNotes}
+                        onChange={(event) => setCetakNotes(event.target.value)}
+                        placeholder="Desain logo + nomor meja"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <button type="submit" className="w-full rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-amber-400">
+                      Kirim Permintaan Cetak via WhatsApp
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-6 md:grid md:grid-cols-1">
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-amber-500 font-bold mb-4">
+                    <ShoppingBag size={18} /> Hardware Kasir Shopee
+                  </div>
+                  <p className="text-sm text-slate-600 mb-5">Link Shopee affiliate untuk printer thermal dan kertas kasir yang direkomendasikan.</p>
+                  <div className="space-y-4">
+                    {[
+                      { name: 'Printer Thermal Bluetooth', price: 'Rp 420.000', link: 'https://shopee.co.id', caption: 'Printer mobile cepat untuk nota kasir.' },
+                      { name: 'Kertas Kasir Thermal Roll 57x40mm', price: 'Rp 45.000', link: 'https://shopee.co.id', caption: 'Roll kasir standar untuk mesin twin printer.' },
+                    ].map((item) => (
+                      <div key={item.name} className="rounded-3xl border border-slate-200 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-black text-slate-900">{item.name}</p>
+                            <p className="mt-1 text-sm text-slate-500">{item.caption}</p>
+                          </div>
+                          <span className="text-sm font-black text-amber-500">{item.price}</span>
+                        </div>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-700 transition hover:bg-amber-500/20"
+                        >
+                          Buka Shopee <ArrowRight size={16} />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-slate-500 font-bold mb-4">
+                    <LayoutGrid size={18} /> Custom Enterprise OS
+                  </div>
+                  <p className="text-sm text-slate-600 mb-5">Ajukan sistem bisnis kustom untuk operasi, laporan, dan integrasi multi-outlet.</p>
+                  <form onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin konsultasi Custom Enterprise Operating System untuk bisnis saya. Nama: ${customCompany || '-'} Nomor WA: ${customPhone || '-'} Kategori: ${customIndustry} Anggaran: ${customBudget || '-'} Kebutuhan: ${customNotes || '-'}.`);
+                  }} className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nama Perusahaan / Usaha
+                      <input
+                        value={customCompany}
+                        onChange={(event) => setCustomCompany(event.target.value)}
+                        placeholder="CV Utama Mandiri"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nomor WhatsApp
+                      <input
+                        value={customPhone}
+                        onChange={(event) => setCustomPhone(event.target.value)}
+                        placeholder="0812xxxxxxx"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Kategori Bisnis
+                      <input
+                        value={customIndustry}
+                        onChange={(event) => setCustomIndustry(event.target.value)}
+                        placeholder="Kuliner & F&B"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Estimasi Anggaran
+                      <input
+                        value={customBudget}
+                        onChange={(event) => setCustomBudget(event.target.value)}
+                        placeholder="Rp 10.000.000"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Deskripsi Kebutuhan
+                      <textarea
+                        value={customNotes}
+                        onChange={(event) => setCustomNotes(event.target.value)}
+                        placeholder="Jelaskan workflow, integrasi, atau fitur khusus yang dibutuhkan."
+                        rows={4}
+                        className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500 resize-none"
+                      />
+                    </label>
+                    <button type="submit" className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
+                      Ajukan Konsultasi via WhatsApp
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
+          </ServicesErrorBoundary>
           )}
 
+          {/* Tab: Edukasi */}
           {activeTab === 'edukasi' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Logaritma Academy</h2>
                 <p className="text-slate-500 text-sm font-medium">Tingkatkan skill dan pengetahuan bisnis Anda.</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {edukasiItems.map(item => <ProductCard key={item.id} item={item} />)}
+              
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex items-center justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-teal-200 mb-1">Knowledge Base</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Pusat Belajar<br/>& Strategi</h3>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 opacity-20 -rotate-12">
+                    <BookOpen size={80} className="text-white" />
+                  </div>
+                </div>
+                
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 font-medium mb-5">
+                    Kumpulan video panduan, template kalkulator HPP, dan e-book strategi membesarkan usaha kuliner.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><BookOpen size={18} className="text-teal-600" /> Panduan Penggunaan POS</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><FileText size={18} className="text-amber-500" /> E-Book: Mengunci Profit</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+
+                    <button 
+                      onClick={() => setShowFeatureComingSoonModal(true)}
+                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Video size={18} className="text-red-500" /> Tonton Tutorial Video</span>
+                      <ArrowRight size={16} className="opacity-50" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Tab Bantuan stays intact */}
+          {/* Tab: Bantuan */}
           {activeTab === 'bantuan' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
@@ -597,10 +1037,11 @@ export default function MemberDashboard() {
           )}
 
         </div>
+
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav className="fixed bottom-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] w-full max-w-md md:max-w-4xl border-x border-slate-100">
+      {/* ?????? MOBILE BOTTOM NAVIGATION BAR ???????????????????????????????????????????????????????????????????????????????????????????????????????????? */}
+      <nav className="fixed bottom-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] w-full max-w-md md:max-w-xl border-x border-slate-100">
         <div className="flex items-stretch h-16">
           {([
             { key: 'modul',    icon: Home,      label: 'Modul'    },
@@ -626,92 +1067,270 @@ export default function MemberDashboard() {
         </div>
       </nav>
 
-      {/* Product Detail Modal / Drawer */}
-      {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col relative animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 custom-scrollbar">
+      {/* Waiting List Modal */}
+      {showWaitingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
             
-            <button onClick={() => setSelectedProduct(null)} className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 backdrop-blur text-white hover:bg-black/50 z-10 transition-colors">
-              <X size={18} />
-            </button>
-            
-            {/* Modal Image Header */}
-            <div className="h-48 sm:h-56 w-full relative">
-              <img src={selectedProduct.thumbnail} alt={selectedProduct.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
-              <div className="absolute bottom-4 left-4 right-4">
-                <span className="inline-block px-2 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-md mb-2">
-                  {selectedProduct.badge}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">{selectedProduct.title}</h3>
-                <p className="text-slate-300 text-sm font-bold">{selectedProduct.category}</p>
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 opacity-10 rotate-12">
+                <Target size={80} />
               </div>
+              <div className="relative z-10">
+                <h3 className="text-xl font-black text-slate-900">Akses Prioritas UBOS</h3>
+                <p className="text-sm text-slate-500 font-bold text-primary mt-1">{waitingCategory}</p>
+              </div>
+              <button onClick={() => setShowWaitingModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 relative z-10">
+                <X size={18} />
+              </button>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-5">
-              {/* Price Row */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <p className="text-slate-500 font-bold text-sm">Harga Spesial</p>
-                <div className="text-right">
-                  {selectedProduct.price === 0 ? (
-                    <p className="text-2xl font-black text-emerald-500">GRATIS</p>
-                  ) : (
-                    <>
-                      {selectedProduct.discountPrice !== undefined && (
-                        <p className="text-slate-400 text-xs line-through font-medium">{formatPrice(selectedProduct.price)}</p>
-                      )}
-                      <p className="text-2xl font-black text-primary">
-                        {formatPrice(selectedProduct.discountPrice !== undefined ? selectedProduct.discountPrice : selectedProduct.price)}
-                      </p>
-                    </>
-                  )}
+            <div className="p-6">
+              {submitSuccess ? (
+                <div className="text-center py-6 space-y-4">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900">Masuk Daftar VVIP!</h4>
+                  <p className="text-slate-500 font-medium">Terima kasih! Nomor WhatsApp Anda telah masuk dalam daftar prioritas VVIP. Kami akan menghubungi Anda begitu modul resmi diluncurkan.</p>
+                  <button 
+                    onClick={() => setShowWaitingModal(false)}
+                    className="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-colors"
+                  >
+                    Kembali ke Dashboard
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleWaitingListSubmit} className="space-y-4">
+                  <p className="text-sm text-slate-600 font-medium mb-6">
+                    Kami sedang meracik fitur khusus untuk <span className="font-bold text-slate-900">{waitingCategory}</span>. Masukkan WhatsApp aktif Anda untuk menjadi yang pertama menerima kabar saat fitur dirilis.
+                  </p>
+                  
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nama Usaha / Toko</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={waitingForm.nama}
+                      onChange={e => setWaitingForm({...waitingForm, nama: e.target.value})}
+                      placeholder="Masukkan nama usaha Anda"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nomor WhatsApp Aktif</label>
+                    <input 
+                      required
+                      type="tel" 
+                      value={waitingForm.whatsapp}
+                      onChange={e => setWaitingForm({...waitingForm, whatsapp: e.target.value})}
+                      placeholder="Contoh: 081234567890"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-primary hover:bg-primary-dark text-white font-black py-4 rounded-xl shadow-lg shadow-primary/30 transition-transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 mt-4"
+                  >
+                    {submitting ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                      <>Dapatkan Akses Prioritas Launching <ArrowRight size={18} /></>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAQ & Troubleshooting Modal */}
+      {isFAQModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="p-6 md:p-8 pb-6 border-b border-slate-100 flex-shrink-0 relative">
+              <button 
+                onClick={() => { setIsFAQModalOpen(false); setFaqSearchTerm(''); }} 
+                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors"
+              >
+                <X size={18} />
+              </button>
+              
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                  <HelpCircle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Pusat Solusi Cepat & FAQ UBOS ????</h3>
+                  <p className="text-sm text-slate-500 font-medium">Jawaban praktis seputar operasional kasir, Margin Guard, hingga pengelolaan akun.</p>
                 </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                  {selectedProduct.description}
-                </p>
+              {/* Search Bar */}
+              <div className="mt-6 relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Cari solusi atau kata kunci masalah..." 
+                  value={faqSearchTerm}
+                  onChange={(e) => setFaqSearchTerm(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                />
               </div>
 
-              {/* Features List */}
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-3">Apa yang Anda Dapatkan:</h4>
-                <ul className="space-y-2.5">
-                  {selectedProduct.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700 font-medium">
-                      <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
-                      {feature}
-                    </li>
+              {/* Tabs */}
+              <div className="flex overflow-x-auto hide-scrollbar gap-2 mt-4 pb-1">
+                {[
+                  { id: 'kasir', label: 'Kasir & Stok' },
+                  { id: 'margin', label: 'Margin Guard & HPP' },
+                  { id: 'akun', label: 'Akun & Akses' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setFaqActiveTab(tab.id as any); setExpandedFAQ(null); }}
+                    className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-colors ${faqActiveTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accordion List Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50 custom-scrollbar">
+              <div className="space-y-3">
+                {faqData[faqActiveTab]
+                  .filter(faq => faq.q.toLowerCase().includes(faqSearchTerm.toLowerCase()) || faq.a.toLowerCase().includes(faqSearchTerm.toLowerCase()))
+                  .map((faq, index) => (
+                    <div key={index} className="bg-white border border-slate-200 rounded-xl overflow-hidden transition-all duration-200 shadow-sm hover:shadow-md">
+                      <button 
+                        onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
+                        className="w-full text-left p-4 flex items-center justify-between gap-4"
+                      >
+                        <span className="font-bold text-slate-900 text-sm">{faq.q}</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${expandedFAQ === index ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400'}`}>
+                          {expandedFAQ === index ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </div>
+                      </button>
+                      
+                      {expandedFAQ === index && (
+                        <div className="p-4 pt-0 text-slate-600 text-sm leading-relaxed border-t border-slate-50 mt-2 bg-slate-50/30">
+                          {faq.a}
+                        </div>
+                      )}
+                    </div>
                   ))}
-                </ul>
-              </div>
-
-              {/* CTA Button */}
-              <div className="pt-2">
-                {selectedProduct.ctaType === 'whatsapp' ? (
-                  <a href={selectedProduct.ctaUrl} target="_blank" rel="noopener noreferrer" className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2">
-                    <MessageCircle size={18} /> Hubungi via WhatsApp
-                  </a>
-                ) : selectedProduct.ctaType === 'modul_fb' ? (
-                  trialDaysLeft > 0 ? (
-                    <button onClick={() => handleModulNavigation('kuliner')} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
-                      <ShoppingBag size={18} /> Buka Modul F&B Sekarang <ArrowRight size={16} />
-                    </button>
-                  ) : (
-                    <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2">
-                      <Lock size={16} className="text-amber-400" /> Lisensi Expired
-                    </button>
-                  )
-                ) : (
-                  <a href={selectedProduct.ctaUrl} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
-                    Checkout / Lihat Selengkapnya <ArrowRight size={18} />
-                  </a>
+                  
+                {faqData[faqActiveTab].filter(faq => faq.q.toLowerCase().includes(faqSearchTerm.toLowerCase()) || faq.a.toLowerCase().includes(faqSearchTerm.toLowerCase())).length === 0 && (
+                  <div className="text-center py-8 text-slate-500 font-medium text-sm">
+                    Tidak menemukan jawaban untuk "{faqSearchTerm}"
+                  </div>
                 )}
               </div>
             </div>
+
+            {/* Footer Action */}
+            <div className="p-6 border-t border-slate-100 bg-white flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-slate-500 font-medium">Masih belum menemukan jawaban?</p>
+              <button 
+                onClick={() => {
+                  safeOpenUrl('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20teknis%20dan%20ingin%20bertanya...');
+                  setIsFAQModalOpen(false);
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-lg shadow-purple-600/20 flex items-center gap-2"
+              >
+                <MessageCircle size={18} />
+                Chat CS Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Community Invitation Modal */}
+      {isCommunityModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-200">
             
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsCommunityModalOpen(false)} 
+              className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 z-10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="p-6 md:p-8 text-center space-y-4">
+              {/* Header Visual */}
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10">
+                <Users size={32} />
+              </div>
+              
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang di Circle Profit Owner F&B! ????</h3>
+              
+              {/* Body Copywriting */}
+              <p className="text-slate-600 font-medium text-sm leading-relaxed mb-6">
+                Bergabunglah dengan pemilik usaha kuliner lainnya! Tempat berbagi strategi HPP, bedah kasus kebocoran kasir, hingga kolaborasi sesama owner F&B agar bisnis tumbuh konsisten.
+              </p>
+
+              {/* Benefits Checklist */}
+              <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Forum diskusi strategi HPP & Margin Guard</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Update fitur eksklusif UBOS Logaritma</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-sm text-slate-700 font-medium">Akses langsung ke tim developer & mentor</span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button 
+                onClick={() => {
+                  safeOpenUrl('https://chat.whatsapp.com/Jko4cZMWXca3aLhlR94shj');
+                  setIsCommunityModalOpen(false);
+                }}
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={18} />
+                Gabung Grup WA Sekarang <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feature Coming Soon Modal */}
+      {showFeatureComingSoonModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <MonitorPlay size={120} />
+            </div>
+            <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 relative z-10">
+              <Wrench size={32} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2 relative z-10">Fitur Sedang Disiapkan!</h3>
+            <p className="text-slate-500 font-medium text-sm mb-6 relative z-10">
+              Kami sedang meracik fitur ini agar tampil maksimal untuk Anda. Nantikan update terbarunya segera!
+            </p>
+            <button 
+              onClick={() => setShowFeatureComingSoonModal(false)}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition-colors relative z-10"
+            >
+              Mengerti, Tutup
+            </button>
           </div>
         </div>
       )}
@@ -774,134 +1393,7 @@ export default function MemberDashboard() {
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* FAQ & Troubleshooting Modal */}
-      {isFAQModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
-            <div className="p-6 md:p-8 pb-6 border-b border-slate-100 flex-shrink-0 relative">
-              <button onClick={() => { setIsFAQModalOpen(false); setFaqSearchTerm(''); }} className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
-                <X size={18} />
-              </button>
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-                  <HelpCircle size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-slate-900">Pusat Solusi Cepat & FAQ UBOS 💡</h3>
-                  <p className="text-sm text-slate-500 font-medium">Jawaban praktis seputar operasional kasir, Margin Guard, hingga pengelolaan akun.</p>
-                </div>
-              </div>
-              <div className="mt-6 relative">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Cari solusi atau kata kunci masalah..." 
-                  value={faqSearchTerm}
-                  onChange={(e) => setFaqSearchTerm(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
-                />
-              </div>
-              <div className="flex overflow-x-auto hide-scrollbar gap-2 mt-4 pb-1">
-                {[
-                  { id: 'kasir', label: 'Kasir & Stok' },
-                  { id: 'margin', label: 'Margin Guard & HPP' },
-                  { id: 'akun', label: 'Akun & Akses' },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => { setFaqActiveTab(tab.id as any); setExpandedFAQ(null); }}
-                    className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-colors ${faqActiveTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50 custom-scrollbar">
-              <div className="space-y-3">
-                {faqData[faqActiveTab]
-                  .filter(faq => faq.q.toLowerCase().includes(faqSearchTerm.toLowerCase()) || faq.a.toLowerCase().includes(faqSearchTerm.toLowerCase()))
-                  .map((faq, index) => (
-                    <div key={index} className="bg-white border border-slate-200 rounded-xl overflow-hidden transition-all duration-200 shadow-sm hover:shadow-md">
-                      <button 
-                        onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
-                        className="w-full text-left p-4 flex items-center justify-between gap-4"
-                      >
-                        <span className="font-bold text-slate-900 text-sm">{faq.q}</span>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${expandedFAQ === index ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400'}`}>
-                          {expandedFAQ === index ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </div>
-                      </button>
-                      {expandedFAQ === index && (
-                        <div className="p-4 pt-0 text-slate-600 text-sm leading-relaxed border-t border-slate-50 mt-2 bg-slate-50/30">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-              </div>
-            </div>
-            <div className="p-6 border-t border-slate-100 bg-white flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-slate-500 font-medium">Masih belum menemukan jawaban?</p>
-              <button 
-                onClick={() => {
-                  window.open('https://wa.me/6285179660408?text=Halo%20Admin%20Logaritma%2C%20saya%20butuh%20bantuan%20teknis%20dan%20ingin%20bertanya...', '_blank');
-                  setIsFAQModalOpen(false);
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-lg shadow-purple-600/20 flex items-center gap-2"
-              >
-                <MessageCircle size={18} />
-                Chat CS Admin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Community Invitation Modal */}
-      {isCommunityModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-200">
-            <button onClick={() => setIsCommunityModalOpen(false)} className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 z-10 transition-colors">
-              <X size={18} />
-            </button>
-            <div className="p-6 md:p-8 text-center space-y-4">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10">
-                <Users size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang di Circle Profit Owner F&B! 🚀</h3>
-              <p className="text-slate-600 font-medium text-sm leading-relaxed mb-6">
-                Bergabunglah dengan pemilik usaha kuliner lainnya! Tempat berbagi strategi HPP, bedah kasus kebocoran kasir, hingga kolaborasi sesama owner F&B agar bisnis tumbuh konsisten.
-              </p>
-              <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
-                  <span className="text-sm text-slate-700 font-medium">Forum diskusi strategi HPP & Margin Guard</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
-                  <span className="text-sm text-slate-700 font-medium">Update fitur eksklusif UBOS Logaritma</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
-                  <span className="text-sm text-slate-700 font-medium">Akses langsung ke tim developer & mentor</span>
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  window.open('https://chat.whatsapp.com/Jko4cZMWXca3aLhlR94shj', '_blank');
-                  setIsCommunityModalOpen(false);
-                }}
-                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={18} />
-                Gabung Grup WA Sekarang <ArrowRight size={16} />
-              </button>
-            </div>
+            
           </div>
         </div>
       )}
