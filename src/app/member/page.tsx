@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Target, AlertTriangle, ArrowRight, Package, Wallet, CheckCircle2, MonitorPlay, LogOut, Megaphone, Printer, Handshake, MessageCircle, X, Loader2, ShoppingBag, Shirt, Lock, Home, Wrench, Star, BookOpen, HelpCircle, Info, Flame, Copy, FileText, Download, Camera, Users, Video, ShoppingCart, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -43,6 +43,24 @@ export default function MemberDashboard() {
   const [faqSearchTerm, setFaqSearchTerm] = useState('');
   const [faqActiveTab, setFaqActiveTab] = useState<'kasir' | 'margin' | 'akun'>('kasir');
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+
+  const [cetakType, setCetakType] = useState('Cetak Stiker');
+  const [cetakQty, setCetakQty] = useState('100');
+  const [cetakName, setCetakName] = useState('');
+  const [cetakPhone, setCetakPhone] = useState('');
+  const [cetakNotes, setCetakNotes] = useState('');
+  const [customCompany, setCustomCompany] = useState('');
+  const [customPhone, setCustomPhone] = useState('');
+  const [customIndustry, setCustomIndustry] = useState('Kuliner & F&B');
+  const [customBudget, setCustomBudget] = useState('');
+  const [customNotes, setCustomNotes] = useState('');
+
+  const buildWhatsAppLink = (message: string) =>
+    `https://wa.me/6285179660408?text=${encodeURIComponent(message)}`;
+
+  const handleWhatsAppOpen = (message: string) => {
+    window.open(buildWhatsAppLink(message), '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -587,64 +605,205 @@ export default function MemberDashboard() {
 
           {/* Tab: Services */}
           {activeTab === 'services' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Services Ekstra</h2>
-                <p className="text-slate-500 text-sm font-medium">Layanan pengembang bisnis dari Logaritma.</p>
+                <p className="text-slate-500 text-sm font-medium">Layanan tambahan Logaritma untuk mengakselerasi bisnis Anda.</p>
               </div>
-              
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 flex items-center justify-between relative overflow-hidden">
-                  <div className="relative z-10">
-                    <div className="text-[9px] font-black uppercase tracking-wider text-orange-200 mb-1">Ecosystem Services</div>
-                    <h3 className="text-xl font-black text-white leading-tight">Solusi Ekstra<br/>Pengembang Bisnis</h3>
+
+              <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <div className="text-[9px] font-black uppercase tracking-wider text-orange-100 mb-1">Meta Ads Setup</div>
+                      <h3 className="text-2xl font-black text-white leading-tight">Paket Iklan Meta Ads</h3>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
+                      <Wrench size={80} className="text-white" />
+                    </div>
                   </div>
-                  <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
-                    <Wrench size={80} className="text-white" />
+                  <div className="p-6 space-y-4">
+                    {[
+                      { name: 'Paket 7 Hari', price: 'Rp 150.000', detail: 'Optimasi awal untuk awareness dan traffic cepat.' },
+                      { name: 'Paket 14 Hari', price: 'Rp 250.000', detail: 'Kampanye terukur untuk promo menu dan event.' },
+                      { name: 'Paket 30 Hari', price: 'Rp 450.000', detail: 'Pendampingan iklan untuk hasil jangka panjang.' },
+                    ].map((pkg) => (
+                      <div key={pkg.name} className="rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="text-sm font-bold text-slate-600 uppercase tracking-[0.24em]">{pkg.name}</p>
+                            <p className="mt-2 text-lg font-black text-slate-900">{pkg.price}</p>
+                          </div>
+                          <span className="rounded-2xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">Meta Ads</span>
+                        </div>
+                        <p className="mt-3 text-sm text-slate-500">{pkg.detail}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin pesan ${pkg.name} Meta Ads. Mohon kirim detail paket dan biaya.`)}
+                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                        >
+                          Pesan via WhatsApp <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                <div className="p-5">
-                  <p className="text-sm text-slate-600 font-medium mb-5">
-                    Solusi cetak kemasan, stiker glossy, banner toko, hingga foto produk profesional dari Logaritma Ecosystem.
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
-                    >
-                      <span className="flex items-center gap-3">
-                        <Printer size={18} className="text-orange-500" /> 
-                        Pesan Stiker & Spanduk
-                      </span>
-                      <ArrowRight size={16} className="opacity-50" />
-                    </button>
 
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
-                    >
-                      <span className="flex items-center gap-3">
-                        <Camera size={18} className="text-blue-500" /> 
-                        Jasa Foto Menu Pro
-                      </span>
-                      <ArrowRight size={16} className="opacity-50" />
-                    </button>
-
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
-                    >
-                      <span className="flex items-center gap-3">
-                        <Users size={18} className="text-emerald-500" /> 
-                        Konsultasi Setup POS On-Site
-                      </span>
-                      <ArrowRight size={16} className="opacity-50" />
-                    </button>
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-slate-500 font-bold mb-4">
+                    <Printer size={18} className="text-orange-500" /> Cetak & Branding
                   </div>
+                  <p className="text-sm text-slate-600 mb-5">Pilih layanan cetak stiker, spanduk, atau foto produk F&B, lalu kirim permintaan ke admin.</p>
+                  <div className="grid gap-3 sm:grid-cols-3 mb-4">
+                    {['Cetak Stiker', 'Cetak Spanduk', 'Foto Produk F&B'].map((service) => (
+                      <button
+                        key={service}
+                        type="button"
+                        onClick={() => setCetakType(service)}
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition ${cetakType === service ? 'border-amber-500 bg-amber-500/10 text-slate-900' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'}`}
+                      >
+                        {service}
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin pesan layanan ${cetakType}. Nama Usaha: ${cetakName || '-'} Nomor WA: ${cetakPhone || '-'} Jumlah/Ukuran: ${cetakQty} Keterangan: ${cetakNotes || '-'}.`);
+                  }} className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nama Usaha / Kontak
+                      <input
+                        value={cetakName}
+                        onChange={(event) => setCetakName(event.target.value)}
+                        placeholder="Warung Makan Sejahtera"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nomor WhatsApp
+                      <input
+                        value={cetakPhone}
+                        onChange={(event) => setCetakPhone(event.target.value)}
+                        placeholder="0812xxxxxxx"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Jumlah / Ukuran
+                      <input
+                        value={cetakQty}
+                        onChange={(event) => setCetakQty(event.target.value)}
+                        placeholder="100 pcs / 200x50 mm"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Keterangan
+                      <input
+                        value={cetakNotes}
+                        onChange={(event) => setCetakNotes(event.target.value)}
+                        placeholder="Desain logo + nomor meja"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-500"
+                      />
+                    </label>
+                    <button type="submit" className="w-full rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-amber-400">
+                      Kirim Permintaan Cetak via WhatsApp
+                    </button>
+                  </form>
                 </div>
               </div>
+
+              <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-amber-500 font-bold mb-4">
+                    <ShoppingBag size={18} /> Hardware Kasir Shopee
+                  </div>
+                  <p className="text-sm text-slate-600 mb-5">Link Shopee affiliate untuk printer thermal dan kertas kasir yang direkomendasikan.</p>
+                  <div className="space-y-4">
+                    {[
+                      { name: 'Printer Thermal Bluetooth', price: 'Rp 420.000', link: 'https://shopee.co.id', caption: 'Printer mobile cepat untuk nota kasir.' },
+                      { name: 'Kertas Kasir Thermal Roll 57x40mm', price: 'Rp 45.000', link: 'https://shopee.co.id', caption: 'Roll kasir standar untuk mesin twin printer.' },
+                    ].map((item) => (
+                      <div key={item.name} className="rounded-3xl border border-slate-200 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-black text-slate-900">{item.name}</p>
+                            <p className="mt-1 text-sm text-slate-500">{item.caption}</p>
+                          </div>
+                          <span className="text-sm font-black text-amber-500">{item.price}</span>
+                        </div>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-700 transition hover:bg-amber-500/20"
+                        >
+                          Buka Shopee <ArrowRight size={16} />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-slate-500 font-bold mb-4">
+                    <LayoutGrid size={18} /> Custom Enterprise OS
+                  </div>
+                  <p className="text-sm text-slate-600 mb-5">Ajukan sistem bisnis kustom untuk operasi, laporan, dan integrasi multi-outlet.</p>
+                  <form onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleWhatsAppOpen(`Halo Admin Logaritma, saya ingin konsultasi Custom Enterprise Operating System untuk bisnis saya. Nama: ${customCompany || '-'} Nomor WA: ${customPhone || '-'} Kategori: ${customIndustry} Anggaran: ${customBudget || '-'} Kebutuhan: ${customNotes || '-'}.`);
+                  }} className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nama Perusahaan / Usaha
+                      <input
+                        value={customCompany}
+                        onChange={(event) => setCustomCompany(event.target.value)}
+                        placeholder="CV Utama Mandiri"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Nomor WhatsApp
+                      <input
+                        value={customPhone}
+                        onChange={(event) => setCustomPhone(event.target.value)}
+                        placeholder="0812xxxxxxx"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Kategori Bisnis
+                      <input
+                        value={customIndustry}
+                        onChange={(event) => setCustomIndustry(event.target.value)}
+                        placeholder="Kuliner & F&B"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Estimasi Anggaran
+                      <input
+                        value={customBudget}
+                        onChange={(event) => setCustomBudget(event.target.value)}
+                        placeholder="Rp 10.000.000"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                      />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Deskripsi Kebutuhan
+                      <textarea
+                        value={customNotes}
+                        onChange={(event) => setCustomNotes(event.target.value)}
+                        placeholder="Jelaskan workflow, integrasi, atau fitur khusus yang dibutuhkan."
+                        rows={4}
+                        className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-500 resize-none"
+                      />
+                    </label>
+                    <button type="submit" className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
+                      Ajukan Konsultasi via WhatsApp
+                    </button>
+                  </form>
             </div>
           )}
 
