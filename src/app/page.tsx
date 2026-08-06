@@ -152,13 +152,13 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center shrink-0 md:hidden">
-            <a href="/member/login" className="text-[10px] font-bold text-slate-500 hover:text-slate-900 bg-slate-100 px-3 py-1 rounded-full">Login</a>
+            <a href="/member/login" className="text-sm sm:text-base font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 px-4 py-2 rounded-full">Login</a>
           </div>
         </div>
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section className="py-8 sm:py-16 px-4 sm:px-6 max-w-4xl mx-auto text-center">
+      <section className="pt-10 sm:pt-20 pb-4 sm:pb-8 px-4 sm:px-6 max-w-4xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -172,7 +172,7 @@ export default function LandingPage() {
           
           {/* Main Headline */}
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-snug sm:leading-[1.1] tracking-tight">
-            Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-rose-600 underline decoration-rose-300 underline-offset-4">Ternyata Malah Tekor!</span>
+            Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-rose-600 border-b-[4px] border-rose-500 pb-0.5 inline-block">Ternyata Malah Tekor!</span>
           </h1>
           
           {/* Sub-headline */}
