@@ -32,7 +32,7 @@ ATURAN REKOMENDASI:
 Data Konteks Halaman: ${JSON.stringify(contextData?.insights || [])}`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-1.5-flash',
       contents: message,
       config: {
         systemInstruction: systemInstruction,

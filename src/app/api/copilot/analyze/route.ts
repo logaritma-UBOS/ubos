@@ -50,7 +50,7 @@ Output Anda HARUS persis mengikuti format ini:
 2. (Langkah aksi spesifik kedua, misal: Buat promo bundling menu Z)`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-1.5-flash',
       contents: 'Berikan analisa Copilot untuk hari ini.',
       config: {
         systemInstruction: systemInstruction,
@@ -62,6 +62,12 @@ Output Anda HARUS persis mengikuti format ini:
     return NextResponse.json({ result: response.text });
   } catch (error: any) {
     console.error('Copilot Analyze Error Detail:', error?.message || error);
-    return NextResponse.json({ error: error?.message || 'Gagal terhubung ke AI' }, { status: 500 });
+    const msg = error?.message || '';
+    const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
+    return NextResponse.json({
+      error: isQuotaError
+        ? 'Kuota AI hari ini sudah habis (limit harian Google AI). Coba lagi besok atau upgrade GEMINI_API_KEY ke berbayar.'
+        : (msg || 'Gagal terhubung ke AI')
+    }, { status: 500 });
   }
 }
