@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const pageContent = `'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -78,7 +80,7 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      let cleanWA = formData.whatsapp.replace(/\D/g, '');
+      let cleanWA = formData.whatsapp.replace(/\\D/g, '');
       if (cleanWA.length < 10) {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
@@ -118,7 +120,7 @@ export default function LandingPage() {
       toast.success("Berhasil! Mengalihkan ke Member Area...");
       setShowModal(false);
       const categoryParam = encodeURIComponent(formData.category.toLowerCase().split(' ')[0] || 'kuliner');
-      router.push(`/member?category=${categoryParam}`);
+      router.push(\`/member?category=\${categoryParam}\`);
       
     } catch (err) {
       toast.error(err.message || 'Terjadi kesalahan.');
@@ -362,3 +364,7 @@ export default function LandingPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/app/page.tsx', pageContent, 'utf8');
+console.log("Refactored Landing Page successfully.");
