@@ -158,7 +158,7 @@ export default function LandingPage() {
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section className="pt-10 sm:pt-20 pb-4 sm:pb-8 px-4 sm:px-6 max-w-4xl mx-auto text-center">
+      <section className="pt-12 sm:pt-24 pb-2 sm:pb-4 px-4 sm:px-6 max-w-4xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -166,7 +166,7 @@ export default function LandingPage() {
           className="flex flex-col items-center space-y-4 sm:space-y-6"
         >
           {/* Pre-headline */}
-          <div className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-700 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black tracking-widest border border-rose-200 uppercase shadow-sm">
+          <div className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-700 px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-black tracking-widest border border-rose-200 uppercase shadow-sm">
             🔴 Peringatan untuk Owner F&B, Ritel, & Percetakan
           </div>
           
