@@ -135,7 +135,8 @@ export default function LandingPage() {
           if (res.status === 404) {
             throw new Error('Sistem sedang dalam proses pembaruan (Vercel Deploying). Mohon tunggu 1-2 menit lalu coba lagi.');
           }
-          throw new Error('Terjadi gangguan server (500). Mohon coba lagi beberapa saat.');
+          // TAMPILKAN HTML ERROR AGAR BISA DIBACA!
+          throw new Error('500 Error: ' + textRes.substring(0, 100));
         }
       } catch (e: any) {
         throw new Error(e.message || 'Terjadi kesalahan sistem.');
