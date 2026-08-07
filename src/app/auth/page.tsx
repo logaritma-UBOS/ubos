@@ -77,6 +77,32 @@ function AuthForm() {
           }
         }
 
+        // Fallback 2: Check leads table (jika user baru daftar via Landing Page tapi belum punya auth account)
+        if (signInError) {
+          const { data: leadData } = await supabase.from('leads').select('*').eq('no_wa', cleanWA).eq('password_session', password).maybeSingle();
+          if (leadData) {
+            // Auto-create auth account from lead
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: dummyEmail,
+              password,
+            });
+            
+            if (signUpError) throw new Error('Gagal memigrasi akun dari pendaftaran awal: ' + signUpError.message);
+            
+            if (signUpData.user) {
+              await supabase.from('merchants').insert([{
+                user_id: signUpData.user.id,
+                nama_usaha: leadData.nama_usaha,
+                kategori_usaha: leadData.kategori || 'kuliner',
+                whatsapp: cleanWA,
+              }]);
+              
+              signInError = null;
+              data = signUpData;
+            }
+          }
+        }
+
         if (signInError) throw new Error('Nomor WA atau password salah. Silakan coba lagi.');
 
         if (data.user) {

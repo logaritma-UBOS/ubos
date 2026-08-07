@@ -189,7 +189,7 @@ export default function LandingPage() {
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section className="pt-5 sm:pt-8 pb-8 sm:pb-12 px-4 sm:px-6 max-w-4xl mx-auto text-center">
+      <section className="pt-5 sm:pt-8 pb-4 sm:pb-6 px-4 sm:px-6 max-w-4xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -229,7 +229,7 @@ export default function LandingPage() {
       </section>
 
       {/* 3. PROBLEM & AGITATION SECTION */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-blue-600 overflow-hidden">
+      <section className="pt-10 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-blue-600 overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
