@@ -125,10 +125,24 @@ export default function LandingPage() {
         })
       });
 
-      const result = await res.json();
+      let result;
+      try {
+        const textRes = await res.text();
+        try {
+          result = JSON.parse(textRes);
+        } catch (e) {
+          console.error("Non-JSON Response from API:", textRes.substring(0, 200));
+          if (res.status === 404) {
+            throw new Error('Sistem sedang dalam proses pembaruan (Vercel Deploying). Mohon tunggu 1-2 menit lalu coba lagi.');
+          }
+          throw new Error('Terjadi gangguan server (500). Mohon coba lagi beberapa saat.');
+        }
+      } catch (e: any) {
+        throw new Error(e.message || 'Terjadi kesalahan sistem.');
+      }
 
       if (!res.ok || !result.success) {
-        throw new Error(result.error || 'Gagal mendaftar. Silakan coba lagi.');
+        throw new Error(result?.error || 'Gagal mendaftar. Silakan coba lagi.');
       }
 
       if (!result.isNew) {

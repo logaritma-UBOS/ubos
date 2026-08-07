@@ -7,12 +7,11 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
-  }
+  },
+  // Fix Turbopack error when using webpack plugins (like next-pwa)
+  turbopack: {}
 };
 
 export default withPWA(nextConfig);
