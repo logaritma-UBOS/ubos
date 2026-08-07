@@ -4,20 +4,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, ArrowRight, XCircle, CheckCircle2, ChevronRight, HelpCircle, X, User, ShoppingBag, PieChart, SplitSquareHorizontal, ArrowDownToLine, Phone, Target } from 'lucide-react';
+import { ShieldCheck, ArrowRight, XCircle, CheckCircle2, ChevronRight, HelpCircle, X, User, ShoppingBag, PieChart, SplitSquareHorizontal, ArrowDownToLine, Phone, Target, Zap, BrainCircuit, Activity, LineChart, Quote, Utensils, Printer, Store, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LandingPage() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [showDevPopup, setShowDevPopup] = useState(false);
-    const [showExistingPopup, setShowExistingPopup] = useState(false);
+  const [showExistingPopup, setShowExistingPopup] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [dashboardLink, setDashboardLink] = useState('');
-const [loading, setLoading] = useState(false);
-  const [openFaq, setOpenFaq] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const trackEvent = async (eventType) => {
+  const trackEvent = async (eventType: string) => {
     try {
       const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
       await fetch('/api/track', {
@@ -64,20 +64,14 @@ const [loading, setLoading] = useState(false);
     category: 'Kuliner & F&B'
   });
 
-  const openRegisterModal = (kategori) => {
+  const openRegisterModal = (kategori?: string) => {
     if (kategori) {
       setFormData({ ...formData, category: kategori });
     }
     setShowModal(true);
   };
 
-  const faqs = [
-    { q: "Apa bedanya UBOS dengan Aplikasi Kasir (POS) di luaran sana?", a: "Kasir biasa hanya mencatat uang masuk dan keluar. UBOS adalah 'Toolset Eksekusi Metode Logaritma' yang bekerja mundur: Anda masukkan target profit, UBOS akan mengunci maksimal belanja bahan harian (Margin Guard) agar profit tersebut PASTI tercapai, bukan sekadar sisa-sisa." },
-    { q: "Bagaimana cara UBOS mengatasi potongan Grab/Gojek/ShopeeFood?", a: "UBOS punya fitur Markup Harga Platform otomatis. Sistem akan menghitungkan harga jual yang pas untuk Gofood (35%), Grabfood (45%), atau ShopeeFood (50%) agar profit bersih Anda tidak tergerus komisi aplikator." },
-    { q: "Apakah ini bikin repot karyawan di kasir?", a: "Sama sekali tidak! Justru karyawan Anda hanya perlu klik-klik pesanan (sangat simpel). Sistem kerumitan HPP dan Margin Guard berjalan otomatis di belakang layar untuk Anda sang Owner." }
-  ];
-
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
@@ -138,7 +132,6 @@ const [loading, setLoading] = useState(false);
           if (res.status === 404) {
             throw new Error('Sistem sedang dalam proses pembaruan (Vercel Deploying). Mohon tunggu 1-2 menit lalu coba lagi.');
           }
-          // TAMPILKAN HTML ERROR AGAR BISA DIBACA!
           throw new Error('500 Error: ' + textRes.substring(0, 100));
         }
       } catch (e: any) {
@@ -221,355 +214,252 @@ const [loading, setLoading] = useState(false);
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-500/20 text-slate-800">
       
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="bg-blue-600 text-white text-center py-1.5 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-sm font-bold tracking-wide relative z-50">
-        ⚠️ PROMO LAUNCHING: Coba Gratis UBOS Toolset 7 Hari • Tanpa Potongan Platform & Tanpa Kartu Kredit!
+      <div className="bg-red-600 text-white text-center py-2 px-2 sm:px-4 text-[11px] sm:text-sm font-bold tracking-wide relative z-50">
+        ⚠️ KUNCI TARGET BISNIS ANDA: Metode Logaritma (Backward Mapping) + UBOS & Logaritma AI!
       </div>
 
       {/* Top Navigation */}
       <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 sm:h-16 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-6 h-6 sm:w-8 sm:h-8 object-contain shrink-0" />
+            <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0" />
             <div className="flex flex-col min-w-0">
-              <span className="font-black text-slate-900 tracking-tight text-sm sm:text-xl leading-none">LOGARITMA.ID</span>
+              <span className="font-black text-slate-900 tracking-tight text-lg sm:text-2xl leading-none">LOGARITMA.ID</span>
             </div>
           </div>
-
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#solusi" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Fitur Toolset</a>
-            <a href="#faq" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
-            <a href="/auth" className="text-sm font-black text-slate-400 hover:text-slate-900 transition-colors flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full"><User size={14} /> Login UBOS</a>
-          </div>
-
-          <div className="flex items-center shrink-0 md:hidden">
-            <a href="/auth" className="text-sm sm:text-base font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 px-4 py-2 rounded-full">Login UBOS</a>
+          <div className="flex items-center shrink-0">
+            <a href="/auth" className="text-sm sm:text-base font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-5 py-2 rounded-full transition-colors flex items-center gap-2">
+              <User size={16} /> Login
+            </a>
           </div>
         </div>
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section className="pt-5 sm:pt-8 pb-4 sm:pb-6 px-4 sm:px-6 max-w-4xl mx-auto text-center">
+      <section className="pt-8 sm:pt-14 pb-12 sm:pb-16 px-4 sm:px-6 max-w-5xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col items-center space-y-4 sm:space-y-6"
+          className="flex flex-col items-center space-y-5 sm:space-y-7"
         >
           {/* Pre-headline */}
-          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-blue-100 text-blue-700 px-4 py-1.5 rounded-[1.25rem] sm:rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-blue-200 uppercase shadow-sm leading-tight">
-            <span>🔴 Peringatan untuk Owner F&B,<br className="block sm:hidden" /> Ritel, & Percetakan</span>
+          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-red-100 text-red-700 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-red-200 uppercase shadow-sm leading-tight">
+            <span>🔴 Khusus untuk Anda Pemilik Bisnis Kuliner, Percetakan, Ritel, & Jasa yang Rela Banting Tulang Tiap Hari...</span>
           </div>
           
           {/* Main Headline */}
-          <h1 className="text-[32px] sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-snug sm:leading-[1.1] tracking-tight">
-            Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-blue-600 border-b-[4px] border-blue-500 pb-0.5 inline-block">Ternyata Malah Tekor!</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.2] sm:leading-[1.1] tracking-tight">
+            Capek Kerja Keras Setiap Hari, Tapi Bisnis Cuma <span className="bg-yellow-300 px-2 py-0.5 rounded-lg inline-block transform -rotate-1 mt-1">Jalan Di Tempat</span> dan Nggak Pernah Nyampai Target?
           </h1>
           
           {/* Sub-headline */}
-          <p className="text-sm sm:text-base text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
-            Jangan biarkan keuntungan usahamu habis tergerus potongan komisi delivery online dan kalkulasi HPP yang salah. <strong className="text-slate-900">Stop tebak-tebakan profit!</strong> Kenalkan UBOS Toolset: cara praktis mengunci target profit bulanan dan memisahkan kas modal belanja otomatis lewat Metode Logaritma (Metode Tarik Mundur).
+          <p className="text-sm sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
+            Saatnya tinggalkan cara lama yang cuma bikin pusing! Kenalkan <strong>Metode Logaritma</strong> dengan pendekatan <em>Backward Mapping</em>—sistem yang membantu Anda menembus target bisnis dari <strong>Outcome hingga Impact nyata</strong>, bukan sekadar jualan tanpa arah.
           </p>
 
-          <div className="w-full flex flex-col items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
+          <div className="w-full flex flex-col items-center gap-3 sm:gap-4 pt-4 sm:pt-6">
             {/* Primary CTA */}
             <button 
               onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-xl font-bold py-3.5 sm:py-5 px-6 sm:px-12 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto group border-b-[3px] sm:border-b-4 border-blue-800"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-xl font-black py-4 sm:py-5 px-6 sm:px-12 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto group border-b-[4px] border-blue-800"
             >
-              AMANKAN PROFIT BISNIS SAYA SEKARANG <ArrowRight className="shrink-0 group-hover:translate-x-2 transition-transform" strokeWidth={3} size={20} />
+              👉 [ SAYA MAU CAPAI TARGET BISNIS SEKARANG! ]
             </button>
             
             {/* Micro-trust */}
             <p className="text-xs sm:text-sm font-bold text-slate-500 flex items-center justify-center gap-1.5 leading-tight text-center">
-              <ShieldCheck size={16} className="text-emerald-500 shrink-0" /> Sudah Digunakan Ratusan Pemilik UMKM untuk Mengunci Margin.
+              <ShieldCheck size={16} className="text-blue-500 shrink-0" /> Gunakan UBOS & Dampingi Bisnis Anda dengan Logaritma AI
             </p>
           </div>
         </motion.div>
       </section>
 
       {/* 3. PROBLEM & AGITATION SECTION */}
-      <section className="pt-10 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-blue-600 overflow-hidden">
+      <section className="pt-12 pb-16 sm:pt-16 sm:pb-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-red-600 overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-10 sm:mb-16"
+            className="text-center mb-10 sm:mb-14"
           >
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4 leading-tight text-white px-2">
-              Apakah Toko Anda Sedang Mengalami 3 'Bocor Halus' Ini?
+            <h2 className="text-2xl sm:text-4xl font-black mb-4 leading-tight text-white px-2">
+              Mari Bicara Jujur... <span className="text-red-400">Pernah Mengalami Hal Ini?</span>
             </h2>
-            <div className="w-16 sm:w-24 h-1.5 bg-blue-500 mx-auto rounded-full"></div>
+            <div className="w-16 sm:w-24 h-1.5 bg-red-500 mx-auto rounded-full"></div>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8 sm:gap-8 mt-12 sm:mt-0">
-            {/* Card 1 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5 }}
-              className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
-            >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">1</div>
-              <div className="mb-5 sm:mb-6 text-blue-400"><ShoppingBag size={42} strokeWidth={1.5} /></div>
-              <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Omzet Rame, Tapi Uang Modal & Untung Nyampur Aduk</h3>
-              <p className="text-slate-400 font-medium leading-relaxed text-sm">
-                Hari ini laku keras, tapi uang kasir langsung kepakai belanja bahan besok. Giliran akhir bulan mau gaji diri sendiri, kas malah kosong melompong.
-              </p>
-            </motion.div>
-            
-            {/* Card 2 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
-            >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">2</div>
-              <div className="mb-5 sm:mb-6 text-blue-400"><ArrowDownToLine size={42} strokeWidth={1.5} /></div>
-              <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Laris di Aplikasi Online, Tapi Tekor di Komisi Platform</h3>
-              <p className="text-slate-400 font-medium leading-relaxed text-sm">
-                Orderan Gofood/Grab/ShopeeFood meledak, tapi karena salah hitung HPP dan gak markup harga jual yang benar, 35%-50% omzet raib dipotong komisi. Lelah doang!
-              </p>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
-            >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">3</div>
-              <div className="mb-5 sm:mb-6 text-blue-400"><XCircle size={42} strokeWidth={1.5} /></div>
-              <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Capek Jadi Pemadam Kebakaran Operasional</h3>
-              <p className="text-slate-400 font-medium leading-relaxed text-sm">
-                Tiap hari pusing mikirin stok bahan baku yang tiba-tiba hilang/basi. Operasional berantakan, Anda ngurusin semuanya sendirian sampai gak ada waktu mikirin strategi bisnis.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. SOLUTION & POSITIONING SECTION */}
-      <section id="solusi" className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12 sm:mb-16 max-w-3xl mx-auto"
-          >
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4 sm:mb-6 leading-tight tracking-tight">
-              UBOS <span className="text-blue-600 underline decoration-blue-200">Bukan Sekadar Kasir Biasa.</span> Ini Adalah Toolset Pengeksekusi Metode Logaritma!
-            </h2>
-            <p className="text-sm sm:text-lg text-slate-600 font-medium leading-relaxed">
-              Buang jauh-jauh bayangan tentang aplikasi kasir yang cuma bisa nge-print struk. Anggap UBOS sebagai <strong className="text-slate-900">Tim Spesialis Finansial Virtual</strong> Anda. Cukup luangkan 15-20 menit sehari, sistem akan bekerja untuk Anda:
-            </p>
-          </motion.div>
-
-          <div className="space-y-16 sm:space-y-24">
-            {/* Modul 0 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.7 }}
-              className="flex flex-col md:flex-row items-center gap-8 md:gap-16"
-            >
-              <div className="w-full md:w-1/2">
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-6 sm:p-8 shadow-inner relative overflow-hidden h-56 sm:h-64 flex items-center justify-center">
-                  <div className="absolute -right-6 -bottom-6 sm:-right-10 sm:-bottom-10 text-blue-200"><Target size={180} /></div>
-                  <div className="relative z-10 text-center">
-                    <div className="text-blue-800 font-black text-4xl sm:text-5xl mb-2">Rp 15.000.000</div>
-                    <div className="bg-white text-blue-800 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-sm inline-block uppercase tracking-wider">Target Profit Terkunci</div>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full md:w-1/2">
-                <div className="inline-block bg-blue-100 text-blue-800 font-black px-3 py-1 rounded-md text-[10px] sm:text-sm mb-3 sm:mb-4">MODUL 0: Metode Tarik Mundur</div>
-                <h3 className="text-xl sm:text-3xl font-black text-slate-900 mb-3 sm:mb-4 leading-tight">Masukkan Target Profit, Biar Sistem Yang Mikir Batas Belanja!</h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium mb-4 sm:mb-6">
-                  Pendekatan tradisional: Jualan - Biaya = Laba (Kalau sisa). <br className="hidden sm:block"/>
-                  <strong>Pendekatan Logaritma:</strong> Jualan - LABA = Biaya Maksimal. <br className="hidden sm:block"/>
-                  Anda cukup ketik target profit bulanan yang ingin dibawa pulang. UBOS otomatis memecahnya jadi target omset harian dan MENGUNCI batas maksimal belanja operasional (Margin Guard) per harinya.
-                </p>
-                <ul className="space-y-2 sm:space-y-3">
-                  <li className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-slate-700 font-bold"><CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5 sm:mt-0" size={20} /> Gak ada lagi cerita 'uangnya habis buat muter'.</li>
-                </ul>
-              </div>
-            </motion.div>
-
-            {/* Modul 2 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.7 }}
-              className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-16"
-            >
-              <div className="w-full md:w-1/2">
-                <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 sm:p-8 shadow-inner relative overflow-hidden h-56 sm:h-64 flex items-center justify-center">
-                  <div className="absolute -left-6 -bottom-6 sm:-left-10 sm:-bottom-10 text-amber-200"><PieChart size={180} /></div>
-                  <div className="relative z-10 flex flex-col gap-3 w-full max-w-[280px]">
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-amber-100 flex justify-between items-center">
-                      <span className="font-bold text-slate-600 text-xs sm:text-sm">ShopeeFood (50%)</span>
-                      <span className="font-black text-emerald-600 text-xs sm:text-base">Aman</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-amber-100 flex justify-between items-center">
-                      <span className="font-bold text-slate-600 text-xs sm:text-sm">GrabFood (45%)</span>
-                      <span className="font-black text-emerald-600 text-xs sm:text-base">Aman</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full md:w-1/2">
-                <div className="inline-block bg-amber-100 text-amber-800 font-black px-3 py-1 rounded-md text-[10px] sm:text-sm mb-3 sm:mb-4">MODUL 2: Margin Guard & HPP Otomatis</div>
-                <h3 className="text-xl sm:text-3xl font-black text-slate-900 mb-3 sm:mb-4 leading-tight">Harga Jual Otomatis Menyesuaikan Komisi Platform</h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium mb-4 sm:mb-6">
-                  Input harga modal (HPP) bahan baku Anda. Ketika ada pesanan dari Gofood, Grabfood, atau ShopeeFood, UBOS secara pintar me-markup harga jual agar potongan komisi 35% - 50% aplikator tidak memakan margin profit asli Anda.
-                </p>
-                <ul className="space-y-2 sm:space-y-3">
-                  <li className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-slate-700 font-bold"><CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5 sm:mt-0" size={20} /> Margin aman dari 'gigitan' komisi siluman.</li>
-                </ul>
-              </div>
-            </motion.div>
-
-            {/* Modul 3 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.7 }}
-              className="flex flex-col md:flex-row items-center gap-8 md:gap-16"
-            >
-              <div className="w-full md:w-1/2">
-                <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-6 sm:p-8 shadow-inner relative overflow-hidden h-56 sm:h-64 flex items-center justify-center">
-                  <div className="absolute -right-6 -bottom-6 sm:-right-10 sm:-bottom-10 text-emerald-200"><SplitSquareHorizontal size={180} /></div>
-                  <div className="relative z-10 text-center w-full max-w-[280px] space-y-2">
-                    <div className="bg-emerald-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">Kas Belanja Bahan: Rp 300.000</div>
-                    <div className="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">Kas Operasional: Rp 50.000</div>
-                    <div className="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">PROFIT BERSIH: Rp 150.000</div>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full md:w-1/2">
-                <div className="inline-block bg-emerald-100 text-emerald-800 font-black px-3 py-1 rounded-md text-[10px] sm:text-sm mb-3 sm:mb-4">MODUL 3: Auto-Split Wallet</div>
-                <h3 className="text-xl sm:text-3xl font-black text-slate-900 mb-3 sm:mb-4 leading-tight">Close Shift, Uang Langsung Terpisah Otomatis!</h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium mb-4 sm:mb-6">
-                  Tiap kali warung/toko tutup (Close Shift), UBOS langsung membedah total omzet hari itu ke dalam laci (wallet) virtual secara spesifik: Mana jatah untuk beli bahan besok pagi, mana untuk bayar operasional bulanan, dan mana PROFIT BERSIH HARI INI yang berhak Anda kantongi!
-                </p>
-                <ul className="space-y-2 sm:space-y-3">
-                  <li className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-slate-700 font-bold"><CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5 sm:mt-0" size={20} /> Gak ada alasan lagi uang modal kepakai pribadi.</li>
-                </ul>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. OFFER, FAQ & CLOSING P.S. */}
-      
-      {/* Offer Banner */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 relative">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 30 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.7 }}
-          className="max-w-4xl mx-auto bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-14 text-center border-b-[6px] sm:border-b-8 border-blue-600 shadow-2xl relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-blue-500/10 blur-[80px] rounded-full"></div>
-          
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-4 sm:mb-6 relative z-10 leading-tight">
-            Ambil Kendali Bisnismu Hari Ini. Stop Biarkan Profit Menguap!
-          </h2>
-          <p className="text-sm sm:text-lg text-slate-300 font-medium mb-8 sm:mb-10 max-w-2xl mx-auto relative z-10">
-            Daftar sekarang dan nikmati full akses ke seluruh modul Toolset Logaritma. Tidak ada potongan transaksi, tidak perlu kartu kredit.
-          </p>
-          
-          <button 
-            onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-2xl font-black py-4 sm:py-6 px-6 sm:px-10 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto mx-auto group border-b-[3px] sm:border-b-4 border-blue-800 relative z-10"
-          >
-            COBA UBOS TOOLSET GRATIS 7 HARI <ArrowRight className="shrink-0 group-hover:translate-x-2 transition-transform" strokeWidth={3} size={20} />
-          </button>
-        </motion.div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-12 sm:py-16 px-4 sm:px-6 bg-slate-50 border-t border-slate-200">
-        <div className="max-w-3xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-8 sm:mb-10"
-          >
-            <h2 className="text-xl sm:text-3xl font-black text-slate-900 mb-2 sm:mb-4">Tanya Jawab (FAQ) Singkat</h2>
-          </motion.div>
-          <div className="space-y-3 sm:space-y-4">
-            {faqs.map((faq, idx) => (
-              <motion.div 
-                key={idx} 
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Cards 1-4 */}
+            {[
+              { text: "Punya target omset tinggi, tapi bingung besok harus ngapain secara operasional?" },
+              { text: "Catatan keuangan ada, laporan rapi, tapi pas akhir bulan tetep bingung: 'Duitnya lari ke mana ya?'" },
+              { text: "Beli banyak software & tools bisnis, tapi akhirnya cuma jadi 'pajangan' karena nggak tau cara pakainya buat ngejar target?" },
+              { text: "Merasa jalan sendirian, nggak ada yang ngingetin saat operasional mulai melenceng dari jalur?" }
+            ].map((item, i) => (
+              <motion.div key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg flex items-start gap-4"
               >
-                <button 
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full p-4 sm:p-6 flex items-start justify-between text-left group"
-                >
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors"><HelpCircle size={18} className="sm:w-5 sm:h-5" /></div>
-                    <h3 className="text-sm sm:text-lg font-bold text-slate-800">{faq.q}</h3>
-                  </div>
-                  <ChevronRight className={`mt-1 shrink-0 transition-transform duration-300 ${openFaq === idx ? 'rotate-90 text-blue-600' : 'text-slate-400'}`} size={18} />
-                </button>
-                <AnimatePresence>
-                  {openFaq === idx && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 text-xs sm:text-base text-slate-600 leading-relaxed font-medium pl-10 sm:pl-14"
-                    >
-                      {faq.a}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <XCircle size={28} className="text-red-500 shrink-0 mt-0.5" />
+                <p className="text-slate-300 font-semibold text-sm sm:text-base leading-relaxed">{item.text}</p>
               </motion.div>
+            ))}
+          </div>
+
+          <motion.div 
+             initial={{ opacity: 0, scale: 0.95 }}
+             whileInView={{ opacity: 1, scale: 1 }}
+             viewport={{ once: true }}
+             className="mt-12 bg-red-600/20 border border-red-500/50 p-6 sm:p-10 rounded-3xl text-center"
+          >
+            <p className="text-base sm:text-xl font-medium leading-relaxed">
+              Kalau jawaban Anda <strong className="text-yellow-400 text-xl sm:text-2xl font-black">YA</strong>, jujur... Anda <strong>TIDAK sendirian</strong>. <br className="hidden sm:block" />
+              Ribuan owner UMKM terjebak dalam lingkaran setan yang sama: <br />
+              <strong className="text-white bg-red-600 px-3 py-1.5 rounded-lg inline-block mt-3 font-black text-sm sm:text-lg uppercase tracking-wide">Sibuk di Output (kegiatan harian), tapi Nggak Pernah Dapet Outcome & Impact-nya!</strong>
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 4. THE SOLUTION & CONCEPT */}
+      <section id="solusi" className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-50 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-block bg-blue-100 text-blue-800 font-black px-4 py-1.5 rounded-lg text-xs sm:text-sm mb-6 uppercase tracking-wider border border-blue-200 shadow-sm">
+            Bukan Sekadar Tools Biasa. Ini Adalah 'Sistem Navigasi Bisnis' Anda!
+          </div>
+          
+          <div className="bg-white border-2 border-slate-200 p-8 sm:p-12 rounded-[2rem] shadow-xl mb-12 relative">
+            <Quote className="absolute top-6 left-6 text-slate-100 w-16 h-16" />
+            <p className="text-base sm:text-xl text-slate-700 font-medium leading-relaxed relative z-10 text-left sm:text-center px-2 sm:px-8">
+              Bayangkan kalau Anda mau pergi ke Jakarta dari Bandung. Apakah Anda langsung tancap gas tanpa tahu jalurnya? Tentu tidak! <strong>Anda tentukan dulu tujuannya (Target/Impact)</strong>, baru ditarik mundur menentukan rutenya (<em>Backward Mapping</em>). Itulah <strong className="bg-yellow-200 px-2 py-0.5 rounded">Metode Logaritma</strong>.
+            </p>
+          </div>
+          
+          <p className="text-base sm:text-2xl text-slate-800 font-bold leading-relaxed max-w-3xl mx-auto">
+            Di Logaritma.id, kami <strong className="text-red-600 underline">tidak memberikan tools pasif</strong> yang cuma nunggu diisi data. Kami memberikan <strong>UBOS (Universal Business Operational System)</strong> yang dipadu dengan <strong>Logaritma AI</strong>.
+          </p>
+        </div>
+      </section>
+
+      {/* 5. THE POWER OF UBOS & LOGARITMA AI */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative border-t border-slate-200">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
+              2 Pilar Utama Yang Akan <span className="bg-yellow-300 px-2 py-0.5 rounded-lg inline-block transform -rotate-1 mt-1">Mengubah Cara Anda</span> Menjalankan Bisnis:
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12">
+            {/* Pilar 1 */}
+            <div className="bg-blue-50 border-2 border-blue-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-blue-400 transition-colors shadow-lg">
+              <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform">
+                <Activity size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Pilar 1: UBOS</h3>
+              <p className="text-xs sm:text-sm font-bold text-blue-700 uppercase tracking-widest mb-4">Universal Business Operational System</p>
+              <p className="text-slate-600 font-medium mb-8">Sistem operasional fleksibel yang dirancang khusus untuk sektor Kuliner, Percetakan, Ritel, dan Jasa.</p>
+              
+              <ul className="space-y-5">
+                <li className="flex items-start gap-4">
+                  <CheckCircle2 size={24} className="text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>Backward Mapping Framework</strong> — Memecah target besar tahunan/bulanan Anda menjadi action plan harian yang sangat jelas untuk tim.</p>
+                </li>
+                <li className="flex items-start gap-4">
+                  <CheckCircle2 size={24} className="text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>Fokus pada Outcome & Impact</strong> — Bukan cuma nyatat transaksi, tapi memastikan setiap langkah operasional berdampak langsung ke profit.</p>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pilar 2 */}
+            <div className="bg-indigo-50 border-2 border-indigo-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-indigo-400 transition-colors shadow-lg">
+              <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform">
+                <BrainCircuit size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Pilar 2: Logaritma AI</h3>
+              <p className="text-xs sm:text-sm font-bold text-indigo-700 uppercase tracking-widest mb-4">Asisten Bisnis 24/7</p>
+              <p className="text-slate-600 font-medium mb-8">Bukan sekadar AI generik. Ini adalah <strong>Co-Pilot bisnis Anda</strong>.</p>
+              
+              <ul className="space-y-5">
+                <li className="flex items-start gap-4">
+                  <Zap size={24} className="text-indigo-600 shrink-0 mt-0.5" fill="currentColor" />
+                  <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>AKTIF</strong> — Dia yang bakal nagih dan ngingetin Anda! <em className="bg-white px-2 py-1 rounded inline-block mt-2 shadow-sm text-indigo-900 border border-indigo-100 font-bold">"Bos, penjualan minggu ini kurang 15% dari target. Yuk jalankan strategi promo A!"</em></p>
+                </li>
+                <li className="flex items-start gap-4">
+                  <LineChart size={24} className="text-indigo-600 shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>REAKTIF</strong> — Bingung mengambil keputusan? Tanya Logaritma AI kapan saja, dan dapatkan analisis berbasis data bisnis Anda sendiri.</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. SOCIAL PROOF & CALLOUT */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-900 text-white relative">
+        <div className="max-w-5xl mx-auto">
+          {/* Quote Box */}
+          <div className="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto mb-16 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 blur-[50px] rounded-full"></div>
+            <p className="text-lg sm:text-2xl font-medium leading-relaxed italic text-slate-300 relative z-10">
+              "Aset terbesar seorang Owner Bisnis bukanlah seberapa keras dia bekerja, tapi <strong className="text-white underline decoration-blue-500">seberapa tepat SISTEM</strong> yang membimbing jalannya setiap hari."
+            </p>
+          </div>
+
+          <div className="text-center mb-10 sm:mb-14">
+            <h3 className="text-2xl sm:text-3xl font-black text-white">Cocok untuk Anda yang memiliki bisnis:</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: Utensils, title: "Kuliner", desc: "Atur target harian, kontrol bahan baku, & kejar margin presisi." },
+              { icon: Printer, title: "Percetakan", desc: "Petakan kapasitas produksi dengan target revenue harian." },
+              { icon: Store, title: "Ritel", desc: "Jaga ketersediaan stok & pergerakan omset tanpa takut bocor." },
+              { icon: Wrench, title: "Jasa", desc: "Hitung capacity rate dan pastikan setiap project menghasilkan profit riil." }
+            ].map((b, i) => (
+              <div key={i} className="bg-slate-800 p-6 sm:p-8 rounded-[2rem] border border-slate-700 hover:border-blue-500 transition-colors text-center flex flex-col items-center">
+                <b.icon size={42} className="text-blue-400 mb-5" />
+                <h4 className="text-xl font-black mb-3 text-white">{b.title}</h4>
+                <p className="text-sm text-slate-400 font-medium leading-relaxed">{b.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Closing P.S. */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-slate-100 border-t border-slate-200 text-center">
+      {/* 7. CLOSING & CALL TO ACTION */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 relative bg-white border-t border-slate-200">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto"
+          transition={{ duration: 0.7 }}
+          className="max-w-4xl mx-auto bg-gradient-to-br from-blue-600 to-blue-900 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-16 text-center shadow-2xl relative overflow-hidden"
         >
-          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-10 shadow-sm inline-block text-left w-full sm:w-auto">
-            <h3 className="font-black text-lg sm:text-xl text-amber-900 mb-3 sm:mb-4">P.S. (Postscript):</h3>
-            <p className="text-sm sm:text-base text-amber-800 font-medium leading-relaxed mb-3 sm:mb-4">
-              Setiap hari Anda menunda merapikan sistem kasir dan HPP, sama dengan <strong className="text-blue-700">membiarkan uang ratusan ribu menguap bocor</strong> tanpa Anda sadari.
-            </p>
-            <p className="text-sm sm:text-base text-amber-800 font-medium leading-relaxed font-bold">
-              Ambil keputusan cerdas hari ini. Mumpung masa <strong className="bg-amber-200 px-1 rounded">TRIAL 7 HARI GRATIS</strong> masih dibuka untuk umum.
-            </p>
-          </div>
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/30 blur-[80px] rounded-full"></div>
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-800/50 blur-[80px] rounded-full"></div>
+
+          <h2 className="text-3xl sm:text-5xl font-black text-white mb-6 sm:mb-8 relative z-10 leading-tight">
+            Jangan Biarkan Bisnis Anda Jalan <span className="text-yellow-300">Tanpa Arah</span> Satu Hari Pun Lagi!
+          </h2>
+          <p className="text-base sm:text-lg text-blue-100 font-medium mb-10 sm:mb-12 max-w-2xl mx-auto relative z-10 leading-relaxed">
+            Pilihan ada di tangan Anda hari ini: Tetap pakai cara lama yang bikin lelah tanpa hasil pasti... atau <strong className="text-white bg-blue-800/50 px-2 py-0.5 rounded">mulai gunakan Metode Logaritma</strong> yang siap membimbing Anda mencapai Outcome & Impact yang selama ini diimpikan.
+          </p>
+          
+          <button 
+            onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
+            className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 text-sm sm:text-xl font-black py-5 sm:py-6 px-6 sm:px-10 rounded-full shadow-xl shadow-yellow-400/30 hover:shadow-yellow-400/50 transition-all active:scale-95 flex items-center justify-center w-full sm:w-auto mx-auto group border-b-[5px] border-yellow-600 relative z-10"
+          >
+            👉 [ KLIK DI SINI UNTUK MULAI BERSAMA LOGARITMA.ID ]
+          </button>
+          <p className="text-blue-200 text-xs sm:text-sm font-bold mt-5 relative z-10">Mulai petakan target bisnis Anda dengan UBOS & Logaritma AI sekarang!</p>
         </motion.div>
       </section>
 
@@ -712,5 +602,3 @@ const [loading, setLoading] = useState(false);
     </div>
   );
 }
-
-
