@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -232,10 +232,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="pt-3 border-t border-slate-800/50 mt-3">
             <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Legacy Tools</p>
-            <Link href="/admin?menu=FUNNEL" onClick={() => setIsSidebarOpen(false)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-800/50 hover:text-slate-300 transition-all">
+            <Link href="/admin/crm" onClick={() => setIsSidebarOpen(false)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${isActive('/admin/crm') ? activeColorMap['emerald'] : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'}`}>
               <Zap size={17} className="shrink-0" />
-              WA CRM (Legacy)
+              WA CRM
             </Link>
           </div>
         </div>
