@@ -42,7 +42,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${poppins.variable} font-sans`}>
-      <body className={`${poppins.className} bg-slate-200 text-slate-900 antialiased`}>
+      
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                  registration.unregister();
+                }
+              });
+            }
+          `
+        }} />
+
+        <body className={`${poppins.className} bg-slate-200 text-slate-900 antialiased`}>
         <AppShell>
           {children}
         </AppShell>
