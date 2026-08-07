@@ -64,6 +64,12 @@ export default function LandingPage() {
     category: 'Kuliner & F&B'
   });
 
+  const faqs = [
+    { q: "Apa bedanya UBOS dengan Aplikasi Kasir (POS) di luaran sana?", a: "Kasir biasa hanya mencatat uang masuk dan keluar. UBOS adalah 'Toolset Eksekusi Metode Logaritma' yang bekerja mundur: Anda masukkan target profit, UBOS akan mengunci maksimal belanja bahan harian (Margin Guard) agar profit tersebut PASTI tercapai, bukan sekadar sisa-sisa." },
+    { q: "Bagaimana cara UBOS mengatasi potongan Grab/Gojek/ShopeeFood?", a: "UBOS punya fitur Markup Harga Platform otomatis. Sistem akan menghitungkan harga jual yang pas untuk Gofood (35%), Grabfood (45%), atau ShopeeFood (50%) agar profit bersih Anda tidak tergerus komisi aplikator." },
+    { q: "Apakah ini bikin repot karyawan di kasir?", a: "Sama sekali tidak! Justru karyawan Anda hanya perlu klik-klik pesanan (sangat simpel). Sistem kerumitan HPP dan Margin Guard berjalan otomatis di belakang layar untuk Anda sang Owner." }
+  ];
+
   const openRegisterModal = (kategori?: string) => {
     if (kategori) {
       setFormData({ ...formData, category: kategori });
@@ -210,16 +216,33 @@ export default function LandingPage() {
     }
   };
 
+  const animProps = {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-50px" },
+    transition: { duration: 0.5, ease: "easeOut" }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-500/20 text-slate-800">
       
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="bg-red-600 text-white text-center py-2 px-2 sm:px-4 text-[11px] sm:text-sm font-bold tracking-wide relative z-50">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="bg-red-600 text-white text-center py-2 px-2 sm:px-4 text-[11px] sm:text-sm font-bold tracking-wide relative z-50"
+      >
         ⚠️ KUNCI TARGET BISNIS ANDA: Metode Logaritma (Backward Mapping) + UBOS & Logaritma AI!
-      </div>
+      </motion.div>
 
       {/* Top Navigation */}
-      <nav className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 shadow-sm">
+      <motion.nav 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="sticky top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 shadow-sm"
+      >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img src="/assets/images/logo-logaritma.png" alt="Logaritma Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0" />
@@ -233,58 +256,53 @@ export default function LandingPage() {
             </a>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* 2. HERO SECTION */}
       <section className="pt-8 sm:pt-14 pb-12 sm:pb-16 px-4 sm:px-6 max-w-5xl mx-auto text-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col items-center space-y-5 sm:space-y-7"
-        >
-          {/* Pre-headline */}
-          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-red-100 text-red-700 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-red-200 uppercase shadow-sm leading-tight">
-            <span>🔴 Khusus untuk Anda Pemilik Bisnis Kuliner, Percetakan, Ritel, & Jasa yang Rela Banting Tulang Tiap Hari...</span>
-          </div>
+        <div className="flex flex-col items-center space-y-5 sm:space-y-7">
           
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.2] sm:leading-[1.1] tracking-tight">
+          <motion.div {...animProps}>
+            <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-red-100 text-red-700 px-4 py-2 rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-red-200 uppercase shadow-sm leading-tight">
+              <span>🔴 Khusus untuk Anda Pemilik Bisnis Kuliner, Percetakan, Ritel, & Jasa yang Rela Banting Tulang Tiap Hari...</span>
+            </div>
+          </motion.div>
+          
+          <motion.h1 
+            {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.2] sm:leading-[1.1] tracking-tight"
+          >
             Capek Kerja Keras Setiap Hari, Tapi Bisnis Cuma <span className="bg-yellow-300 px-2 py-0.5 rounded-lg inline-block transform -rotate-1 mt-1">Jalan Di Tempat</span> dan Nggak Pernah Nyampai Target?
-          </h1>
+          </motion.h1>
           
-          {/* Sub-headline */}
-          <p className="text-sm sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
+          <motion.p 
+            {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+            className="text-sm sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium"
+          >
             Saatnya tinggalkan cara lama yang cuma bikin pusing! Kenalkan <strong>Metode Logaritma</strong> dengan pendekatan <em>Backward Mapping</em>—sistem yang membantu Anda menembus target bisnis dari <strong>Outcome hingga Impact nyata</strong>, bukan sekadar jualan tanpa arah.
-          </p>
+          </motion.p>
 
-          <div className="w-full flex flex-col items-center gap-3 sm:gap-4 pt-4 sm:pt-6">
-            {/* Primary CTA */}
+          <motion.div 
+            {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+            className="w-full flex flex-col items-center gap-3 sm:gap-4 pt-4 sm:pt-6"
+          >
             <button 
               onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
               className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-xl font-black py-4 sm:py-5 px-6 sm:px-12 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto group border-b-[4px] border-blue-800"
             >
               👉 [ SAYA MAU CAPAI TARGET BISNIS SEKARANG! ]
             </button>
-            
-            {/* Micro-trust */}
             <p className="text-xs sm:text-sm font-bold text-slate-500 flex items-center justify-center gap-1.5 leading-tight text-center">
               <ShieldCheck size={16} className="text-blue-500 shrink-0" /> Gunakan UBOS & Dampingi Bisnis Anda dengan Logaritma AI
             </p>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </section>
 
       {/* 3. PROBLEM & AGITATION SECTION */}
       <section className="pt-12 pb-16 sm:pt-16 sm:pb-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-red-600 overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-10 sm:mb-14"
-          >
+          <motion.div {...animProps} className="text-center mb-10 sm:mb-14">
             <h2 className="text-2xl sm:text-4xl font-black mb-4 leading-tight text-white px-2">
               Mari Bicara Jujur... <span className="text-red-400">Pernah Mengalami Hal Ini?</span>
             </h2>
@@ -292,7 +310,6 @@ export default function LandingPage() {
           </motion.div>
           
           <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Cards 1-4 */}
             {[
               { text: "Punya target omset tinggi, tapi bingung besok harus ngapain secara operasional?" },
               { text: "Catatan keuangan ada, laporan rapi, tapi pas akhir bulan tetep bingung: 'Duitnya lari ke mana ya?'" },
@@ -300,10 +317,10 @@ export default function LandingPage() {
               { text: "Merasa jalan sendirian, nggak ada yang ngingetin saat operasional mulai melenceng dari jalur?" }
             ].map((item, i) => (
               <motion.div key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: i * 0.15 }}
                 className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg flex items-start gap-4"
               >
                 <XCircle size={28} className="text-red-500 shrink-0 mt-0.5" />
@@ -313,9 +330,7 @@ export default function LandingPage() {
           </div>
 
           <motion.div 
-             initial={{ opacity: 0, scale: 0.95 }}
-             whileInView={{ opacity: 1, scale: 1 }}
-             viewport={{ once: true }}
+             {...animProps} transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
              className="mt-12 bg-red-600/20 border border-red-500/50 p-6 sm:p-10 rounded-3xl text-center"
           >
             <p className="text-base sm:text-xl font-medium leading-relaxed">
@@ -330,35 +345,37 @@ export default function LandingPage() {
       {/* 4. THE SOLUTION & CONCEPT */}
       <section id="solusi" className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-50 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block bg-blue-100 text-blue-800 font-black px-4 py-1.5 rounded-lg text-xs sm:text-sm mb-6 uppercase tracking-wider border border-blue-200 shadow-sm">
-            Bukan Sekadar Tools Biasa. Ini Adalah 'Sistem Navigasi Bisnis' Anda!
-          </div>
+          <motion.div {...animProps}>
+            <div className="inline-block bg-blue-100 text-blue-800 font-black px-4 py-1.5 rounded-lg text-xs sm:text-sm mb-6 uppercase tracking-wider border border-blue-200 shadow-sm">
+              Bukan Sekadar Tools Biasa. Ini Adalah 'Sistem Navigasi Bisnis' Anda!
+            </div>
+          </motion.div>
           
-          <div className="bg-white border-2 border-slate-200 p-8 sm:p-12 rounded-[2rem] shadow-xl mb-12 relative">
+          <motion.div {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }} className="bg-white border-2 border-slate-200 p-8 sm:p-12 rounded-[2rem] shadow-xl mb-12 relative">
             <Quote className="absolute top-6 left-6 text-slate-100 w-16 h-16" />
             <p className="text-base sm:text-xl text-slate-700 font-medium leading-relaxed relative z-10 text-left sm:text-center px-2 sm:px-8">
               Bayangkan kalau Anda mau pergi ke Jakarta dari Bandung. Apakah Anda langsung tancap gas tanpa tahu jalurnya? Tentu tidak! <strong>Anda tentukan dulu tujuannya (Target/Impact)</strong>, baru ditarik mundur menentukan rutenya (<em>Backward Mapping</em>). Itulah <strong className="bg-yellow-200 px-2 py-0.5 rounded">Metode Logaritma</strong>.
             </p>
-          </div>
+          </motion.div>
           
-          <p className="text-base sm:text-2xl text-slate-800 font-bold leading-relaxed max-w-3xl mx-auto">
+          <motion.p {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} className="text-base sm:text-2xl text-slate-800 font-bold leading-relaxed max-w-3xl mx-auto">
             Di Logaritma.id, kami <strong className="text-red-600 underline">tidak memberikan tools pasif</strong> yang cuma nunggu diisi data. Kami memberikan <strong>UBOS (Universal Business Operational System)</strong> yang dipadu dengan <strong>Logaritma AI</strong>.
-          </p>
+          </motion.p>
         </div>
       </section>
 
       {/* 5. THE POWER OF UBOS & LOGARITMA AI */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative border-t border-slate-200">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
+          <motion.div {...animProps} className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
               2 Pilar Utama Yang Akan <span className="bg-yellow-300 px-2 py-0.5 rounded-lg inline-block transform -rotate-1 mt-1">Mengubah Cara Anda</span> Menjalankan Bisnis:
             </h2>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 sm:gap-12">
             {/* Pilar 1 */}
-            <div className="bg-blue-50 border-2 border-blue-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-blue-400 transition-colors shadow-lg">
+            <motion.div {...animProps} transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }} className="bg-blue-50 border-2 border-blue-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-blue-400 transition-colors shadow-lg">
               <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform">
                 <Activity size={32} />
               </div>
@@ -376,10 +393,10 @@ export default function LandingPage() {
                   <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>Fokus pada Outcome & Impact</strong> — Bukan cuma nyatat transaksi, tapi memastikan setiap langkah operasional berdampak langsung ke profit.</p>
                 </li>
               </ul>
-            </div>
+            </motion.div>
 
             {/* Pilar 2 */}
-            <div className="bg-indigo-50 border-2 border-indigo-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-indigo-400 transition-colors shadow-lg">
+            <motion.div {...animProps} transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }} className="bg-indigo-50 border-2 border-indigo-200 p-8 sm:p-10 rounded-[2rem] relative overflow-hidden group hover:border-indigo-400 transition-colors shadow-lg">
               <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform">
                 <BrainCircuit size={32} />
               </div>
@@ -397,7 +414,7 @@ export default function LandingPage() {
                   <p className="text-sm sm:text-base font-semibold text-slate-700 leading-relaxed"><strong>REAKTIF</strong> — Bingung mengambil keputusan? Tanya Logaritma AI kapan saja, dan dapatkan analisis berbasis data bisnis Anda sendiri.</p>
                 </li>
               </ul>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -406,16 +423,16 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-900 text-white relative">
         <div className="max-w-5xl mx-auto">
           {/* Quote Box */}
-          <div className="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto mb-16 shadow-2xl relative overflow-hidden">
+          <motion.div {...animProps} className="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto mb-16 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 blur-[50px] rounded-full"></div>
             <p className="text-lg sm:text-2xl font-medium leading-relaxed italic text-slate-300 relative z-10">
               "Aset terbesar seorang Owner Bisnis bukanlah seberapa keras dia bekerja, tapi <strong className="text-white underline decoration-blue-500">seberapa tepat SISTEM</strong> yang membimbing jalannya setiap hari."
             </p>
-          </div>
+          </motion.div>
 
-          <div className="text-center mb-10 sm:mb-14">
+          <motion.div {...animProps} transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }} className="text-center mb-10 sm:mb-14">
             <h3 className="text-2xl sm:text-3xl font-black text-white">Cocok untuk Anda yang memiliki bisnis:</h3>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
@@ -424,11 +441,17 @@ export default function LandingPage() {
               { icon: Store, title: "Ritel", desc: "Jaga ketersediaan stok & pergerakan omset tanpa takut bocor." },
               { icon: Wrench, title: "Jasa", desc: "Hitung capacity rate dan pastikan setiap project menghasilkan profit riil." }
             ].map((b, i) => (
-              <div key={i} className="bg-slate-800 p-6 sm:p-8 rounded-[2rem] border border-slate-700 hover:border-blue-500 transition-colors text-center flex flex-col items-center">
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 + (i * 0.1) }}
+                className="bg-slate-800 p-6 sm:p-8 rounded-[2rem] border border-slate-700 hover:border-blue-500 transition-colors text-center flex flex-col items-center"
+              >
                 <b.icon size={42} className="text-blue-400 mb-5" />
                 <h4 className="text-xl font-black mb-3 text-white">{b.title}</h4>
                 <p className="text-sm text-slate-400 font-medium leading-relaxed">{b.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -440,7 +463,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
           className="max-w-4xl mx-auto bg-gradient-to-br from-blue-600 to-blue-900 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-16 text-center shadow-2xl relative overflow-hidden"
         >
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/30 blur-[80px] rounded-full"></div>
@@ -463,14 +486,58 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* 8. FAQ Section */}
+      <section id="faq" className="py-16 sm:py-20 px-4 sm:px-6 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-3xl mx-auto">
+          <motion.div {...animProps} className="text-center mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2 sm:mb-4">Tanya Jawab (FAQ) Singkat</h2>
+          </motion.div>
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <motion.div 
+                key={idx} 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: idx * 0.1 }}
+                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
+              >
+                <button 
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  className="w-full p-5 sm:p-6 flex items-start justify-between text-left group"
+                >
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors"><HelpCircle size={18} className="sm:w-5 sm:h-5" /></div>
+                    <h3 className="text-sm sm:text-lg font-bold text-slate-800">{faq.q}</h3>
+                  </div>
+                  <ChevronRight className={`mt-1 shrink-0 transition-transform duration-300 ${openFaq === idx ? 'rotate-90 text-blue-600' : 'text-slate-400'}`} size={18} />
+                </button>
+                <AnimatePresence>
+                  {openFaq === idx && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0 text-sm sm:text-base text-slate-600 leading-relaxed font-medium pl-11 sm:pl-14"
+                    >
+                      {faq.a}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-8 sm:py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-center md:text-left">
+        <motion.div {...animProps} className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
             <span className="font-black text-slate-800 text-lg sm:text-xl tracking-tight">LOGARITMA.ID</span>
           </div>
           <p className="text-slate-500 font-bold text-xs sm:text-sm">Sistem Eksekusi Logaritma © {new Date().getFullYear()}</p>
-        </div>
+        </motion.div>
       </footer>
 
       {/* Registration Modal */}
