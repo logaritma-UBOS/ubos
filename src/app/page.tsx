@@ -76,13 +76,6 @@ export default function LandingPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
-    if (formData.category !== "Kuliner & F&B") {
-      setShowModal(false);
-      setShowDevPopup(true);
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -101,9 +94,12 @@ export default function LandingPage() {
 
       if (existingWa) {
         toast.error("Nomor WhatsApp ini sudah terdaftar. Silakan login untuk melanjutkan.");
-        router.push('/member/login');
+        router.push('/auth');
         return;
       }
+
+      const isFnB = formData.category === "Kuliner & F&B";
+      const funnelDest = isFnB ? 'UBOS' : 'MEMBER_AREA';
 
       const leadData = {
         nama_usaha: formData.merchantName,
@@ -112,20 +108,30 @@ export default function LandingPage() {
       };
       
       localStorage.setItem('ubos_lead', JSON.stringify(leadData));
-      localStorage.setItem('ubos_temp_pass', formData.password);
+      if (isFnB) {
+        localStorage.setItem('ubos_temp_pass', formData.password);
+      }
 
+      // Record to Leads Database with new schema fields
       await supabase.from('leads').insert([
         {
           nama_usaha: formData.merchantName,
           no_wa: cleanWA,
           kategori: formData.category,
-          status: 'New Lead'
+          status: 'New Lead',
+          password_session: formData.password,
+          funnel_destination: funnelDest
         }
       ]);
       
-      toast.success("Berhasil! Mengalihkan ke Dashboard UBOS...");
       setShowModal(false);
-      router.push(`/ubos`);
+
+      if (isFnB) {
+        toast.success("Berhasil! Mengalihkan ke Dashboard UBOS...");
+        router.push(`/ubos`);
+      } else {
+        setShowDevPopup(true);
+      }
       
     } catch (err) {
       toast.error(err.message || 'Terjadi kesalahan.');
