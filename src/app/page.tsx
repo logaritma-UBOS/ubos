@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -155,11 +155,11 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8">
             <a href="#solusi" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Fitur Toolset</a>
             <a href="#faq" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
-            <a href="/member/login" className="text-sm font-black text-slate-400 hover:text-slate-900 transition-colors flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full"><User size={14} /> Member Area</a>
+            <a href="/auth" className="text-sm font-black text-slate-400 hover:text-slate-900 transition-colors flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full"><User size={14} /> Login UBOS</a>
           </div>
 
           <div className="flex items-center shrink-0 md:hidden">
-            <a href="/member/login" className="text-sm sm:text-base font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 px-4 py-2 rounded-full">Login</a>
+            <a href="/auth" className="text-sm sm:text-base font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 px-4 py-2 rounded-full">Login UBOS</a>
           </div>
         </div>
       </nav>
