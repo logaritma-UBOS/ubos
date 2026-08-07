@@ -164,6 +164,9 @@ export default function LandingPage() {
       try {
         const welcomeMessage = `Halo {nama_usaha}! 🚀\n\nSelamat bergabung di ekosistem Logaritma UBOS.\nPendaftaran Anda telah kami terima.\n\nSilakan akses dashboard Anda melalui tautan berikut:\n{link_dashboard}\n\nJika ada pertanyaan, jangan ragu membalas pesan ini!\n\n- Tim Logaritma`;
         
+        const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
+        const dashboardLink = isFnB ? `https://logaritma.id/ubos/kuliner/${slug}` : 'https://logaritma.id/member';
+        
         fetch('/api/wa/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -171,7 +174,8 @@ export default function LandingPage() {
             target: cleanWA,
             message: welcomeMessage,
             nama_usaha: formData.merchantName,
-            funnel_destination: funnelDest
+            funnel_destination: funnelDest,
+            dashboard_link: dashboardLink
           })
         }).catch(err => console.error("Fonnte trigger err:", err));
       } catch (waErr) {
@@ -188,8 +192,14 @@ export default function LandingPage() {
         setShowDevPopup(true);
       }
       
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || 'Terjadi kesalahan.');
+      if (err.message && err.message.toLowerCase().includes('sudah terdaftar')) {
+        setTimeout(() => {
+          setShowModal(false);
+          router.push('/auth');
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }

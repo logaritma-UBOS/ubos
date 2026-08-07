@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         let finalMessage = messageTemplate
           .replace(/{nama_usaha}/g, lead.nama_usaha || 'Bapak/Ibu')
           .replace(/{whatsapp}/g, lead.target || '')
-          .replace(/{link_dashboard}/g, lead.funnel_destination === 'UBOS' ? 'https://logaritma.id/ubos' : 'https://logaritma.id/member');
+          .replace(/{link_dashboard}/g, lead.dashboard_link || (lead.funnel_destination === 'UBOS' ? 'https://logaritma.id/ubos' : 'https://logaritma.id/member'));
           
         const formData = new URLSearchParams();
         formData.append('target', lead.target);
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       // MODE SINGLE (Welcome WA)
       let finalMessage = (message || 'Halo, pendaftaran berhasil!')
         .replace(/{nama_usaha}/g, body.nama_usaha || 'Bapak/Ibu')
-        .replace(/{link_dashboard}/g, body.funnel_destination === 'UBOS' ? 'https://logaritma.id/ubos' : 'https://logaritma.id/member');
+        .replace(/{link_dashboard}/g, body.dashboard_link || (body.funnel_destination === 'UBOS' ? 'https://logaritma.id/ubos' : 'https://logaritma.id/member'));
 
       const formData = new URLSearchParams();
       formData.append('target', target);
