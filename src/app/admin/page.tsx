@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +8,10 @@ import {
   Users, Clock, Activity, Crown, TrendingUp, BarChart3,
   DollarSign, ShoppingCart, Megaphone, Code2, Printer,
   ArrowRight, Sparkles, Loader2, RefreshCw, Target, ChevronRight,
-  CheckCircle2, Zap
+  CheckCircle2, Zap, MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 const REVENUE_STREAMS = [
   { id: 'saas', label: 'SaaS Subscription', icon: Crown, color: 'blue', target: 5000000, unit: '/bln' },
@@ -34,6 +35,7 @@ export default function AdminDashboardPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [isSendingWA, setIsSendingWA] = useState<Record<string, boolean>>({});
   const [analyticsData, setAnalyticsData] = useState({
     totalVisitors: 0,
     registerClicks: 0,
@@ -75,21 +77,27 @@ export default function AdminDashboardPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const now = Date.now();
-
   const metrics = useMemo(() => {
-    let active = 0, vvip = 0, expired = 0, today = 0;
     const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-    merchants.forEach(m => {
+    const nowMs = Date.now();
+    
+    // Total Merchants: All registered users
+    const total = leads.length;
+    
+    // Trial Aktif: Users in trial (registered < 7 days ago)
+    const active = leads.filter(l => l.created_at && (nowMs - new Date(l.created_at).getTime()) <= 7 * 24 * 60 * 60 * 1000).length;
+    
+    // Premium (VVIP): Paid users (from merchants table)
+    const vvip = merchants.filter(m => {
       const exp = m.trial_expires_at ? new Date(m.trial_expires_at).getTime() : 0;
-      const isVVIP = exp > now + 3000 * 24 * 60 * 60 * 1000;
-      if (isVVIP) vvip++;
-      else if (exp > now) active++;
-      else expired++;
-      if (m.last_active_at && new Date(m.last_active_at).getTime() >= startOfToday.getTime()) today++;
-    });
-    return { total: merchants.length, active, vvip, expired, today };
-  }, [merchants, now]);
+      return exp > nowMs + 3000 * 24 * 60 * 60 * 1000 || m.status === 'Active' || m.status === 'Premium';
+    }).length;
+
+    // Aktif Hari Ini: New registrations today
+    const today = leads.filter(l => l.created_at && new Date(l.created_at).getTime() >= startOfToday.getTime()).length;
+    
+    return { total, active, vvip, today };
+  }, [leads, merchants]);
 
   const leadsMetrics = useMemo(() => {
     const totalLeads = leads.length;
@@ -104,7 +112,7 @@ export default function AdminDashboardPage() {
     };
     
     leads.forEach(l => {
-      if (catCount[l.kategori] !== undefined) catCount[l.kategori]++;
+      if (catCount[l.kategori as keyof typeof catCount] !== undefined) catCount[l.kategori as keyof typeof catCount]++;
       else if (l.kategori?.includes('Kuliner')) catCount['Kuliner & F&B']++;
       else catCount['Jasa / Lainnya']++;
     });
@@ -132,6 +140,35 @@ export default function AdminDashboardPage() {
 
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
   const fmtK = (n: number) => n >= 1000000 ? `Rp ${(n/1000000).toFixed(1)}jt` : `Rp ${n.toLocaleString('id-ID')}`;
+
+  const handleFollowUp = async (id: string, wa: string, name: string) => {
+    setIsSendingWA(prev => ({ ...prev, [id]: true }));
+    const loadingToast = toast.loading('Mengirim WA via Fonnte...');
+    try {
+      const clean = (wa || '').replace(/\D/g, '').replace(/^0+/, '62');
+      const msg = `Halo kak dari ${name || 'Toko'}! 👋 Ini dari tim Logaritma.\n\nSelamat datang di ekosistem kami! Jika ada yang mau ditanyakan atau ingin konsultasi, tim kami siap bantu!\n\n📲 Akses Dashboard: https://logaritma.id/auth`;
+      
+      const res = await fetch('/api/wa/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: clean,
+          message: msg,
+          nama_usaha: name,
+        })
+      });
+
+      if (res.ok) {
+        toast.success('WA Follow-Up berhasil terkirim!', { id: loadingToast });
+      } else {
+        toast.error('Gagal kirim WA', { id: loadingToast });
+      }
+    } catch {
+      toast.error('Error kirim WA', { id: loadingToast });
+    } finally {
+      setIsSendingWA(prev => ({ ...prev, [id]: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -204,7 +241,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Merchants', value: metrics.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-          { label: 'Trial Aktif', value: metrics.active, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+          { label: 'Trial Aktif (< 7 hr)', value: metrics.active, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
           { label: 'Premium (VVIP)', value: metrics.vvip, icon: Crown, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
           { label: 'Aktif Hari Ini', value: metrics.today, icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
         ].map((s, i) => (
@@ -216,8 +253,98 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
+      {/* Tabel Recent Leads / Quick Action */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 mt-8 overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h3 className="font-black text-white flex items-center gap-2">
+            <Users size={18} className="text-purple-400" /> Recent Leads & Quick Action
+          </h3>
+          <select 
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-xl px-4 py-2 outline-none focus:border-blue-500 font-bold"
+          >
+            <option value="All">Semua Kategori</option>
+            <option value="Kuliner">Kuliner & F&B</option>
+            <option value="Percetakan">Percetakan</option>
+            <option value="Ritel">Ritel</option>
+            <option value="Jasa / Lainnya">Jasa / Lainnya</option>
+          </select>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-300">
+            <thead className="bg-slate-800/50 text-xs uppercase text-slate-500 font-black">
+              <tr>
+                <th className="px-6 py-4">Waktu Daftar</th>
+                <th className="px-6 py-4">Nama Usaha / Toko</th>
+                <th className="px-6 py-4">WhatsApp</th>
+                <th className="px-6 py-4">Kategori & Destination</th>
+                <th className="px-6 py-4 text-right">Akses Cepat</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {filteredLeads.slice(0, 50).map((lead, i) => (
+                <tr key={lead.id || i} className="hover:bg-slate-800/50 transition-colors">
+                  <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
+                    {lead.created_at ? new Date(lead.created_at).toLocaleString('id-ID') : '-'}
+                  </td>
+                  <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{lead.nama_usaha || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <a href={`https://wa.me/${lead.no_wa}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
+                      +{lead.no_wa}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                        lead.kategori?.includes('Kuliner') ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
+                        lead.kategori?.includes('Percetakan') ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                        lead.kategori?.includes('Ritel') ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                        'bg-slate-700 text-slate-300 border border-slate-600'
+                      }`}>
+                        {lead.kategori || 'Unknown'}
+                      </span>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center w-fit gap-1 ${
+                        lead.funnel_destination === 'UBOS' || lead.kategori?.includes('Kuliner') 
+                          ? 'bg-emerald-500/10 text-emerald-400' 
+                          : 'bg-indigo-500/10 text-indigo-400'
+                      }`}>
+                        {lead.funnel_destination === 'UBOS' || lead.kategori?.includes('Kuliner') ? <CheckCircle2 size={12}/> : <Activity size={12}/>}
+                        {lead.funnel_destination || (lead.kategori?.includes('Kuliner') ? 'UBOS' : 'MEMBER_AREA')}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <button
+                      onClick={() => handleFollowUp(lead.id, lead.no_wa, lead.nama_usaha)}
+                      disabled={isSendingWA[lead.id]}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 transition-colors disabled:opacity-50"
+                    >
+                      {isSendingWA[lead.id] ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                      Hubungi WA
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredLeads.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
+                    Belum ada data pendaftar untuk kategori ini.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          {filteredLeads.length > 50 && (
+             <div className="p-4 text-center border-t border-slate-800 text-xs text-slate-500">
+               Menampilkan 50 pendaftar terbaru.
+             </div>
+          )}
+        </div>
+      </div>
+
       {/* 5 Revenue Streams Profit Tracker */}
-      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6">
+      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 mt-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -350,86 +477,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Tabel Data Leads / Users */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 mt-8 overflow-hidden">
-        <div className="p-5 md:p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="font-black text-white flex items-center gap-2">
-            <Users size={18} className="text-purple-400" /> Database Registrasi Pendaftar
-          </h3>
-          <select 
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-xl px-4 py-2 outline-none focus:border-blue-500 font-bold"
-          >
-            <option value="All">Semua Kategori</option>
-            <option value="Kuliner">Kuliner & F&B</option>
-            <option value="Percetakan">Percetakan</option>
-            <option value="Ritel">Ritel</option>
-            <option value="Jasa / Lainnya">Jasa / Lainnya</option>
-          </select>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-800/50 text-xs uppercase text-slate-500 font-black">
-              <tr>
-                <th className="px-6 py-4">Nama Usaha / Toko</th>
-                <th className="px-6 py-4">WhatsApp</th>
-                <th className="px-6 py-4">Kategori Usaha</th>
-                <th className="px-6 py-4">Status Funnel</th>
-                <th className="px-6 py-4">Waktu Daftar</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {filteredLeads.slice(0, 50).map((lead, i) => (
-                <tr key={lead.id || i} className="hover:bg-slate-800/50 transition-colors">
-                  <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{lead.nama_usaha || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a href={`https://wa.me/${lead.no_wa}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
-                      +{lead.no_wa}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                      lead.kategori?.includes('Kuliner') ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
-                      lead.kategori?.includes('Percetakan') ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
-                      lead.kategori?.includes('Ritel') ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                      'bg-slate-700 text-slate-300 border border-slate-600'
-                    }`}>
-                      {lead.kategori || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center w-fit gap-1 ${
-                      lead.funnel_destination === 'UBOS' || lead.kategori?.includes('Kuliner') 
-                        ? 'bg-emerald-500/10 text-emerald-400' 
-                        : 'bg-indigo-500/10 text-indigo-400'
-                    }`}>
-                      {lead.funnel_destination === 'UBOS' || lead.kategori?.includes('Kuliner') ? <CheckCircle2 size={12}/> : <Activity size={12}/>}
-                      {lead.funnel_destination || (lead.kategori?.includes('Kuliner') ? 'UBOS' : 'MEMBER_AREA')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
-                    {new Date(lead.created_at).toLocaleString('id-ID')}
-                  </td>
-                </tr>
-              ))}
-              {filteredLeads.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
-                    Belum ada data pendaftar untuk kategori ini.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          {filteredLeads.length > 50 && (
-             <div className="p-4 text-center border-t border-slate-800 text-xs text-slate-500">
-               Menampilkan 50 data terbaru.
-             </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
