@@ -124,6 +124,24 @@ export default function LandingPage() {
         }
       ]);
       
+      // AUTO-WELCOME WA VIA FONNTE
+      try {
+        const welcomeMessage = `Halo {nama_usaha}! 🚀\n\nSelamat bergabung di ekosistem Logaritma UBOS.\nPendaftaran Anda telah kami terima.\n\nSilakan akses dashboard Anda melalui tautan berikut:\n{link_dashboard}\n\nJika ada pertanyaan, jangan ragu membalas pesan ini!\n\n- Tim Logaritma`;
+        
+        await fetch('/api/wa/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target: cleanWA,
+            message: welcomeMessage,
+            nama_usaha: formData.merchantName,
+            funnel_destination: funnelDest
+          })
+        });
+      } catch (waErr) {
+        console.error("Gagal mengirim WA Welcome:", waErr);
+      }
+      
       setShowModal(false);
 
       if (isFnB) {
