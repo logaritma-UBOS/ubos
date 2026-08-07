@@ -113,7 +113,7 @@ export default function LandingPage() {
       }
 
       // Panggil API Route untuk bypass RLS & Handle Cek/Insert
-      const res = await fetch('/api/leads/register', {
+      const res = await fetch('/api/leads/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
