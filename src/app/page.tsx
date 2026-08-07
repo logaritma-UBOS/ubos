@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -128,10 +128,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-rose-500/20 text-slate-800">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-500/20 text-slate-800">
       
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="bg-rose-600 text-white text-center py-1.5 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-sm font-bold tracking-wide relative z-50">
+      <div className="bg-blue-600 text-white text-center py-1.5 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-sm font-bold tracking-wide relative z-50">
         ⚠️ PROMO LAUNCHING: Coba Gratis UBOS Toolset 7 Hari • Tanpa Potongan Platform & Tanpa Kartu Kredit!
       </div>
 
@@ -146,8 +146,8 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#solusi" className="text-sm font-bold text-slate-600 hover:text-rose-600 transition-colors">Fitur Toolset</a>
-            <a href="#faq" className="text-sm font-bold text-slate-600 hover:text-rose-600 transition-colors">FAQ</a>
+            <a href="#solusi" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Fitur Toolset</a>
+            <a href="#faq" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
             <a href="/member/login" className="text-sm font-black text-slate-400 hover:text-slate-900 transition-colors flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full"><User size={14} /> Member Area</a>
           </div>
 
@@ -166,13 +166,13 @@ export default function LandingPage() {
           className="flex flex-col items-center space-y-4 sm:space-y-6"
         >
           {/* Pre-headline */}
-          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-rose-100 text-rose-700 px-4 py-1.5 rounded-[1.25rem] sm:rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-rose-200 uppercase shadow-sm leading-tight">
+          <div className="inline-flex items-center justify-center text-center w-fit mx-auto bg-blue-100 text-blue-700 px-4 py-1.5 rounded-[1.25rem] sm:rounded-full text-[10px] sm:text-xs font-black tracking-widest border border-blue-200 uppercase shadow-sm leading-tight">
             <span>🔴 Peringatan untuk Owner F&B,<br className="block sm:hidden" /> Ritel, & Percetakan</span>
           </div>
           
           {/* Main Headline */}
           <h1 className="text-[32px] sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-snug sm:leading-[1.1] tracking-tight">
-            Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-rose-600 border-b-[4px] border-rose-500 pb-0.5 inline-block">Ternyata Malah Tekor!</span>
+            Awas 'Bocor Halus'! Kelihatan Laris Manis di Kasir, Tapi Pas Dihitung Ulang <span className="text-blue-600 border-b-[4px] border-blue-500 pb-0.5 inline-block">Ternyata Malah Tekor!</span>
           </h1>
           
           {/* Sub-headline */}
@@ -184,7 +184,7 @@ export default function LandingPage() {
             {/* Primary CTA */}
             <button 
               onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-              className="bg-rose-600 hover:bg-rose-700 text-white text-base sm:text-xl font-bold py-3.5 sm:py-5 px-6 sm:px-12 rounded-full shadow-xl shadow-rose-600/30 hover:shadow-rose-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto group border-b-[3px] sm:border-b-4 border-rose-800"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-xl font-bold py-3.5 sm:py-5 px-6 sm:px-12 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto group border-b-[3px] sm:border-b-4 border-blue-800"
             >
               AMANKAN PROFIT BISNIS SAYA SEKARANG <ArrowRight className="shrink-0 group-hover:translate-x-2 transition-transform" strokeWidth={3} size={20} />
             </button>
@@ -198,7 +198,7 @@ export default function LandingPage() {
       </section>
 
       {/* 3. PROBLEM & AGITATION SECTION */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-rose-600 overflow-hidden">
+      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-slate-900 text-white relative border-y-8 border-blue-600 overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
@@ -210,7 +210,7 @@ export default function LandingPage() {
             <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4 leading-tight text-white px-2">
               Apakah Toko Anda Sedang Mengalami 3 'Bocor Halus' Ini?
             </h2>
-            <div className="w-16 sm:w-24 h-1.5 bg-rose-500 mx-auto rounded-full"></div>
+            <div className="w-16 sm:w-24 h-1.5 bg-blue-500 mx-auto rounded-full"></div>
           </motion.div>
           
           <div className="grid md:grid-cols-3 gap-8 sm:gap-8 mt-12 sm:mt-0">
@@ -222,8 +222,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
             >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-rose-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">1</div>
-              <div className="mb-5 sm:mb-6 text-rose-400"><ShoppingBag size={42} strokeWidth={1.5} /></div>
+              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">1</div>
+              <div className="mb-5 sm:mb-6 text-blue-400"><ShoppingBag size={42} strokeWidth={1.5} /></div>
               <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Omzet Rame, Tapi Uang Modal & Untung Nyampur Aduk</h3>
               <p className="text-slate-400 font-medium leading-relaxed text-sm">
                 Hari ini laku keras, tapi uang kasir langsung kepakai belanja bahan besok. Giliran akhir bulan mau gaji diri sendiri, kas malah kosong melompong.
@@ -238,8 +238,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
             >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-rose-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">2</div>
-              <div className="mb-5 sm:mb-6 text-rose-400"><ArrowDownToLine size={42} strokeWidth={1.5} /></div>
+              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">2</div>
+              <div className="mb-5 sm:mb-6 text-blue-400"><ArrowDownToLine size={42} strokeWidth={1.5} /></div>
               <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Laris di Aplikasi Online, Tapi Tekor di Komisi Platform</h3>
               <p className="text-slate-400 font-medium leading-relaxed text-sm">
                 Orderan Gofood/Grab/ShopeeFood meledak, tapi karena salah hitung HPP dan gak markup harga jual yang benar, 35%-50% omzet raib dipotong komisi. Lelah doang!
@@ -254,8 +254,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-700 shadow-xl relative mt-4 md:mt-0"
             >
-              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-rose-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">3</div>
-              <div className="mb-5 sm:mb-6 text-rose-400"><XCircle size={42} strokeWidth={1.5} /></div>
+              <div className="absolute -top-6 -left-2 sm:-left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-2xl border-4 border-slate-900">3</div>
+              <div className="mb-5 sm:mb-6 text-blue-400"><XCircle size={42} strokeWidth={1.5} /></div>
               <h3 className="text-lg sm:text-xl font-black mb-3 leading-snug">Capek Jadi Pemadam Kebakaran Operasional</h3>
               <p className="text-slate-400 font-medium leading-relaxed text-sm">
                 Tiap hari pusing mikirin stok bahan baku yang tiba-tiba hilang/basi. Operasional berantakan, Anda ngurusin semuanya sendirian sampai gak ada waktu mikirin strategi bisnis.
@@ -276,7 +276,7 @@ export default function LandingPage() {
             className="text-center mb-12 sm:mb-16 max-w-3xl mx-auto"
           >
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4 sm:mb-6 leading-tight tracking-tight">
-              UBOS <span className="text-rose-600 underline decoration-rose-200">Bukan Sekadar Kasir Biasa.</span> Ini Adalah Toolset Pengeksekusi Metode Logaritma!
+              UBOS <span className="text-blue-600 underline decoration-blue-200">Bukan Sekadar Kasir Biasa.</span> Ini Adalah Toolset Pengeksekusi Metode Logaritma!
             </h2>
             <p className="text-sm sm:text-lg text-slate-600 font-medium leading-relaxed">
               Buang jauh-jauh bayangan tentang aplikasi kasir yang cuma bisa nge-print struk. Anggap UBOS sebagai <strong className="text-slate-900">Tim Spesialis Finansial Virtual</strong> Anda. Cukup luangkan 15-20 menit sehari, sistem akan bekerja untuk Anda:
@@ -364,7 +364,7 @@ export default function LandingPage() {
                   <div className="relative z-10 text-center w-full max-w-[280px] space-y-2">
                     <div className="bg-emerald-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">Kas Belanja Bahan: Rp 300.000</div>
                     <div className="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">Kas Operasional: Rp 50.000</div>
-                    <div className="bg-rose-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">PROFIT BERSIH: Rp 150.000</div>
+                    <div className="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg font-black text-xs sm:text-sm shadow-md">PROFIT BERSIH: Rp 150.000</div>
                   </div>
                 </div>
               </div>
@@ -392,9 +392,9 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7 }}
-          className="max-w-4xl mx-auto bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-14 text-center border-b-[6px] sm:border-b-8 border-rose-600 shadow-2xl relative overflow-hidden"
+          className="max-w-4xl mx-auto bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-14 text-center border-b-[6px] sm:border-b-8 border-blue-600 shadow-2xl relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-rose-500/10 blur-[80px] rounded-full"></div>
+          <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-blue-500/10 blur-[80px] rounded-full"></div>
           
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-4 sm:mb-6 relative z-10 leading-tight">
             Ambil Kendali Bisnismu Hari Ini. Stop Biarkan Profit Menguap!
@@ -405,7 +405,7 @@ export default function LandingPage() {
           
           <button 
             onClick={() => { trackEvent('click_cta_register'); openRegisterModal(); }}
-            className="bg-rose-600 hover:bg-rose-700 text-white text-base sm:text-2xl font-black py-4 sm:py-6 px-6 sm:px-10 rounded-full shadow-xl shadow-rose-600/30 hover:shadow-rose-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto mx-auto group border-b-[3px] sm:border-b-4 border-rose-800 relative z-10"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-2xl font-black py-4 sm:py-6 px-6 sm:px-10 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto mx-auto group border-b-[3px] sm:border-b-4 border-blue-800 relative z-10"
           >
             COBA UBOS TOOLSET GRATIS 7 HARI <ArrowRight className="shrink-0 group-hover:translate-x-2 transition-transform" strokeWidth={3} size={20} />
           </button>
@@ -439,10 +439,10 @@ export default function LandingPage() {
                   className="w-full p-4 sm:p-6 flex items-start justify-between text-left group"
                 >
                   <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="mt-0.5 text-blue-500 group-hover:text-rose-600 transition-colors"><HelpCircle size={18} className="sm:w-5 sm:h-5" /></div>
+                    <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors"><HelpCircle size={18} className="sm:w-5 sm:h-5" /></div>
                     <h3 className="text-sm sm:text-lg font-bold text-slate-800">{faq.q}</h3>
                   </div>
-                  <ChevronRight className={`mt-1 shrink-0 transition-transform duration-300 ${openFaq === idx ? 'rotate-90 text-rose-600' : 'text-slate-400'}`} size={18} />
+                  <ChevronRight className={`mt-1 shrink-0 transition-transform duration-300 ${openFaq === idx ? 'rotate-90 text-blue-600' : 'text-slate-400'}`} size={18} />
                 </button>
                 <AnimatePresence>
                   {openFaq === idx && (
@@ -474,7 +474,7 @@ export default function LandingPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-10 shadow-sm inline-block text-left w-full sm:w-auto">
             <h3 className="font-black text-lg sm:text-xl text-amber-900 mb-3 sm:mb-4">P.S. (Postscript):</h3>
             <p className="text-sm sm:text-base text-amber-800 font-medium leading-relaxed mb-3 sm:mb-4">
-              Setiap hari Anda menunda merapikan sistem kasir dan HPP, sama dengan <strong className="text-rose-700">membiarkan uang ratusan ribu menguap bocor</strong> tanpa Anda sadari.
+              Setiap hari Anda menunda merapikan sistem kasir dan HPP, sama dengan <strong className="text-blue-700">membiarkan uang ratusan ribu menguap bocor</strong> tanpa Anda sadari.
             </p>
             <p className="text-sm sm:text-base text-amber-800 font-medium leading-relaxed font-bold">
               Ambil keputusan cerdas hari ini. Mumpung masa <strong className="bg-amber-200 px-1 rounded">TRIAL 7 HARI GRATIS</strong> masih dibuka untuk umum.
@@ -512,11 +512,11 @@ export default function LandingPage() {
               <form id="register-modal" onSubmit={handleRegister} className="space-y-4 sm:space-y-5">
                 <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Nama Pemilik Usaha</label>
-                  <input required type="text" value={formData.ownerName} onChange={e => setFormData({...formData, ownerName: e.target.value})} placeholder="Sesuai KTP/Panggilan" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-rose-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
+                  <input required type="text" value={formData.ownerName} onChange={e => setFormData({...formData, ownerName: e.target.value})} placeholder="Sesuai KTP/Panggilan" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
                 </div>
                 <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Nama Usaha / Toko</label>
-                  <input required type="text" value={formData.merchantName} onChange={e => setFormData({...formData, merchantName: e.target.value})} placeholder="Nama Brand Anda" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-rose-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
+                  <input required type="text" value={formData.merchantName} onChange={e => setFormData({...formData, merchantName: e.target.value})} placeholder="Nama Brand Anda" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
                 </div>
                 <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Nomor WhatsApp Aktif</label>
@@ -524,12 +524,12 @@ export default function LandingPage() {
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-slate-400">
                       <Phone size={16} className="sm:w-4 sm:h-4" />
                     </div>
-                    <input required type="tel" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} placeholder="0812xxxx..." className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-rose-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
+                    <input required type="tel" value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} placeholder="0812xxxx..." className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Kategori Usaha</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-rose-500 focus:bg-white transition-all font-bold text-slate-800 appearance-none text-sm sm:text-base">
+                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 appearance-none text-sm sm:text-base">
                     <option value="Kuliner & F&B">Kuliner & F&B (Warung, Resto, Cafe)</option>
                     <option value="Fotokopi & Percetakan">Fotokopi & Percetakan</option>
                     <option value="Toko & Ritel">Toko & Ritel (Minimarket, Olshop)</option>
@@ -540,7 +540,7 @@ export default function LandingPage() {
             </div>
 
             <div className="p-5 sm:p-8 pt-0 bg-white mt-1 sm:mt-2 shrink-0">
-              <button disabled={loading} form="register-modal" type="submit" className="w-full bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-black text-sm sm:text-lg py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all shadow-xl shadow-rose-600/20 flex items-center justify-center gap-2 border-b-4 border-rose-800">
+              <button disabled={loading} form="register-modal" type="submit" className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black text-sm sm:text-lg py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2 border-b-4 border-blue-800">
                 {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : <>MASUK KE DASHBOARD SEKARANG <ArrowRight size={18} strokeWidth={3} className="sm:w-5 sm:h-5" /></>}
               </button>
               <p className="text-center text-[9px] sm:text-[10px] font-bold text-slate-400 mt-3 sm:mt-4 uppercase tracking-widest flex items-center justify-center gap-1">
@@ -553,4 +553,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
