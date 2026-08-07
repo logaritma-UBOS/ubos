@@ -212,7 +212,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Nav */}
         <div className="flex-1 overflow-y-auto px-3 space-y-1">
           <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 mt-2">Main Menu</p>
-          {navItems.map((item) => (
+          
+          {/* Explicit Dashboard Overview Link for Safety */}
+          <Link href="/admin" onClick={() => setIsSidebarOpen(false)}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
+              ${isActive('/admin')
+                ? activeColorMap['blue']
+                : `text-slate-400 ${inactiveHoverMap['blue']}`
+              }
+            `}>
+            <LayoutDashboard size={17} className="shrink-0" />
+            <span className="flex-1">Dashboard Overview</span>
+            {isActive('/admin') && <ChevronRight size={13} className="shrink-0 opacity-70" />}
+          </Link>
+
+          {navItems.filter(i => i.href !== '/admin').map((item) => (
             <Link key={item.href} href={item.href} onClick={() => setIsSidebarOpen(false)}
               className={`
                 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
