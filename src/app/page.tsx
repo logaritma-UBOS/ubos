@@ -152,7 +152,8 @@ export default function LandingPage() {
         toast.success("Login berhasil! Mengalihkan...");
         
         if (result.data?.funnel_destination === 'UBOS' || isFnB) {
-          router.push(`/ubos`);
+          const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
+          router.push(`/ubos/kuliner/${slug}`);
         } else {
           setShowDevPopup(true);
         }
@@ -181,7 +182,8 @@ export default function LandingPage() {
 
       if (isFnB) {
         toast.success("Berhasil! Mengalihkan ke Dashboard UBOS...");
-        router.push(`/ubos`);
+        const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
+        router.push(`/ubos/kuliner/${slug}`);
       } else {
         setShowDevPopup(true);
       }
