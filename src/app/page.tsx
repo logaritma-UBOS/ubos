@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 export default function LandingPage() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [showDevPopup, setShowDevPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -54,7 +55,7 @@ export default function LandingPage() {
   }, []);
 
   const [formData, setFormData] = useState({
-    ownerName: '',
+    password: '',
     merchantName: '',
     whatsapp: '',
     category: 'Kuliner & F&B'
@@ -75,6 +76,13 @@ export default function LandingPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    if (formData.category !== "Kuliner & F&B") {
+      setShowModal(false);
+      setShowDevPopup(true);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -93,32 +101,31 @@ export default function LandingPage() {
 
       if (existingWa) {
         toast.error("Nomor WhatsApp ini sudah terdaftar. Silakan login untuk melanjutkan.");
-        router.push('/auth');
+        router.push('/member/login');
         return;
       }
 
       const leadData = {
         nama_usaha: formData.merchantName,
-        owner_name: formData.ownerName,
         whatsapp: cleanWA,
         kategori_usaha: formData.category,
       };
       
       localStorage.setItem('ubos_lead', JSON.stringify(leadData));
+      localStorage.setItem('ubos_temp_pass', formData.password);
 
       await supabase.from('leads').insert([
         {
-          nama_pemilik: formData.ownerName,
           nama_usaha: formData.merchantName,
           no_wa: cleanWA,
           kategori: formData.category,
           status: 'New Lead'
         }
       ]);
-      toast.success("Berhasil! Mengalihkan ke Member Area...");
+      
+      toast.success("Berhasil! Mengalihkan ke Dashboard UBOS...");
       setShowModal(false);
-      const categoryParam = encodeURIComponent(formData.category.toLowerCase().split(' ')[0] || 'kuliner');
-      router.push(`/member?category=${categoryParam}`);
+      router.push(`/ubos`);
       
     } catch (err) {
       toast.error(err.message || 'Terjadi kesalahan.');
@@ -511,10 +518,6 @@ export default function LandingPage() {
             <div className="p-5 sm:p-8 overflow-y-auto">
               <form id="register-modal" onSubmit={handleRegister} className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Nama Pemilik Usaha</label>
-                  <input required type="text" value={formData.ownerName} onChange={e => setFormData({...formData, ownerName: e.target.value})} placeholder="Sesuai KTP/Panggilan" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
-                </div>
-                <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Nama Usaha / Toko</label>
                   <input required type="text" value={formData.merchantName} onChange={e => setFormData({...formData, merchantName: e.target.value})} placeholder="Nama Brand Anda" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
                 </div>
@@ -528,12 +531,16 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Password Login</label>
+                  <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Minimal 6 karakter" minLength={6} className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 text-sm sm:text-base" />
+                </div>
+                <div>
                   <label className="block text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 sm:mb-2">Kategori Usaha</label>
                   <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl sm:rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold text-slate-800 appearance-none text-sm sm:text-base">
-                    <option value="Kuliner & F&B">Kuliner & F&B (Warung, Resto, Cafe)</option>
-                    <option value="Fotokopi & Percetakan">Fotokopi & Percetakan</option>
-                    <option value="Toko & Ritel">Toko & Ritel (Minimarket, Olshop)</option>
-                    <option value="Laundry & Jasa">Laundry & Jasa</option>
+                    <option value="Kuliner & F&B">Kuliner & F&B</option>
+                    <option value="Percetakan">Percetakan</option>
+                    <option value="Ritel">Ritel</option>
+                    <option value="Jasa / Lainnya">Jasa / Lainnya</option>
                   </select>
                 </div>
               </form>
@@ -547,6 +554,29 @@ export default function LandingPage() {
                 <ShieldCheck size={10} className="sm:w-3 sm:h-3" /> 100% Aman & Terenkripsi
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dev Popup Modal */}
+      {showDevPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden flex flex-col p-6 sm:p-8 text-center relative border-[3px] sm:border-4 border-white">
+            <button onClick={() => setShowDevPopup(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+              <X size={16} strokeWidth={2.5} />
+            </button>
+            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <Target size={32} strokeWidth={2.5} />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-2 sm:mb-3">
+              Modul {formData.category} Sedang Dalam Pengembangan 🚀
+            </h3>
+            <p className="text-sm text-slate-600 font-medium leading-relaxed mb-6 sm:mb-8">
+              Modul khusus kategori ini sedang kami siapkan untuk pengalaman terbaik Anda. Saat ini Anda dapat mengakses Member Area Logaritma untuk menikmati materi edukasi, modul pendukung, dan support system kami.
+            </p>
+            <button onClick={() => { setShowDevPopup(false); router.push('/member'); }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+              Masuk ke Member Area <ArrowRight size={18} strokeWidth={3} />
+            </button>
           </div>
         </div>
       )}
