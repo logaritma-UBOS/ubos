@@ -70,9 +70,21 @@ export async function POST(req: Request) {
         }
       }
 
-      // 2. Insert ke capital_transactions (tipe INFLOW) ───────────────────
+      // 2. Insert UTAMA ke cash_transactions agar sinkron dengan Finance Dashboard
       const desc = `Pendanaan Investor: ${itemNames || itemIds.join(', ')}`;
-      const { error: txErr } = await supabaseAdmin.from('capital_transactions').insert([{
+      
+      const { error: cashTxErr } = await supabaseAdmin.from('cash_transactions').insert([{
+        transaction_date: new Date().toISOString().split('T')[0],
+        type:        'IN',
+        category:    'Inject Modal Investor',
+        description: desc,
+        amount:      amount,
+      }]);
+      
+      if (cashTxErr) console.error('cash_transactions insert error:', cashTxErr);
+      
+      // Catat juga ke capital_transactions sebagai log duplikat/histori spesifik investor
+      await supabaseAdmin.from('capital_transactions').insert([{
         tipe:       'INFLOW',
         kategori:   'Modal Investor',
         nominal:    amount,
@@ -81,16 +93,6 @@ export async function POST(req: Request) {
         email:      email,
         created_at: new Date().toISOString(),
       }]);
-      if (txErr) {
-        // Fallback ke cash_transactions jika capital_transactions belum ada
-        await supabaseAdmin.from('cash_transactions').insert([{
-          transaction_date: new Date().toISOString().split('T')[0],
-          type:        'IN',
-          category:    'Inject Modal Investor',
-          description: desc,
-          amount:      amount,
-        }]);
-      }
 
       // 3. Buat akun Supabase Auth untuk investor ─────────────────────────
       if (email) {

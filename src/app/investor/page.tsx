@@ -62,61 +62,44 @@ export default function InvestorPortal() {
   useEffect(() => {
     const fetchFunding = async () => {
       try {
-        // Jalankan semua query secara paralel
         const [
           { data: fundingItemsData },
-          { data: capTxData },
           { data: cashTxData },
         ] = await Promise.all([
           supabase.from('funding_items').select('title, is_funded, price'),
-          supabase.from('capital_transactions').select('deskripsi, nominal').eq('tipe', 'INFLOW'),
-          supabase.from('cash_transactions').select('description, amount, category').eq('type', 'IN'),
+          supabase.from('cash_transactions').select('description, amount, category').eq('type', 'IN').eq('category', 'Inject Modal Investor'),
         ]);
 
-        // Kumpulkan semua title yang terfunded dari SEMUA sumber (union)
+        // Set UI Checklist for funded items (hanya untuk tampilan visual centang)
         const fundedTitles = new Set<string>();
-
-        // ── Sumber 1: funding_items.is_funded (paling akurat) ──────────────
         if (fundingItemsData) {
           fundingItemsData.forEach(f => {
             if (f.is_funded) fundedTitles.add(f.title);
           });
         }
-
-        // ── Sumber 2: capital_transactions (INFLOW dari webhook/admin) ──────
-        if (capTxData) {
-          capTxData.forEach(tx => {
-            const matchedTitle = Object.values(ITEM_ID_MAP).find(t => (tx.deskripsi || '').includes(t));
+        
+        // Cek juga dari deskripsi transaksi barangkali ada item yg didanai parsial
+        if (cashTxData) {
+          cashTxData.forEach(tx => {
+            const matchedTitle = Object.values(ITEM_ID_MAP).find(t => (tx.description || '').includes(t));
             if (matchedTitle) fundedTitles.add(matchedTitle);
           });
         }
 
-        // ── Sumber 3: cash_transactions (legacy manual injection) ────────────
-        if (cashTxData) {
-          cashTxData.forEach(tx => {
-            const isInvestorTx = tx.category === 'Inject Modal Investor' || tx.category === 'Modal Investor';
-            if (isInvestorTx) {
-              const matchedTitle = Object.values(ITEM_ID_MAP).find(t => (tx.description || '').includes(t));
-              if (matchedTitle) fundedTitles.add(matchedTitle);
-            }
-          });
-        }
-
-        // Map funded titles → item IDs
         const funded = FUNDING_ITEMS.filter(item =>
           fundedTitles.has(ITEM_ID_MAP[item.id])
         ).map(i => i.id);
-
-        // ── Hitung terkumpul dari HARGA ITEM yang terfunded ──────────────────
-        // Ini adalah satu-satunya sumber kebenaran — konsisten, tidak double count
-        const terkumpul = FUNDING_ITEMS
-          .filter(item => funded.includes(item.id))
-          .reduce((acc, item) => acc + item.price, 0);
-
+        
         setFundedItems(funded);
-        setAccumulatedFund(terkumpul);
-        // Hanya pilih item yang belum terfunded untuk checkout baru
         setSelectedItems(FUNDING_ITEMS.filter(i => !funded.includes(i.id)).map(i => i.id));
+
+        // ── REAL TIME TERKUMPUL DARI TRANSAKSI KAS ──────────────────
+        // Single source of truth untuk angka rupiah
+        let totalTerkumpul = 0;
+        if (cashTxData) {
+          totalTerkumpul = cashTxData.reduce((acc, tx) => acc + Number(tx.amount), 0);
+        }
+        setAccumulatedFund(totalTerkumpul);
 
       } catch (err) {
         console.error('Failed to fetch funding data', err);
