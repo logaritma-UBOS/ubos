@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,27 +42,57 @@ const tabBorderActive: Record<string, string> = {
 
 export default function ServicesPage() {
   const [activeTab, setActiveTab] = useState<'cetak' | 'ads' | 'shopee' | 'custom'>('cetak');
-  const [loading, setLoading] = useState(false);
-
-  // Cetak orders from DB or fallback to local state
-  const [cetakOrders, setCetakOrders] = useState<any[]>([
-    { id: 'c1', merchant: 'Warung Sarapan Pak Budi', type: 'Stiker A5 (100 pcs)', status: 'Proses', date: '2026-08-05', price: 75000 },
-    { id: 'c2', merchant: 'Kopi Kangen', type: 'Foto Produk (5 foto)', status: 'Selesai', date: '2026-08-04', price: 150000 },
-    { id: 'c3', merchant: 'Nasi Bebek Madura', type: 'Spanduk 3x1m', status: 'Pending', date: '2026-08-06', price: 120000 },
-  ]);
-  const [customProjects, setCustomProjects] = useState<any[]>([
-    { id: 'p1', client: 'PT. Maju Bersama', project: 'Custom Sistem Kasir Multi-Outlet', status: 'On Progress', value: 5000000, deadline: '2026-09-01' },
-    { id: 'p2', client: 'Franchise Bakso Nusantara', project: 'Integrasi Laporan Keuangan', status: 'Proposal', value: 3500000, deadline: '2026-10-15' },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>([]);
 
   // Modal state
-  const [isCetakModalOpen, setIsCetakModalOpen] = useState(false);
-  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
-  const [cetakForm, setCetakForm] = useState({ merchant: '', type: '', price: '', date: new Date().toISOString().split('T')[0], status: 'Pending' });
-  const [customForm, setCustomForm] = useState({ client: '', project: '', value: '', deadline: '', status: 'Proposal' });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formCategory, setFormCategory] = useState<'CETAK' | 'META_ADS' | 'SHOPEE' | 'CUSTOM'>('CETAK');
+  
+  const [formData, setFormData] = useState({
+    merchant_name: '',
+    service_type: '',
+    price: '',
+    status: 'Pending'
+  });
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ecosystem_orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Error fetching orders:", error);
+        // Fallback aman jika tabel tidak ada
+        setOrders([]);
+      } else {
+        setOrders(data || []);
+      }
+    } catch (err) {
+      console.error("Fallback catch:", err);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const cetakOrders = orders.filter(o => o.category === 'CETAK');
+  const customProjects = orders.filter(o => o.category === 'CUSTOM');
+  const metaAds = orders.filter(o => o.category === 'META_ADS');
+  const shopeeOrders = orders.filter(o => o.category === 'SHOPEE');
 
   const cetakRevenue = cetakOrders.filter(o => o.status === 'Selesai').reduce((s, o) => s + Number(o.price), 0);
-  const customRevenue = customProjects.reduce((s, p) => s + Number(p.value), 0);
+  const adsRevenue = metaAds.filter(o => o.status === 'Selesai').reduce((s, o) => s + Number(o.price), 0);
+  const shopeeRevenue = shopeeOrders.filter(o => o.status === 'Selesai').reduce((s, o) => s + Number(o.price), 0);
+  const customRevenue = customProjects.filter(o => o.status === 'Selesai').reduce((s, o) => s + Number(o.price), 0);
+
   const fmt = (n: number) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
   const tabs = [
@@ -72,45 +102,99 @@ export default function ServicesPage() {
     { id: 'custom', label: 'Custom Project', icon: Code2, color: 'emerald' },
   ];
 
-  const addCetakOrder = () => {
-    if (!cetakForm.merchant || !cetakForm.type || !cetakForm.price) return;
-    setCetakOrders(prev => [...prev, { id: Date.now().toString(), ...cetakForm, price: parseFloat(cetakForm.price) }]);
-    setCetakForm({ merchant: '', type: '', price: '', date: new Date().toISOString().split('T')[0], status: 'Pending' });
-    setIsCetakModalOpen(false);
-    toast.success('Order cetak ditambahkan!');
+  const handleOpenModal = (category: 'CETAK' | 'META_ADS' | 'SHOPEE' | 'CUSTOM') => {
+    setFormCategory(category);
+    setFormData({ merchant_name: '', service_type: '', price: '', status: 'Pending' });
+    setIsModalOpen(true);
   };
 
-  const addCustomProject = () => {
-    if (!customForm.client || !customForm.project || !customForm.value) return;
-    setCustomProjects(prev => [...prev, { id: Date.now().toString(), ...customForm, value: parseFloat(customForm.value) }]);
-    setCustomForm({ client: '', project: '', value: '', deadline: '', status: 'Proposal' });
-    setIsCustomModalOpen(false);
-    toast.success('Custom project ditambahkan!');
+  const handleAddOrder = async () => {
+    if (!formData.merchant_name || !formData.service_type || !formData.price) {
+      toast.error("Harap isi semua kolom wajib!");
+      return;
+    }
+
+    const payload = {
+      merchant_name: formData.merchant_name,
+      service_type: formData.service_type,
+      category: formCategory,
+      price: parseFloat(formData.price),
+      status: formData.status
+    };
+
+    try {
+      const { data, error } = await supabase.from('ecosystem_orders').insert([payload]).select();
+      if (error) throw error;
+      
+      setOrders(prev => [data[0], ...prev]);
+      setIsModalOpen(false);
+      toast.success('Order berhasil ditambahkan!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Gagal menambahkan order');
+    }
   };
 
-  const updateCetakStatus = (id: string, status: string) => {
-    setCetakOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+  const updateOrderStatus = async (id: string, status: string) => {
+    // Optimistic update
+    const previous = [...orders];
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+    
+    try {
+      const { error } = await supabase.from('ecosystem_orders').update({ status }).eq('id', id);
+      if (error) throw error;
+      toast.success('Status berhasil diupdate');
+    } catch (err: any) {
+      setOrders(previous); // Revert on failure
+      toast.error('Gagal update status: ' + err.message);
+    }
   };
 
-  const updateProjectStatus = (id: string, status: string) => {
-    setCustomProjects(prev => prev.map(p => p.id === id ? { ...p, status } : p));
+  const deleteOrder = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus order ini?')) return;
+    
+    const previous = [...orders];
+    setOrders(prev => prev.filter(o => o.id !== id));
+    
+    try {
+      const { error } = await supabase.from('ecosystem_orders').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Order berhasil dihapus');
+    } catch (err: any) {
+      setOrders(previous);
+      toast.error('Gagal menghapus order: ' + err.message);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-black text-white">Ecosystem Services Hub</h2>
-        <p className="text-sm text-slate-400 font-medium">Kelola semua layanan tambahan ekosistem Logaritma</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-black text-white">Ecosystem Services Hub</h2>
+          <p className="text-sm text-slate-400 font-medium">Kelola semua layanan tambahan ekosistem Logaritma</p>
+        </div>
+        <button 
+          onClick={fetchOrders}
+          className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors"
+          title="Refresh Data"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        </button>
       </div>
 
       {/* Revenue Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Cetak & Branding', value: fmt(cetakRevenue), icon: Printer, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', sub: `${cetakOrders.filter(o=>o.status==='Selesai').length} selesai` },
-          { label: 'Meta Ads (Active)', value: 'Rp 0', icon: Megaphone, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', sub: '0 campaign aktif' },
-          { label: 'Shopee Komisi (Est.)', value: 'Rp 0', icon: ShoppingBag, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', sub: `${SHOPEE_ITEMS.length} produk terdaftar` },
-          { label: 'Custom Project', value: fmt(customRevenue), icon: Code2, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', sub: `${customProjects.length} project` },
+          { label: 'Cetak & Branding', value: fmt(cetakRevenue), icon: Printer, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', sub: `${cetakOrders.length} total pesanan` },
+          { label: 'Meta Ads', value: fmt(adsRevenue), icon: Megaphone, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', sub: `${metaAds.length} total campaign` },
+          { label: 'Shopee Komisi', value: fmt(shopeeRevenue), icon: ShoppingBag, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', sub: `${shopeeOrders.length} total transaksi` },
+          { label: 'Custom Project', value: fmt(customRevenue), icon: Code2, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', sub: `${customProjects.length} total project` },
         ].map((s, i) => (
           <div key={i} className={`p-5 rounded-2xl border ${s.bg}`}>
             <s.icon size={20} className={`${s.color} mb-3`} />
@@ -138,7 +222,7 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden min-h-[400px]">
 
         {/* CETAK */}
         {activeTab === 'cetak' && (
@@ -148,48 +232,53 @@ export default function ServicesPage() {
                 <Printer size={20} className="text-blue-400" /> Log Pesanan Cetak & Branding
               </h3>
               <button
-                onClick={() => setIsCetakModalOpen(true)}
+                onClick={() => handleOpenModal('CETAK')}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors"
               >
                 <Plus size={16} /> Tambah Order
               </button>
             </div>
+            
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead><tr className="border-b border-slate-800">
-                  {['Merchant', 'Jenis', 'Harga', 'Tanggal', 'Status', 'Aksi'].map(h => (
-                    <th key={h} className="p-3 text-left text-xs font-black text-slate-500 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {cetakOrders.map(o => (
-                    <tr key={o.id} className="hover:bg-slate-800/30">
-                      <td className="p-3 font-bold text-slate-200">{o.merchant}</td>
-                      <td className="p-3 text-slate-400 text-xs">{o.type}</td>
-                      <td className="p-3 font-bold text-emerald-400">{fmt(o.price)}</td>
-                      <td className="p-3 text-slate-400 text-xs">{o.date}</td>
-                      <td className="p-3">
-                        <select
-                          value={o.status}
-                          onChange={e => updateCetakStatus(o.id, e.target.value)}
-                          className={`text-xs font-black px-2 py-1 rounded-full border bg-transparent cursor-pointer ${statusColor(o.status)}`}
-                        >
-                          {['Pending', 'Proses', 'Selesai'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
-                        </select>
-                      </td>
-                      <td className="p-3">
-                        <button onClick={() => setCetakOrders(prev => prev.filter(x => x.id !== o.id))}
-                          className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors">
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {cetakOrders.length === 0 && (
-                    <tr><td colSpan={6} className="p-8 text-center text-slate-500">Belum ada order cetak</td></tr>
-                  )}
-                </tbody>
-              </table>
+              {loading ? (
+                <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-blue-500" /></div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-slate-800">
+                    {['Merchant', 'Jenis Layanan', 'Harga', 'Tanggal', 'Status', 'Aksi'].map(h => (
+                      <th key={h} className="p-3 text-left text-xs font-black text-slate-500 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {cetakOrders.map(o => (
+                      <tr key={o.id} className="hover:bg-slate-800/30">
+                        <td className="p-3 font-bold text-slate-200">{o.merchant_name}</td>
+                        <td className="p-3 text-slate-400 text-xs">{o.service_type}</td>
+                        <td className="p-3 font-bold text-emerald-400">{fmt(o.price)}</td>
+                        <td className="p-3 text-slate-400 text-xs">{formatDate(o.created_at)}</td>
+                        <td className="p-3">
+                          <select
+                            value={o.status}
+                            onChange={e => updateOrderStatus(o.id, e.target.value)}
+                            className={`text-xs font-black px-2 py-1 rounded-full border bg-transparent cursor-pointer ${statusColor(o.status)}`}
+                          >
+                            {['Pending', 'Proses', 'Selesai'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
+                          </select>
+                        </td>
+                        <td className="p-3">
+                          <button onClick={() => deleteOrder(o.id)}
+                            className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {cetakOrders.length === 0 && (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-500">Belum ada order cetak dari database</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -197,9 +286,18 @@ export default function ServicesPage() {
         {/* META ADS */}
         {activeTab === 'ads' && (
           <div className="p-6">
-            <h3 className="text-lg font-black text-white mb-6 flex items-center gap-2">
-              <Megaphone size={20} className="text-purple-400" /> Meta Ads Manager Hub
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-black text-white flex items-center gap-2">
+                <Megaphone size={20} className="text-purple-400" /> Meta Ads Manager Hub
+              </h3>
+              <button
+                onClick={() => handleOpenModal('META_ADS')}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-xl transition-colors"
+              >
+                <Plus size={16} /> Tambah Campaign
+              </button>
+            </div>
+            
             <div className="grid md:grid-cols-3 gap-4 mb-8">
               {META_ADS_PACKAGES.map((pkg, i) => (
                 <div key={i} className="relative p-6 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-purple-500/40 transition-all group">
@@ -219,22 +317,51 @@ export default function ServicesPage() {
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Clock size={12} /> {pkg.duration} hari campaign aktif
                   </div>
-                  <button className="mt-4 w-full py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 transition-colors">
-                    Buat Campaign Baru
-                  </button>
                 </div>
               ))}
             </div>
-            <div className="p-5 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-              <p className="text-sm font-black text-purple-300 mb-2">📋 Alur Kerja Meta Ads:</p>
-              <div className="flex flex-wrap gap-2 text-xs text-purple-200/70">
-                {['1. Merchant request paket', '2. Admin buat campaign di Meta Ads Manager', '3. Kirim link laporan ke merchant via Fonnte WA', '4. Catat revenue di Finance tab'].map((s, i) => (
-                  <div key={i} className="flex items-center gap-1.5 bg-purple-500/10 px-3 py-1.5 rounded-full">
-                    <CheckCircle2 size={11} className="text-purple-400 shrink-0" />
-                    {s}
-                  </div>
-                ))}
-              </div>
+            
+            <h4 className="font-bold text-white mb-3">Database Campaign</h4>
+            <div className="overflow-x-auto border border-slate-800 rounded-xl">
+              {loading ? (
+                <div className="py-8 flex justify-center"><Loader2 className="animate-spin text-purple-500" /></div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-slate-800 bg-slate-800/20">
+                    {['Merchant', 'Paket Ads', 'Harga', 'Tanggal', 'Status', 'Aksi'].map(h => (
+                      <th key={h} className="p-3 text-left text-xs font-black text-slate-500 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {metaAds.map(o => (
+                      <tr key={o.id} className="hover:bg-slate-800/30">
+                        <td className="p-3 font-bold text-slate-200">{o.merchant_name}</td>
+                        <td className="p-3 text-slate-400 text-xs">{o.service_type}</td>
+                        <td className="p-3 font-bold text-emerald-400">{fmt(o.price)}</td>
+                        <td className="p-3 text-slate-400 text-xs">{formatDate(o.created_at)}</td>
+                        <td className="p-3">
+                          <select
+                            value={o.status}
+                            onChange={e => updateOrderStatus(o.id, e.target.value)}
+                            className={`text-xs font-black px-2 py-1 rounded-full border bg-transparent cursor-pointer ${statusColor(o.status)}`}
+                          >
+                            {['Pending', 'Proses', 'Selesai'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
+                          </select>
+                        </td>
+                        <td className="p-3">
+                          <button onClick={() => deleteOrder(o.id)}
+                            className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {metaAds.length === 0 && (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-500">Belum ada campaign dari database</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -244,13 +371,60 @@ export default function ServicesPage() {
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <ShoppingBag size={20} className="text-amber-400" /> Shopee Affiliate Hardware Catalog
+                <ShoppingBag size={20} className="text-amber-400" /> Shopee Affiliate Hub
               </h3>
-              <div className="text-right">
-                <p className="text-xs text-slate-500">Est. Komisi / Transaksi</p>
-                <p className="text-sm font-black text-amber-400">Rp 5.000 – Rp 50.000</p>
-              </div>
+              <button
+                onClick={() => handleOpenModal('SHOPEE')}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-xl transition-colors"
+              >
+                <Plus size={16} /> Tambah Transaksi
+              </button>
             </div>
+            
+            <h4 className="font-bold text-white mb-3">Database Transaksi Komisi</h4>
+            <div className="overflow-x-auto border border-slate-800 rounded-xl mb-8">
+              {loading ? (
+                <div className="py-8 flex justify-center"><Loader2 className="animate-spin text-amber-500" /></div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-slate-800 bg-slate-800/20">
+                    {['Merchant / Client', 'Produk / Transaksi', 'Nilai Komisi', 'Tanggal', 'Status', 'Aksi'].map(h => (
+                      <th key={h} className="p-3 text-left text-xs font-black text-slate-500 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {shopeeOrders.map(o => (
+                      <tr key={o.id} className="hover:bg-slate-800/30">
+                        <td className="p-3 font-bold text-slate-200">{o.merchant_name}</td>
+                        <td className="p-3 text-slate-400 text-xs">{o.service_type}</td>
+                        <td className="p-3 font-bold text-emerald-400">{fmt(o.price)}</td>
+                        <td className="p-3 text-slate-400 text-xs">{formatDate(o.created_at)}</td>
+                        <td className="p-3">
+                          <select
+                            value={o.status}
+                            onChange={e => updateOrderStatus(o.id, e.target.value)}
+                            className={`text-xs font-black px-2 py-1 rounded-full border bg-transparent cursor-pointer ${statusColor(o.status)}`}
+                          >
+                            {['Pending', 'Proses', 'Selesai'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
+                          </select>
+                        </td>
+                        <td className="p-3">
+                          <button onClick={() => deleteOrder(o.id)}
+                            className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {shopeeOrders.length === 0 && (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-500">Belum ada komisi tercatat di database</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <h4 className="font-bold text-white mb-3">Referensi Hardware Catalog</h4>
             <div className="grid md:grid-cols-2 gap-4">
               {SHOPEE_ITEMS.map((item, i) => (
                 <div key={i} className="flex items-center gap-4 p-4 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-amber-500/30 transition-all group">
@@ -265,17 +439,8 @@ export default function ServicesPage() {
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">Komisi: <span className="text-amber-400 font-bold">{item.commission}</span></p>
                   </div>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold rounded-xl border border-amber-500/20 transition-colors shrink-0">
-                    <ExternalLink size={12} /> Link
-                  </a>
                 </div>
               ))}
-            </div>
-            <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <p className="text-sm font-bold text-amber-300">
-                💡 Pasang link referral Shopee Affiliate di Member Area UBOS untuk auto-tracking komisi setiap transaksi hardware dari merchant.
-              </p>
             </div>
           </div>
         )}
@@ -288,19 +453,18 @@ export default function ServicesPage() {
                 <Code2 size={20} className="text-emerald-400" /> Custom Enterprise Project Pipeline
               </h3>
               <button
-                onClick={() => setIsCustomModalOpen(true)}
+                onClick={() => handleOpenModal('CUSTOM')}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition-colors"
               >
                 <Plus size={16} /> Tambah Project
               </button>
             </div>
 
-            {/* Pipeline stats */}
             <div className="grid grid-cols-3 gap-3 mb-6">
               {[
-                { label: 'Proposal', count: customProjects.filter(p=>p.status==='Proposal').length, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                { label: 'On Progress', count: customProjects.filter(p=>p.status==='On Progress').length, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-                { label: 'Selesai', count: customProjects.filter(p=>p.status==='Done'||p.status==='Closed').length, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                { label: 'Pending / Proposal', count: customProjects.filter(p=>p.status==='Pending').length, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                { label: 'Proses', count: customProjects.filter(p=>p.status==='Proses').length, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+                { label: 'Selesai', count: customProjects.filter(p=>p.status==='Selesai').length, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
               ].map((s, i) => (
                 <div key={i} className={`p-3 rounded-xl border text-center ${s.color}`}>
                   <p className="text-2xl font-black">{s.count}</p>
@@ -310,41 +474,41 @@ export default function ServicesPage() {
             </div>
 
             <div className="space-y-4">
-              {customProjects.map(p => (
+              {loading ? (
+                <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>
+              ) : customProjects.map(p => (
                 <div key={p.id} className="p-5 bg-slate-800/50 border border-slate-700 rounded-2xl hover:border-emerald-500/30 transition-all">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-black text-white truncate">{p.project}</p>
-                      <p className="text-sm text-slate-400 mt-1">{p.client}</p>
+                      <p className="font-black text-white truncate">{p.service_type}</p>
+                      <p className="text-sm text-slate-400 mt-1">{p.merchant_name}</p>
+                      <div className="flex items-center gap-2 mt-3 text-xs text-slate-500">
+                        <Clock size={12} /> Dibuat: {formatDate(p.created_at)}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
-                        <p className="text-lg font-black text-emerald-400">{fmt(p.value)}</p>
+                        <p className="text-lg font-black text-emerald-400">{fmt(p.price)}</p>
                       </div>
                       <select
                         value={p.status}
-                        onChange={e => updateProjectStatus(p.id, e.target.value)}
+                        onChange={e => updateOrderStatus(p.id, e.target.value)}
                         className={`text-xs font-black px-2 py-1 rounded-full border bg-transparent cursor-pointer ${statusColor(p.status)}`}
                       >
-                        {['Proposal', 'On Progress', 'Done', 'Closed'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
+                        {['Pending', 'Proses', 'Selesai'].map(s => <option key={s} className="bg-slate-900 text-white">{s}</option>)}
                       </select>
-                      <button onClick={() => setCustomProjects(prev => prev.filter(x => x.id !== p.id))}
+                      <button onClick={() => deleteOrder(p.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
-                  {p.deadline && (
-                    <div className="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                      <Clock size={12} /> Deadline: {p.deadline}
-                    </div>
-                  )}
                 </div>
               ))}
-              {customProjects.length === 0 && (
+              {!loading && customProjects.length === 0 && (
                 <div className="text-center py-12">
                   <Code2 size={32} className="text-slate-600 mx-auto mb-2" />
-                  <p className="text-slate-500">Belum ada custom project</p>
+                  <p className="text-slate-500">Belum ada custom project dari database</p>
                 </div>
               )}
             </div>
@@ -352,74 +516,75 @@ export default function ServicesPage() {
         )}
       </div>
 
-      {/* Add Cetak Modal */}
-      {isCetakModalOpen && (
+      {/* Global Add Order Modal */}
+      {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-white text-lg">Tambah Order Cetak</h3>
-              <button onClick={() => setIsCetakModalOpen(false)} className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800">
+              <h3 className="font-black text-white text-lg">
+                Tambah Data: {
+                  formCategory === 'CETAK' ? 'Cetak & Branding' :
+                  formCategory === 'META_ADS' ? 'Meta Ads' :
+                  formCategory === 'SHOPEE' ? 'Shopee Affiliate' : 'Custom Project'
+                }
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800">
                 <X size={18} />
               </button>
             </div>
+            
             <div className="space-y-4">
-              {[
-                { label: 'Nama Merchant', key: 'merchant', placeholder: 'Warung Pak Budi', type: 'text' },
-                { label: 'Jenis Produk Cetak', key: 'type', placeholder: 'Stiker A5 (100 pcs)', type: 'text' },
-                { label: 'Harga (Rp)', key: 'price', placeholder: '75000', type: 'number' },
-                { label: 'Tanggal', key: 'date', placeholder: '', type: 'date' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-xs font-bold text-slate-400 uppercase">{f.label}</label>
-                  <input
-                    type={f.type}
-                    value={(cetakForm as any)[f.key]}
-                    onChange={e => setCetakForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
-                    placeholder={f.placeholder}
-                  />
-                </div>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => setIsCetakModalOpen(false)} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors">Batal</button>
-                <button onClick={addCetakOrder} className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">Simpan</button>
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase">Nama Merchant / Client</label>
+                <input
+                  type="text"
+                  value={formData.merchant_name}
+                  onChange={e => setFormData(prev => ({ ...prev, merchant_name: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
+                  placeholder="Contoh: PT. ABC atau Warung Budi"
+                />
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+              
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase">Detail Jenis Layanan</label>
+                <input
+                  type="text"
+                  value={formData.service_type}
+                  onChange={e => setFormData(prev => ({ ...prev, service_type: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
+                  placeholder="Contoh: Stiker Vinyl A5 100pcs"
+                />
+              </div>
 
-      {/* Add Custom Project Modal */}
-      {isCustomModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-white text-lg">Tambah Custom Project</h3>
-              <button onClick={() => setIsCustomModalOpen(false)} className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { label: 'Nama Client', key: 'client', placeholder: 'PT. ABC Indonesia', type: 'text' },
-                { label: 'Nama Project', key: 'project', placeholder: 'Custom POS System', type: 'text' },
-                { label: 'Nilai Project (Rp)', key: 'value', placeholder: '5000000', type: 'number' },
-                { label: 'Deadline', key: 'deadline', placeholder: '', type: 'date' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-xs font-bold text-slate-400 uppercase">{f.label}</label>
-                  <input
-                    type={f.type}
-                    value={(customForm as any)[f.key]}
-                    onChange={e => setCustomForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
-                    placeholder={f.placeholder}
-                  />
-                </div>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => setIsCustomModalOpen(false)} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors">Batal</button>
-                <button onClick={addCustomProject} className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors">Simpan</button>
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase">Harga / Nominal (Rp)</label>
+                <input
+                  type="number"
+                  value={formData.price}
+                  onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
+                  placeholder="Contoh: 150000"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase">Status Awal</label>
+                <select
+                  value={formData.status}
+                  onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Proses">Proses</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors">Batal</button>
+                <button onClick={handleAddOrder} className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">
+                  Simpan ke Database
+                </button>
               </div>
             </div>
           </div>
