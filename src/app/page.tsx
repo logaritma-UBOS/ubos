@@ -154,6 +154,12 @@ const [loading, setLoading] = useState(false);
         setShowModal(false);
         toast.success("Login berhasil! Mengalihkan...");
         
+        localStorage.setItem('wa_member_session', JSON.stringify({
+          no_wa: cleanWA,
+          nama_usaha: formData.merchantName,
+          kategori: formData.category
+        }));
+
         if (result.data?.funnel_destination === 'UBOS' || isFnB) {
           const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
           router.push(`/ubos/kuliner/${slug}`);
@@ -186,6 +192,13 @@ const [loading, setLoading] = useState(false);
       }
       
       setShowModal(false);
+
+      // SET WA MEMBER SESSION TO BYPASS LOGIN ON DASHBOARD
+      localStorage.setItem('wa_member_session', JSON.stringify({
+        no_wa: cleanWA,
+        nama_usaha: formData.merchantName,
+        kategori: formData.category
+      }));
 
       const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
       const targetLink = isFnB ? `/ubos/kuliner/${slug}` : '/member';
