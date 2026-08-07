@@ -112,8 +112,37 @@ export default function LandingPage() {
         localStorage.setItem('ubos_temp_pass', formData.password);
       }
 
-      // Record to Leads Database with new schema fields
-      await supabase.from('leads').insert([
+      // Cek Keberadaan WA di Supabase
+      const { data: existingLead, error: checkErr } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('no_wa', cleanWA)
+        .maybeSingle();
+
+      if (checkErr) {
+        throw new Error('Gagal mengecek data. Silakan coba lagi.');
+      }
+
+      if (existingLead) {
+        // PENANGANAN USER LAMA (EXISTING USER)
+        if (existingLead.password_session === formData.password) {
+          setShowModal(false);
+          toast.success("Login berhasil! Mengalihkan...");
+          
+          if (existingLead.funnel_destination === 'UBOS' || isFnB) {
+            router.push(`/ubos`);
+          } else {
+            setShowDevPopup(true);
+          }
+          return;
+        } else {
+          // Password Salah - Modal tetap terbuka (tidak panggil setShowModal)
+          throw new Error('Nomor WhatsApp sudah terdaftar. Password tidak sesuai.');
+        }
+      }
+
+      // PENANGANAN USER BARU (NEW USER)
+      const { error: insertErr } = await supabase.from('leads').insert([
         {
           nama_usaha: formData.merchantName,
           no_wa: cleanWA,
@@ -123,12 +152,16 @@ export default function LandingPage() {
           funnel_destination: funnelDest
         }
       ]);
+
+      if (insertErr) {
+        throw new Error('Gagal mendaftar. Silakan coba lagi.');
+      }
       
       // AUTO-WELCOME WA VIA FONNTE
       try {
         const welcomeMessage = `Halo {nama_usaha}! 🚀\n\nSelamat bergabung di ekosistem Logaritma UBOS.\nPendaftaran Anda telah kami terima.\n\nSilakan akses dashboard Anda melalui tautan berikut:\n{link_dashboard}\n\nJika ada pertanyaan, jangan ragu membalas pesan ini!\n\n- Tim Logaritma`;
         
-        await fetch('/api/wa/send', {
+        fetch('/api/wa/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -137,7 +170,7 @@ export default function LandingPage() {
             nama_usaha: formData.merchantName,
             funnel_destination: funnelDest
           })
-        });
+        }).catch(err => console.error("Fonnte trigger err:", err));
       } catch (waErr) {
         console.error("Gagal mengirim WA Welcome:", waErr);
       }
