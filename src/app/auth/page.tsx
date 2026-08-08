@@ -7,6 +7,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 // ─── Alur 2: Login ke UBOS App (WA + Password) ────────────────────────────
+
+function normalizePhone(phone: string) {
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '62' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,7 +35,7 @@ function AuthForm() {
 
   const checkExistingPhone = async (phone: string) => {
     if (!phone) return;
-    const rawWA = phone.replace(/\D/g, '');
+    const rawWA = normalizePhone(phone);
     if (rawWA.length < 10) return;
 
     try {
@@ -49,10 +58,8 @@ function AuthForm() {
     setError(null);
 
     try {
-      let cleanWA = whatsapp.replace(/\D/g, '');
+      let cleanWA = normalizePhone(whatsapp);
       if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
-      if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
-      else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
       
       const dummyEmail = `${cleanWA}@logaritma.id`;
 

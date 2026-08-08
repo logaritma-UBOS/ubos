@@ -7,6 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, ArrowRight, XCircle, CheckCircle2, ChevronRight, HelpCircle, X, User, ShoppingBag, PieChart, SplitSquareHorizontal, ArrowDownToLine, Phone, Target, Zap, BrainCircuit, Activity, LineChart, Quote, Utensils, Printer, Store, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 
+function normalizePhone(phone: string) {
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '62' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -89,12 +97,10 @@ export default function LandingPage() {
     setLoading(true);
 
     try {
-      let cleanWA = formData.whatsapp.replace(/\D/g, '');
+      let cleanWA = normalizePhone(formData.whatsapp);
       if (cleanWA.length < 10) {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
-      if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
-      else if (cleanWA.startsWith('8')) cleanWA = '62' + cleanWA;
       
       const { data: existingWa } = await supabase
         .from('merchants')
@@ -184,21 +190,19 @@ export default function LandingPage() {
       }
       
       // AUTO-WELCOME WA VIA FONNTE (HANYA UNTUK USER BARU)
+      const katSlug = formData.category.toLowerCase().split(' ')[0].replace(/[^a-z]+/g, '');
+      const merchantSlug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
+      const dashboardUrl = `https://logaritma.id/ubos/${katSlug}/${merchantSlug}`;
+
       try {
-        const welcomeMessage = `Halo {nama_usaha}! 🚀\n\nSelamat bergabung di ekosistem Logaritma UBOS.\nPendaftaran Anda telah kami terima.\n\nSilakan akses dashboard Anda melalui tautan berikut:\n{link_dashboard}\n\nJika ada pertanyaan, jangan ragu membalas pesan ini!\n\n- Tim Logaritma`;
-        
-        const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
-        const dashboardLink = isFnB ? `https://logaritma.id/ubos/kuliner/${slug}` : 'https://logaritma.id/member';
+        const welcomeMessage = `Selamat Datang di Logaritma UBOS! 🚀\n\nHai Kak dari ${formData.merchantName}, pendaftaran akun Anda telah berhasil.\nBerikut adalah detail akun akses Anda:\n\n• Nama Usaha : ${formData.merchantName}\n• Kategori   : ${formData.category}\n• No WhatsApp: ${cleanWA}\n• Password   : ${formData.password}\n\nSilakan klik link di bawah untuk langsung masuk ke Dashboard Bisnis Anda:\n${dashboardUrl}\n\nSimpan pesan ini agar Anda tidak lupa password akses Anda.\nTerimakasih dan selamat mengunci profit harian!`;
         
         fetch('/api/wa/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             target: cleanWA,
-            message: welcomeMessage,
-            nama_usaha: formData.merchantName,
-            funnel_destination: funnelDest,
-            dashboard_link: dashboardLink
+            message: welcomeMessage
           })
         }).catch(err => console.error("Fonnte trigger err:", err));
       } catch (waErr) {
@@ -214,10 +218,11 @@ export default function LandingPage() {
         kategori: formData.category
       }));
 
-      const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
-      const targetLink = isFnB ? `/ubos/kuliner/${slug}` : '/member';
-      setDashboardLink(targetLink);
-      setShowWelcomePopup(true);
+      // AUTO LOGIN & REDIRECT SETELAH DAFTAR
+      toast.success('Pendaftaran Berhasil! Mengalihkan ke dashboard...');
+      setTimeout(() => {
+        window.location.href = `/ubos/${katSlug}/${merchantSlug}`;
+      }, 1500);
       
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes('sudah terdaftar')) {
