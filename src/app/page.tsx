@@ -260,7 +260,6 @@ export default function LandingPage() {
               nama_usaha: formData.merchantName,
               whatsapp: cleanWA,
               kategori_usaha: formData.category,
-              status: 'Trial',
               created_at: new Date().toISOString()
             }]);
           }

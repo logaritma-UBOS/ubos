@@ -24,7 +24,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
 
       const { data: merchantData } = await supabase
         .from('merchants')
-        .select('nama_usaha, status, expired_at, created_at, trial_expires_at')
+        .select('nama_usaha, expired_at, created_at, trial_expires_at')
         .eq('user_id', user.id)
         .maybeSingle();
 

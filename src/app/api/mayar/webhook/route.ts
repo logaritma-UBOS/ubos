@@ -144,7 +144,7 @@ export async function POST(req: Request) {
 
     const { data: merchant, error: fetchErr } = await supabaseAdmin
       .from('merchants')
-      .select('expired_at, trial_expires_at, created_at, status')
+      .select('expired_at, trial_expires_at, created_at')
       .eq('id', merchantId)
       .single();
 
