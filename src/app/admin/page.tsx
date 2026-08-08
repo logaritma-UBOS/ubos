@@ -362,16 +362,27 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {merchants.map((m, i) => {
+              {leads.map((lead, i) => {
+                // Cari data merchant yang sesuai dengan lead ini (berdasarkan nomor WA)
+                const leadWa = lead.no_wa?.replace(/\D/g, '') || '';
+                const m = merchants.find(merchant => {
+                  const mWa = merchant.whatsapp?.replace(/\D/g, '') || '';
+                  return mWa && leadWa && (mWa === leadWa || mWa.endsWith(leadWa.slice(-8)));
+                });
+
                 let expiresDate = new Date();
-                const merchantStatus = m.status || 'Trial';
+                const merchantStatus = m?.status || 'Trial';
                 
-                if (merchantStatus === 'Premium' && m.expired_at) {
+                if (merchantStatus === 'Premium' && m?.expired_at) {
                   expiresDate = new Date(m.expired_at);
-                } else if (m.trial_expires_at) {
+                } else if (m?.trial_expires_at) {
                   expiresDate = new Date(m.trial_expires_at);
-                } else if (m.created_at) {
+                } else if (m?.created_at) {
                   expiresDate = new Date(m.created_at);
+                  expiresDate.setDate(expiresDate.getDate() + 7);
+                } else if (lead.created_at) {
+                  // Jika belum ada di merchants, hitung trial 7 hari dari saat daftar di leads
+                  expiresDate = new Date(lead.created_at);
                   expiresDate.setDate(expiresDate.getDate() + 7);
                 }
                 
@@ -380,12 +391,12 @@ export default function AdminDashboardPage() {
                 const isExpired = diff <= 0;
 
                 return (
-                  <tr key={m.id || i} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{m.nama_usaha || m.owner_name || '-'}</td>
+                  <tr key={lead.id || i} className="hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{m?.nama_usaha || lead.nama_usaha || lead.nama_pemilik || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {m.whatsapp ? (
-                        <a href={`https://wa.me/${m.whatsapp}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
-                          +{m.whatsapp}
+                      {lead.no_wa ? (
+                        <a href={`https://wa.me/${leadWa || lead.no_wa}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
+                          +{leadWa || lead.no_wa}
                         </a>
                       ) : '-'}
                     </td>
@@ -410,7 +421,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 );
               })}
-              {merchants.length === 0 && (
+              {leads.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
                     Belum ada data member.
