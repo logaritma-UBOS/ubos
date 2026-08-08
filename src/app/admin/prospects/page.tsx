@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { 
   Users, Search, Filter, Loader2, Plus, Upload, 
   MessageSquare, Copy, Sparkles, X, CheckCircle2, 
-  ArrowRight, MessageCircle 
+  ArrowRight, MessageCircle, Rocket
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,6 +23,7 @@ export default function ProspectsPage() {
   const [topic, setTopic] = useState('');
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
   
   // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -84,7 +85,7 @@ export default function ProspectsPage() {
     toast.success('Copywriting disalin ke clipboard!');
   };
 
-  const handleFollowUpWA = (wa: string, namaUsaha: string) => {
+  const handleFollowUpWA = async (id: string, wa: string, namaUsaha: string) => {
     let message = generatedCopy || 'Halo Kak dari {nama_usaha}, ini dari Logaritma! Ada yang bisa kami bantu terkait optimasi bisnisnya?';
     // Replace variable
     message = message.replace(/{nama_usaha}/g, namaUsaha || 'Kakak');
@@ -98,8 +99,57 @@ export default function ProspectsPage() {
     const encodedMsg = encodeURIComponent(message);
     window.open(`https://wa.me/${cleanWa}?text=${encodedMsg}`, '_blank');
     
-    // Asumsi: update follow_up status local (atau di Supabase)
-    // Untuk kesederhanaan, kita hanya buka link WA.
+    await handleUpdateStatus(id, 'Progres');
+  };
+
+  const handleBroadcastMassal = async () => {
+    if (!generatedCopy) {
+      toast.error('Generate copywriting terlebih dahulu!');
+      return;
+    }
+    if (filteredLeads.length === 0) {
+      toast.error('Tidak ada kontak yang terfilter');
+      return;
+    }
+    if (!confirm(`Kirim pesan ini ke ${filteredLeads.length} kontak terfilter via Fonnte?`)) {
+      return;
+    }
+    
+    setIsBroadcasting(true);
+    const loadingToast = toast.loading(`Broadcasting ke ${filteredLeads.length} kontak...`);
+    
+    let successCount = 0;
+    const idsToUpdate: string[] = [];
+    
+    for (const lead of filteredLeads) {
+      let message = generatedCopy.replace(/{nama_usaha}/g, lead.nama_usaha || 'Kakak');
+      const cleanWa = (lead.no_wa || '').replace(/\D/g, '').replace(/^0+/, '62');
+      
+      if (cleanWa) {
+        try {
+          await fetch('/api/wa/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: cleanWa, message })
+          });
+          successCount++;
+          idsToUpdate.push(lead.id);
+          
+          // Delay 2 detik
+          await new Promise(res => setTimeout(res, 2000));
+        } catch (err) {
+          console.error('Failed to send to', cleanWa);
+        }
+      }
+    }
+    
+    if (idsToUpdate.length > 0) {
+       await supabase.from('leads').update({ status: 'Progres' }).in('id', idsToUpdate);
+       setLeads(prev => prev.map(l => idsToUpdate.includes(l.id) ? { ...l, status: 'Progres' } : l));
+    }
+    
+    toast.success(`Berhasil mengirim ke ${successCount} kontak!`, { id: loadingToast });
+    setIsBroadcasting(false);
   };
 
   // Add Manual
@@ -284,6 +334,15 @@ export default function ProspectsPage() {
                   <div className="bg-slate-950/80 p-4 rounded-xl border border-emerald-500/20 text-sm text-slate-300 whitespace-pre-wrap font-medium">
                     {generatedCopy}
                   </div>
+                  
+                  <button 
+                    onClick={handleBroadcastMassal}
+                    disabled={isBroadcasting || filteredLeads.length === 0}
+                    className="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20"
+                  >
+                    {isBroadcasting ? <Loader2 size={16} className="animate-spin" /> : <Rocket size={16} />}
+                    🚀 Broadcast Massal (Fonnte) ke {filteredLeads.length} Kontak
+                  </button>
                 </div>
               )}
             </div>
@@ -383,7 +442,7 @@ export default function ProspectsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <button
-                        onClick={() => handleFollowUpWA(lead.no_wa, lead.nama_usaha)}
+                        onClick={() => handleFollowUpWA(lead.id, lead.no_wa, lead.nama_usaha)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 transition-colors"
                       >
                         <MessageCircle size={14} /> Follow Up WA
