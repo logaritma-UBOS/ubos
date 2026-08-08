@@ -159,8 +159,10 @@ export default function MemberDashboard() {
           setMerchant(merchantData);
           
           let expiresDate = new Date();
-          if (merchantData.trial_expires_at) {
-            expiresDate = new Date(merchantData.trial_expires_at);
+          const merchantStatus = merchantData.status || 'Trial';
+          
+          if (merchantStatus === 'Premium' && merchantData.expired_at) {
+            expiresDate = new Date(merchantData.expired_at);
           } else if (merchantData.created_at) {
             expiresDate = new Date(merchantData.created_at);
             expiresDate.setDate(expiresDate.getDate() + 7);
@@ -357,16 +359,16 @@ export default function MemberDashboard() {
 
       <main className="px-4 py-4 space-y-4">
         
-        {/* A. Compact Sub-Header ??? persistent across all tabs */}
-        <div className="flex items-center justify-between p-4 bg-blue-600 rounded-2xl text-white shadow-md gap-3">
-          {/* Left: greeting + status badge */}
-          <div className="flex items-center gap-3 min-w-0">
+        {/* A. Compact Sub-Header / Welcome Banner */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl bg-blue-600 text-white shadow-md">
+          {/* Left: Identitas User */}
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg shrink-0 shadow-inner">
               {trialDaysLeft > 0 ? '🔥' : '⚠️'}
             </div>
-            <div className="min-w-0">
-              <p className="font-black text-sm md:text-base leading-tight truncate max-w-[140px] md:max-w-[180px]">
-                Halo, {merchant?.nama_usaha || merchant?.owner_name || 'Member'}!
+            <div>
+              <p className="font-bold text-lg sm:text-xl break-words leading-tight">
+                {merchant?.nama_usaha || merchant?.owner_name || 'Member'}
               </p>
               <button
                 onClick={() => setShowPaywallModal(true)}
@@ -377,20 +379,20 @@ export default function MemberDashboard() {
                 }`}
               >
                 {trialDaysLeft > 0 ? (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Aktif • Sisa {trialDaysLeft} Hari</>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> AKTIF • SISA {trialDaysLeft} HARI</>
                 ) : (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> Lisensi Expired</>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> MASA AKTIF HABIS</>
                 )}
               </button>
             </div>
           </div>
 
-          {/* Right: upgrade button */}
+          {/* Right: CTA Button */}
           <button
             onClick={() => setShowPaywallModal(true)}
-            className="shrink-0 text-xs md:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-2 rounded-xl transition-transform active:scale-95 shadow-md flex items-center gap-1 whitespace-nowrap"
+            className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-4 py-2.5 rounded-xl shadow-md text-center text-sm transition-all"
           >
-            ⚡ Upgrade Rp 49.000
+             ⚡ {trialDaysLeft <= 0 ? 'Aktifkan Premium' : 'Upgrade Rp 49.000'}
           </button>
         </div>
 
