@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import {
   LayoutDashboard, Activity, ShoppingCart, DollarSign, LogOut,
-  Menu, X, Zap, AlertCircle, ArrowRight, TrendingUp, ChevronRight
+  Menu, X, Zap, AlertCircle, ArrowRight, TrendingUp, ChevronRight, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -79,6 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin', label: 'Dashboard Overview', icon: LayoutDashboard, color: 'blue', badge: null },
     { href: '/admin/marketing', label: 'Extreme Funneling', icon: Activity, color: 'purple', badge: 'HOT' },
+    { href: '/admin/prospects', label: 'Leads Prospecting', icon: Users, color: 'indigo', badge: null },
     { href: '/admin/services', label: 'Ecosystem Services', icon: ShoppingCart, color: 'emerald', badge: null },
     { href: '/admin/finance', label: 'Finance & Payouts', icon: DollarSign, color: 'amber', badge: null },
   ];
@@ -90,6 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const activeColorMap: Record<string, string> = {
     blue: 'bg-blue-600 text-white shadow-lg shadow-blue-900/30',
+    indigo: 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30',
     purple: 'bg-purple-600 text-white shadow-lg shadow-purple-900/30',
     emerald: 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30',
     amber: 'bg-amber-600 text-white shadow-lg shadow-amber-900/30',
@@ -97,6 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const inactiveHoverMap: Record<string, string> = {
     blue: 'hover:bg-blue-500/10 hover:text-blue-300',
+    indigo: 'hover:bg-indigo-500/10 hover:text-indigo-300',
     purple: 'hover:bg-purple-500/10 hover:text-purple-300',
     emerald: 'hover:bg-emerald-500/10 hover:text-emerald-300',
     amber: 'hover:bg-amber-500/10 hover:text-amber-300',
