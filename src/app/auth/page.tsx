@@ -167,9 +167,42 @@ function AuthForm() {
         router.push('/member');
       } else {
         // ── REGISTER: Buat akun UBOS App ─────────────────────────────────
-        const categoryParam = searchParams.get('category') || 'kuliner';
-        let authUser = null;
+        const categoryParam = searchParams.get('category') || 'Kuliner & F&B';
+        
+        // 1. Panggil API untuk insert ke leads & kirim WA Fonnte
+        const res = await fetch('/api/leads/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nama_usaha: merchantName,
+            no_wa: cleanWA,
+            kategori: categoryParam,
+            password: password,
+            funnel_destination: 'UBOS'
+          })
+        });
 
+        let result;
+        try {
+          const textRes = await res.text();
+          result = JSON.parse(textRes);
+        } catch (e) {
+          throw new Error('Terjadi kesalahan pada sistem pendaftaran.');
+        }
+
+        if (!res.ok || !result.success) {
+          throw new Error(result?.error || 'Gagal mendaftar. Silakan coba lagi.');
+        }
+
+        if (!result.isNew) {
+          // User sudah ada di leads (Existing) -> Alihkan ke Tab Masuk
+          toast.info('Nomor WhatsApp ini sudah terdaftar. Silakan login.');
+          setIsRegister(false);
+          return;
+        }
+
+        // 2. Buat Auth User
+        let authUser = null;
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: dummyEmail,
           password,
@@ -183,7 +216,7 @@ function AuthForm() {
             });
 
             if (signInError) {
-              toast.info('Nomor WhatsApp ini sudah aktif. Kami telah mengalihkan Anda ke tab Masuk.');
+              toast.info('Nomor WhatsApp ini sudah aktif. Silakan login.');
               setIsRegister(false);
               return;
             } else {
@@ -216,9 +249,13 @@ function AuthForm() {
               nama_usaha: merchantName,
               kategori_usaha: categoryParam,
               whatsapp: cleanWA,
+              status: 'Trial',
+              created_at: new Date().toISOString()
             }]);
             if (profileError) throw new Error(`Gagal membuat profil toko: ${profileError.message}`);
           }
+          
+          supabase.from('leads').update({ status: 'Converted' }).eq('no_wa', cleanWA).then();
 
           const category = categoryParam.toLowerCase().split(' ')[0];
           const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
