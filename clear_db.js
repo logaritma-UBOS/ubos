@@ -4,7 +4,8 @@ loadEnvConfig(process.cwd());
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY); 
 async function test() { 
-  const { data, error } = await supabase.from("leads").select('*'); 
-  console.log('Total Leads:', data?.length); 
+  await supabase.from("leads").delete().neq('id', '00000000-0000-0000-0000-000000000000'); 
+  await supabase.from("merchants").delete().neq('id', '00000000-0000-0000-0000-000000000000'); 
+  console.log('Cleared leads and merchants'); 
 } 
 test();

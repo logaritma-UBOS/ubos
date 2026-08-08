@@ -203,7 +203,7 @@ export default function LandingPage() {
       try {
         const welcomeMessage = `Selamat Datang di Logaritma UBOS! 🚀\n\nHai Kak dari ${formData.merchantName}, pendaftaran akun Anda telah berhasil.\nBerikut adalah detail akun akses Anda:\n\n• Nama Usaha : ${formData.merchantName}\n• Kategori   : ${formData.category}\n• No WhatsApp: ${cleanWA}\n• Password   : ${formData.password}\n\nSilakan klik link di bawah untuk langsung masuk ke Dashboard Bisnis Anda:\n${dashboardUrl}\n\nSimpan pesan ini agar Anda tidak lupa password akses Anda.\nTerimakasih dan selamat mengunci profit harian!`;
         
-        await fetch('/api/wa/send', {
+        const waRes = await fetch('/api/wa/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -211,8 +211,14 @@ export default function LandingPage() {
             message: welcomeMessage
           })
         });
+
+        const waData = await waRes.json();
+        if (!waRes.ok || !waData.success) {
+          toast.warning(`Peringatan: Pesan WA gagal terkirim. Pastikan nomor ${cleanWA} terdaftar di WhatsApp.`, { duration: 8000 });
+        }
       } catch (waErr) {
         console.error("Gagal mengirim WA Welcome:", waErr);
+        toast.warning("Peringatan: Gagal terhubung ke server WhatsApp. Pastikan koneksi stabil.");
       }
       
       setShowModal(false);

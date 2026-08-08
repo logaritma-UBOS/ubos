@@ -201,6 +201,27 @@ function AuthForm() {
           return;
         }
 
+        // 1.5 Kirim Notifikasi WA Fonnte
+        try {
+          const katSlug = categoryParam.toLowerCase().split(' ')[0].replace(/[^a-z]+/g, '');
+          const merchantSlug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
+          const dashboardUrl = `https://logaritma.id/ubos/${katSlug}/${merchantSlug}`;
+          const welcomeMessage = `Selamat Datang di Logaritma UBOS! 🚀\n\nHai Kak dari ${merchantName}, pendaftaran akun Anda telah berhasil.\nBerikut adalah detail akun akses Anda:\n\n• Nama Usaha : ${merchantName}\n• Kategori   : ${categoryParam}\n• No WhatsApp: ${cleanWA}\n• Password   : ${password}\n\nSilakan klik link di bawah untuk langsung masuk ke Dashboard Bisnis Anda:\n${dashboardUrl}\n\nSimpan pesan ini agar Anda tidak lupa password akses Anda.\nTerimakasih dan selamat mengunci profit harian!`;
+          
+          const waRes = await fetch('/api/wa/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: cleanWA, message: welcomeMessage })
+          });
+          const waData = await waRes.json();
+          if (!waRes.ok || !waData.success) {
+            toast.warning(`Peringatan: Pesan WA gagal terkirim. Pastikan nomor ${cleanWA} terdaftar di WhatsApp.`, { duration: 8000 });
+          }
+        } catch (waErr) {
+          console.error("Gagal mengirim WA:", waErr);
+          toast.warning("Peringatan: Gagal terhubung ke server WhatsApp.");
+        }
+
         // 2. Buat Auth User
         let authUser = null;
         const { data, error: signUpError } = await supabase.auth.signUp({
