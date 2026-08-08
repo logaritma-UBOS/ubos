@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nama_usaha, no_wa, kategori, password, funnel_destination } = body;
+    const { nama_usaha, no_wa, kategori, password, funnel_destination, ref_id } = body;
 
     if (!no_wa || !password) {
       return NextResponse.json({ success: false, error: 'Data tidak lengkap' }, { status: 200 });
@@ -47,7 +47,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. User Baru: Insert
+    // 3. Resolve Affiliate (ref_id)
+    let referredBy = null;
+    if (ref_id) {
+      // Coba cari merchant berdasarkan slug, id (UUID), atau no_wa
+      // UUID regex test
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ref_id);
+      
+      let query = supabaseAdmin.from('merchants').select('id, affiliate_leads').limit(1);
+      
+      if (isUUID) {
+        query = query.eq('id', ref_id);
+      } else {
+        query = query.or(`slug.eq.${ref_id},no_wa.eq.${ref_id}`);
+      }
+
+      const { data: referrerData } = await query.maybeSingle();
+
+      if (referrerData) {
+        referredBy = referrerData.id;
+        // Increment affiliate_leads
+        await supabaseAdmin.from('merchants')
+          .update({ affiliate_leads: (referrerData.affiliate_leads || 0) + 1 })
+          .eq('id', referrerData.id);
+      }
+    }
+
+    // 4. User Baru: Insert
     const { error: insertErr } = await supabaseAdmin.from('leads').insert([
       {
         nama_usaha,
@@ -55,7 +81,8 @@ export async function POST(req: NextRequest) {
         kategori,
         status: 'New Lead',
         password_session: password,
-        funnel_destination
+        funnel_destination,
+        referred_by: referredBy
       }
     ]);
 

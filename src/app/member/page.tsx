@@ -104,10 +104,20 @@ export default function MemberDashboard() {
     safeOpenUrl(buildWhatsAppLink(message));
   };
 
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const getRefLink = () => {
     if (!merchant) return 'https://logaritma.id';
-    const ref = merchant.slug || merchant.id || merchant.no_wa || merchant.whatsapp;
-    return `https://logaritma.id?ref=${ref}`;
+    // Gunakan merchant.slug jika ada dari DB, atau generate dari nama usaha, fallback ke id/no_wa
+    const slugBasis = merchant.slug || (merchant.nama_usaha ? generateSlug(merchant.nama_usaha) : merchant.id || merchant.no_wa);
+    return `https://logaritma.id?ref=${slugBasis}`;
   };
 
   const handleCopyLink = () => {

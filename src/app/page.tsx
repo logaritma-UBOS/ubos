@@ -115,6 +115,13 @@ export default function LandingPage() {
         localStorage.setItem('ubos_temp_pass', formData.password);
       }
 
+      // Ambil ref dari URL jika ada
+      let refId = null;
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        refId = urlParams.get('ref');
+      }
+
       // Panggil API Route untuk bypass RLS & Handle Cek/Insert
       const res = await fetch('/api/leads/signup', {
         method: 'POST',
@@ -124,7 +131,8 @@ export default function LandingPage() {
           no_wa: cleanWA,
           kategori: formData.category,
           password: formData.password,
-          funnel_destination: funnelDest
+          funnel_destination: funnelDest,
+          ref_id: refId
         })
       });
 
