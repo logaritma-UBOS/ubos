@@ -227,19 +227,37 @@ export default function LandingPage() {
       // AUTO LOGIN & REDIRECT SETELAH DAFTAR
       try {
         const dummyEmail = `${cleanWA}@logaritma.id`;
-        const { data: signUpData } = await supabase.auth.signUp({
+        let authUser = null;
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: dummyEmail,
           password: formData.password
         });
 
-        if (signUpData?.user) {
-          await supabase.from('merchants').insert([{
-            user_id: signUpData.user.id,
-            nama_usaha: formData.merchantName,
-            whatsapp: cleanWA,
-            kategori_usaha: formData.category,
-            status: 'Trial',
-          }]);
+        if (signUpError && signUpError.message.toLowerCase().includes('already registered')) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email: dummyEmail,
+            password: formData.password
+          });
+          authUser = signInData?.user;
+        } else {
+          authUser = signUpData?.user;
+        }
+
+        if (authUser) {
+          // Cek apakah merchant sudah ada untuk user ini (menghindari duplicate RLS error)
+          const { data: existingM } = await supabase.from('merchants').select('id').eq('user_id', authUser.id).maybeSingle();
+          
+          if (!existingM) {
+            await supabase.from('merchants').insert([{
+              user_id: authUser.id,
+              nama_usaha: formData.merchantName,
+              whatsapp: cleanWA,
+              kategori_usaha: formData.category,
+              status: 'Trial',
+              created_at: new Date().toISOString()
+            }]);
+          }
           supabase.from('leads').update({ status: 'Converted' }).eq('no_wa', cleanWA).then();
         }
       } catch (authErr) {
