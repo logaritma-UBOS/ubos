@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { Sparkles, Activity, Target, ArrowRight, Loader2, Bot, WrenchIcon, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
-type WidgetState = 'idle' | 'loading' | 'result' | 'maintenance';
+type WidgetState = 'idle' | 'loading' | 'result';
 
 export default function CopilotWidget({ merchantId }: { merchantId: string }) {
   const [state, setState] = useState<WidgetState>('idle');
   const [analysis, setAnalysis] = useState<string | null>(null);
-  const [maintenanceMsg, setMaintenanceMsg] = useState('');
 
   const requestAnalysis = async () => {
     setState('loading');
@@ -33,8 +33,8 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
       setAnalysis(data.result);
       setState('result');
     } catch (err: any) {
-      setMaintenanceMsg(err.message || 'Terjadi gangguan teknis pada AI.');
-      setState('maintenance');
+      toast.error(err.message || 'Terjadi gangguan teknis pada AI.');
+      setState('idle');
     }
   };
 
@@ -79,40 +79,6 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
         )}
       </div>
 
-      {/* ── MAINTENANCE STATE ── */}
-      {state === 'maintenance' && (
-        <div className="mt-8 bg-amber-500/10 border border-amber-400/30 rounded-2xl p-6 animate-in slide-in-from-bottom-4 duration-500 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 flex items-center justify-center shrink-0 animate-pulse">
-              <WrenchIcon size={28} className="text-amber-400" />
-            </div>
-            <div>
-              <h3 className="text-white font-black text-lg leading-tight">
-                🔧 AI Logaritma Sedang Maintenance
-              </h3>
-              <p className="text-amber-200/80 text-sm mt-1 leading-relaxed">
-                Sistem AI kami sedang diperbarui untuk memberikan analisa yang lebih akurat. Silakan coba kembali beberapa saat lagi.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-2 bg-slate-900/50 rounded-xl px-4 py-3">
-            <Clock size={14} className="text-slate-400 shrink-0" />
-            <p className="text-slate-400 text-xs leading-relaxed">
-              Estimasi selesai: <span className="text-slate-300 font-bold">beberapa menit lagi</span>. Tim teknisi Logaritma sudah mengetahui dan sedang memperbaiki.
-            </p>
-          </div>
-
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={requestAnalysis}
-              className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
-            >
-              <Loader2 size={13} /> Coba Lagi Sekarang
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ── RESULT STATE ── */}
       {state === 'result' && analysis && (

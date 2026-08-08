@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getMerchantRealtimeContext } from '@/lib/copilot-context';
 
 export async function POST(req: NextRequest) {
@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Merchant ID is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY_COPILOT || process.env.GEMINI_API_KEY;
+    const apiKeyUbos = process.env.API_KEY_UBOS_KULINER;
+    const apiKeyFallback = process.env.GEMINI_API_KEY;
+    const apiKey = apiKeyUbos || apiKeyFallback;
+
     if (!apiKey) {
       return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
     }
@@ -24,9 +27,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Gagal ambil data toko. Pastikan akun Anda sudah punya data merchant di database.' }, { status: 500 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-    
-    const systemInstruction = `Anda adalah Logaritma AI Copilot, asisten khusus untuk pemilik usaha kuliner.
+    const systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Kuliner/F&B di Logaritma UBOS. Tugas Anda menganalisis omset, HPP, stok bahan baku, komisi platform delivery (ShopeeFood, GrabFood, GoFood), dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
+
 Tugas Anda adalah membaca data spesifik toko berikut dan memberikan analisa serta rekomendasi EKSEKUTIF yang sangat ringkas, tajam, dan bisa langsung dipraktikkan detik ini juga.
 
 Data Toko Saat Ini:
@@ -50,24 +52,39 @@ Output Anda HARUS persis mengikuti format ini:
 1. (Langkah aksi spesifik pertama, misal: Naikkan harga menu X sebesar Y)
 2. (Langkah aksi spesifik kedua, misal: Buat promo bundling menu Z)`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: 'Berikan analisa Copilot untuk hari ini.',
-      config: {
-        systemInstruction: systemInstruction,
-        maxOutputTokens: 500,
-        temperature: 0.7
-      }
-    });
+    let responseText = "";
 
-    return NextResponse.json({ result: response.text });
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-3.6-flash',
+        systemInstruction
+      });
+      const result = await model.generateContent('Berikan analisa Copilot untuk hari ini.');
+      responseText = result.response.text();
+    } catch (e: any) {
+      if (apiKeyUbos && apiKey === apiKeyUbos && apiKeyFallback) {
+        console.warn('API Key UBOS Kuliner gagal, fallback ke GEMINI_API_KEY...');
+        const genAIFallback = new GoogleGenerativeAI(apiKeyFallback);
+        const modelFallback = genAIFallback.getGenerativeModel({
+          model: 'gemini-3.6-flash',
+          systemInstruction
+        });
+        const result = await modelFallback.generateContent('Berikan analisa Copilot untuk hari ini.');
+        responseText = result.response.text();
+      } else {
+        throw e;
+      }
+    }
+
+    return NextResponse.json({ result: responseText });
   } catch (error: any) {
     console.error('Copilot Analyze Error Detail:', error?.message || error);
     const msg = error?.message || '';
     const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
     return NextResponse.json({
       error: isQuotaError
-        ? 'Kuota AI hari ini sudah habis (limit harian Google AI). Coba lagi besok atau upgrade GEMINI_API_KEY ke berbayar.'
+        ? 'Kuota API Gemini Anda telah habis (Error 429). Silakan gunakan kunci API baru atau upgrade akun Google AI Studio Anda.'
         : (msg || 'Gagal terhubung ke AI')
     }, { status: 500 });
   }
