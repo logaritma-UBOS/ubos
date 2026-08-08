@@ -170,6 +170,50 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleReminderWA = async (id: string, wa: string, name: string, status: string, diff: number, isExpired: boolean) => {
+    setIsSendingWA(prev => ({ ...prev, [id]: true }));
+    const loadingToast = toast.loading('Mengirim Info Masa Aktif via Fonnte...');
+    try {
+      const clean = (wa || '').replace(/\D/g, '').replace(/^0+/, '62');
+      
+      let msg = `Halo kak dari *${name || 'Toko'}*! 👋 Ini dari tim Logaritma.\n\n`;
+      
+      if (isExpired) {
+        msg += `Masa aktif akun Logaritma UBOS kakak saat ini sudah *HABIS*.\n\n`;
+      } else {
+        msg += `Menginformasikan bahwa sisa masa aktif akun Logaritma UBOS kakak tersisa *${diff} HARI* lagi.\n\n`;
+      }
+      
+      if (status === 'Premium') {
+        msg += `Yuk perpanjang langganan Premium kakak agar operasional bisnis tetap berjalan lancar dan otomatis!\n\n`;
+      } else {
+        msg += `Yuk segera *Upgrade ke Premium* agar bisnis kakak tetap berjalan lancar dengan fitur lengkap dan otomatis!\n\n`;
+      }
+      
+      msg += `📲 Klik link berikut untuk cek detail dan upgrade:\nhttps://logaritma.id/member\n\nJika butuh bantuan, silakan balas pesan ini ya kak!`;
+
+      const res = await fetch('/api/wa/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: clean,
+          message: msg,
+          nama_usaha: name,
+        })
+      });
+
+      if (res.ok) {
+        toast.success('Info Masa Aktif berhasil terkirim!', { id: loadingToast });
+      } else {
+        toast.error('Gagal kirim pesan', { id: loadingToast });
+      }
+    } catch {
+      toast.error('Error kirim pesan', { id: loadingToast });
+    } finally {
+      setIsSendingWA(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -398,7 +442,7 @@ export default function AdminDashboardPage() {
                         <div className="flex items-center gap-3">
                           <span className="text-slate-300">+{leadWa || lead.no_wa}</span>
                           <button
-                            onClick={() => handleFollowUp(lead.id, leadWa || lead.no_wa, m?.nama_usaha || lead.nama_usaha || lead.nama_pemilik || '')}
+                            onClick={() => handleReminderWA(lead.id, leadWa || lead.no_wa, m?.nama_usaha || lead.nama_usaha || lead.nama_pemilik || '', merchantStatus, diff, isExpired)}
                             disabled={isSendingWA[lead.id]}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-[10px] uppercase tracking-wide font-black rounded border border-green-500/20 transition-colors disabled:opacity-50"
                           >
