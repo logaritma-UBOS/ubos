@@ -29,3 +29,8 @@ CREATE POLICY "Merchants can insert their own payout requests" ON payout_request
   FOR INSERT WITH CHECK (
     merchant_id IN (SELECT id FROM merchants WHERE user_id = auth.uid())
   );
+
+-- Update leads table for Affiliate System
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS password_session TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS referred_by TEXT;
+

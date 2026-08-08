@@ -74,25 +74,36 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. User Baru: Insert
-    const { error: insertErr } = await supabaseAdmin.from('leads').insert([
-      {
+    const insertPayload = {
+      nama_usaha,
+      no_wa,
+      kategori,
+      status: 'New Lead',
+      password_session: password,
+      funnel_destination,
+      referred_by: referredBy
+    };
+
+    let { error: insertErr } = await supabaseAdmin.from('leads').insert([insertPayload]);
+
+    if (insertErr && insertErr.code === 'PGRST204') {
+      console.warn("Fallback: Tabel leads belum memiliki kolom password_session / referred_by. Melakukan insert minimal...");
+      // Coba minimal insert
+      const minimalPayload = {
         nama_usaha,
         no_wa,
         kategori,
-        status: 'New Lead',
-        password_session: password,
-        funnel_destination,
-        referred_by: referredBy
-      }
-    ]);
+        status: 'New Lead'
+      };
+      const retry = await supabaseAdmin.from('leads').insert([minimalPayload]);
+      insertErr = retry.error;
+    }
 
     if (insertErr) {
       console.error("Insert Err:", insertErr);
       return NextResponse.json({
         success: false,
-        error: insertErr.code === 'PGRST204' 
-          ? 'Tabel leads di Supabase belum memiliki kolom password_session. Harap jalankan SQL Migration.' 
-          : 'Gagal mendaftar. Silakan coba lagi.'
+        error: 'Gagal mendaftar. Silakan coba lagi.'
       }, { status: 200 });
     }
 
