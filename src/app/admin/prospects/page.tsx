@@ -174,12 +174,39 @@ export default function ProspectsPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    if (!id) {
+      toast.error('ID prospek tidak valid');
+      return;
+    }
+    
+    // Optimistic UI update
+    const previousLeads = [...leads];
+    setLeads(leads.map(l => l.id === id ? { ...l, status: newStatus } : l));
+    
+    try {
+      const { error } = await supabase.from('leads').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      toast.success('Status berhasil diperbarui');
+    } catch (err: any) {
+      // Revert on error
+      setLeads(previousLeads);
+      toast.error('Gagal update status: ' + err.message);
+    }
+  };
+
   // Filters
   const filteredLeads = leads.filter(l => {
     if (catFilter !== 'All' && !l.kategori?.includes(catFilter)) return false;
     if (statusFilter !== 'All') {
-      // Basic mock filtering since we don't have a dedicated followup column
-      if (statusFilter === 'Belum Contact' && l.status?.toLowerCase().includes('progres')) return false;
+      const s = (l.status || 'Belum Contact').toLowerCase();
+      const fs = statusFilter.toLowerCase();
+      
+      if (fs === 'belum contact') {
+         if (s !== 'belum contact' && s !== 'new lead' && s !== 'import csv' && s !== 'prospek manual') return false;
+      } else {
+         if (s !== fs) return false;
+      }
     }
     return true;
   });
@@ -339,8 +366,20 @@ export default function ProspectsPage() {
                       <span className="font-mono text-xs">{lead.no_wa}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
-                       <p className="font-bold text-slate-300 mb-0.5">{lead.status || 'New Lead'}</p>
-                       <p>{lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID') : '-'}</p>
+                       <select 
+                         value={
+                           (lead.status === 'New Lead' || lead.status === 'Import CSV' || lead.status === 'Prospek Manual' || !lead.status) 
+                           ? 'Belum Contact' 
+                           : lead.status
+                         }
+                         onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                         className="bg-slate-950 border border-slate-700 text-xs text-slate-300 font-bold rounded-md px-2 py-1 mb-1 outline-none focus:border-indigo-500 w-full cursor-pointer"
+                       >
+                         <option value="Belum Contact">Belum Contact</option>
+                         <option value="Progres">Progres</option>
+                         <option value="Closing">Closing</option>
+                       </select>
+                       <p className="mt-1">{lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID') : '-'}</p>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <button
