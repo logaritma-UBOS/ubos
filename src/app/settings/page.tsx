@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset, Trash2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -32,6 +32,10 @@ export default function SettingsPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  
+  // Onboarding State
+  const [isOnboarding, setIsOnboarding] = useState(false);
+  const [showOnboardingSuccess, setShowOnboardingSuccess] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -64,8 +68,13 @@ export default function SettingsPage() {
           const savedTarget = localStorage.getItem('targetProfit');
           if (savedTarget) setTargetProfit(savedTarget);
         }
+        const step = localStorage.getItem('onboarding_step');
+        if (step === 'step3_settings') {
+          setIsOnboarding(true);
+        }
+
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching profile:', err);
       } finally {
         setLoading(false);
       }
@@ -124,9 +133,11 @@ export default function SettingsPage() {
         
       if (error) throw error;
       
-      localStorage.setItem('targetProfit', targetProfit);
-      
-      toast.success('Profil berhasil diperbarui!');
+      if (isOnboarding) {
+        setShowOnboardingSuccess(true);
+      } else {
+        toast.success('Profil berhasil diperbarui!');
+      }
     } catch (err) {
       console.error(err);
       toast.error('Gagal memperbarui profil');
@@ -190,8 +201,19 @@ export default function SettingsPage() {
         <h1 className="font-bold text-lg text-white">Pengaturan Akun</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-28 pt-24">
+      <div className="max-w-md mx-auto p-4 md:p-6 mb-24 relative z-20 pt-24">
         <form id="settingsForm" onSubmit={handleSave} className="space-y-6">
+          {isOnboarding && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3">
+              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl shrink-0 mt-0.5">
+                <Store size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-indigo-900 mb-1">Langkah Terakhir: Profil Toko</h4>
+                <p className="text-sm text-indigo-700">Atur foto profil, sesuaikan warna tema (<span className="font-medium">Brand Color</span>), dan jam operasional toko Anda di sini agar terlihat lebih profesional.</p>
+              </div>
+            </div>
+          )}
           
           <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
             <h2 className="text-sm font-bold text-slate-800">Profil Usaha</h2>
@@ -346,7 +368,8 @@ export default function SettingsPage() {
             </button>
           </section>
 
-          {/* Minimalist UBOS Profile Card */}
+
+          {/* Business Profile Card */}
           <section className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-3">
@@ -423,6 +446,33 @@ export default function SettingsPage() {
                 Batal
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding Success Modal */}
+      {showOnboardingSuccess && (
+        <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <CheckCircle2 size={120} />
+            </div>
+            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-6 relative z-10">
+              <CheckCircle2 size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-3 relative z-10">Sempurna! 🎉</h3>
+            <p className="text-slate-500 mb-8 relative z-10">
+              Profil toko Anda sudah lengkap. Sekarang mari kita buka Smart POS (Kasir) untuk simulasi transaksi pertama Anda.
+            </p>
+            <button 
+              onClick={() => {
+                localStorage.setItem('onboarding_step', 'step4_crm_info');
+                router.push(`/ubos/${kategoriUsaha.toLowerCase().includes('kuliner') ? 'kuliner' : 'ritel'}/${namaUsaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')}/pos`);
+              }} 
+              className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 relative z-10"
+            >
+              Lanjut ke Smart POS <ArrowRight size={20} />
+            </button>
           </div>
         </div>
       )}

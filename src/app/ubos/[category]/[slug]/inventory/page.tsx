@@ -23,6 +23,14 @@ export default function InventoryPage() {
 
   // Modal State
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  const [showOnboardingSuccess, setShowOnboardingSuccess] = useState(false);
+
+  useEffect(() => {
+    const step = localStorage.getItem('onboarding_step');
+    if (step === 'step2_inventory' && products.length > 0) {
+      setShowOnboardingSuccess(true);
+    }
+  }, [products]);
 
   const fetchProducts = async () => {
     try {
@@ -277,6 +285,32 @@ export default function InventoryPage() {
                 Batal
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Onboarding Success Modal */}
+      {showOnboardingSuccess && (
+        <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <CheckCircle2 size={120} />
+            </div>
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6 relative z-10">
+              <CheckCircle2 size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-3 relative z-10">Mantap! 🎉</h3>
+            <p className="text-slate-500 mb-8 relative z-10">
+              Produk pertama Anda berhasil ditambahkan. Selanjutnya, mari atur profil toko Anda agar terlihat profesional.
+            </p>
+            <button 
+              onClick={() => {
+                localStorage.setItem('onboarding_step', 'step3_settings');
+                router.push('/settings');
+              }} 
+              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 relative z-10"
+            >
+              Lanjut ke Pengaturan <ArrowRight size={20} />
+            </button>
           </div>
         </div>
       )}

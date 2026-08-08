@@ -45,6 +45,10 @@ export default function POSPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastTrxId, setLastTrxId] = useState<string>('');
 
+  // Onboarding State
+  const [isOnboarding, setIsOnboarding] = useState(false);
+  const [showCRMInfo, setShowCRMInfo] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -66,6 +70,10 @@ export default function POSPage() {
           
           setProducts(productsData || []);
         }
+        const step = localStorage.getItem('onboarding_step');
+        if (step === 'step4_crm_info') {
+          setIsOnboarding(true);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -73,7 +81,7 @@ export default function POSPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [router]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
@@ -337,6 +345,7 @@ export default function POSPage() {
           <input 
             type="text" 
             value={customerName}
+            onFocus={() => { if (isOnboarding) setShowCRMInfo(true); }}
             onChange={(e) => setCustomerName(e.target.value)}
             className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
             placeholder="Nama Pelanggan"
@@ -344,6 +353,7 @@ export default function POSPage() {
           <input 
             type="tel" 
             value={customerWA}
+            onFocus={() => { if (isOnboarding) setShowCRMInfo(true); }}
             onChange={(e) => setCustomerWA(e.target.value.replace(/\D/g, ''))}
             className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
             placeholder="No WhatsApp (0812...)"
@@ -568,6 +578,34 @@ export default function POSPage() {
                 </button>
               </div>
            </div>
+        </div>
+      )}
+
+      {/* CRM Info Modal (Onboarding) */}
+      {showCRMInfo && (
+        <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <Smartphone size={120} />
+            </div>
+            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-6 relative z-10">
+              <Smartphone size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-3 relative z-10">Info Penting! 💡</h3>
+            <p className="text-slate-500 mb-8 relative z-10">
+              Setiap data pelanggan (Nama & WhatsApp) yang Anda masukkan di sini akan otomatis tersimpan ke modul CRM. Semakin banyak data terkumpul, semakin gampang AI Logaritma mempromosikan toko Anda ke pelanggan lama!
+            </p>
+            <button 
+              onClick={() => {
+                setShowCRMInfo(false);
+                setIsOnboarding(false);
+                localStorage.setItem('onboarding_step', 'completed');
+              }} 
+              className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 relative z-10"
+            >
+              Mengerti
+            </button>
+          </div>
         </div>
       )}
     </>
