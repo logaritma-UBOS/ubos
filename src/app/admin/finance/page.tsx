@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +25,7 @@ const STREAM_COLORS: Record<string, string> = {
 
 export default function FinancePage() {
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [payoutRequests, setPayoutRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,12 +42,18 @@ export default function FinancePage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data: txData } = await supabase
         .from('cash_transactions')
         .select('*')
         .order('transaction_date', { ascending: false })
         .order('created_at', { ascending: false });
-      if (data) setTransactions(data);
+      if (txData) setTransactions(txData);
+
+      const { data: payoutData } = await supabase
+        .from('payout_requests')
+        .select('*, merchants(nama_usaha)')
+        .order('created_at', { ascending: false });
+      if (payoutData) setPayoutRequests(payoutData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -305,29 +312,40 @@ export default function FinancePage() {
               <p className="text-2xl font-black text-white">{fmt(metrics.affiliateTotal)}</p>
             </div>
             <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
-              <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Jumlah Transaksi Payout</p>
-              <p className="text-2xl font-black text-white">{metrics.affiliatePayouts.length}</p>
+              <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Jumlah Request Pencairan</p>
+              <p className="text-2xl font-black text-white">{payoutRequests.length}</p>
             </div>
           </div>
           <div className="bg-slate-900 rounded-2xl border border-slate-800">
             <div className="p-5 border-b border-slate-800">
-              <h3 className="font-black text-white">Log Affiliate Payout</h3>
+              <h3 className="font-black text-white">Log Request Pencairan (Mayar Disbursement)</h3>
             </div>
             <div className="divide-y divide-slate-800/50">
-              {metrics.affiliatePayouts.map((tx: any) => (
-                <div key={tx.id} className="flex items-center justify-between px-5 py-4">
+              {payoutRequests.map((req: any) => (
+                <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 gap-3">
                   <div>
-                    <p className="text-sm font-bold text-slate-200">{tx.description || 'Affiliate Payout'}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{tx.transaction_date}</p>
+                    <p className="text-sm font-bold text-slate-200">{req.merchants?.nama_usaha || 'Unknown Merchant'}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{new Date(req.created_at).toLocaleString('id-ID')}</p>
+                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                      <CreditCard size={12} /> {req.bank_name} - {req.account_number} ({req.account_name})
+                    </p>
                   </div>
-                  <p className="font-black text-red-400">- {fmt(Number(tx.amount))}</p>
+                  <div className="text-left sm:text-right">
+                    <p className="font-black text-emerald-400">{fmt(Number(req.amount))}</p>
+                    <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      req.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-400' :
+                      req.status === 'Rejected' ? 'bg-red-500/10 text-red-400' :
+                      'bg-amber-500/10 text-amber-400'
+                    }`}>
+                      {req.status}
+                    </span>
+                  </div>
                 </div>
               ))}
-              {metrics.affiliatePayouts.length === 0 && (
+              {payoutRequests.length === 0 && (
                 <div className="p-12 text-center text-slate-500">
                   <PiggyBank size={32} className="mx-auto mb-2 text-slate-700" />
-                  <p>Belum ada catatan payout affiliate.</p>
-                  <p className="text-xs mt-1">Gunakan kategori "Affiliate Payout" saat mencatat transaksi.</p>
+                  <p>Belum ada request pencairan affiliate.</p>
                 </div>
               )}
             </div>

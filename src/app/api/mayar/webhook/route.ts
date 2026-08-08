@@ -183,7 +183,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: 'License renewed 30 days' });
+    // --- Affiliate 40% Commission Logic ---
+    const amountPaid = Number(payload.amount || 0);
+    if (amountPaid > 0 && merchant.whatsapp) {
+      // 1. Cari apakah merchant ini adalah hasil referral (ada di tabel leads)
+      const { data: lead } = await supabaseAdmin
+        .from('leads')
+        .select('referred_by')
+        .eq('no_wa', merchant.whatsapp)
+        .maybeSingle();
+
+      if (lead?.referred_by) {
+        // 2. Jika ada, hitung 40% komisi
+        const commission = amountPaid * 0.40;
+        
+        // 3. Ambil data referrer saat ini
+        const { data: referrer } = await supabaseAdmin
+          .from('merchants')
+          .select('commission_balance, affiliate_converted')
+          .eq('id', lead.referred_by)
+          .single();
+          
+        if (referrer) {
+          // 4. Tambahkan komisi dan tandai converted
+          await supabaseAdmin
+            .from('merchants')
+            .update({ 
+              commission_balance: (referrer.commission_balance || 0) + commission,
+              affiliate_converted: (referrer.affiliate_converted || 0) + 1
+            })
+            .eq('id', lead.referred_by);
+            
+          console.log(`Affiliate commission ${commission} credited to ${lead.referred_by}`);
+        }
+      }
+    }
+    // ---------------------------------------
+
+    return NextResponse.json({ success: true, message: 'License renewed 30 days and commission processed if applicable' });
 
   } catch (err: any) {
     console.error('Webhook error:', err);

@@ -143,22 +143,31 @@ export default function MemberDashboard() {
     }
 
     setIsSubmittingPayout(true);
-    const loadingToast = toast.loading('Memproses pengajuan tarik saldo...');
+    const loadingToast = toast.loading('Memproses pengajuan tarik saldo melalui Mayar...');
     try {
-      const { error } = await supabase.from('payout_requests').insert([{
-        merchant_id: merchant.id,
-        bank_name,
-        account_number,
-        account_name,
-        amount: Number(amount),
-        status: 'Pending'
-      }]);
+      const res = await fetch('/api/affiliate/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchant_id: merchant.id,
+          bank_name,
+          account_number,
+          account_name,
+          amount: Number(amount)
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Terjadi kesalahan saat memproses pencairan');
+      }
       
-      if (error) throw error;
-      
-      toast.success('Pengajuan berhasil! Tim kami akan segera memproses.', { id: loadingToast });
+      toast.success('Pengajuan berhasil! Dana sedang diproses oleh Mayar.', { id: loadingToast });
       setShowPayoutModal(false);
       setPayoutForm({ bank_name: 'BCA', account_number: '', account_name: '', amount: '' });
+      
+      // Update local state temporarily
+      setMerchant(prev => prev ? { ...prev, commission_balance: (prev.commission_balance || 0) - Number(amount) } : prev);
     } catch (err: any) {
       toast.error('Gagal mengajukan penarikan: ' + err.message, { id: loadingToast });
     } finally {
@@ -769,7 +778,7 @@ export default function MemberDashboard() {
                 <div className="bg-gradient-to-r from-purple-700 to-purple-600 p-6 flex items-center justify-between relative overflow-hidden">
                   <div className="relative z-10">
                     <div className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1 flex items-center gap-2"><Handshake size={14}/> Affiliate Dashboard</div>
-                    <h3 className="text-xl font-black text-white leading-tight">Sebarkan & Dapatkan 20%</h3>
+                    <h3 className="text-xl font-black text-white leading-tight">Sebarkan & Dapatkan 40%</h3>
                   </div>
                 </div>
                 <div className="p-6 md:p-8 space-y-6">
