@@ -2,9 +2,19 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+const FALLBACK_TEMPLATES = [
+  `Halo Kakak dari {nama_usaha}, ini dari tim Logaritma 👋\n\nNgerasa capek ngurusin operasional bisnis tiap hari tapi profit gitu-gitu aja?\n\nItu tandanya Kakak butuh sistem yang beneran jalan. Kita ada penawaran spesial nih terkait:\n👉 *[TOPIK]*\n\nYuk, balas chat ini kalau Kakak mau kita bantu beresin masalah bisnisnya hari ini juga!`,
+  
+  `Halo owner {nama_usaha}! 👋\n\nPernah ngalamin stok berantakan atau closingan mandek?\n\nBanyak klien kami ngerasain hal yang sama sebelum pakai Logaritma. Nah, khusus hari ini kami mau nawarin solusi buat Kakak:\n👉 *[TOPIK]*\n\nJangan sampai kompetitor nyalip duluan. Balas pesannya sekarang ya Kak buat amankan kuotanya! 🔥`,
+
+  `Permisi Kak dari {nama_usaha} 👋\n\nSaya perhatiin bisnis Kakak punya potensi buat di-scale up jauh lebih gede lagi.\n\nKebetulan banget nih, kita lagi ngadain program khusus buat bantu scale up dengan penawaran:\n👉 *[TOPIK]*\n\nMumpung slotnya masih ada, Kakak mau saya jelasin detailnya? Balas "MAU" aja ya Kak! 🚀`
+];
+
 export async function POST(req: NextRequest) {
+  let requestTopic = 'Penawaran Spesial Logaritma';
   try {
     const { topic } = await req.json();
+    if (topic) requestTopic = topic;
 
     if (!topic) {
       return NextResponse.json({ error: 'Topik/Penawaran is required' }, { status: 400 });
@@ -12,7 +22,9 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
+      // Langsung gunakan fallback jika tidak ada API key
+      const randomFallback = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
+      return NextResponse.json({ result: randomFallback.replace(/\[TOPIK\]/g, requestTopic) });
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -45,11 +57,16 @@ Output HANYA berupa teks pesan WhatsApp, jangan ada penjelasan tambahan.`;
   } catch (error: any) {
     console.error('Copywriting Generate Error:', error?.message || error);
     const msg = error?.message || '';
-    const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
-    return NextResponse.json({
-      error: isQuotaError
-        ? 'Kuota AI hari ini sudah habis. Coba lagi besok.'
-        : (msg || 'Gagal terhubung ke AI')
-    }, { status: 500 });
+    const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota') || msg.includes('fetch failed');
+    
+    // Jika quota habis atau error network, gunakan fallback
+    if (isQuotaError) {
+      const randomFallback = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
+      return NextResponse.json({ 
+        result: randomFallback.replace(/\[TOPIK\]/g, requestTopic)
+      });
+    }
+
+    return NextResponse.json({ error: msg || 'Gagal terhubung ke AI' }, { status: 500 });
   }
 }
