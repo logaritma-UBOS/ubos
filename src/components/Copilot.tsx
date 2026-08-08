@@ -253,23 +253,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
         throw new Error(data.error || 'Failed to get response');
       }
     } catch (err: any) {
-      if (err.message === '__MAINTENANCE__') {
-        setChatHistory(prev => [...prev, { 
-          role: 'model', 
-          text: (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 font-bold text-amber-600">
-                <span>🔧</span> AI Logaritma Sedang Maintenance
-              </div>
-              <p className="text-slate-600 text-xs leading-relaxed">
-                Sistem AI kami sedang diperbarui atau kuota harian telah tercapai. Silakan coba kembali beberapa saat lagi.
-              </p>
-            </div>
-          )
-        }]);
-      } else {
-        toast.error(err.message || 'Gagal menghubungi AI Copilot');
-      }
+      toast.error(err.message || 'Gagal menghubungi AI Copilot');
     } finally {
       setIsTyping(false);
     }

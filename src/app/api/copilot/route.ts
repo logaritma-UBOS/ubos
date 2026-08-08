@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,15 +10,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY_COPILOT || process.env.GEMINI_API_KEY;
+    const apiKeyUbos = process.env.API_KEY_UBOS_KULINER;
+    const apiKeyFallback = process.env.GEMINI_API_KEY;
+    const apiKey = apiKeyUbos || apiKeyFallback;
+
     if (!apiKey) {
       return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
     const merchantProfile = contextData?.merchantProfile || {};
     
-    const systemInstruction = `Kamu adalah AI Logaritma Copilot, asisten bisnis F&B pintar dari UBOS.
+    const systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Kuliner/F&B di Logaritma UBOS. Tugas Anda menganalisis omset, HPP, stok bahan baku, komisi platform delivery (ShopeeFood, GrabFood, GoFood), dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
+
 PROFIL USAHA USER SAAT INI:
 - Nama Usaha: ${merchantProfile.nama_usaha || 'Toko UBOS'}
 - Jenis Usaha: ${merchantProfile.kategori_usaha || 'F&B Umum'}
@@ -32,24 +35,45 @@ ATURAN REKOMENDASI:
 
 Data Konteks Halaman: ${JSON.stringify(contextData?.insights || [])}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: message,
-      config: {
-        systemInstruction: systemInstruction,
-        maxOutputTokens: 800,
-      }
-    });
+    let responseText = "";
 
-    return NextResponse.json({ text: response.text });
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-3.6-flash',
+        systemInstruction
+      });
+      const result = await model.generateContent(message);
+      responseText = result.response.text();
+    } catch (e: any) {
+      if (apiKeyUbos && apiKey === apiKeyUbos && apiKeyFallback) {
+        console.warn('API Key UBOS Kuliner gagal, fallback ke GEMINI_API_KEY...');
+        const genAIFallback = new GoogleGenerativeAI(apiKeyFallback);
+        const modelFallback = genAIFallback.getGenerativeModel({
+          model: 'gemini-3.6-flash',
+          systemInstruction
+        });
+        const result = await modelFallback.generateContent(message);
+        responseText = result.response.text();
+      } else {
+        throw e;
+      }
+    }
+
+    return NextResponse.json({ text: responseText });
   } catch (error: any) {
     console.error('Gemini API Error Detail:', error?.message || error);
     const msg = error?.message || '';
     const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
+    
+    if (isQuotaError) {
+       return NextResponse.json({
+         error: 'Kuota API Gemini Anda telah habis (Error 429). Silakan gunakan kunci API baru atau upgrade akun Google AI Studio Anda.'
+       }, { status: 429 });
+    }
+    
     return NextResponse.json({
-      error: isQuotaError
-        ? '__MAINTENANCE__'
-        : 'Maaf, AI sedang tidak bisa menjawab saat ini. Coba lagi nanti.'
+      error: 'Maaf, AI sedang tidak bisa menjawab saat ini. Coba lagi nanti.'
     }, { status: 500 });
   }
 }
