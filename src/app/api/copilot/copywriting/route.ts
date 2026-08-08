@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     try {
        const genAI = new GoogleGenerativeAI(apiKey);
        const model = genAI.getGenerativeModel({ 
-         model: "gemini-1.5-flash",
+         model: "gemini-3.6-flash",
          systemInstruction
        });
        
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
          console.warn('API Key Prospecting gagal, fallback ke GEMINI_API_KEY...');
          const genAIFallback = new GoogleGenerativeAI(apiKeyFallback);
          const modelFallback = genAIFallback.getGenerativeModel({ 
-           model: "gemini-1.5-flash",
+           model: "gemini-3.6-flash",
            systemInstruction
          });
          const result = await modelFallback.generateContent(`Buatkan pesan WhatsApp tentang: ${topic}`);
