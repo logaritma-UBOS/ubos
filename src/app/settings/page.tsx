@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset } from 'lucide-react';
+import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -30,6 +30,8 @@ export default function SettingsPage() {
   
   // Custom Modal State
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -134,9 +136,38 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    setShowLogoutModal(false);
     await supabase.auth.signOut();
-    router.push('/auth');
+    router.push('/');
+  };
+
+  const handleResetData = async () => {
+    setIsResetting(true);
+    try {
+      if (!merchantId) throw new Error('ID Merchant tidak ditemukan');
+
+      // 1. Transactions & Items
+      const { data: trxList } = await supabase.from('transactions').select('id').eq('merchant_id', merchantId);
+      if (trxList && trxList.length > 0) {
+        const trxIds = trxList.map(t => t.id);
+        await supabase.from('transaction_items').delete().in('transaction_id', trxIds);
+      }
+      await supabase.from('transactions').delete().eq('merchant_id', merchantId);
+
+      // 2. Products & Recipes
+      const { data: prodList } = await supabase.from('products').select('id').eq('merchant_id', merchantId);
+      if (prodList && prodList.length > 0) {
+         const prodIds = prodList.map(p => p.id);
+         await supabase.from('recipes').delete().in('product_id', prodIds);
+      }
+      await supabase.from('products').delete().eq('merchant_id', merchantId);
+
+      toast.success('Berhasil! Seluruh data penjualan dan menu Anda telah direset kembali seperti semula.', { icon: '✨' });
+      setShowResetModal(false);
+    } catch (err: any) {
+      toast.error('Gagal mereset data: ' + err.message);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   if (loading) {
@@ -306,6 +337,10 @@ export default function SettingsPage() {
               <Store size={20} /> Kembali ke Portal Member
             </Link>
             
+            <button type="button" onClick={() => setShowResetModal(true)} className="w-full flex items-center justify-center gap-2 p-4 text-amber-600 font-bold bg-amber-50 rounded-3xl shadow-sm border border-amber-200 hover:bg-amber-100 transition-colors">
+              <Trash2 size={20} /> Reset Data Penjualan & Menu
+            </button>
+            
             <button type="button" onClick={() => setShowLogoutModal(true)} className="w-full flex items-center justify-center gap-2 p-4 text-danger font-bold bg-white rounded-3xl shadow-sm border border-slate-100 hover:bg-danger/5 transition-colors">
               <LogOut size={20} /> Keluar dari Akun
             </button>
@@ -364,6 +399,27 @@ export default function SettingsPage() {
                 Ya, Keluar
               </button>
               <button onClick={() => setShowLogoutModal(false)} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2 text-center">Reset Data Penjualan?</h3>
+            <p className="text-sm text-slate-500 text-center mb-6">Tindakan ini akan menghapus permanen seluruh <strong>Daftar Menu</strong> dan <strong>Riwayat Transaksi</strong> di toko Anda. Anda akan mulai kembali dari 0.</p>
+            <div className="w-full space-y-3">
+              <button onClick={handleResetData} disabled={isResetting} className="w-full py-3.5 bg-danger hover:bg-danger-dark text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center">
+                {isResetting ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Ya, Hapus Semuanya'}
+              </button>
+              <button onClick={() => setShowResetModal(false)} disabled={isResetting} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50">
                 Batal
               </button>
             </div>
