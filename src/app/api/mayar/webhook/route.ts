@@ -144,7 +144,7 @@ export async function POST(req: Request) {
 
     const { data: merchant, error: fetchErr } = await supabaseAdmin
       .from('merchants')
-      .select('trial_expires_at')
+      .select('expired_at, trial_expires_at, created_at, status')
       .eq('id', merchantId)
       .single();
 
@@ -154,15 +154,28 @@ export async function POST(req: Request) {
     }
 
     let expiresDate = new Date();
-    if (merchant.trial_expires_at) {
+    // Default to created_at + 7 days if no expiration data exists
+    if (!merchant.expired_at && !merchant.trial_expires_at && merchant.created_at) {
+      const trialEnd = new Date(merchant.created_at);
+      trialEnd.setDate(trialEnd.getDate() + 7);
+      if (trialEnd.getTime() > expiresDate.getTime()) {
+        expiresDate = trialEnd;
+      }
+    }
+
+    if (merchant.status === 'Premium' && merchant.expired_at) {
+      const current = new Date(merchant.expired_at);
+      if (current.getTime() > expiresDate.getTime()) expiresDate = current;
+    } else if (merchant.trial_expires_at) {
       const current = new Date(merchant.trial_expires_at);
       if (current.getTime() > expiresDate.getTime()) expiresDate = current;
     }
+    
     expiresDate.setDate(expiresDate.getDate() + 30);
 
     const { error: updateErr } = await supabaseAdmin
       .from('merchants')
-      .update({ trial_expires_at: expiresDate.toISOString() })
+      .update({ status: 'Premium', expired_at: expiresDate.toISOString() })
       .eq('id', merchantId);
 
     if (updateErr) {

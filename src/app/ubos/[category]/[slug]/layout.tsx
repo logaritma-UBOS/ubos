@@ -24,14 +24,38 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
 
       const { data: merchantData } = await supabase
         .from('merchants')
-        .select('nama_usaha')
+        .select('nama_usaha, status, expired_at, created_at, trial_expires_at')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (merchantData && params.slug) {
-        const expectedSlug = (merchantData.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        if (expectedSlug !== params.slug) {
-          router.push(`/ubos/${params.category || 'kuliner'}/${expectedSlug}`);
+      if (merchantData) {
+        if (params.slug) {
+          const expectedSlug = (merchantData.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+          if (expectedSlug !== params.slug) {
+            router.push(`/ubos/${params.category || 'kuliner'}/${expectedSlug}`);
+            return;
+          }
+        }
+
+        // Cek masa aktif
+        let expiresDate = new Date();
+        const merchantStatus = merchantData.status || 'Trial';
+        
+        if (merchantStatus === 'Premium' && merchantData.expired_at) {
+          expiresDate = new Date(merchantData.expired_at);
+        } else if (merchantData.trial_expires_at) {
+          expiresDate = new Date(merchantData.trial_expires_at);
+        } else if (merchantData.created_at) {
+          expiresDate = new Date(merchantData.created_at);
+          expiresDate.setDate(expiresDate.getDate() + 7);
+        }
+        
+        const now = new Date();
+        const diff = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diff <= 0) {
+          toast.error("Masa aktif habis. Silakan perpanjang lisensi Anda.");
+          router.push('/member?expired=true');
           return;
         }
       }
