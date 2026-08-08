@@ -343,6 +343,85 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Tabel Data Member & Masa Aktif */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 mt-8 overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="font-black text-white flex items-center gap-2">
+            <Crown size={18} className="text-amber-400" /> Data Member & Masa Aktif
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-300">
+            <thead className="bg-slate-800/50 text-xs uppercase text-slate-500 font-black">
+              <tr>
+                <th className="px-6 py-4">Toko / Member</th>
+                <th className="px-6 py-4">WhatsApp</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Masa Aktif</th>
+                <th className="px-6 py-4">Sisa Hari</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {merchants.map((m, i) => {
+                let expiresDate = new Date();
+                const merchantStatus = m.status || 'Trial';
+                
+                if (merchantStatus === 'Premium' && m.expired_at) {
+                  expiresDate = new Date(m.expired_at);
+                } else if (m.trial_expires_at) {
+                  expiresDate = new Date(m.trial_expires_at);
+                } else if (m.created_at) {
+                  expiresDate = new Date(m.created_at);
+                  expiresDate.setDate(expiresDate.getDate() + 7);
+                }
+                
+                const now = new Date();
+                const diff = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                const isExpired = diff <= 0;
+
+                return (
+                  <tr key={m.id || i} className="hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{m.nama_usaha || m.owner_name || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {m.whatsapp ? (
+                        <a href={`https://wa.me/${m.whatsapp}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
+                          +{m.whatsapp}
+                        </a>
+                      ) : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                        merchantStatus === 'Premium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 
+                        'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                      }`}>
+                        {merchantStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-xs">
+                      {expiresDate.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isExpired ? (
+                        <span className="text-red-400 font-bold text-xs bg-red-400/10 px-2 py-1 rounded-md">Habis</span>
+                      ) : (
+                        <span className="text-emerald-400 font-bold text-xs bg-emerald-400/10 px-2 py-1 rounded-md">{diff} Hari</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {merchants.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
+                    Belum ada data member.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* 5 Revenue Streams Profit Tracker */}
       <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 mt-8">
         <div className="flex items-center justify-between mb-6">
