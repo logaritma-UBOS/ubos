@@ -197,14 +197,14 @@ export default function LandingPage() {
       try {
         const welcomeMessage = `Selamat Datang di Logaritma UBOS! 🚀\n\nHai Kak dari ${formData.merchantName}, pendaftaran akun Anda telah berhasil.\nBerikut adalah detail akun akses Anda:\n\n• Nama Usaha : ${formData.merchantName}\n• Kategori   : ${formData.category}\n• No WhatsApp: ${cleanWA}\n• Password   : ${formData.password}\n\nSilakan klik link di bawah untuk langsung masuk ke Dashboard Bisnis Anda:\n${dashboardUrl}\n\nSimpan pesan ini agar Anda tidak lupa password akses Anda.\nTerimakasih dan selamat mengunci profit harian!`;
         
-        fetch('/api/wa/send', {
+        await fetch('/api/wa/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             target: cleanWA,
             message: welcomeMessage
           })
-        }).catch(err => console.error("Fonnte trigger err:", err));
+        });
       } catch (waErr) {
         console.error("Gagal mengirim WA Welcome:", waErr);
       }
@@ -219,10 +219,30 @@ export default function LandingPage() {
       }));
 
       // AUTO LOGIN & REDIRECT SETELAH DAFTAR
-      toast.success('Pendaftaran Berhasil! Mengalihkan ke dashboard...');
-      setTimeout(() => {
-        window.location.href = `/ubos/${katSlug}/${merchantSlug}`;
-      }, 1500);
+      toast.success('Pendaftaran Berhasil! Mempersiapkan dashboard...');
+      
+      try {
+        const dummyEmail = `${cleanWA}@logaritma.id`;
+        const { data: signUpData } = await supabase.auth.signUp({
+          email: dummyEmail,
+          password: formData.password
+        });
+
+        if (signUpData?.user) {
+          await supabase.from('merchants').insert([{
+            user_id: signUpData.user.id,
+            nama_usaha: formData.merchantName,
+            whatsapp: cleanWA,
+            kategori_usaha: formData.category,
+            status: 'Trial',
+          }]);
+          supabase.from('leads').update({ status: 'Converted' }).eq('no_wa', cleanWA).then();
+        }
+      } catch (authErr) {
+        console.error("Auto login error:", authErr);
+      }
+
+      window.location.href = `/ubos/${katSlug}/${merchantSlug}`;
       
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes('sudah terdaftar')) {

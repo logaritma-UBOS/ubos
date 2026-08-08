@@ -86,7 +86,19 @@ function AuthForm() {
 
         // Fallback 2: Check leads table (jika user baru daftar via Landing Page tapi belum punya auth account)
         if (signInError) {
-          const { data: leadData } = await supabase.from('leads').select('*').eq('no_wa', cleanWA).eq('password_session', password).maybeSingle();
+          let leadData = null;
+          const { data: exactLead } = await supabase.from('leads').select('*').eq('no_wa', cleanWA).eq('password_session', password).maybeSingle();
+          
+          if (exactLead) {
+            leadData = exactLead;
+          } else {
+            // Coba ambil berdasarkan WA saja jika migration SQL belum dijalankan (password_session = null)
+            const { data: anyLead } = await supabase.from('leads').select('*').eq('no_wa', cleanWA).maybeSingle();
+            if (anyLead && !anyLead.password_session) {
+              leadData = anyLead; // Izinkan bypass hanya jika password_session belum pernah tersimpan
+            }
+          }
+
           if (leadData) {
             // Auto-create auth account from lead
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
