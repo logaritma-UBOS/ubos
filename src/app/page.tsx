@@ -37,9 +37,16 @@ export default function LandingPage() {
 
   useEffect(() => {
     trackEvent('page_view');
+    
+    // Save affiliate referral to localStorage (30 days expiry implied by localstorage permanence until cleared)
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      localStorage.setItem('affiliate_ref', ref);
+    }
+
     const trackVisitor = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
         await fetch('/api/track-visitor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -115,11 +122,11 @@ export default function LandingPage() {
         localStorage.setItem('ubos_temp_pass', formData.password);
       }
 
-      // Ambil ref dari URL jika ada
+      // Ambil ref dari LocalStorage (atau URL jika belum tersimpan)
       let refId = null;
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search);
-        refId = urlParams.get('ref');
+        refId = urlParams.get('ref') || localStorage.getItem('affiliate_ref');
       }
 
       // Panggil API Route untuk bypass RLS & Handle Cek/Insert
