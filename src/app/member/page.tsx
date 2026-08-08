@@ -82,6 +82,11 @@ export default function MemberDashboard() {
   const [customBudget, setCustomBudget] = useState('');
   const [customNotes, setCustomNotes] = useState('');
 
+  // Affiliate State
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [payoutForm, setPayoutForm] = useState({ bank_name: 'BCA', account_number: '', account_name: '', amount: '' });
+  const [isSubmittingPayout, setIsSubmittingPayout] = useState(false);
+
   const safeOpenUrl = (url?: string) => {
     if (!url || typeof window === 'undefined') return;
     try {
@@ -97,6 +102,58 @@ export default function MemberDashboard() {
   const handleWhatsAppOpen = (message: string) => {
     if (!message) return;
     safeOpenUrl(buildWhatsAppLink(message));
+  };
+
+  const getRefLink = () => {
+    if (!merchant) return 'https://logaritma.id';
+    const ref = merchant.slug || merchant.id || merchant.no_wa || merchant.whatsapp;
+    return `https://logaritma.id?ref=${ref}`;
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(getRefLink());
+    toast.success('Link Referral disalin!');
+  };
+
+  const handleShareWA = () => {
+    const text = `Halo kawan bisnis! Saya pakai Logaritma UBOS buat rapihin laporan & kunci profit usaha. Coba gratis 14 hari pake link rekomendasi saya ini ya: ${getRefLink()}`;
+    safeOpenUrl(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  };
+
+  const handleSubmitPayout = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!merchant?.id) {
+      toast.error('Gagal memproses. Sesi merchant tidak valid.');
+      return;
+    }
+    const { amount, bank_name, account_number, account_name } = payoutForm;
+    if (Number(amount) < 50000) {
+      toast.error('Minimum penarikan saldo adalah Rp 50.000');
+      return;
+    }
+
+    setIsSubmittingPayout(true);
+    const loadingToast = toast.loading('Memproses pengajuan tarik saldo...');
+    try {
+      const { error } = await supabase.from('payout_requests').insert([{
+        merchant_id: merchant.id,
+        bank_name,
+        account_number,
+        account_name,
+        amount: Number(amount),
+        status: 'Pending'
+      }]);
+      
+      if (error) throw error;
+      
+      toast.success('Pengajuan berhasil! Tim kami akan segera memproses.', { id: loadingToast });
+      setShowPayoutModal(false);
+      setPayoutForm({ bank_name: 'BCA', account_number: '', account_name: '', amount: '' });
+    } catch (err: any) {
+      toast.error('Gagal mengajukan penarikan: ' + err.message, { id: loadingToast });
+    } finally {
+      setIsSubmittingPayout(false);
+    }
   };
 
   useEffect(() => {
@@ -670,51 +727,86 @@ export default function MemberDashboard() {
           )}
           {/* Tab: Affiliate */}
           {activeTab === 'affiliate' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 pb-24">
               <div>
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Program Kemitraan</h2>
-                <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang dengan referral.</p>
+                <p className="text-slate-500 text-sm font-medium">Hasilkan komisi berulang dengan membagikan Logaritma ke rekan pengusaha Anda.</p>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Total Klik Link</p>
+                  <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_clicks || 0}</p>
+                </div>
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Leads Mendaftar</p>
+                  <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_leads || 0}</p>
+                </div>
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Premium Aktif</p>
+                  <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_converted || 0}</p>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 shadow-sm text-white relative overflow-hidden">
+                  <Wallet size={64} className="absolute -right-4 -bottom-4 opacity-10" />
+                  <p className="text-xs text-emerald-100 font-bold uppercase mb-1 relative z-10">Saldo Komisi</p>
+                  <p className="text-2xl font-black relative z-10">Rp {(merchant?.commission_balance || 0).toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+
+              {/* Action Area */}
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-700 to-purple-600 p-6 flex items-center justify-between relative overflow-hidden">
                   <div className="relative z-10">
-                    <div className="text-[9px] font-black uppercase tracking-wider text-purple-200 mb-1">Affiliate Program</div>
-                    <h3 className="text-xl font-black text-white leading-tight">Pasif Komisi<br/>Logaritma</h3>
-                  </div>
-                  <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
-                    <Handshake size={80} className="text-white" />
+                    <div className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1 flex items-center gap-2"><Handshake size={14}/> Affiliate Dashboard</div>
+                    <h3 className="text-xl font-black text-white leading-tight">Sebarkan & Dapatkan 20%</h3>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-sm text-slate-600 font-medium mb-5">
-                    Rekomendasikan UBOS ke sesama pemilik usaha. Dapatkan komisi <strong className="text-purple-600 font-black">20%</strong> setiap kali teman Anda mengaktifkan modul.
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors shadow-sm"
-                    >
-                      <span className="flex items-center gap-3"><Copy size={18} /> Salin Link Referral</span>
-                      <ArrowRight size={16} className="opacity-50" />
-                    </button>
-                    
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
-                    >
-                      <span className="flex items-center gap-3"><Wallet size={18} className="text-emerald-500" /> Lihat Saldo & Komisi</span>
-                      <ArrowRight size={16} className="opacity-50" />
-                    </button>
+                <div className="p-6 md:p-8 space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Link Referral Unik Anda</label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 overflow-x-auto whitespace-nowrap">
+                        {getRefLink()}
+                      </div>
+                      <button onClick={handleCopyLink} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 shrink-0">
+                        <Copy size={16} /> Salin Link
+                      </button>
+                    </div>
+                  </div>
 
-                    <button 
-                      onClick={() => setShowFeatureComingSoonModal(true)}
-                      className="w-full bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 font-bold py-3 px-4 rounded-xl flex items-center justify-between transition-colors"
-                    >
-                      <span className="flex items-center gap-3"><Download size={18} className="text-blue-500" /> Download Bahan Promosi</span>
-                      <ArrowRight size={16} className="opacity-50" />
+                  <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                    <button onClick={handleShareWA} className="w-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                      <MessageCircle size={18} /> Share ke WhatsApp
+                    </button>
+                    <button onClick={() => setShowPayoutModal(true)} className="w-full bg-emerald-600 text-white hover:bg-emerald-700 font-black py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20">
+                      <Wallet size={18} /> Tarik Saldo Komisi
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Marketing Kit */}
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
+                <h3 className="text-lg font-black text-slate-900 mb-2 flex items-center gap-2"><Megaphone size={20} className="text-orange-500" /> Marketing Kit Siap Pakai</h3>
+                <p className="text-sm text-slate-500 mb-6">Tinggal *copy-paste* teks di bawah ini ke Story WhatsApp, Grup, atau Caption Instagram.</p>
+
+                <div className="space-y-4">
+                  {[
+                    { title: 'Teks WA Santai (Teman/Kenalan)', text: `Halo kawan bisnis! 👋\n\nSaya lagi pakai Logaritma UBOS nih buat rapihin laporan & kunci profit usaha. Beneran praktis banget buat pantau HPP & penjualan tiap hari.\n\nKebetulan ada free trial 14 hari, cobain deh pake link rekomendasi saya ini:\n${getRefLink()}\n\nSemoga bisnis makin lancar ya! 🚀` },
+                    { title: 'Caption Instagram / Facebook', text: `Capek ngurusin stok berantakan & duit bocor gak ketahuan? 😫\n\nSama, dulu saya juga gitu. Sampai akhirnya pakai Logaritma UBOS! Sistem kasir sekaligus pencatat HPP yang super detail & gampang banget dipakainya.\n\nBuat temen-temen pengusaha yang mau rapihin sistem, yuk cobain gratis 14 hari klik link di bawah ini 👇\n\n${getRefLink()}\n\n#LogaritmaUBOS #SistemKasir #SolusiBisnis #UMKMNaikKelas` },
+                    { title: 'Teks Ajakan Grup Pengusaha', text: `Izin share buat teman-teman di grup 🙏\n\nBuat yang lagi pusing cari sistem kasir yang bisa misahin komisi Gofood/Grabfood otomatis dan ngitung HPP detail, saya highly recommend pakai *Logaritma UBOS*.\n\nSistemnya dirancang khusus buat cegah kebocoran profit. Mumpung lagi ada free trial 14 hari, bisa langsung daftar lewat link ini ya:\n${getRefLink()}` }
+                  ].map((kit, i) => (
+                    <div key={i} className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold text-slate-800">{kit.title}</span>
+                        <button onClick={() => { navigator.clipboard.writeText(kit.text); toast.success('Teks disalin!'); }} className="text-purple-600 hover:text-purple-700 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                          Salin Teks
+                        </button>
+                      </div>
+                      <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{kit.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1308,6 +1400,104 @@ export default function MemberDashboard() {
                 <MessageCircle size={18} />
                 Gabung Grup WA Sekarang <ArrowRight size={16} />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Affiliate Payout Modal */}
+      {showPayoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowPayoutModal(false)} 
+              className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 z-10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Tarik Saldo Komisi</h3>
+                  <p className="text-sm text-slate-500">Saldo saat ini: Rp {(merchant?.commission_balance || 0).toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmitPayout} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Bank / E-Wallet</label>
+                  <select 
+                    value={payoutForm.bank_name}
+                    onChange={e => setPayoutForm({...payoutForm, bank_name: e.target.value})}
+                    required
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-3"
+                  >
+                    <option value="BCA">BCA</option>
+                    <option value="Mandiri">Mandiri</option>
+                    <option value="BNI">BNI</option>
+                    <option value="BRI">BRI</option>
+                    <option value="BSI">BSI</option>
+                    <option value="GoPay">GoPay</option>
+                    <option value="OVO">OVO</option>
+                    <option value="DANA">DANA</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Nomor Rekening / HP</label>
+                  <input 
+                    type="text" 
+                    value={payoutForm.account_number}
+                    onChange={e => setPayoutForm({...payoutForm, account_number: e.target.value})}
+                    required
+                    placeholder="Contoh: 08123456789 atau 87349123"
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-3" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Nama Pemilik Rekening</label>
+                  <input 
+                    type="text" 
+                    value={payoutForm.account_name}
+                    onChange={e => setPayoutForm({...payoutForm, account_name: e.target.value})}
+                    required
+                    placeholder="Sesuai nama di rekening/akun"
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-3" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Jumlah Penarikan (Rp)</label>
+                  <input 
+                    type="number" 
+                    min="50000"
+                    value={payoutForm.amount}
+                    onChange={e => setPayoutForm({...payoutForm, amount: e.target.value})}
+                    required
+                    placeholder="Minimal 50.000"
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-3" 
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <button 
+                    type="submit" 
+                    disabled={isSubmittingPayout || Number(payoutForm.amount) < 50000 || Number(payoutForm.amount) > (merchant?.commission_balance || 0)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 flex justify-center items-center gap-2"
+                  >
+                    {isSubmittingPayout ? <Loader2 size={18} className="animate-spin" /> : <Wallet size={18} />}
+                    Kirim Pengajuan
+                  </button>
+                  {Number(payoutForm.amount) > (merchant?.commission_balance || 0) && (
+                     <p className="text-red-500 text-xs mt-2 text-center font-medium">Saldo tidak mencukupi.</p>
+                  )}
+                </div>
+              </form>
             </div>
           </div>
         </div>
