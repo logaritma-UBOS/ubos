@@ -47,12 +47,11 @@ export async function POST(req: NextRequest) {
     const msg = error?.message || '';
     const isQuotaError = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota') || msg.includes('fetch failed');
     
-    // Jika quota habis atau error network, gunakan fallback
+    // Jika quota habis atau error network, kembalikan pesan error yang jelas
     if (isQuotaError) {
-      const randomFallback = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
       return NextResponse.json({ 
-        result: randomFallback.replace(/\[TOPIK\]/g, requestTopic)
-      });
+        error: 'Kuota API Gemini Anda (GEMINI_API_KEY_PROSPECTING) telah habis (Error 429 Limit: 0). Silakan gunakan kunci API baru atau upgrade akun Google AI Studio Anda ke berbayar agar bisa menggunakan fitur AI Copywriting secara dinamis.'
+      }, { status: 429 });
     }
 
     return NextResponse.json({ error: msg || 'Gagal terhubung ke AI' }, { status: 500 });
