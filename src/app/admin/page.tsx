@@ -395,9 +395,17 @@ export default function AdminDashboardPage() {
                     <td className="px-6 py-4 font-bold text-white whitespace-nowrap">{m?.nama_usaha || lead.nama_usaha || lead.nama_pemilik || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {lead.no_wa ? (
-                        <a href={`https://wa.me/${leadWa || lead.no_wa}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
-                          +{leadWa || lead.no_wa}
-                        </a>
+                        <div className="flex items-center gap-3">
+                          <span className="text-slate-300">+{leadWa || lead.no_wa}</span>
+                          <button
+                            onClick={() => handleFollowUp(lead.id, leadWa || lead.no_wa, m?.nama_usaha || lead.nama_usaha || lead.nama_pemilik || '')}
+                            disabled={isSendingWA[lead.id]}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-[10px] uppercase tracking-wide font-black rounded border border-green-500/20 transition-colors disabled:opacity-50"
+                          >
+                            {isSendingWA[lead.id] ? <Loader2 size={12} className="animate-spin" /> : <MessageCircle size={12} />}
+                            Hubungi
+                          </button>
+                        </div>
                       ) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
