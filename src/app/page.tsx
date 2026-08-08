@@ -102,13 +102,19 @@ export default function LandingPage() {
         throw new Error("Nomor WhatsApp tidak valid. Minimal 10 digit.");
       }
       
-      const { data: existingWa } = await supabase
+      const { data: existingWaMerchant } = await supabase
         .from('merchants')
         .select('id')
         .eq('whatsapp', cleanWA)
         .maybeSingle();
 
-      if (existingWa) {
+      const { data: existingWaLead } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('no_wa', cleanWA)
+        .maybeSingle();
+
+      if (existingWaMerchant || existingWaLead) {
         setShowModal(false);
         setShowExistingPopup(true);
         return;
@@ -219,8 +225,6 @@ export default function LandingPage() {
       }));
 
       // AUTO LOGIN & REDIRECT SETELAH DAFTAR
-      toast.success('Pendaftaran Berhasil! Mempersiapkan dashboard...');
-      
       try {
         const dummyEmail = `${cleanWA}@logaritma.id`;
         const { data: signUpData } = await supabase.auth.signUp({
@@ -242,7 +246,8 @@ export default function LandingPage() {
         console.error("Auto login error:", authErr);
       }
 
-      window.location.href = `/ubos/${katSlug}/${merchantSlug}`;
+      setDashboardLink(dashboardUrl);
+      setShowWelcomePopup(true);
       
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes('sudah terdaftar')) {
@@ -672,13 +677,13 @@ export default function LandingPage() {
               <User size={32} strokeWidth={2.5} />
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-2 sm:mb-3">
-              Nomor Sudah Terdaftar!
+              Nomor WhatsApp Ini Sudah Terdaftar!
             </h3>
             <p className="text-sm text-slate-600 font-medium leading-relaxed mb-6 sm:mb-8">
-              Silakan login untuk melanjutkan.
+              Silakan masuk menggunakan password Anda.
             </p>
-            <button onClick={() => { setShowExistingPopup(false); router.push('/auth'); }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-              Login UBOS <ArrowRight size={18} strokeWidth={3} />
+            <button onClick={() => { setShowExistingPopup(false); window.location.href = 'https://www.logaritma.id/auth'; }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+              Masuk / Login <ArrowRight size={18} strokeWidth={3} />
             </button>
           </div>
         </div>
@@ -695,13 +700,13 @@ export default function LandingPage() {
               <CheckCircle2 size={32} strokeWidth={2.5} />
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-2 sm:mb-3">
-              Selamat Bergabung di Logaritma - UBOS!
+              Selamat Bergabung! 🎉
             </h3>
             <p className="text-sm text-slate-600 font-medium leading-relaxed mb-6 sm:mb-8">
-              Pendaftaran Anda telah kami terima.
+              Akun Anda telah aktif. Detail akses telah dikirimkan ke WhatsApp Anda.
             </p>
-            <button onClick={() => { setShowWelcomePopup(false); router.push(dashboardLink); }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-              Masuk Ke Dashboard UBOS <ArrowRight size={18} strokeWidth={3} />
+            <button onClick={() => { setShowWelcomePopup(false); window.location.href = dashboardLink; }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+              🚀 Masuk ke Dashboard UBOS
             </button>
           </div>
         </div>
