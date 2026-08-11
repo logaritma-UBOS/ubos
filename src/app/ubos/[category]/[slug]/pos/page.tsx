@@ -85,11 +85,17 @@ export default function POSPage() {
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
-  const calculateAdjustedPrice = (hpp: number) => {
-    const targetMargin = merchant ? (merchant.target_margin_standar / 100) : 0.4;
+  const calculateAdjustedPrice = (product: any) => {
+    let basePrice = product.harga_jual;
+    
+    if (!basePrice) {
+      const targetMargin = merchant ? (merchant.target_margin_standar / 100) : 0.4;
+      const targetProfit = product.hpp_dasar * targetMargin;
+      basePrice = product.hpp_dasar + targetProfit;
+    }
+
     const commission = CHANNEL_COMMISSIONS[channel];
-    const targetProfit = hpp * targetMargin;
-    const price = (hpp + targetProfit) / (1 - commission);
+    const price = basePrice / (1 - commission);
     return Math.ceil(price / 100) * 100; // Round to nearest 100
   };
 
@@ -135,7 +141,7 @@ export default function POSPage() {
       if (numQ > 0) {
         const prod = products.find(p => p.id === id);
         if (prod) {
-          total += calculateAdjustedPrice(prod.hpp_dasar) * numQ;
+          total += calculateAdjustedPrice(prod) * numQ;
           qty += numQ;
         }
       }
@@ -175,7 +181,7 @@ export default function POSPage() {
           transaction_id: trxData.id,
           product_id: id,
           qty: qty,
-          harga_satuan: calculateAdjustedPrice(prod.hpp_dasar),
+          harga_satuan: calculateAdjustedPrice(prod),
           hpp_satuan: prod.hpp_dasar
         };
       }).filter(item => item.qty > 0);
@@ -460,7 +466,7 @@ export default function POSPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4 mt-4">
                 {filteredProducts.map(product => {
-                  const price = calculateAdjustedPrice(product.hpp_dasar);
+                  const price = calculateAdjustedPrice(product);
                   const rawQty = cart[product.id];
                   const qty = Number(rawQty) || 0;
                   const isAvailable = product.is_available ?? true;
