@@ -507,7 +507,9 @@ export default function MemberDashboard() {
                         <button 
                           onClick={async (e) => {
                             e.preventDefault();
-                            const category = (merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner';
+                            const categoryRaw = merchant?.kategori_usaha || merchant?.kategori || 'kuliner';
+                            const categorySafe = categoryRaw === 'undefined' ? 'kuliner' : categoryRaw;
+                            const category = categorySafe.toLowerCase().split(' ')[0] || 'kuliner';
                             
                             if (!merchant?.user_id) {
                               // Cek apakah nomor WA sudah terdaftar di database via server API
