@@ -62,7 +62,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor') && !pathname.startsWith('/store')) {
         router.push('/');
       } else if (session && pathname === '/auth') {
         router.push('/member');
@@ -120,7 +120,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor') && !pathname.startsWith('/store')) {
         router.push('/');
       } else if (newSession && pathname === '/auth') {
         router.push('/member');
@@ -146,11 +146,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAdminPage = pathname.startsWith('/admin');
   const isInvestorPage = pathname.startsWith('/investor');
   const isMemberArea = pathname.startsWith('/member');
+  const isStorefrontPage = pathname.startsWith('/store');
   const isSubPage = pathname.includes('/new') || pathname.includes('/edit') || pathname.includes('/settings');
-  const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage;
-  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage;
+  const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
+  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
 
-  if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea) {
+  if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }
 
