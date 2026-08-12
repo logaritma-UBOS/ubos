@@ -124,47 +124,88 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
         }
       }
       else {
-        // POS / Dashboard Insight (Run-rate)
+        // POS / Dashboard Insight (Run-rate & Target Nag)
         const todayStr = new Date().toISOString().split('T')[0];
-        const { data: todayTrx } = await supabase.from('transactions')
+        
+        // Cek target mingguan
+        const targetProfitStr = localStorage.getItem('targetProfit') || '5000000';
+        const monthlyTarget = parseInt(targetProfitStr.replace(/\D/g, ''), 10) || 5000000;
+        const weeklyTarget = monthlyTarget / 4;
+        
+        const now = new Date();
+        const dayOfWeek = now.getDay(); 
+        const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Senin s/d Minggu
+        const startOfWeek = new Date(now.setDate(diff));
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const { data: weekTrx } = await supabase.from('transactions')
           .select('created_at, total_net')
           .eq('merchant_id', merchantId)
-          .gte('created_at', `${todayStr}T00:00:00Z`);
+          .gte('created_at', startOfWeek.toISOString());
 
-        if (todayTrx && todayTrx.length > 0) {
-          const totalOmzet = todayTrx.reduce((sum, t) => sum + (t.total_net || 0), 0);
-          const orderCount = todayTrx.length;
+        let totalWeekOmzet = 0;
+        let totalTodayOmzet = 0;
+        let todayOrderCount = 0;
+        let peakHour = -1;
+        let maxOrders = 0;
+
+        if (weekTrx && weekTrx.length > 0) {
+          totalWeekOmzet = weekTrx.reduce((sum, t) => sum + (t.total_net || 0), 0);
           
-          // Cari jam paling ramai hari ini
+          const todayTrx = weekTrx.filter(t => t.created_at.startsWith(todayStr));
+          totalTodayOmzet = todayTrx.reduce((sum, t) => sum + (t.total_net || 0), 0);
+          todayOrderCount = todayTrx.length;
+          
           const hourCounts = todayTrx.reduce((acc: any, t) => {
             const hour = new Date(t.created_at).getHours();
             acc[hour] = (acc[hour] || 0) + 1;
             return acc;
           }, {});
           
-          let peakHour = -1;
-          let maxOrders = 0;
           Object.keys(hourCounts).forEach(h => {
             if (hourCounts[h] > maxOrders) {
               maxOrders = hourCounts[h];
               peakHour = parseInt(h);
             }
           });
+        }
 
-          let desc = `Hari ini Anda sudah mendapat ${orderCount} pesanan dengan total omzet ${formatIDR(totalOmzet)}.`;
+        // AKTIF - Nagging System
+        if (totalWeekOmzet < weeklyTarget) {
+          const percentKurang = Math.round(((weeklyTarget - totalWeekOmzet) / weeklyTarget) * 100);
+          // If we are at the start of the week and have 0 sales, it will say 100%. That's fine.
+          newInsights.push({
+            id: 'pos-target-nag',
+            type: 'warning',
+            title: '⚠️ Peringatan Target Mingguan',
+            description: `Bos, penjualan minggu ini kurang ${percentKurang}% dari target mingguan (${formatIDR(weeklyTarget)}). Yuk jalankan strategi promo A (misalnya diskon bundling) untuk kejar ketinggalan!`,
+            actionLabel: 'Tanya Strategi Promo',
+            actionPayload: { action: 'CHAT_PROMO' } // We can handle this to auto-fill chat
+          });
+        } else {
+           newInsights.push({
+            id: 'pos-target-nag',
+            type: 'success',
+            title: '🎯 Target On-Track',
+            description: `Luar biasa Bos! Penjualan minggu ini sudah melampaui target mingguan. Pertahankan momentum ini!`,
+          });
+        }
+
+        if (todayOrderCount > 0) {
+          let desc = `Hari ini Anda mendapat ${todayOrderCount} pesanan dengan total omzet ${formatIDR(totalTodayOmzet)}.`;
           if (peakHour !== -1) {
             const nextHour = (peakHour + 1) % 24;
             const hourStr = `${peakHour.toString().padStart(2, '0')}:00 - ${nextHour.toString().padStart(2, '0')}:00`;
-            if (orderCount > 2) {
-                desc += ` Penjualan berjalan aktif! Analisis AI Logaritma memprediksi jam sibuk selanjutnya di sekitar pukul ${hourStr}.`;
+            if (todayOrderCount > 2) {
+                desc += ` AI Logaritma memprediksi jam sibuk selanjutnya di sekitar pukul ${hourStr}.`;
             } else {
-                desc += ` Anda bisa mencoba share promo ke WA pelanggan untuk mendongkrak pesanan.`;
+                desc += ` Bagikan promo toko ke WhatsApp untuk mendongkrak pesanan.`;
             }
           }
 
           newInsights.push({
             id: 'pos-runrate',
-            type: 'success',
+            type: 'info',
             title: 'Insight Penjualan Harian',
             description: desc,
           });
@@ -173,7 +214,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
             id: 'pos-runrate',
             type: 'info',
             title: 'Insight Penjualan Harian',
-            description: 'Belum ada penjualan terekam untuk hari ini. Jangan lupa buka kasir dan bagikan promo toko untuk memancing pelanggan pertama Anda!',
+            description: 'Belum ada penjualan hari ini. Buka Smart POS dan catat transaksi pertama Anda!',
           });
         }
         
@@ -217,6 +258,14 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
         if (pathname.includes('/pos') || pathname.includes('/inventory')) {
           window.location.reload(); // Hard reload for simplicity to reflect in parent states
         }
+      }
+      else if (payload.action === 'CHAT_PROMO') {
+        // Auto fill and submit chat
+        setChatMessage('Bos, apa strategi promo A yang bagus untuk kejar target minggu ini?');
+        setTimeout(() => {
+          const form = document.getElementById('copilot-chat-form') as HTMLFormElement;
+          if (form) form.requestSubmit();
+        }, 100);
       }
     } catch (err) {
       toast.error('Gagal menjalankan aksi');
@@ -381,7 +430,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
             </div>
             
             {/* Chat Input */}
-            <form onSubmit={handleChatSubmit} className="p-4 bg-white border-t border-slate-100 flex gap-2 shrink-0">
+            <form id="copilot-chat-form" onSubmit={handleChatSubmit} className="p-4 bg-white border-t border-slate-100 flex gap-2 shrink-0">
               <input 
                 type="text" 
                 value={chatMessage}
