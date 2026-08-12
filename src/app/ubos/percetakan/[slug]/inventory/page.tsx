@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Printer, Save } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Printer, Save, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -29,6 +29,16 @@ export default function InventoryPercetakanPage() {
   const [tintaCost, setTintaCost] = useState('');
   const [finishingCost, setFinishingCost] = useState('');
   const [hargaJual, setHargaJual] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -130,6 +140,26 @@ export default function InventoryPercetakanPage() {
       const totalHPP = calculateTotalHPP();
       const jual = parseFloat(hargaJual.replace(/\D/g, '')) || 0;
 
+      // 1. Upload image to Cloudinary if a new file is selected
+      let photo_url = null;
+      if (imageFile) {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+        
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        if (uploadPreset) formData.append('upload_preset', uploadPreset);
+        
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.secure_url) {
+          photo_url = data.secure_url;
+        }
+      }
+
       const { data: productData, error: productError } = await supabase
         .from('products')
         .insert([{
@@ -137,6 +167,7 @@ export default function InventoryPercetakanPage() {
           nama_produk: namaProduk,
           hpp_dasar: totalHPP,
           harga_jual: jual,
+          photo_url: photo_url || null,
           is_available: true
         }])
         .select()
@@ -163,6 +194,8 @@ export default function InventoryPercetakanPage() {
       setTintaCost('');
       setFinishingCost('');
       setHargaJual('');
+      setImageFile(null);
+      setImagePreview(null);
       
       // Refresh Data
       fetchProducts();
@@ -209,9 +242,50 @@ export default function InventoryPercetakanPage() {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Produk</label>
-              <input type="text" value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Contoh: Spanduk Flexi 280gr" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-center min-h-[160px] relative">
+                {imagePreview ? (
+                  <>
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={() => { setImagePreview(null); setImageFile(null); }}
+                      className="absolute top-2 right-2 bg-slate-900/50 hover:bg-rose-500 text-white p-2 rounded-full backdrop-blur-sm transition-colors shadow-sm"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-full p-4 cursor-pointer text-slate-400 hover:text-primary transition-colors text-center">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 text-slate-300">
+                      <ImagePlus size={24} />
+                    </div>
+                    <span className="text-[13px] font-bold text-slate-600 mb-1 leading-tight">Unggah Foto Produk</span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG (Maks 5MB)</span>
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </label>
+                )}
+              </div>
+
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Produk</label>
+                  <input type="text" value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Contoh: Spanduk Flexi 280gr" />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Harga Jual</label>
+                    <CurrencyInput value={hargaJual} onChange={setHargaJual} className="w-full pl-10 pr-3 py-3 bg-primary/5 border border-primary/20 text-primary rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" placeholder="0" icon="Rp" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Total HPP</label>
+                    <div className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 shadow-sm flex items-center h-[46px]">
+                      {formatIDR(calculateTotalHPP())}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -230,15 +304,7 @@ export default function InventoryPercetakanPage() {
             </div>
             
             <div className="pt-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-8 w-full md:w-auto">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total HPP</p>
-                  <p className="text-2xl font-black text-slate-800">{formatIDR(totalHPP)}</p>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Harga Jual</label>
-                  <CurrencyInput value={hargaJual} onChange={setHargaJual} className="w-full min-w-[140px] pl-10 pr-3 py-2 bg-primary/5 border border-primary/20 text-primary rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all" placeholder="0" icon="Rp" />
-                </div>
+              <div className="w-full md:w-auto">
               </div>
               
               <button 
@@ -307,7 +373,11 @@ export default function InventoryPercetakanPage() {
                   </div>
                   
                   <div className="aspect-[4/3] w-full bg-slate-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden border border-slate-100 relative">
-                    <Printer size={32} className="text-slate-300" />
+                    {product.photo_url ? (
+                      <img src={product.photo_url} alt={product.nama_produk} className="w-full h-full object-cover" />
+                    ) : (
+                      <Printer size={32} className="text-slate-300" />
+                    )}
                   </div>
                   <div className="flex-1 flex flex-col">
                     <h3 className="font-bold text-slate-800 text-[13px] line-clamp-2 leading-tight">{product.nama_produk}</h3>
