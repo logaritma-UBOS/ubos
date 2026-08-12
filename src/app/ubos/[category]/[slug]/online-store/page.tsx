@@ -18,7 +18,9 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
 
   // New Profile Fields
   const [bannerUrl, setBannerUrl] = useState('');
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [slogan, setSlogan] = useState('');
+  const [deskripsiToko, setDeskripsiToko] = useState('');
   const [address, setAddress] = useState('');
   const [gmapsLink, setGmapsLink] = useState('');
 
@@ -43,6 +45,7 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
           setStoreWaNumber(data.store_wa_number || data.whatsapp || '');
           setBannerUrl(data.banner_url || '');
           setSlogan(data.slogan || '');
+          setDeskripsiToko(data.deskripsi_toko || '');
           setAddress(data.address || data.alamat || '');
           setGmapsLink(data.gmaps_link || data.address_link || '');
         }
@@ -61,13 +64,34 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
     setIsSaving(true);
     
     try {
+      let finalBannerUrl = bannerUrl;
+      
+      // Upload new banner to Cloudinary
+      if (bannerFile) {
+        const formData = new FormData();
+        formData.append('file', bannerFile);
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.secure_url) {
+          finalBannerUrl = data.secure_url;
+          setBannerUrl(data.secure_url);
+        }
+      }
+
       const { error } = await supabase
         .from('merchants')
         .update({
           online_store_enabled: isStoreEnabled,
           store_wa_number: storeWaNumber,
-          banner_url: bannerUrl,
+          banner_url: finalBannerUrl,
           slogan: slogan,
+          deskripsi_toko: deskripsiToko,
           address: address,
           gmaps_link: gmapsLink
         })
@@ -163,15 +187,41 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
             </h2>
             
             <div>
-              <label className="text-sm font-bold text-slate-700 block mb-2">Banner Toko (URL Gambar)</label>
-              <input 
-                type="text" 
-                value={bannerUrl}
-                onChange={e => setBannerUrl(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
-                placeholder="https://example.com/banner.jpg" 
-              />
-              <p className="text-xs text-slate-500 mt-2">Link gambar cover untuk bagian atas toko Anda. Gunakan rasio lebar (misal 1200x400).</p>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Banner Toko (Gambar)</label>
+              <div className="flex items-center gap-4">
+                <div className="w-full max-w-sm h-32 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 relative flex items-center justify-center shrink-0">
+                  {bannerFile ? (
+                    <img src={URL.createObjectURL(bannerFile)} alt="Preview" className="w-full h-full object-cover" />
+                  ) : bannerUrl ? (
+                    <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="text-slate-300 w-12 h-12" />
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <label className="cursor-pointer bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50">
+                      Ganti
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="hidden" 
+                        onChange={e => e.target.files && e.target.files[0] && setBannerFile(e.target.files[0])}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="cursor-pointer px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors text-center inline-block">
+                    Pilih Gambar
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="hidden" 
+                      onChange={e => e.target.files && e.target.files[0] && setBannerFile(e.target.files[0])}
+                    />
+                  </label>
+                  <p className="text-xs text-slate-500">Gunakan rasio lebar (misal 1200x400). Maks 2MB.</p>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -182,6 +232,16 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
                 onChange={e => setSlogan(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                 placeholder="Belanja mudah, aman, dan terpercaya." 
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Info Toko (Deskripsi)</label>
+              <textarea 
+                value={deskripsiToko}
+                onChange={e => setDeskripsiToko(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none h-32" 
+                placeholder="Ceritakan tentang toko Anda, jam operasional, atau kebijakan pengiriman..." 
               />
             </div>
             

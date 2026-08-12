@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, use } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ExternalLink, AlertCircle, MessageCircle } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ExternalLink, AlertCircle, MessageCircle, Store } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function StorefrontPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,6 +28,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('Terbaru'); // 'Terbaru', 'Termurah', 'Termahal'
+
+  // Info Modal
+  const [showInfoToko, setShowInfoToko] = useState(false);
 
   useEffect(() => {
     const fetchStore = async () => {
@@ -301,7 +304,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
             >
               Chat Penjual
             </a>
-            <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 font-bold rounded-lg text-sm hover:bg-slate-50 transition-all">
+            <button 
+              onClick={() => setShowInfoToko(true)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 font-bold rounded-lg text-sm hover:bg-slate-50 transition-all"
+            >
               Info Toko <AlertCircle size={14} />
             </button>
           </div>
@@ -492,6 +498,55 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
       )}
+
+      {/* Info Toko Modal */}
+      {showInfoToko && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowInfoToko(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10 shrink-0">
+              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                <Store size={20} className="text-primary" />
+                Informasi Toko
+              </h3>
+              <button onClick={() => setShowInfoToko(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                ✕
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-3xl mb-3 overflow-hidden">
+                  {merchant.logo_url ? <img src={merchant.logo_url} className="w-full h-full object-cover" alt="Logo" /> : merchant.nama_usaha.charAt(0)}
+                </div>
+                <h4 className="font-black text-xl text-slate-900">{merchant.nama_usaha}</h4>
+                <p className="text-sm text-slate-500 mt-1 font-medium">{merchant.slogan || 'Belanja mudah, aman, dan terpercaya.'}</p>
+              </div>
+
+              {merchant.deskripsi_toko && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi Toko</h5>
+                  <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{merchant.deskripsi_toko}</p>
+                </div>
+              )}
+
+              <div>
+                <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Lokasi</h5>
+                <div className="flex items-start gap-3 p-4 border border-slate-200 rounded-xl">
+                  <MapPin size={20} className="text-primary shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-slate-700">{merchant.address || merchant.alamat || 'Lokasi belum diatur'}</p>
+                    {merchant.gmaps_link && (
+                      <a href={merchant.gmaps_link} target="_blank" rel="noopener noreferrer" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline w-fit">
+                        Buka di Google Maps <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
