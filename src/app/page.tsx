@@ -121,7 +121,8 @@ export default function LandingPage() {
       }
 
       const isFnB = formData.category === "Kuliner & F&B";
-      const funnelDest = isFnB ? 'UBOS' : 'MEMBER_AREA';
+      const isPercetakan = formData.category.includes("Percetakan") || formData.category === "Percetakan & ATK";
+      const funnelDest = (isFnB || isPercetakan) ? 'UBOS' : 'MEMBER_AREA';
 
       const leadData = {
         nama_usaha: formData.merchantName,
@@ -130,7 +131,7 @@ export default function LandingPage() {
       };
       
       localStorage.setItem('ubos_lead', JSON.stringify(leadData));
-      if (isFnB) {
+      if (isFnB || isPercetakan) {
         localStorage.setItem('ubos_temp_pass', formData.password);
       }
 
@@ -186,9 +187,13 @@ export default function LandingPage() {
           kategori: formData.category
         }));
 
-        if (result.data?.funnel_destination === 'UBOS' || isFnB) {
+        if (result.data?.funnel_destination === 'UBOS' || isFnB || isPercetakan) {
           const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
-          router.push(`/ubos/kuliner/${slug}`);
+          if (isPercetakan || formData.category.toLowerCase().includes('percetakan')) {
+            router.push(`/ubos/percetakan/${slug}`);
+          } else {
+            router.push(`/ubos/kuliner/${slug}`);
+          }
         } else {
           setShowDevPopup(true);
         }
