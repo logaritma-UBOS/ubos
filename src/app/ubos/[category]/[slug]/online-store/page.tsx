@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Store, Link as LinkIcon, QrCode, Phone, ExternalLink, Save, Copy, CheckCircle, AlertCircle } from 'lucide-react';
+import { Store, Link as LinkIcon, QrCode, Phone, ExternalLink, Save, Copy, CheckCircle, AlertCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function OnlineStoreSettings({ params }: { params: Promise<{ slug: string; category: string }> }) {
