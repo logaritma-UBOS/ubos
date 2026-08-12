@@ -2,12 +2,12 @@
 
 import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Store, Link as LinkIcon, QrCode, Phone, ExternalLink, Save, Copy, CheckCircle, AlertCircle, Settings } from 'lucide-react';
+import { Store, Link as LinkIcon, QrCode, ExternalLink, Save, Copy, AlertCircle, Settings, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function OnlineStoreSettings({ params }: { params: Promise<{ slug: string; category: string }> }) {
   const resolvedParams = use(params);
-  const { slug, category } = resolvedParams;
+  const { slug } = resolvedParams;
 
   const [merchant, setMerchant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,12 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
   const [isStoreEnabled, setIsStoreEnabled] = useState(true);
   const [storeWaNumber, setStoreWaNumber] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // New Profile Fields
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [slogan, setSlogan] = useState('');
+  const [address, setAddress] = useState('');
+  const [gmapsLink, setGmapsLink] = useState('');
 
   useEffect(() => {
     const fetchMerchant = async () => {
@@ -35,6 +41,10 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
           // If the columns don't exist in Supabase, these will be undefined, so we fallback
           setIsStoreEnabled(data.online_store_enabled !== false);
           setStoreWaNumber(data.store_wa_number || data.whatsapp || '');
+          setBannerUrl(data.banner_url || '');
+          setSlogan(data.slogan || '');
+          setAddress(data.address || data.alamat || '');
+          setGmapsLink(data.gmaps_link || data.address_link || '');
         }
       } catch (err) {
         console.error('Error fetching merchant:', err);
@@ -55,7 +65,11 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
         .from('merchants')
         .update({
           online_store_enabled: isStoreEnabled,
-          store_wa_number: storeWaNumber
+          store_wa_number: storeWaNumber,
+          banner_url: bannerUrl,
+          slogan: slogan,
+          address: address,
+          gmaps_link: gmapsLink
         })
         .eq('id', merchant.id);
         
@@ -64,8 +78,8 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
       toast.success('Pengaturan Toko Online berhasil disimpan!');
     } catch (err: any) {
       console.error(err);
-      if (err.message?.includes('column "online_store_enabled" of relation "merchants" does not exist')) {
-        toast.error('Gagal: Kolom database belum ditambahkan. Silakan hubungi admin untuk menjalankan migrasi.');
+      if (err.message?.includes('column')) {
+        toast.error('Gagal: Kolom database belum ditambahkan. Pastikan Anda telah menjalankan skrip migrasi add_storefront_columns.sql');
       } else {
         toast.error('Gagal menyimpan pengaturan.');
       }
@@ -142,10 +156,60 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
               </p>
             </div>
           </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <ImageIcon size={20} className="text-slate-400" /> Profil Tampilan Toko
+            </h2>
+            
+            <div>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Banner Toko (URL Gambar)</label>
+              <input 
+                type="text" 
+                value={bannerUrl}
+                onChange={e => setBannerUrl(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                placeholder="https://example.com/banner.jpg" 
+              />
+              <p className="text-xs text-slate-500 mt-2">Link gambar cover untuk bagian atas toko Anda. Gunakan rasio lebar (misal 1200x400).</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Slogan / Tagline</label>
+              <input 
+                type="text" 
+                value={slogan}
+                onChange={e => setSlogan(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                placeholder="Belanja mudah, aman, dan terpercaya." 
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Alamat Lengkap Toko</label>
+              <textarea 
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none h-24" 
+                placeholder="Jalan Mawar IV, Rawa Bambu..." 
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Tautan Google Maps</label>
+              <input 
+                type="text" 
+                value={gmapsLink}
+                onChange={e => setGmapsLink(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                placeholder="https://maps.app.goo.gl/..." 
+              />
+            </div>
+          </div>
           
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <Settings size={20} className="text-slate-400" /> Konfigurasi Toko
+              <Settings size={20} className="text-slate-400" /> Konfigurasi Pemesanan
             </h2>
             
             <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
@@ -185,7 +249,7 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
               <button 
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-70"
+                className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-70 shadow-sm"
               >
                 {isSaving ? (
                   <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -281,7 +281,13 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
               <p className="text-sm text-slate-500 font-medium mt-1">{merchant.slogan || 'Belanja mudah, aman, dan terpercaya.'}</p>
               <div className="flex items-center gap-1 mt-2 text-slate-500 text-xs md:text-sm">
                 <MapPin size={14} className="shrink-0" />
-                <span className="truncate max-w-[250px] md:max-w-md">{merchant.alamat || 'Lokasi belum diatur'}</span>
+                {merchant.gmaps_link ? (
+                  <a href={merchant.gmaps_link} target="_blank" rel="noopener noreferrer" className="truncate max-w-[250px] md:max-w-md hover:text-primary transition-colors">
+                    {merchant.address || merchant.alamat || 'Lokasi belum diatur'}
+                  </a>
+                ) : (
+                  <span className="truncate max-w-[250px] md:max-w-md">{merchant.address || merchant.alamat || 'Lokasi belum diatur'}</span>
+                )}
               </div>
             </div>
           </div>
