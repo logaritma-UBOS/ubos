@@ -13,9 +13,11 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
   const slug = merchant?.nama_usaha ? (merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) : '';
   
   let basePath = '';
-  const basePathMatch = pathname.match(/^\/ubos\/[^\/]+\/[^\/]+/);
+  const basePathMatch = pathname.match(/^\/ubos\/([^\/]+)\/([^\/]+)/);
   if (basePathMatch) {
-    basePath = basePathMatch[0];
+    const currentCategory = basePathMatch[1] === 'undefined' ? category : basePathMatch[1];
+    const currentSlug = basePathMatch[2];
+    basePath = `/ubos/${currentCategory}/${currentSlug}`;
   } else if (slug) {
     basePath = `/ubos/${category}/${slug}`;
   } else {

@@ -24,15 +24,25 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
 
       const { data: merchantData } = await supabase
         .from('merchants')
-        .select('nama_usaha, expired_at, created_at, trial_expires_at')
+        .select('nama_usaha, kategori_usaha, expired_at, created_at, trial_expires_at')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (merchantData) {
         if (params.slug) {
           const expectedSlug = (merchantData.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-          if (expectedSlug !== params.slug) {
-            router.push(`/ubos/${params.category || 'kuliner'}/${expectedSlug}`);
+          let catRaw = merchantData.kategori_usaha || 'kuliner';
+          if (catRaw === 'undefined') catRaw = 'percetakan';
+          const currentCategory = params.category === 'undefined' ? encodeURIComponent((catRaw.toLowerCase().split(' ')[0] || 'kuliner')) : params.category;
+          
+          if (expectedSlug !== params.slug || params.category === 'undefined') {
+            // Reconstruct the full path
+            const currentPathname = window.location.pathname;
+            // The path looks like /ubos/undefined/baim/inventory
+            // We want to replace /ubos/category/slug with /ubos/currentCategory/expectedSlug
+            const restOfPath = currentPathname.split('/').slice(4).join('/');
+            const newPath = `/ubos/${currentCategory || 'kuliner'}/${expectedSlug}${restOfPath ? `/${restOfPath}` : ''}`;
+            router.push(newPath);
             return;
           }
         }

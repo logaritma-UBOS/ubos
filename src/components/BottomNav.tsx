@@ -8,13 +8,17 @@ import clsx from 'clsx';
 export default function BottomNav({ merchant }: { merchant?: any }) {
   const pathname = usePathname();
   
-  const category = encodeURIComponent((merchant?.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0] || 'kuliner');
+  const categoryRaw = merchant?.kategori_usaha || merchant?.kategori || 'kuliner';
+  const categorySafe = categoryRaw === 'undefined' ? 'kuliner' : categoryRaw;
+  const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
   const slug = merchant?.nama_usaha ? (merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) : '';
   
   let basePath = '';
-  const basePathMatch = pathname.match(/^\/ubos\/[^\/]+\/[^\/]+/);
+  const basePathMatch = pathname.match(/^\/ubos\/([^\/]+)\/([^\/]+)/);
   if (basePathMatch) {
-    basePath = basePathMatch[0];
+    const currentCategory = basePathMatch[1] === 'undefined' ? category : basePathMatch[1];
+    const currentSlug = basePathMatch[2];
+    basePath = `/ubos/${currentCategory}/${currentSlug}`;
   } else if (slug) {
     basePath = `/ubos/${category}/${slug}`;
   } else {
