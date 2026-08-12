@@ -83,6 +83,37 @@ export default function POSPage() {
     fetchData();
   }, [router]);
 
+  useEffect(() => {
+    if (!merchant?.id) return;
+    
+    const channel = supabase.channel('online_orders_pos')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'transactions',
+        filter: `merchant_id=eq.${merchant.id}`
+      }, (payload: any) => {
+        if (payload.new.channel === 'Online Store' && payload.new.status === 'Pending') {
+          toast.message(`🛒 Pesanan Online Baru!`, {
+            description: `ID: #${payload.new.id.split('-')[0].toUpperCase()} | Total: Rp${payload.new.total_gross}`,
+            action: {
+              label: 'Lihat Order',
+              onClick: () => {
+                // In a real app, this would open a modal with the order details
+                toast.success('Fitur manajemen order online dalam pengembangan');
+              }
+            },
+            duration: 10000,
+          });
+        }
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [merchant?.id]);
+
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
   const calculateAdjustedPrice = (product: any) => {

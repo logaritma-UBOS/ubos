@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingCart, Package, Wallet, Settings } from 'lucide-react';
+import { Home, ShoppingCart, Package, Wallet, Settings, Store } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function BottomNav({ merchant }: { merchant?: any }) {
@@ -26,11 +26,11 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
   }
 
   const navItems = [
-    { name: 'Dashboard', href: `${basePath}`, icon: Home },
+    { name: 'Home', href: `${basePath}`, icon: Home },
     { name: 'POS', href: `${basePath}/pos`, icon: ShoppingCart },
     { name: 'Stok', href: `${basePath}/inventory`, icon: Package },
-    { name: 'Finance', href: `${basePath}/finance`, icon: Wallet },
-    { name: 'Pengaturan', href: '/settings', icon: Settings },
+    { name: 'Toko', href: `${basePath}/online-store`, icon: Store },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   return (

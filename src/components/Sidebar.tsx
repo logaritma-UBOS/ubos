@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings } from 'lucide-react';
+import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store } from 'lucide-react';
 
 export default function Sidebar({ merchant }: { merchant?: any }) {
   const pathname = usePathname();
@@ -28,6 +28,7 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
     { name: 'Dashboard', href: `${basePath}`, icon: Home },
     { name: 'POS', href: `${basePath}/pos`, icon: ShoppingBag },
     { name: 'Stok', href: `${basePath}/inventory`, icon: Package },
+    { name: 'Toko Online', href: `${basePath}/online-store`, icon: Store },
     { name: 'Finance', href: `${basePath}/finance`, icon: Wallet },
     { name: 'CRM', href: `${basePath}/crm`, icon: Users },
   ];
