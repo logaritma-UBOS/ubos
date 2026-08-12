@@ -324,7 +324,7 @@ export default function InventoryPercetakanPage() {
                   </div>
                   
                   <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/ubos/${params.category as string}/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
+                    <Link href={`/ubos/percetakan/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
                     <button onClick={() => handleDeleteClick(product.id, product.nama_produk)} className="flex-1 font-bold text-[11px] text-slate-500 hover:text-danger transition-colors py-2 bg-slate-50 hover:bg-danger/10 rounded-lg flex items-center justify-center gap-1.5"><Trash2 size={14} /> Hapus</button>
                   </div>
                 </div>
