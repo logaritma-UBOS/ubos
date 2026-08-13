@@ -7,6 +7,7 @@ import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle
 import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
+import Receipt from '@/components/Receipt';
 
 type PaymentMethod = 'TUNAI' | 'QRIS' | 'EDC';
 
@@ -633,10 +634,11 @@ export default function POSRitelPage() {
         </div>
       )}
 
-      {/* Success Modal */}
+      {/* Success Modal & Receipt */}
       {showSuccess && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
+        <>
+          <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+             <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
               <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle size={40} />
               </div>
@@ -660,7 +662,17 @@ export default function POSRitelPage() {
                 </button>
               </div>
            </div>
-        </div>
+          </div>
+          <Receipt 
+            merchant={merchant}
+            items={cart}
+            total={cartTotal.total}
+            paymentMethod={paymentMethod}
+            cashReceived={cashVal}
+            change={change}
+            customerName={customerName}
+          />
+        </>
       )}
     </>
   );
