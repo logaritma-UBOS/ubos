@@ -13,21 +13,24 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
   const slug = merchant?.nama_usaha ? (merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) : '';
   
   let basePath = '';
+  let isJasa = false;
   const basePathMatch = pathname.match(/^\/ubos\/([^\/]+)\/([^\/]+)/);
   if (basePathMatch) {
     const currentCategory = basePathMatch[1] === 'undefined' ? category : basePathMatch[1];
     const currentSlug = basePathMatch[2];
     basePath = `/ubos/${currentCategory}/${currentSlug}`;
+    if (currentCategory === 'jasa') isJasa = true;
   } else if (slug) {
     basePath = `/ubos/${category}/${slug}`;
+    if (category === 'jasa' || categoryRaw.toLowerCase().includes('laundry') || categoryRaw.toLowerCase().includes('jasa')) isJasa = true;
   } else {
     basePath = '/member';
   }
 
   const navItems = [
     { name: 'Dashboard', href: `${basePath}`, icon: Home },
-    { name: 'POS', href: `${basePath}/pos`, icon: ShoppingBag },
-    { name: 'Stok', href: `${basePath}/inventory`, icon: Package },
+    { name: isJasa ? 'POS Jasa' : 'POS', href: `${basePath}/pos`, icon: ShoppingBag },
+    { name: isJasa ? 'Layanan & Paket' : 'Stok', href: `${basePath}/inventory`, icon: Package },
     { name: 'Toko Online', href: `${basePath}/online-store`, icon: Store },
     { name: 'Finance', href: `${basePath}/finance`, icon: Wallet },
     { name: 'CRM', href: `${basePath}/crm`, icon: Users },

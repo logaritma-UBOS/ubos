@@ -340,7 +340,7 @@ export default function InventoryJasaPage() {
                 <Store size={32} />
               </div>
               <p className="text-slate-800 font-bold text-base mb-1">Belum ada barang</p>
-              <p className="text-slate-500 text-sm leading-relaxed max-w-[250px]">Gunakan form di atas untuk menambahkan barang jualan ritel Anda.</p>
+              <p className="text-slate-500 text-sm leading-relaxed max-w-[250px]">Gunakan form di atas untuk menambahkan layanan jasa atau paket Anda.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
@@ -387,7 +387,7 @@ export default function InventoryJasaPage() {
                   </div>
                   
                   <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/ubos/ritel/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
+                    <Link href={`/ubos/jasa/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
                     <button onClick={() => handleDeleteClick(product.id, product.nama_produk)} className="flex-1 font-bold text-[11px] text-slate-500 hover:text-red-500 transition-colors py-2 bg-slate-50 hover:bg-red-50 rounded-lg flex items-center justify-center gap-1.5"><Trash2 size={14} /> Hapus</button>
                   </div>
                 </div>

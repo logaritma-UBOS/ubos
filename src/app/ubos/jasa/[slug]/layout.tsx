@@ -32,7 +32,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
         if (params.slug) {
           const expectedSlug = (merchantData.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
           if (expectedSlug !== params.slug) {
-            router.push(`/ubos/ritel/${expectedSlug}`);
+            router.push(`/ubos/jasa/${expectedSlug}`);
             return;
           }
         }

@@ -40,7 +40,7 @@ export default function UBOSDashboard() {
         if (data && params.slug) {
           const expectedSlug = (data.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
           if (expectedSlug !== params.slug) {
-            router.push(`/ubos/ritel/${expectedSlug}`);
+            router.push(`/ubos/jasa/${expectedSlug}`);
             return;
           }
         }
@@ -74,7 +74,7 @@ export default function UBOSDashboard() {
             if (result.found) {
               const merchantData = {
                 nama_usaha: result.nama_usaha || session.nama_usaha || '',
-                kategori_usaha: result.kategori_usaha || session.kategori || 'Ritel & Minimarket',
+                kategori_usaha: result.kategori_usaha || session.kategori || 'Jasa & Layanan',
                 whatsapp: phone,
                 ...session,
               };
@@ -143,7 +143,7 @@ export default function UBOSDashboard() {
                 <h1 className="text-2xl md:text-4xl font-black tracking-tight drop-shadow-sm">{merchant?.nama_usaha || 'Outlet Anda'}</h1>
                 <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2 md:px-3 py-1 rounded-full border border-white/20 w-fit">
                   <Sparkles size={12} className="text-white" />
-                  <span className="text-[10px] md:text-xs font-bold tracking-wider text-white">AI LOGARITMA RITEL</span>
+                  <span className="text-[10px] md:text-xs font-bold tracking-wider text-white">AI LOGARITMA JASA</span>
                 </div>
               </div>
               <p className="text-white/90 text-xs md:text-base font-medium max-w-md mt-1.5 md:mt-0">Ringkasan performa penjualan dan analisis stok barang Anda hari ini.</p>
@@ -299,7 +299,7 @@ export default function UBOSDashboard() {
           </div>
         </div>
 
-        {/* 4. Interactive Logaritma Tools - RITEL */}
+        {/* 4. Interactive Logaritma Tools - JASA */}
         <div className="grid md:grid-cols-2 gap-6 pt-4">
           {/* Card Left: Target & Margin Penjualan */}
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">

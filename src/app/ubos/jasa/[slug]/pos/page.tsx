@@ -463,9 +463,9 @@ export default function POSJasaPage() {
     <>
       <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">POS Kasir Ritel</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">POS Kasir Jasa</h1>
           <p className="text-white/80 text-xs mt-0.5 flex items-center gap-1">
-            Kasir Cepat & Barcode Scanner
+            Kasir Layanan & Transaksi
           </p>
         </div>
       </header>
@@ -477,7 +477,7 @@ export default function POSJasaPage() {
             {/* Barcode Scanner Input */}
             <form onSubmit={processBarcode} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
               <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <ScanLine size={18} className="text-primary" /> Scan Barcode / Masukkan SKU
+                <ScanLine size={18} className="text-primary" /> Scan Kode Layanan / SKU
               </h2>
               <div className="flex gap-2">
                 <button
@@ -668,7 +668,7 @@ export default function POSJasaPage() {
                 <button onClick={handleReset} className="w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all active:scale-95 shadow-md">
                   Lanjut Transaksi Baru
                 </button>
-                <button onClick={() => router.push(`/ubos/ritel/${params.slug}`)} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                <button onClick={() => router.push(`/ubos/jasa/${params.slug}`)} className="w-full py-3.5 border border-slate-200 text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition-all active:scale-95">
                   Kembali ke Dashboard
                 </button>
               </div>
