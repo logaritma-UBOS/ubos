@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Search, ScanLine, Camera } from 'lucide-react';
+import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Search, ScanLine, Camera, Printer } from 'lucide-react';
 import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
@@ -221,8 +221,7 @@ export default function POSJasaPage() {
         product_id: item.productId || null,
         qty: item.qty,
         harga_satuan: item.hargaSatuan,
-        hpp_satuan: item.hppSatuan,
-        metadata: null
+        hpp_satuan: item.hppSatuan
       }));
       
       const { error: itemsError } = await supabase.from('transaction_items').insert(itemsToInsert);
@@ -665,6 +664,9 @@ export default function POSJasaPage() {
                     <Smartphone size={18} /> Kirim Struk via WA
                   </button>
                 )}
+                <button onClick={() => window.print()} className="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                  <Printer size={18} /> Print Struk
+                </button>
                 <button onClick={handleReset} className="w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all active:scale-95 shadow-md">
                   Lanjut Transaksi Baru
                 </button>

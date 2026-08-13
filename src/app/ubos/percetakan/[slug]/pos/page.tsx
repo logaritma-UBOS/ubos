@@ -307,8 +307,7 @@ export default function POSPercetakanPage() {
           product_id: item.productId || null,
           qty: item.qty,
           harga_satuan: item.hargaSatuan,
-          hpp_satuan: item.hppSatuan,
-          metadata: metadata
+          hpp_satuan: item.hppSatuan
         };
       });
       
@@ -763,6 +762,9 @@ export default function POSPercetakanPage() {
                     <Smartphone size={18} /> Kirim Struk via WA
                   </button>
                 )}
+                <button onClick={() => window.print()} className="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                  <Printer size={18} /> Print Struk
+                </button>
                 <button onClick={handleReset} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
                   Transaksi Baru
                 </button>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Banknote, QrCode, Search } from 'lucide-react';
+import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Banknote, QrCode, Search, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
@@ -607,6 +607,9 @@ export default function POSPage() {
                     <Smartphone size={18} /> Kirim Struk via WA
                   </button>
                 )}
+                <button onClick={() => window.print()} className="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                  <Printer size={18} /> Print Struk
+                </button>
                 <button onClick={handleReset} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
                   Transaksi Baru
                 </button>
