@@ -176,6 +176,16 @@ export default function InventoryRitelPage() {
         
       if (productError) throw productError;
 
+      // Insert initial stock if any
+      if (stokInt > 0 && productData) {
+        await supabase.from('inventory_logs').insert([{
+          merchant_id: merchantData.id,
+          product_id: productData.id,
+          stok_tersisa: stokInt,
+          catatan: 'Stok Awal (Input Manual)'
+        }]);
+      }
+
       toast.success('Produk ritel berhasil ditambahkan!');
       
       // Reset Form
