@@ -680,17 +680,79 @@ export default function MemberDashboard() {
               {isRitel && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                   <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
-                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
                     </div>
-                    <h3 className="text-2xl font-black text-white mt-5">UBOS Toko & Ritel</h3>
+                    <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+                      <ShoppingBag size={100} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5 relative z-10">UBOS Toko & Ritel</h3>
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Toolset Logaritma: Stok & Kontrol Margin Ritel</h4>
-                      <p className="text-slate-500 text-sm font-medium">Sistem inventaris anti-stok mati, cetak barcode, dan batas belanja harian.</p>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Toolset Logaritma: Stok & Kontrol Margin Ritel</h4>
+                      <p className="text-slate-600 text-sm mb-0 leading-relaxed">
+                        Sistem inventaris anti-stok mati, cetak barcode, dan pemisahan otomatis modal kulakan vs profit bersih harian.
+                      </p>
                     </div>
-                    <button onClick={() => openWaitingList('Toko & Ritel')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+
+                    {trialDaysLeft > 0 ? (
+                      <div className="space-y-3">
+                        <button 
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const categoryRaw = merchant?.kategori_usaha || merchant?.kategori || 'ritel';
+                            const categorySafe = categoryRaw === 'undefined' ? 'ritel' : categoryRaw;
+                            // Ensure the category routes correctly to ritel
+                            const category = 'ritel';
+                            
+                            if (!merchant?.user_id) {
+                              const phone = (merchant?.no_wa || merchant?.whatsapp || '').replace(/\D/g, '');
+                              if (phone) {
+                                try {
+                                  const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
+                                  const result = await res.json();
+                                  
+                                  if (result.found) {
+                                    toast.info("Silakan masukkan password untuk mengakses modul.");
+                                    router.push(`/auth?mode=login`);
+                                    return;
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }
+
+                              toast.error("Silakan login atau daftar untuk menggunakan modul ini.", {
+                                description: "Akses terbatas khusus member terdaftar.",
+                                icon: <Lock className="w-5 h-5 text-amber-500" />
+                              });
+                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              return;
+                            }
+                            
+                            const slug = ((merchant?.nama_usaha || merchant?.owner_name || 'merchant').toLowerCase() || 'merchant').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                            router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md"
+                        >
+                          Buka Modul Ritel <ArrowRight size={16} />
+                        </button>
+                        
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul Ritel terlebih dahulu.')}>
+                             <ShoppingCart size={18} className="text-blue-500" />
+                             Kasir POS
+                           </button>
+                           <button className="bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-semibold py-2 px-3 rounded-lg text-xs flex flex-col items-center justify-center gap-1.5 transition-colors" onClick={() => toast.info('Fitur dalam modul. Buka Modul Ritel terlebih dahulu.')}>
+                             <Package size={18} className="text-emerald-500" />
+                             Stok / SKU
+                           </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowPaywallModal(true)} className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"><Lock size={16} className="text-amber-400" /> Lisensi Expired</button>
+                    )}
                   </div>
                 </div>
               )}
