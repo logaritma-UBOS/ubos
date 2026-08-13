@@ -1,5 +1,6 @@
 import React from 'react';
-import { formatIDR } from '@/lib/utils';
+
+const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
 interface ReceiptProps {
   merchant: any;
