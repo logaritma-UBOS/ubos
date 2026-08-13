@@ -122,3 +122,12 @@ ALTER TABLE merchants ADD COLUMN IF NOT EXISTS device_info TEXT;
 ALTER TABLE merchants ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE;
 ALTER TABLE merchants ADD COLUMN IF NOT EXISTS current_page VARCHAR(255);
 ALTER TABLE merchants ADD COLUMN IF NOT EXISTS upsell_history JSONB DEFAULT '[]'::jsonb;
+
+-- Add Jasa specific columns to transactions table
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Selesai';
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS notes TEXT;
+
+-- Allow decimals for qty in transaction_items
+ALTER TABLE transaction_items ALTER COLUMN qty TYPE DECIMAL(10,2);

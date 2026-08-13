@@ -759,17 +759,52 @@ export default function MemberDashboard() {
               {isLaundry && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                   <div className="bg-gradient-to-br from-blue-900 to-blue-800 relative p-6 flex flex-col justify-center overflow-hidden">
-                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> WAITING LIST
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider rounded-md flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> READY / BISA DIPAKAI
                     </div>
-                    <h3 className="text-2xl font-black text-white mt-5">UBOS Laundry & Jasa</h3>
+                    <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+                      <Store size={100} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-5 relative z-10">UBOS Laundry & Jasa</h3>
                   </div>
                   <div className="p-5 flex flex-col gap-4">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 mb-1">Toolset Logaritma: Tracking & Profitabilitas Jasa</h4>
-                      <p className="text-slate-500 text-sm font-medium">Pelacak status cucian, sistem nota WhatsApp otomatis, dan hitung komisi staf.</p>
+                      <h4 className="text-base font-bold text-slate-900 mb-1 leading-tight">Toolset Logaritma: Tracking & Profitabilitas Jasa</h4>
+                      <p className="text-slate-600 text-sm mb-0 leading-relaxed">
+                        Modul khusus jasa/laundry dengan pelacak status pesanan, input kuantitas fleksibel, CRM pelanggan otomatis, dan nota digital via WhatsApp.
+                      </p>
                     </div>
-                    <button onClick={() => openWaitingList('Laundry & Jasa')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">Ikut Waiting List <ArrowRight size={16} /></button>
+
+                    {trialDaysLeft > 0 ? (
+                      <div className="space-y-3">
+                        <button 
+                          onClick={() => {
+                            if (merchant) {
+                              const slug = (merchant.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                              router.push(`/ubos/jasa/${slug}`);
+                            } else {
+                              router.push(`/auth?mode=login`);
+                            }
+                          }}
+                          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                        >
+                          Buka Dashboard UBOS <ArrowRight size={18} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-center">
+                          <p className="text-sm font-bold text-red-600 mb-1">Masa Akses Habis</p>
+                          <p className="text-xs text-red-500">Silakan perpanjang akses untuk membuka fitur UBOS kembali.</p>
+                        </div>
+                        <button 
+                          onClick={() => setShowPaywallModal(true)}
+                          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                        >
+                          Perpanjang Akses <ArrowRight size={18} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

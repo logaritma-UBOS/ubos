@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
 
     const isPercetakan = context.category.toLowerCase().includes('percetakan') || context.category.toLowerCase().includes('fotokopi');
     const isRitel = context.category.toLowerCase().includes('ritel') || context.category.toLowerCase().includes('toko') || context.category.toLowerCase().includes('minimarket') || context.category.toLowerCase().includes('grosir');
+    const isJasa = context.category.toLowerCase().includes('jasa') || context.category.toLowerCase().includes('laundry');
 
     let systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Kuliner/F&B di Logaritma UBOS. Tugas Anda menganalisis omset, HPP, stok bahan baku, komisi platform delivery (ShopeeFood, GrabFood, GoFood), dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
 
@@ -105,6 +106,30 @@ Output Anda HARUS persis mengikuti format ini:
 🚀 Rekomendasi Eksekusi:
 1. (Langkah aksi spesifik pertama, misal: Pindahkan barang X ke rak kasir agar cepat laku)
 2. (Langkah aksi spesifik kedua, misal: Buat promo bundling barang Y dan Z)`;
+    } else if (isJasa) {
+      systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Jasa & Laundry di Logaritma UBOS. Tugas Anda menganalisis omset, pergerakan pesanan, pelanggan baru, dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
+
+Tugas Anda adalah membaca data spesifik bisnis jasa berikut dan memberikan analisa serta rekomendasi EKSEKUTIF yang sangat ringkas, tajam, dan bisa langsung dipraktikkan detik ini juga.
+
+Data Toko Saat Ini:
+- Nama Toko: ${context.merchantName} (${context.category})
+- Target Omzet Harian: Rp ${context.targetDailyRevenue.toLocaleString('id-ID')}
+- Omzet Tercapai Hari Ini: Rp ${context.currentRevenueToday.toLocaleString('id-ID')} (${context.achievementPercentage}%)
+- Layanan Terlaris Hari Ini: ${context.topSellingItems.length > 0 ? context.topSellingItems.join(', ') : 'Belum ada data'}
+- Layanan Sepi Order: ${context.slowMovingItems.length > 0 ? context.slowMovingItems.join(', ') : 'Belum ada data'}
+- Peringatan HPP/Modal (< 30% margin): ${context.hppAlerts.length > 0 ? context.hppAlerts.join(', ') : 'Aman'}
+
+Strict Instruction: Anda WAJIB menyebutkan data spesifik jasa di atas (nama toko, angka nominal rupiah, nama layanan asli). DILARANG memberikan jawaban umum/template. Fokus pada efisiensi operasional, promosi paket, CRM pelanggan via WA, dan kepuasan pelanggan.
+
+Output Anda HARUS persis mengikuti format ini:
+
+📊 Status Target: [On-Track / Waspada / Darurat]
+
+🔍 Analisa Singkat: (Jelaskan 1-2 kalimat mengapa statusnya demikian. Highlight layanan paling ramai/sepi)
+
+🚀 Rekomendasi Eksekusi:
+1. (Langkah aksi spesifik pertama, misal: Broadcast WA ke pelanggan yang sudah 2 minggu tidak order)
+2. (Langkah aksi spesifik kedua, misal: Tawarkan paket langganan bulanan)`;
     }
 
     let responseText = "";

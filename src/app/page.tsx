@@ -123,7 +123,8 @@ export default function LandingPage() {
       const isFnB = formData.category === "Kuliner & F&B";
       const isPercetakan = formData.category.includes("Percetakan") || formData.category === "Percetakan & ATK";
       const isRitel = formData.category.toLowerCase().includes("ritel") || formData.category.toLowerCase().includes("minimarket");
-      const funnelDest = (isFnB || isPercetakan || isRitel) ? 'UBOS' : 'MEMBER_AREA';
+      const isJasa = formData.category.toLowerCase().includes("jasa") || formData.category.toLowerCase().includes("laundry");
+      const funnelDest = (isFnB || isPercetakan || isRitel || isJasa) ? 'UBOS' : 'MEMBER_AREA';
 
       const leadData = {
         nama_usaha: formData.merchantName,
@@ -132,7 +133,7 @@ export default function LandingPage() {
       };
       
       localStorage.setItem('ubos_lead', JSON.stringify(leadData));
-      if (isFnB || isPercetakan || isRitel) {
+      if (isFnB || isPercetakan || isRitel || isJasa) {
         localStorage.setItem('ubos_temp_pass', formData.password);
       }
 
@@ -188,12 +189,14 @@ export default function LandingPage() {
           kategori: formData.category
         }));
 
-        if (result.data?.funnel_destination === 'UBOS' || isFnB || isPercetakan || isRitel) {
+        if (result.data?.funnel_destination === 'UBOS' || isFnB || isPercetakan || isRitel || isJasa) {
           const slug = formData.merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'dashboard';
           if (isPercetakan) {
             router.push(`/ubos/percetakan/${slug}`);
           } else if (isRitel) {
             router.push(`/ubos/ritel/${slug}`);
+          } else if (isJasa) {
+            router.push(`/ubos/jasa/${slug}`);
           } else {
             router.push(`/ubos/kuliner/${slug}`);
           }
