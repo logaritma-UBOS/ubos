@@ -60,6 +60,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
 
         setMerchant(matchedMerchant);
 
+        // set default order type based on category
+        const cat = (matchedMerchant.kategori_usaha || matchedMerchant.kategori || '').toLowerCase();
+        if (cat.includes('jasa') || cat.includes('laundry')) {
+          setOrderType('Drop di Toko');
+        } else if (cat.includes('percetakan') || cat.includes('ritel') || cat.includes('toko') || cat.includes('grosir')) {
+          setOrderType('Ambil di Toko');
+        } else {
+          setOrderType('Takeaway');
+        }
+
         const { data: productsData } = await supabase
           .from('products')
           .select('*')
@@ -122,8 +132,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
       toast.error('Mohon lengkapi Nama dan No WhatsApp');
       return;
     }
-    if (orderType === 'Delivery' && !customerAddress) {
-      toast.error('Mohon isi alamat pengiriman untuk tipe Delivery');
+    const reqAddress = ['Delivery', 'Antar Jemput', 'Kirim Kurir'].includes(orderType);
+    if (reqAddress && !customerAddress) {
+      toast.error(`Mohon isi alamat pengiriman untuk tipe ${orderType}`);
       return;
     }
 
@@ -163,7 +174,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
       message += `\n*Total: ${formatIDR(cartTotal)}*\n`;
       message += `\n*Data Pemesan:*\nNama: ${customerName}\nWA: ${customerWA}\nTipe Order: ${orderType}\n`;
       
-      if (orderType === 'Delivery') {
+      if (['Delivery', 'Antar Jemput', 'Kirim Kurir'].includes(orderType)) {
         message += `Alamat: ${customerAddress}\n`;
       }
       if (orderNotes) {
@@ -208,6 +219,19 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
   }
 
   const waLink = `https://wa.me/${merchant.store_wa_number || merchant.whatsapp?.replace(/\D/g, '') || ''}`;
+
+  const categoryRaw = merchant?.kategori_usaha || merchant?.kategori || '';
+  const categoryStr = categoryRaw.toLowerCase();
+  let deliveryOptions = ['Takeaway', 'Dine-in', 'Delivery'];
+  if (categoryStr.includes('jasa') || categoryStr.includes('laundry')) {
+    deliveryOptions = ['Drop di Toko', 'Antar Jemput'];
+  } else if (categoryStr.includes('percetakan') || categoryStr.includes('ritel') || categoryStr.includes('toko') || categoryStr.includes('grosir')) {
+    deliveryOptions = ['Ambil di Toko', 'Kirim Kurir'];
+  } else if (!categoryStr.includes('kuliner') && !categoryStr.includes('f&b') && !categoryStr.includes('warung')) {
+    deliveryOptions = ['Ambil Sendiri', 'Kirim Kurir'];
+  }
+  
+  const requiresAddress = ['Delivery', 'Antar Jemput', 'Kirim Kurir'].includes(orderType);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-28 font-sans">
@@ -439,8 +463,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
                   <MapPin size={16} className="text-slate-600" /> Detail Pengiriman
                 </h3>
                 
-                <div className="grid grid-cols-3 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                  {['Takeaway', 'Dine-in', 'Delivery'].map(type => (
+                <div className={`grid ${deliveryOptions.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200`}>
+                  {deliveryOptions.map(type => (
                     <button
                       key={type}
                       onClick={() => setOrderType(type)}
@@ -464,7 +488,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
                   </div>
                 </div>
 
-                {orderType === 'Delivery' && (
+                {requiresAddress && (
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Alamat Pengiriman *</label>
                     <textarea value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none h-24" placeholder="Detail alamat lengkap..." />
