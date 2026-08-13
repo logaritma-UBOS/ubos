@@ -188,8 +188,8 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
             
             <div>
               <label className="text-sm font-bold text-slate-700 block mb-2">Banner Toko (Gambar)</label>
-              <div className="flex items-center gap-4">
-                <div className="w-full max-w-sm h-32 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 relative flex items-center justify-center shrink-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="w-full sm:max-w-sm h-40 sm:h-32 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 relative flex items-center justify-center shrink-0">
                   {bannerFile ? (
                     <img src={URL.createObjectURL(bannerFile)} alt="Preview" className="w-full h-full object-cover" />
                   ) : bannerUrl ? (
