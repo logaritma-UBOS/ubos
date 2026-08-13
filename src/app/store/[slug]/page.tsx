@@ -467,8 +467,12 @@ export default function StorefrontPage({ params }: { params: Promise<{ slug: str
                   {deliveryOptions.map(type => (
                     <button
                       key={type}
-                      onClick={() => setOrderType(type)}
-                      className={`py-2 rounded-lg text-xs font-bold transition-all ${orderType === type ? 'bg-white shadow-sm text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setOrderType(type);
+                      }}
+                      className={`py-2 rounded-lg text-xs font-bold transition-all ${orderType === type ? 'bg-white shadow-sm text-slate-900 border border-slate-200 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       {type}
                     </button>
