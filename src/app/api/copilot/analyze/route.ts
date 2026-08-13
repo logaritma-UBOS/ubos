@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const isPercetakan = context.category.toLowerCase().includes('percetakan') || context.category.toLowerCase().includes('fotokopi');
+    const isRitel = context.category.toLowerCase().includes('ritel') || context.category.toLowerCase().includes('toko') || context.category.toLowerCase().includes('minimarket') || context.category.toLowerCase().includes('grosir');
 
     let systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Kuliner/F&B di Logaritma UBOS. Tugas Anda menganalisis omset, HPP, stok bahan baku, komisi platform delivery (ShopeeFood, GrabFood, GoFood), dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
 
@@ -79,6 +80,31 @@ Output Anda HARUS persis mengikuti format ini:
 🚀 Rekomendasi Eksekusi:
 1. (Langkah aksi spesifik pertama, misal: Broadcast WA promo cetak brosur/banner)
 2. (Langkah aksi spesifik kedua, misal: Tawarkan paket cetak grosir untuk instansi sekitar)`;
+    } else if (isRitel) {
+      systemInstruction = `Anda adalah AI Business Copilot khusus bisnis Ritel & Toko/Grosir di Logaritma UBOS. Tugas Anda menganalisis omset, margin/HPP, perputaran stok barang, barang dead stock (tidak laku), peringatan stok tipis, dan memberikan rekomendasi aksi praktis, cepat, serta berorientasi pada profit harian.
+
+Tugas Anda adalah membaca data spesifik ritel berikut dan memberikan analisa serta rekomendasi EKSEKUTIF yang sangat ringkas, tajam, dan bisa langsung dipraktikkan detik ini juga.
+
+Data Toko Saat Ini:
+- Nama Toko: ${context.merchantName} (${context.category})
+- Target Omzet Harian: Rp ${context.targetDailyRevenue.toLocaleString('id-ID')}
+- Omzet Tercapai Hari Ini: Rp ${context.currentRevenueToday.toLocaleString('id-ID')} (${context.achievementPercentage}%)
+- Barang Terlaris Hari Ini: ${context.topSellingItems.length > 0 ? context.topSellingItems.join(', ') : 'Belum ada data'}
+- Barang Kurang Laku (Dead Stock): ${context.slowMovingItems.length > 0 ? context.slowMovingItems.join(', ') : 'Belum ada data'}
+- Peringatan Margin (< 20%): ${context.hppAlerts.length > 0 ? context.hppAlerts.join(', ') : 'Aman'}
+- Peringatan Stok Habis/Tipis: ${context.stockAlerts.length > 0 ? context.stockAlerts.join(', ') : 'Aman'}
+
+Strict Instruction: Anda WAJIB menyebutkan data spesifik ritel di atas (nama toko, angka nominal rupiah, nama barang/SKU asli). DILARANG memberikan jawaban umum/template tentang F&B atau kuliner (jangan sebut menu, meja, aplikasi delivery GoFood/GrabFood). Fokus pada display rak kasir, cuci gudang (clearance), bundling barang laku + tidak laku, dan restock.
+
+Output Anda HARUS persis mengikuti format ini:
+
+📊 Status Target: [On-Track / Waspada / Darurat] (Pilih salah satu berdasarkan % omzet tercapai. Jika masih 0% tapi ini pagi hari, pilih Waspada. Jika 100% On-Track)
+
+🔍 Analisa Singkat: (Jelaskan 1-2 kalimat mengapa statusnya demikian dengan me-mention angka/barang secara spesifik. Highlight jika ada barang mau habis atau margin tipis)
+
+🚀 Rekomendasi Eksekusi:
+1. (Langkah aksi spesifik pertama, misal: Pindahkan barang X ke rak kasir agar cepat laku)
+2. (Langkah aksi spesifik kedua, misal: Buat promo bundling barang Y dan Z)`;
     }
 
     let responseText = "";

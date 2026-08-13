@@ -106,8 +106,9 @@ export default function POSRitelPage() {
   const processBarcode = (e: React.FormEvent) => {
     e.preventDefault();
     if (!barcodeQuery) return;
+    const cleanQuery = barcodeQuery.trim().toLowerCase();
 
-    const product = products.find(p => p.sku?.toLowerCase() === barcodeQuery.toLowerCase() || p.id === barcodeQuery);
+    const product = products.find(p => p.sku?.toLowerCase() === cleanQuery || p.id === cleanQuery);
     
     if (product) {
       if (product.is_available === false) {
