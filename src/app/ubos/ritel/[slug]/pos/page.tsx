@@ -3,7 +3,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Search, ScanLine } from 'lucide-react';
+import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle, Smartphone, Search, ScanLine, Camera } from 'lucide-react';
+import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -29,6 +30,7 @@ export default function POSRitelPage() {
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [barcodeQuery, setBarcodeQuery] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   
   // Checkout States
@@ -464,20 +466,51 @@ export default function POSRitelPage() {
                 <ScanLine size={18} className="text-primary" /> Scan Barcode / Masukkan SKU
               </h2>
               <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center shrink-0 border border-slate-200"
+                  title="Scan dengan Kamera HP"
+                >
+                  <Camera size={20} />
+                </button>
                 <input
                   ref={barcodeInputRef}
                   type="text"
                   value={barcodeQuery}
                   onChange={e => setBarcodeQuery(e.target.value)}
-                  placeholder="Scan dengan Barcode Scanner..."
-                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
+                  placeholder="Scan dengan Alat Barcode..."
+                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono min-w-0"
                   autoFocus
                 />
-                <button type="submit" className="px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md hover:bg-primary-dark transition-colors shrink-0">
+                <button type="submit" className="px-4 md:px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md hover:bg-primary-dark transition-colors shrink-0">
                   Enter
                 </button>
               </div>
             </form>
+
+            {showScanner && (
+              <CameraScanner
+                onClose={() => setShowScanner(false)}
+                onScan={(decodedText) => {
+                  setShowScanner(false);
+                  
+                  const cleanQuery = decodedText.trim().toLowerCase();
+                  const product = products.find(p => p.sku?.toLowerCase() === cleanQuery || p.id === cleanQuery);
+                  
+                  if (product) {
+                    if (product.is_available === false) {
+                      toast.error('Barang habis (Stok Kosong)');
+                    } else {
+                      addNormalProductToCart(product, 1);
+                      toast.success(`Ditambahkan: ${product.nama_produk}`);
+                    }
+                  } else {
+                    toast.error('Barcode/SKU tidak ditemukan di database');
+                  }
+                }}
+              />
+            )}
 
             {/* Search Bar */}
             <div className="space-y-3">

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Store, Save, ImagePlus, ScanBarcode } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Store, Save, ImagePlus, ScanBarcode, Camera } from 'lucide-react';
+import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -22,6 +23,7 @@ export default function InventoryRitelPage() {
 
   // Modal State
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   // Form State (Tambah Produk Ritel)
   const [sku, setSku] = useState('');
@@ -257,10 +259,20 @@ export default function InventoryRitelPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">SKU / Barcode</label>
-                    <div className="relative">
-                      <input type="text" value={sku} onChange={e => setSku(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-mono" placeholder="Scan atau Ketik SKU..." />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <ScanBarcode size={18} />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowScanner(true)}
+                        className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center shrink-0 border border-slate-200"
+                        title="Scan dengan Kamera HP"
+                      >
+                        <Camera size={20} />
+                      </button>
+                      <div className="relative flex-1">
+                        <input type="text" value={sku} onChange={e => setSku(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-mono min-w-0" placeholder="Scan / Ketik SKU..." />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <ScanBarcode size={18} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -393,6 +405,17 @@ export default function InventoryRitelPage() {
         </div>
       </div>
       
+      {showScanner && (
+        <CameraScanner
+          onClose={() => setShowScanner(false)}
+          onScan={(decodedText) => {
+            setSku(decodedText.trim());
+            setShowScanner(false);
+            toast.success('Barcode berhasil di-scan');
+          }}
+        />
+      )}
+
       {/* Custom Delete Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
