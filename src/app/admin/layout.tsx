@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import {
   LayoutDashboard, Activity, ShoppingCart, DollarSign, LogOut,
-  Menu, X, Zap, AlertCircle, ArrowRight, TrendingUp, ChevronRight, Users
+  Menu, X, Zap, AlertCircle, ArrowRight, TrendingUp, ChevronRight, Users, Target
 } from 'lucide-react';
 import { toast } from 'sonner';
 
