@@ -148,11 +148,11 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
             </h2>
             
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="overflow-hidden">
+              <div className="flex-1 min-w-0 w-full overflow-hidden">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">URL Publik</p>
-                <p className="text-slate-800 font-medium truncate w-full">{storeUrl}</p>
+                <p className="text-slate-800 font-medium truncate">{storeUrl}</p>
               </div>
-              <div className="flex gap-2 w-full sm:w-auto">
+              <div className="flex gap-2 w-full sm:w-auto shrink-0">
                 <button 
                   onClick={() => {
                     navigator.clipboard.writeText(storeUrl);
