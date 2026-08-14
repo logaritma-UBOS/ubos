@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import MarketingPlaybook from '@/components/MarketingPlaybook';
 
 const REVENUE_STREAMS = [
   { id: 'saas', label: 'SaaS Subscription', icon: Crown, color: 'blue', target: 5000000, unit: '/bln' },
@@ -35,7 +34,6 @@ export default function AdminDashboardPage() {
   const [merchants, setMerchants] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'playbook'>('dashboard');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [isSendingWA, setIsSendingWA] = useState<Record<string, boolean>>({});
   const [analyticsData, setAnalyticsData] = useState({
@@ -229,26 +227,8 @@ export default function AdminDashboardPage() {
     : '0.0';
 
   return (
-    <div className="animate-in fade-in duration-300">
-      {/* Tabs */}
-      <div className="flex items-center gap-2 mb-8 border-b border-slate-800 pb-px">
-        <button 
-          onClick={() => setActiveTab('dashboard')}
-          className={`px-6 py-3 font-bold text-sm border-b-2 transition-all ${activeTab === 'dashboard' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
-        >
-          Dashboard & Metrics
-        </button>
-        <button 
-          onClick={() => setActiveTab('playbook')}
-          className={`px-6 py-3 font-bold text-sm border-b-2 transition-all ${activeTab === 'playbook' ? 'border-primary text-white flex items-center gap-2' : 'border-transparent text-slate-500 hover:text-slate-300 flex items-center gap-2'}`}
-        >
-          <Target size={16}/> Marketing Playbook
-        </button>
-      </div>
-
-      {activeTab === 'dashboard' ? (
-        <div className="space-y-8">
-          {/* Header */}
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-white">Dashboard Overview</h2>
@@ -638,10 +618,6 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-      )}
-        </div>
-      ) : (
-        <MarketingPlaybook />
       )}
     </div>
   );

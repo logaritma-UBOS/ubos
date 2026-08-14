@@ -78,6 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: '/admin', label: 'Dashboard Overview', icon: LayoutDashboard, color: 'blue', badge: null },
+    { href: '/admin/playbook', label: 'Marketing Playbook', icon: Target, color: 'emerald', badge: 'NEW' },
     { href: '/admin/marketing', label: 'Extreme Funneling', icon: Activity, color: 'purple', badge: 'HOT' },
     { href: '/admin/prospects', label: 'Leads Prospecting', icon: Users, color: 'indigo', badge: null },
     { href: '/admin/services', label: 'Ecosystem Services', icon: ShoppingCart, color: 'emerald', badge: null },
