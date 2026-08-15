@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { ShoppingCart, CheckCircle, Clock, Search, XCircle, Store } from 'lucide-react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 export default function OnlineOrdersPage() {
+  const params = useParams();
+  const basePath = params ? `/ubos/${params.category}/${params.slug}` : '';
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +53,7 @@ export default function OnlineOrdersPage() {
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Kelola pesanan yang masuk dari toko online konsumen</p>
         </div>
-        <Link href="../online-store" className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">
+        <Link href={`${basePath}/online-store`} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">
           <Store size={16} />
           Pengaturan Toko
         </Link>
@@ -69,7 +72,7 @@ export default function OnlineOrdersPage() {
             </div>
             <h3 className="font-bold text-slate-900 text-lg mb-2">Belum ada pesanan online</h3>
             <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">Konsumen dapat memesan melalui link toko online Anda. Sebarkan link Anda ke pelanggan!</p>
-            <Link href="../online-store" className="inline-flex items-center gap-2 bg-[#4F75FF] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20">
+            <Link href={`${basePath}/online-store`} className="inline-flex items-center gap-2 bg-[#4F75FF] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20">
               Lihat Link Toko
             </Link>
           </div>
