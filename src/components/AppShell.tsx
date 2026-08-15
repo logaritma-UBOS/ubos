@@ -158,7 +158,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const showWarningBanner = trialDaysLeft !== null && trialDaysLeft <= 14 && trialDaysLeft > 0 && !isBillingPage && merchant?.status !== 'Premium';
 
   return (
-    <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
+    <div className="w-full h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
       
       {!hideSidebar && <TopBar merchant={merchant} onOpenSidebar={() => setIsSidebarOpen(true)} />}
       
@@ -183,7 +183,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         
         {/* Sticky Warning Banner */}
         {showWarningBanner && (
-          <div className="sticky bottom-0 left-0 right-0 z-[60] bg-white text-slate-800 px-4 py-4 md:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex flex-col md:flex-row md:items-center justify-center gap-4 md:gap-6 animate-in slide-in-from-bottom-2 md:bottom-auto md:top-0 border-t md:border-b border-slate-200">
+          <div className="fixed bottom-0 md:bottom-auto md:top-16 left-0 md:left-64 right-0 z-[60] bg-white text-slate-800 px-4 py-4 md:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:shadow-md flex flex-col md:flex-row md:items-center justify-center gap-4 md:gap-6 animate-in slide-in-from-bottom-2 md:slide-in-from-top-2 border-t md:border-b border-slate-200">
             <div className="flex flex-col text-center md:text-left gap-1 max-w-3xl">
               <span className="font-bold text-sm text-slate-900">Masa Aktif akun trial tersisa {trialDaysLeft} hari Segera beli langganan sebelum masa trial berakhir untuk mendapatkan diskon berlangganan hingga 35%</span>
             </div>

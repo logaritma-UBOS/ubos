@@ -169,22 +169,25 @@ return (
 
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
-        {/* Promo Banner Majoo Style */}
-        <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden relative shadow-sm">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="p-6 md:p-8 flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center font-bold text-white text-xs">U</div>
-                <span className="font-black text-[#3B5BDB] text-lg tracking-tight">Capital</span>
+        {/* Target Profit Banner */}
+        <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden relative shadow-sm mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-center p-6 md:p-8 gap-4 md:gap-6">
+            <div className="flex flex-row items-center gap-4 w-full md:w-auto text-left">
+              <div className="w-16 h-16 bg-white rounded-2xl flex shrink-0 items-center justify-center shadow-sm border border-slate-200">
+                <Target size={32} className="text-[#4F75FF]" />
               </div>
-              <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-2">BERANI TUMBUH, MODAL SIAP DUKUNG</h2>
-              <p className="text-slate-600 font-medium text-sm mb-4">Hingga 280jt cair &le;2 hari. Pengajuan &plusmn;10mnt, langsung dari Logaritma*</p>
-              <button className="text-[#3B5BDB] font-bold text-sm hover:underline">Ajukan Sekarang</button>
+              <div>
+                <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-1 tracking-tight">Capai Target Bulan Ini</h2>
+                <p className="text-slate-600 text-sm font-medium">Tentukan target profit bersih dan biarkan AI kami memberikan rekomendasi harian.</p>
+              </div>
             </div>
-            <div className="hidden md:block w-1/3 bg-blue-100 h-full min-h-[160px] relative">
-              <div className="absolute inset-0 bg-gradient-to-l from-[#4F75FF]/20 to-transparent"></div>
-              {/* Graphic Placeholder */}
-            </div>
+            <button 
+              onClick={() => setShowTargetModal(true)}
+              className="w-full md:w-auto bg-[#4F75FF] text-white px-5 py-2.5 rounded-xl font-bold transition-all hover:bg-blue-600 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 shrink-0" 
+            >
+              <Target size={20} />
+              TENTUKAN TARGET
+            </button>
           </div>
         </div>
 
