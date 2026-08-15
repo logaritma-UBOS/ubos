@@ -329,10 +329,10 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                 </div>
                 
                 <div className="py-2">
-                  <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <Link href="/settings" onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                     Pengaturan Profil
                   </Link>
-                  <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <Link href="/settings" onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                     Pengaturan Sistem
                   </Link>
                 </div>
@@ -342,7 +342,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                     <span className="text-xs font-medium text-slate-600">Informasi Akun</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-700">{accountProgress}%</span>
-                      <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
+                      <Link href="/settings" onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -355,7 +355,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                     <span className="text-xs font-medium text-slate-600">Informasi Bisnis</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-700">{businessProgress}%</span>
-                      <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
+                      <Link href="/settings" onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
