@@ -27,11 +27,12 @@ const FadeIn = ({ children, delay = 0 }) => (
   </motion.div>
 );
 
+import ChatWidget from '@/components/landing/ChatWidget';
+
 export default function Home() {
   const [selectedProgramForCurriculum, setSelectedProgramForCurriculum] = useState<any>(null);
   const [enrollmentTrack, setEnrollmentTrack] = useState<string | null>(null);
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
-  const [showFloatingWidget, setShowFloatingWidget] = useState(true);
 
   const handleOpenCurriculum = (program: any) => {
     setSelectedProgramForCurriculum(program);
@@ -42,7 +43,7 @@ export default function Home() {
   };
 
   const handleOpenEnrollment = (trackName: string) => {
-    // If it's the live consultation, use the WhatsApp link
+    // If it's the live consultation, use the WhatsApp link (fallback if needed)
     if (trackName === 'Konsultasi Live Specialist Logaritma') {
       window.open('https://wa.me/6281211638354?text=Halo%20min,%20saya%20tertarik%20dengan%20sistem%20UBOS%20Logaritma', '_blank');
       return;
@@ -128,29 +129,8 @@ export default function Home() {
         />
       )}
 
-      {/* Floating Live Advisor Widget (Bottom Right) */}
-      {showFloatingWidget && (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2 animate-in slide-in-from-bottom-5 duration-300">
-          <div className="hidden sm:flex items-center gap-2 bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-2xl shadow-xl border border-slate-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Konsultan HPP Logaritma.id Online</span>
-            <button 
-              onClick={() => setShowFloatingWidget(false)}
-              className="ml-1 text-slate-400 hover:text-white"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <button
-            onClick={() => handleOpenEnrollment('Konsultasi Live Specialist Logaritma')}
-            className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 group border-2 border-white"
-            title="Chat Konsultasi HPP via WhatsApp"
-          >
-            <MessageCircle className="w-7 h-7 group-hover:rotate-12 transition-transform" />
-          </button>
-        </div>
-      )}
+      {/* AI Chatbot Widget */}
+      <ChatWidget />
 
     </div>
   );
