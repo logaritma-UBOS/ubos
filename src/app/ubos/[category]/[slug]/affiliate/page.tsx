@@ -142,9 +142,11 @@ export default function AffiliatePage() {
         </div>
       </div>
 
-      <AIBanner />
+      <div className="max-w-5xl mx-auto px-4 pt-4 w-full">
+        <AIBanner />
+      </div>
 
-      <div className="max-w-5xl mx-auto -mt-4 px-4 relative z-20 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 relative z-20 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-card rounded-2xl p-5">

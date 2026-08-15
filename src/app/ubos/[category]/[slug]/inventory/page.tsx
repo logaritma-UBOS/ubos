@@ -130,9 +130,11 @@ export default function InventoryPage() {
         </div>
       </header>
 
-      <AIBanner />
+      <div className="px-5 pt-4 max-w-6xl mx-auto w-full">
+        <AIBanner />
+      </div>
 
-      <div className="p-5 -mt-2 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
+      <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
         {/* ONBOARDING BANNER STEP 2 */}
         {isOnboarding && products.length === 0 && (
           <div className="bg-indigo-50 border-2 border-indigo-500 text-indigo-900 p-4 rounded-2xl flex items-start gap-4 mb-6 shadow-md shadow-indigo-200/50">

@@ -56,23 +56,29 @@ export default function AIBanner({ actionButton }: AIBannerProps) {
 
   if (isCollapsed) {
     return (
-      <div className="mx-4 md:mx-8 mt-4 md:mt-6 mb-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all shadow-sm z-40 relative group" onClick={toggleCollapse}>
-        <div className="flex items-center gap-2.5">
-          <BrainCircuit size={18} className="text-[#3B5BDB]" />
-          <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Logaritma AI Asisten</span>
-          <span className="text-[11px] text-slate-400 font-medium ml-1 hidden md:inline-block border-l border-slate-200 pl-3">{insightTitle}</span>
+      <div className="w-full relative transition-all duration-300 z-40 mb-6">
+        <div 
+          className="bg-white rounded-xl p-3 px-4 flex items-center justify-between shadow-sm border border-emerald-100 cursor-pointer hover:bg-slate-50 transition-colors group" 
+          onClick={toggleCollapse}
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-100 p-1.5 rounded-lg text-emerald-600">
+              <Bot size={16} />
+            </div>
+            <span className="text-emerald-700 font-bold text-sm tracking-tight">AI Logaritma Copilot</span>
+          </div>
+          <button className="text-slate-400 group-hover:text-emerald-600 bg-slate-100 group-hover:bg-emerald-50 rounded-full p-1 transition-colors">
+            <ChevronDown size={16} />
+          </button>
         </div>
-        <button className="text-slate-400 group-hover:text-[#3B5BDB] rounded-full p-1 bg-slate-50 transition-colors">
-          <ChevronDown size={16} />
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="mx-4 md:mx-8 mt-4 md:mt-6 mb-2 relative transition-all duration-300 z-40">
+    <div className="w-full relative transition-all duration-300 z-40 mb-6 group/banner animate-in fade-in slide-in-from-top-4">
       {/* AI Copilot Premium Styling */}
-      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-[#1e293b] rounded-2xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-700 overflow-hidden relative">
+      <div className="bg-slate-900 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden border border-slate-800">
         
         {/* Glow Effects */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#3B5BDB]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>

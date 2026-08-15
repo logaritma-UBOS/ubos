@@ -440,11 +440,11 @@ export default function POSPage() {
             </div>
           </header>
 
-          <div className="relative -mt-4 z-20">
+          <div className="relative pt-4 px-4 md:px-5 z-20">
             <AIBanner />
           </div>
 
-          <div className="p-4 md:p-5 space-y-5">
+          <div className="p-4 md:p-5 pt-0 space-y-5">
             {/* Channel Selector */}
           <div className="bg-surface rounded-2xl p-1.5 shadow-sm border border-slate-100 flex space-x-1 overflow-x-auto hide-scrollbar snap-x">
             {(Object.keys(CHANNEL_COMMISSIONS) as Channel[]).map(c => {
