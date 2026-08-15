@@ -113,54 +113,12 @@ export default function UBOSDashboard() {
   // Dynamic Brand Color
   const primaryColor = merchant?.brand_color || '#0d9488'; // Default teal for retail
 
-  return (
+return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
-      {/* 1. Header Banner Atas (Dynamic Brand Color) */}
-      <div 
-        className="text-white p-4 md:p-10 pb-6 md:pb-8 rounded-b-[1.5rem] md:rounded-b-[2rem] shadow-xl relative bg-gradient-to-r from-blue-600 to-emerald-500"
-        
-      >
-        <div className="absolute inset-0 overflow-hidden rounded-b-[1.5rem] md:rounded-b-[2rem] pointer-events-none">
-          <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10">
-            <ShoppingBag size={150} className="transform rotate-12 translate-x-8 -translate-y-8 md:w-[200px] md:h-[200px]" />
-          </div>
-        </div>
-        
-        <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
-          <div className="flex flex-row items-center gap-4 w-full md:w-auto text-left">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-2xl flex shrink-0 items-center justify-center border border-white/20 shadow-inner">
-              {merchant?.logo_url ? (
-                <img src={merchant.logo_url} alt="Logo" className="w-full h-full object-cover rounded-2xl" />
-              ) : (
-                <Store size={32} className="text-white drop-shadow-md" />
-              )}
-            </div>
-            <div>
-              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3 mb-1 md:mb-2">
-                <h1 className="text-2xl md:text-4xl font-black tracking-tight drop-shadow-sm">{merchant?.nama_usaha || 'Outlet Anda'}</h1>
-                <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2 md:px-3 py-1 rounded-full border border-white/20 w-fit">
-                  <Sparkles size={12} className="text-white" />
-                  <span className="text-[10px] md:text-xs font-bold tracking-wider text-white">AI LOGARITMA JASA</span>
-                </div>
-              </div>
-              <p className="text-white/90 text-xs md:text-base font-medium max-w-md mt-1.5 md:mt-0">Ringkasan performa penjualan dan analisis stok barang Anda hari ini.</p>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => setShowTargetModal(true)}
-            className="w-full md:w-auto bg-white/95 backdrop-blur-sm text-emerald-700 px-5 py-2 md:px-6 md:py-2.5 rounded-2xl md:rounded-xl font-bold transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 shadow-lg mt-4 md:mt-0 text-sm md:text-base mb-[-24px] md:mb-0 md:mr-4 relative z-30 hover:bg-white" 
-            
-          >
-            <Target size={20} />
-            TENTUKAN TARGET
-          </button>
-        </div>
-      </div>
-
+      
       {/* Tentukan Target Modal */}
       {showTargetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowTargetModal(false)}
@@ -172,12 +130,12 @@ export default function UBOSDashboard() {
               <Target size={120} />
             </div>
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
                 <Target size={32} />
               </div>
               <div>
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Tentukan Target Baru</h2>
-                {localStorage.getItem('targetProfit') ? (
+                {typeof window !== 'undefined' && localStorage.getItem('targetProfit') ? (
                   <div className="bg-amber-50 text-amber-800 p-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
                     Target Anda sebelumnya adalah <strong>{formatIDR(parseInt(localStorage.getItem('targetProfit') || '0'))}</strong>.<br/>Yakin ingin mengubah target ini?
                   </div>
@@ -190,7 +148,7 @@ export default function UBOSDashboard() {
                   value={targetProfit}
                   onChange={setTargetProfit}
                   icon="Rp"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-teal-900 focus:outline-none focus:border-teal-500 transition-colors text-center"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors text-center"
                 />
               </div>
               <button 
@@ -198,9 +156,9 @@ export default function UBOSDashboard() {
                   localStorage.setItem('targetProfit', targetProfit);
                   toast.success('Target berhasil dikunci!');
                   setShowTargetModal(false);
-                  window.dispatchEvent(new Event('storage')); // Trigger update for other components if needed
+                  window.dispatchEvent(new Event('storage'));
                 }}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-teal-600/20 flex items-center justify-center gap-2"
+                className="w-full btn-gradient-primary border-none text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
                 Kunci Target
               </button>
@@ -209,91 +167,110 @@ export default function UBOSDashboard() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto p-6 md:px-10 mt-2 md:-mt-2 relative z-20 space-y-8">
+      <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
-        
-        {/* Onboarding Widget */}
-        {showOnboarding && (
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-6 shadow-sm mb-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                  <Target className="text-emerald-500" size={24} /> Langkah Mudah Buka Outlet
-                </h3>
-                <p className="text-sm text-slate-500 font-medium">Selesaikan pengaturan awal untuk mengaktifkan AI Copilot.</p>
+        {/* Promo Banner Majoo Style */}
+        <div className="w-full bg-emerald-50 rounded-2xl border border-emerald-100 overflow-hidden relative shadow-sm">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="p-6 md:p-8 flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 bg-emerald-500 rounded-md flex items-center justify-center font-bold text-white text-xs">U</div>
+                <span className="font-black text-emerald-600 text-lg tracking-tight">Capital</span>
               </div>
-              <div className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full font-bold text-sm">
-                0/3 Selesai
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-2">BERANI TUMBUH, MODAL SIAP DUKUNG</h2>
+              <p className="text-slate-600 font-medium text-sm mb-4">Hingga 280jt cair &le;2 hari. Pengajuan &plusmn;10mnt, langsung dari Logaritma*</p>
+              <button className="text-emerald-600 font-bold text-sm hover:underline">Ajukan Sekarang</button>
+            </div>
+            <div className="hidden md:block w-1/3 bg-emerald-100 h-full min-h-[160px] relative">
+              <div className="absolute inset-0 bg-gradient-to-l from-emerald-500/20 to-transparent"></div>
+              {/* Graphic Placeholder */}
+            </div>
+          </div>
+        </div>
+
+        {/* Onboarding Widget Majoo Style */}
+        {showOnboarding && (
+          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+            {/* Header Green */}
+            <div className="bg-emerald-500 p-5 md:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h3 className="text-lg md:text-xl font-bold">Langkah Mudah Buka Outlet</h3>
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <span className="font-bold text-sm">0/3</span>
+                <div className="flex-1 md:w-64 h-3 bg-emerald-600/50 rounded-full overflow-hidden">
+                  <div className="w-0 h-full bg-white rounded-full"></div>
+                </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Content Cards */}
+            <div className="p-5 md:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 -mt-2">
               <button 
                 onClick={() => setShowTargetModal(true)}
-                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
-                    <Target size={20} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">Target Profit</p>
-                    <p className="text-xs text-slate-500">Tentukan goal bulan ini</p>
-                  </div>
+                  <Target size={20} className="text-emerald-500" />
+                  <span className="font-medium text-slate-700">Siapkan Produk</span>
                 </div>
-                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
               </button>
               
               <button 
                 onClick={() => router.push(`/ubos/${params.category || 'kuliner'}/${params.slug}/inventory`)}
-                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
-                    <Package size={20} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">Siapkan Produk</p>
-                    <p className="text-xs text-slate-500">Input stok / layanan</p>
-                  </div>
+                  <Package size={20} className="text-emerald-500" />
+                  <span className="font-medium text-slate-700">Informasi Karyawan</span>
                 </div>
-                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
               </button>
 
               <button 
                 onClick={() => router.push('/settings')}
-                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group mb-6 md:mb-0"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
-                    <Store size={20} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">Data Outlet</p>
-                    <p className="text-xs text-slate-500">Lengkapi profil bisnis</p>
-                  </div>
+                  <Store size={20} className="text-emerald-500" />
+                  <span className="font-medium text-slate-700">Lengkapi Data Outlet</span>
                 </div>
-                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Filter Waktu Transaksi */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            Dashboard Penjualan <span className="text-slate-400 font-normal text-sm ml-2 hidden md:inline">Diperbarui {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span>
-          </h2>
-          <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 w-full md:w-auto overflow-x-auto hide-scrollbar">
-            {['Hari Ini', '7 Hari', 'Bulan Ini'].map((filter) => (
-              <button 
-                key={filter}
-                onClick={() => setTimeFilter(filter)}
-                className={`flex-1 md:flex-none px-4 py-2 text-sm font-bold rounded-lg whitespace-nowrap transition-all ${timeFilter === filter ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
-              >
-                {filter}
-              </button>
-            ))}
+        {/* Dashboard Penjualan Header & Filter Majoo Style */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-2xl font-medium text-slate-900 flex items-center gap-2">
+                Dashboard Penjualan <AlertCircle size={20} className="text-emerald-500" />
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">Diperbarui {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}, {new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
+            </div>
+            
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mt-2 border-t border-slate-100 pt-4">
+              {/* Segmented Control */}
+              <div className="flex rounded-lg border border-slate-200 w-full md:w-auto overflow-hidden">
+                {['Harian', 'Mingguan', 'Bulan'].map((filter, idx) => (
+                  <button 
+                    key={filter}
+                    onClick={() => setTimeFilter(filter)}
+                    className={`flex-1 md:flex-none px-6 py-2 text-sm font-medium transition-colors ${timeFilter === filter ? 'bg-emerald-500 text-white' : 'text-slate-600 bg-white hover:bg-slate-50'} ${idx !== 0 ? 'border-l border-slate-200' : ''}`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Date Picker Dummy */}
+              <div className="flex items-center justify-between border border-slate-200 rounded-lg bg-white px-4 py-2 text-sm text-slate-700 w-full md:w-64">
+                <span className="cursor-pointer font-bold">&lt;</span>
+                <span>15 Agt 26 - 15 Agt 26</span>
+                <span className="cursor-pointer font-bold">&gt;</span>
+              </div>
+            </div>
           </div>
         </div>
 

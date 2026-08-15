@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store, Handshake, Sparkles, ShieldCheck, Lock } from 'lucide-react';
+import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store, Handshake, Sparkles, ShieldCheck, Lock, ChevronDown, MessageSquare, Star, FileText, BarChart2, Gift, Percent } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
-export default function Sidebar({ merchant }: { merchant?: any }) {
+export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   
@@ -49,15 +49,14 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
   const navItems = [
     { name: 'Dashboard', href: `${basePath}`, icon: Home, locked: false },
     { name: isJasa ? 'POS Jasa' : 'POS', href: `${basePath}/pos`, icon: ShoppingBag, locked: isExpired },
-    { name: isJasa ? 'Layanan & Paket' : 'Stok', href: `${basePath}/inventory`, icon: Package, locked: isExpired },
+    { name: isJasa ? 'Layanan & Paket' : 'Inventori', href: `${basePath}/inventory`, icon: Package, locked: isExpired },
+    { name: 'Pelanggan', href: `${basePath}/crm`, icon: Users, locked: isExpired },
     { name: 'Toko Online', href: `${basePath}/online-store`, icon: Store, locked: isExpired },
-    { name: 'Finance', href: `${basePath}/finance`, icon: Wallet, locked: isExpired },
-    { name: 'CRM', href: `${basePath}/crm`, icon: Users, locked: isExpired },
+    { name: 'Keuangan', href: `${basePath}/finance`, icon: Wallet, locked: isExpired },
   ];
 
   const bottomItems = [
     { name: 'Affiliate', href: `${basePath}/affiliate`, icon: Handshake },
-    { name: 'Services', href: `${basePath}/services`, icon: Sparkles },
     { name: 'Billing', href: `${basePath}/billing`, icon: ShieldCheck },
   ];
 
@@ -67,25 +66,32 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-slate-200 z-50 shadow-sm">
-      <div className="p-6 pb-4 border-b border-slate-100 flex items-center gap-3">
-        {merchant?.logo_url ? (
-          <img src={merchant.logo_url} alt="Logo" className="w-10 h-10 shrink-0 rounded-full object-cover border border-slate-200" />
-        ) : (
-          <div className="w-10 h-10 shrink-0 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-100">
-            {merchant?.nama_usaha?.charAt(0) || 'U'}
+    <aside className="w-64 h-full flex flex-col bg-emerald-500 border-r border-emerald-600 shadow-xl z-50 text-white">
+      
+      {/* Store Selector (Mimicking Majoo) */}
+      <div className="p-4 border-b border-emerald-400/50">
+        <div className="flex items-center gap-3 bg-emerald-600/50 hover:bg-emerald-600 p-3 rounded-lg cursor-pointer transition-colors">
+          <Store size={20} className="text-white" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-emerald-100 font-medium uppercase tracking-wider">Outlet</p>
+            <p className="text-sm font-bold text-white truncate">Semua Outlet</p>
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-black text-slate-900 leading-tight truncate">
-            {merchant?.nama_usaha || 'Halo, Owner'}
-          </h1>
-          <p className="text-xs text-slate-500 font-medium truncate">{merchant?.kategori_usaha || 'F&B'}</p>
+          <ChevronDown size={16} className="text-emerald-100" />
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-        <p className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">Menu Utama</p>
+      <nav className="flex-1 overflow-y-auto py-2">
+        {/* Menu Favorit Example */}
+        <div className="mb-2">
+          <div className="flex items-center justify-between px-5 py-2 text-emerald-100/80 hover:text-white cursor-pointer group">
+            <div className="flex items-center gap-3">
+              <Star size={20} />
+              <span className="font-medium text-sm">Menu Favorit</span>
+            </div>
+            <ChevronDown size={16} className="opacity-50 group-hover:opacity-100" />
+          </div>
+        </div>
+
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -95,13 +101,13 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
               <div 
                 key={item.name}
                 title="Terkunci - Silakan perpanjang lisensi Anda"
-                className="flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-75"
+                className="flex items-center justify-between px-5 py-3 text-emerald-200/50 cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
                   <Icon size={20} strokeWidth={2} />
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium text-sm">{item.name}</span>
                 </div>
-                <Lock size={14} className="text-slate-400" />
+                <Lock size={14} className="text-emerald-200/50" />
               </div>
             );
           }
@@ -110,21 +116,23 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 ${
+              onClick={onClose}
+              className={`flex items-center justify-between px-5 py-3 transition-colors duration-200 ${
                 isActive 
-                  ? 'btn-gradient-primary text-white font-bold shadow-md shadow-emerald-500/20 border-none' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-emerald-600/50 border-l-4 border-white text-white font-bold' 
+                  : 'text-emerald-50 hover:bg-emerald-600/30 font-medium border-l-4 border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'text-white' : 'text-slate-400'} />
-                <span>{item.name}</span>
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-sm">{item.name}</span>
               </div>
             </Link>
           );
         })}
 
-        <p className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Akun & Layanan</p>
+        <div className="my-2 border-t border-emerald-400/30"></div>
+        
         {bottomItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -132,37 +140,44 @@ export default function Sidebar({ merchant }: { merchant?: any }) {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+              onClick={onClose}
+              className={`flex items-center justify-between px-5 py-3 transition-colors duration-200 ${
                 isActive 
-                  ? 'btn-gradient-primary text-white font-bold shadow-md shadow-emerald-500/20 border-none' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-emerald-600/50 border-l-4 border-white text-white font-bold' 
+                  : 'text-emerald-50 hover:bg-emerald-600/30 font-medium border-l-4 border-transparent'
               }`}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'text-white' : 'text-slate-400'} />
-              <span>{item.name}</span>
+              <div className="flex items-center gap-3">
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-sm">{item.name}</span>
+              </div>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-100 space-y-1">
+      {/* Footer Support & Settings */}
+      <div className="p-4 bg-emerald-600/30 border-t border-emerald-400/30">
         <Link 
           href="/settings"
-          className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-            pathname === '/settings' 
-              ? 'bg-slate-100 text-slate-900 font-bold' 
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-          }`}
+          onClick={onClose}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-50 hover:bg-emerald-500/50 hover:text-white transition-colors mb-2"
         >
-          <Settings size={20} strokeWidth={pathname === '/settings' ? 2.5 : 2} className="text-slate-400" />
-          <span>Pengaturan</span>
+          <Settings size={20} />
+          <span className="font-medium text-sm">Pengaturan</span>
         </Link>
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-3 mt-4 rounded-xl text-rose-600 hover:bg-rose-50 font-bold transition-all border border-transparent hover:border-rose-100"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-500/50 hover:text-white transition-colors mb-4"
         >
           <LogOut size={20} />
-          <span>Logout</span>
+          <span className="font-medium text-sm">Logout</span>
+        </button>
+
+        {/* Mimicking Majoo mCare Button */}
+        <button className="w-full bg-white text-emerald-600 font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg">
+          <MessageSquare size={18} />
+          <span className="text-sm">Chat 24 Jam</span>
         </button>
       </div>
     </aside>

@@ -6,12 +6,14 @@ import { supabase } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
+import TopBar from './TopBar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [merchant, setMerchant] = useState<any>(null);
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -158,19 +160,32 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
       
-      {!hideSidebar && <Sidebar merchant={merchant} />}
+      {!hideSidebar && <TopBar merchant={merchant} onOpenSidebar={() => setIsSidebarOpen(true)} />}
       
-      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
+      {/* Mobile Sidebar Overlay */}
+      {!hideSidebar && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-[70] md:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {!hideSidebar && (
+        <div className={`fixed inset-y-0 left-0 z-[80] md:z-50 transform md:transform-none transition-transform duration-300 md:relative md:flex ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+          <Sidebar merchant={merchant} onClose={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
+      
+      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
         <div className="flex-1">
           {children}
         </div>
         
         {/* Sticky Warning Banner */}
         {showWarningBanner && (
-          <div className="sticky bottom-0 left-0 right-0 z-[60] bg-danger text-white px-4 py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2 md:bottom-auto md:top-0 md:shadow-md">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-              <span className="font-bold text-sm">Masa Aktif akun trial tersisa {trialDaysLeft} hari.</span>
-              <span className="text-xs opacity-90">Segera beli langganan sebelum masa trial berakhir untuk mendapatkan diskon langganan hingga 50%.</span>
+          <div className="sticky bottom-0 left-0 right-0 z-[60] bg-white text-slate-800 px-4 py-4 md:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex flex-col md:flex-row md:items-center justify-center gap-4 md:gap-6 animate-in slide-in-from-bottom-2 md:bottom-auto md:top-0 border-t md:border-b border-slate-200">
+            <div className="flex flex-col text-center md:text-left gap-1 max-w-3xl">
+              <span className="font-bold text-sm text-slate-900">Masa Aktif akun trial tersisa {trialDaysLeft} hari Segera beli langganan sebelum masa trial berakhir untuk mendapatkan diskon berlangganan hingga 35%</span>
             </div>
             <button 
               onClick={() => {
@@ -179,7 +194,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 const slug = merchant?.nama_usaha ? merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
                 router.push(`/ubos/${category}/${slug}/billing`);
               }}
-              className="bg-white text-danger px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm shadow-sm whitespace-nowrap hover:bg-slate-50 transition-colors active:scale-95 shrink-0"
+              className="w-full md:w-auto bg-[#e12530] text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-md whitespace-nowrap hover:bg-rose-700 transition-colors active:scale-95 shrink-0"
             >
               Perpanjang
             </button>
