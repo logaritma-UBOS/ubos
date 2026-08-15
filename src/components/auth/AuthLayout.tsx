@@ -18,10 +18,15 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
           <div className="absolute bottom-10 -right-20 w-96 h-96 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-lg space-y-8">
-          <img src="/logaritma-logo.png" alt="Logaritma" className="h-10 mx-auto brightness-0 invert" />
-          
-          <div className="space-y-4 pt-2 text-left px-4">
+        {/* Top Logaritma Logo */}
+        <div className="absolute top-10 left-10 lg:left-14 z-20">
+          <Link href="/">
+            <img src="/logaritma-logo.png" alt="Logaritma" className="h-8 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity" />
+          </Link>
+        </div>
+
+        <div className="relative z-10 w-full max-w-lg mb-12 sm:mb-16">
+          <div className="space-y-4 text-left px-4">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-sm">
               Satu Sistem Untuk Semua Kebutuhan
             </h2>
