@@ -94,15 +94,20 @@ export default function MemberServicesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 p-8 shadow-2xl shadow-emerald-500/20 overflow-hidden">
-          <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] items-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 md:pt-10">
+        <div className="rounded-[2rem] border border-white/10 bg-gradient-to-r from-blue-600 to-emerald-500 p-8 shadow-2xl shadow-emerald-500/20 overflow-hidden relative">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Megaphone size={150} className="transform rotate-12 translate-x-8 -translate-y-8" />
+            </div>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] items-center relative z-10">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-600 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em] text-emerald-600 shadow-sm shadow-emerald-500/10">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md text-white px-3 py-1 text-xs font-bold uppercase tracking-[0.25em] shadow-sm border border-white/20">
                 <Sparkles size={14} /> Public Showcase Ecosystem Services
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">Layanan Ekosistem Logaritma untuk Bisnis Anda</h1>
-              <p className="max-w-2xl text-slate-600 leading-7">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-sm">Layanan Ekosistem Logaritma untuk Bisnis Anda</h1>
+              <p className="max-w-2xl text-white/90 leading-7 font-medium">
                 Pilih paket Meta Ads, layanan cetak, hardware kasir, dan custom enterprise OS dengan mudah. Semua layanan dapat langsung dipesan via WhatsApp / Fonnte ke Admin Logaritma.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">

@@ -97,7 +97,7 @@ export default function BillingPage() {
   return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
       {/* Header Banner */}
-      <div className="bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 text-white p-6 md:p-10 pb-16 rounded-b-[2rem] shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-white p-6 md:p-10 pb-16 rounded-b-3xl md:rounded-b-[2rem] shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh-glow opacity-30"></div>
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6">
           <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
@@ -138,7 +138,7 @@ export default function BillingPage() {
 
           <div className="max-w-md mx-auto border-t border-slate-200 pt-8 mt-4">
             <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 relative mb-6">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] md:text-xs font-black px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-rose-500/20 whitespace-nowrap">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] md:text-xs font-black px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-rose-500/20 whitespace-nowrap z-10">
                 <Flame className="w-3.5 h-3.5 text-white inline" /> Diskon Khusus UMKM 50%
               </div>
               

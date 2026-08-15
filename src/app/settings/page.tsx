@@ -194,14 +194,21 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-slate-50 relative z-50 animate-in slide-in-from-right-full duration-300">
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors">
+      <header className="bg-gradient-to-r from-slate-900 to-slate-800 pb-12 pt-8 md:pt-10 px-5 relative md:rounded-b-[2rem] rounded-b-3xl shadow-xl z-20 flex items-center gap-3">
+        <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors z-10">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="font-bold text-lg text-white">Pengaturan Akun</h1>
+        <h1 className="font-black text-xl text-white tracking-tight z-10">Pengaturan Akun</h1>
+        
+        {/* Background Decoration */}
+        <div className="absolute inset-0 overflow-hidden rounded-b-3xl md:rounded-b-[2rem] pointer-events-none">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Store size={100} className="transform rotate-12 translate-x-4 -translate-y-4" />
+          </div>
+        </div>
       </header>
 
-      <div className="max-w-md mx-auto p-4 md:p-6 mb-24 relative z-20 pt-24">
+      <div className="max-w-xl mx-auto p-4 md:p-6 mb-24 relative z-30 -mt-6">
         <form id="settingsForm" onSubmit={handleSave} className="space-y-6">
           {isOnboarding && (
             <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3">

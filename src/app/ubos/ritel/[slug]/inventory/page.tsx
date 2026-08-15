@@ -218,17 +218,22 @@ export default function InventoryRitelPage() {
 
   return (
     <>
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Stock & SKU Tracker</h1>
-          <p className="text-white/80 text-xs mt-0.5">Manajemen Inventori Ritel</p>
+      <header className="bg-gradient-to-r from-slate-900 to-slate-800 pb-10 pt-6 md:pt-8 px-5 relative md:rounded-b-[2rem] rounded-b-3xl shadow-xl z-20">
+        <div className="max-w-6xl mx-auto flex justify-between items-center relative z-10">
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-sm">Kalkulator HPP & Stok</h1>
+            <p className="text-slate-300 text-sm mt-1 font-medium">Manajemen produk & biaya produksi</p>
+          </div>
+          <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+            <Package size={24} className="text-white" />
+          </div>
         </div>
       </header>
 
-      <div className="p-5 pt-24 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 animate-in fade-in duration-500">
+      <div className="p-5 -mt-6 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
         
         {/* Kalkulator / Form Tambah Produk Ritel Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+        <div className="glass-card rounded-3xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Package size={20} />

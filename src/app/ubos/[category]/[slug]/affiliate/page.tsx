@@ -128,7 +128,7 @@ export default function AffiliatePage() {
   return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
       {/* Header Banner */}
-      <div className="bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 text-white p-6 md:p-10 pb-16 rounded-b-[2rem] shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-white p-6 md:p-10 pb-16 rounded-b-3xl md:rounded-b-[2rem] shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh-glow opacity-30"></div>
         <div className="relative z-10 max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-6">
           <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
