@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Phone, Lock, Store, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Phone, Lock, Store, Eye, EyeOff, Loader2, LayoutGrid } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -24,6 +24,7 @@ export default function RegisterPage() {
   const [merchantName, setMerchantName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(searchParams?.get('category') || 'Kuliner & F&B');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ export default function RegisterPage() {
       if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
       
       const dummyEmail = `${cleanWA}@logaritma.id`;
-      const categoryParam = searchParams?.get('category') || 'Kuliner & F&B';
+      const categoryParam = selectedCategory;
       
       // 1. Panggil API untuk insert ke leads & kirim WA Fonnte
       const res = await fetch('/api/leads/signup', {
@@ -146,6 +147,29 @@ export default function RegisterPage() {
               className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 transition-colors"
               placeholder="Contoh: Toko Kopi Logaritma"
             />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-slate-700">Kategori Bisnis</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <LayoutGrid className="h-5 w-5" />
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 transition-colors appearance-none cursor-pointer"
+              required
+            >
+              <option value="Kuliner & F&B">Kuliner & F&B</option>
+              <option value="Ritel & Grosir">Ritel & Grosir</option>
+              <option value="Jasa & Layanan">Jasa & Layanan</option>
+              <option value="Percetakan & Fotokopi">Percetakan & Fotokopi</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
           </div>
         </div>
 

@@ -21,15 +21,15 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
         <div className="relative z-10 w-full max-w-lg space-y-8">
           <img src="/logaritma-logo.png" alt="Logaritma" className="h-10 mx-auto brightness-0 invert" />
           
-          <div className="space-y-6 pt-4 text-left px-4">
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight drop-shadow-sm">
+          <div className="space-y-4 pt-2 text-left px-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-sm">
               Satu Sistem Untuk Semua Kebutuhan
             </h2>
-            <p className="text-emerald-50 text-lg font-medium opacity-90 pb-2">
+            <p className="text-emerald-50 text-base sm:text-lg font-medium opacity-90 pb-1">
               Tingkatkan efisiensi dan skala usaha Anda dengan fitur operasional terpadu dari UBOS by Logaritma.
             </p>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               {[
                 'Manajemen Stok & Inventori Real-time',
                 'Pencatatan Keuangan & Laporan Otomatis',
