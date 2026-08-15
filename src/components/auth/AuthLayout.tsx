@@ -21,20 +21,31 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
         <div className="relative z-10 w-full max-w-lg space-y-8">
           <img src="/logaritma-logo.png" alt="Logaritma" className="h-10 mx-auto brightness-0 invert" />
           
-          <div className="space-y-4">
-            <h2 className="text-4xl font-extrabold text-white leading-tight">
-              Langganan Lebih Hemat dengan Autodebit
+          <div className="space-y-6 pt-4 text-left px-4">
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight drop-shadow-sm">
+              Satu Sistem Untuk Semua Kebutuhan
             </h2>
-            <div className="text-white">
-              <span className="text-7xl font-black">Diskon Hingga</span>
-              <div className="text-[140px] font-black leading-none drop-shadow-xl mt-[-20px]">
-                35<span className="text-6xl align-top">%*</span>
-              </div>
+            <p className="text-emerald-50 text-lg font-medium opacity-90 pb-2">
+              Tingkatkan efisiensi dan skala usaha Anda dengan fitur operasional terpadu dari UBOS by Logaritma.
+            </p>
+            
+            <div className="space-y-4">
+              {[
+                'Manajemen Stok & Inventori Real-time',
+                'Pencatatan Keuangan & Laporan Otomatis',
+                'Aplikasi Kasir (POS) Terintegrasi',
+                'Etalase Toko Online & CRM'
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-4 text-white">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-emerald-400/20 flex items-center justify-center border border-emerald-300/30">
+                    <svg className="w-4 h-4 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-lg drop-shadow-sm">{feature}</span>
+                </div>
+              ))}
             </div>
-          </div>
-
-          <div className="pt-12 text-emerald-50 text-sm opacity-80">
-            *) Syarat dan Ketentuan Berlaku
           </div>
         </div>
       </div>
