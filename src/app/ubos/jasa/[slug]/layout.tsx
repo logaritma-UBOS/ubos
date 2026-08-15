@@ -18,7 +18,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
       
       if (!user) {
         toast.error(`Silakan login dengan Nomor WhatsApp dan Password terdaftar untuk mengakses modul ini.`);
-        router.push('/auth');
+        router.push('/auth/login');
         return;
       }
 

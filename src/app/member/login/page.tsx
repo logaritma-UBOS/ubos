@@ -216,7 +216,7 @@ export default function MemberLoginPage() {
             </form>
 
             <div className="pt-2 text-center">
-              <a href="/auth?mode=login" className="text-xs text-blue-600 font-semibold hover:underline">
+              <a href="/auth/login" className="text-xs text-blue-600 font-semibold hover:underline">
                 Punya akun UBOS dengan password? Login di sini →
               </a>
             </div>

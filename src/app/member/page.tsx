@@ -522,7 +522,7 @@ export default function MemberDashboard() {
                                   if (result.found) {
                                     // Nomor terdaftar, arahkan ke halaman login password
                                     toast.info("Silakan masukkan password untuk mengakses modul.");
-                                    router.push(`/auth?mode=login`);
+                                    router.push(`/auth/login`);
                                     return;
                                   }
                                 } catch (err) {
@@ -534,7 +534,7 @@ export default function MemberDashboard() {
                                 description: "Akses terbatas khusus member terdaftar.",
                                 icon: <Lock className="w-5 h-5 text-amber-500" />
                               });
-                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              router.push(`/auth/daftar?category=${encodeURIComponent(category)}`);
                               return;
                             }
                             
@@ -636,7 +636,7 @@ export default function MemberDashboard() {
                                   
                                   if (result.found) {
                                     toast.info("Silakan masukkan password untuk mengakses modul.");
-                                    router.push(`/auth?mode=login`);
+                                    router.push(`/auth/login`);
                                     return;
                                   }
                                 } catch (err) {
@@ -648,7 +648,7 @@ export default function MemberDashboard() {
                                 description: "Akses terbatas khusus member terdaftar.",
                                 icon: <Lock className="w-5 h-5 text-amber-500" />
                               });
-                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              router.push(`/auth/daftar?category=${encodeURIComponent(category)}`);
                               return;
                             }
                             
@@ -715,7 +715,7 @@ export default function MemberDashboard() {
                                   
                                   if (result.found) {
                                     toast.info("Silakan masukkan password untuk mengakses modul.");
-                                    router.push(`/auth?mode=login`);
+                                    router.push(`/auth/login`);
                                     return;
                                   }
                                 } catch (err) {
@@ -727,7 +727,7 @@ export default function MemberDashboard() {
                                 description: "Akses terbatas khusus member terdaftar.",
                                 icon: <Lock className="w-5 h-5 text-amber-500" />
                               });
-                              router.push(`/auth?mode=register&category=${encodeURIComponent(category)}`);
+                              router.push(`/auth/daftar?category=${encodeURIComponent(category)}`);
                               return;
                             }
                             
@@ -783,7 +783,7 @@ export default function MemberDashboard() {
                               const slug = (merchant.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
                               router.push(`/ubos/jasa/${slug}`);
                             } else {
-                              router.push(`/auth?mode=login`);
+                              router.push(`/auth/login`);
                             }
                           }}
                           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"

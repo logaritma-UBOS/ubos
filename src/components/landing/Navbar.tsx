@@ -63,21 +63,21 @@ export default function Navbar({ onOpenEnrollment }) {
 
           {/* Action CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            <a 
-              href="/member/login"
+            <Link 
+              href="/auth/login"
               className="text-xs font-semibold px-4 py-2.5 text-slate-300 hover:text-emerald-400 transition-colors"
             >
               Masuk
-            </a>
+            </Link>
             <button 
-              onClick={() => onOpenEnrollment('Simulasi HPP Gratis')}
+              onClick={() => window.location.href = '/auth/daftar'}
               className="text-xs font-semibold px-4 py-2.5 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-xl bg-slate-900/90 hover:bg-slate-800 transition-all shadow-sm flex items-center gap-1.5"
             >
               <Calculator className="w-3.5 h-3.5 text-emerald-400" />
               <span>Hitung HPP</span>
             </button>
             <button 
-              onClick={() => onOpenEnrollment('Uji Coba Gratis 14 Hari')}
+              onClick={() => window.location.href = '/auth/daftar'}
               className="btn-gradient-primary text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2"
             >
               <span>Coba Gratis</span>
@@ -116,7 +116,7 @@ export default function Navbar({ onOpenEnrollment }) {
 
           <div className="pt-3 border-t border-slate-800 flex flex-col gap-2.5">
             <a
-              href="/member/login"
+              href="/auth/login"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center text-xs font-semibold py-3 text-slate-300 border border-slate-800 rounded-xl bg-slate-900/50 hover:bg-slate-800/80"
             >
