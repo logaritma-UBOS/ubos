@@ -66,7 +66,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   };
 
   return (
-    <aside className="w-64 h-full flex flex-col bg-gradient-to-b from-[#3B5BDB] via-[#4F75FF] to-emerald-500 shadow-xl z-50 text-white relative">
+    <aside className="w-64 h-full flex flex-col bg-gradient-to-b from-[#3B5BDB] via-[#4F75FF] to-emerald-500 shadow-xl z-50 text-white relative pt-16">
       <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
       
       <div className="relative z-10 flex flex-col h-full">
