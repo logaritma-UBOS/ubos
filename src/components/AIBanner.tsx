@@ -52,42 +52,50 @@ export default function AIBanner() {
 
   if (isCollapsed) {
     return (
-      <div className="w-full bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors z-40 relative" onClick={toggleCollapse}>
-        <div className="flex items-center gap-2">
-          <BrainCircuit size={16} className="text-[#3B5BDB]" />
-          <span className="text-xs font-black text-[#3B5BDB]">LOGARITMA AI ASISTEN</span>
-          <span className="text-xs text-slate-500 font-medium ml-2 hidden md:inline-block">- {insightTitle}</span>
+      <div className="mx-4 md:mx-8 mt-4 md:mt-6 mb-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all shadow-sm z-40 relative group" onClick={toggleCollapse}>
+        <div className="flex items-center gap-2.5">
+          <BrainCircuit size={18} className="text-[#3B5BDB]" />
+          <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Logaritma AI Asisten</span>
+          <span className="text-[11px] text-slate-400 font-medium ml-1 hidden md:inline-block border-l border-slate-200 pl-3">{insightTitle}</span>
         </div>
-        <button className="text-slate-400 hover:text-slate-600 rounded-full p-1 bg-slate-100">
-          <ChevronDown size={14} />
+        <button className="text-slate-400 group-hover:text-[#3B5BDB] rounded-full p-1 bg-slate-50 transition-colors">
+          <ChevronDown size={16} />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-gradient-to-r from-blue-50 to-emerald-50 border-b border-slate-200 p-4 relative transition-all duration-300 z-40">
-      <button 
-        onClick={toggleCollapse}
-        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-white/50 rounded-full p-1 shadow-sm transition-colors"
-      >
-        <ChevronUp size={16} />
-      </button>
+    <div className="mx-4 md:mx-8 mt-4 md:mt-6 mb-2 relative transition-all duration-300 z-40">
+      {/* AI Copilot Premium Styling */}
+      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-[#1e293b] rounded-2xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-700 overflow-hidden relative">
+        
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#3B5BDB]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl translate-y-1/2 pointer-events-none"></div>
 
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-blue-100">
-          <BrainCircuit size={24} className="text-[#3B5BDB]" />
-        </div>
-        <div className="flex-1 pr-8">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-slate-900 text-sm md:text-base">{insightTitle}</h3>
-            <span className="bg-[#3B5BDB]/10 text-[#3B5BDB] text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider">
-              <Sparkles size={10} /> AI Asisten
-            </span>
+        <button 
+          onClick={toggleCollapse}
+          className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/5 rounded-full p-1.5 backdrop-blur-md transition-colors z-10"
+        >
+          <ChevronUp size={16} />
+        </button>
+
+        <div className="flex items-start gap-4 md:gap-5 relative z-10">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#3B5BDB] to-[#4F75FF] shadow-inner flex items-center justify-center shrink-0 border border-white/10">
+            <BrainCircuit size={28} className="text-white" />
           </div>
-          <p className="text-xs md:text-sm text-slate-600 leading-relaxed max-w-2xl">
-            {insightDesc}
-          </p>
+          <div className="flex-1 pr-8">
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <h3 className="font-bold text-white text-sm md:text-base tracking-wide">{insightTitle}</h3>
+              <span className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[9px] md:text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                <Sparkles size={10} /> Copilot
+              </span>
+            </div>
+            <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-2xl font-medium">
+              {insightDesc}
+            </p>
+          </div>
         </div>
       </div>
     </div>
