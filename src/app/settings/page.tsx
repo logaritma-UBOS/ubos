@@ -272,7 +272,7 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-1 relative">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-r-md transition-transform duration-300" 
-                     style={{ transform: \`translateY(\${activeTab === 'akun' ? '0' : '40px'})\`, height: '40px' }}></div>
+                     style={{ transform: `translateY(${activeTab === 'akun' ? '0' : '40px'})`, height: '40px' }}></div>
                 <button 
                   onClick={() => { setActiveTab('akun'); setIsEditing(false); }}
                   className={`w-full text-left pl-6 pr-4 py-2.5 text-sm font-bold transition-colors ${activeTab === 'akun' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'}`}
