@@ -66,18 +66,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         router.push('/');
       } else if (session && pathname?.startsWith('/auth')) {
         router.push('/member');
-      } else if (session && fetchedMerchant) {
-        let expiresDate = new Date();
-        if (fetchedMerchant.trial_expires_at) {
-          expiresDate = new Date(fetchedMerchant.trial_expires_at);
-        } else if (fetchedMerchant.created_at) {
-          expiresDate = new Date(fetchedMerchant.created_at);
-          expiresDate.setDate(expiresDate.getDate() + 7);
-        }
-        const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
-          router.push('/member?expired=true');
-        }
       }
     };
 
@@ -102,18 +90,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
           pingActivity(newSession.user.id);
-          
-          let expiresDate = new Date();
-          if (merchantData.trial_expires_at) {
-            expiresDate = new Date(merchantData.trial_expires_at);
-          } else if (merchantData.created_at) {
-            expiresDate = new Date(merchantData.created_at);
-            expiresDate.setDate(expiresDate.getDate() + 7);
-          }
-          const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-          if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
-            router.push('/member?expired=true');
-          }
         }
       } else {
         // Reset to default
