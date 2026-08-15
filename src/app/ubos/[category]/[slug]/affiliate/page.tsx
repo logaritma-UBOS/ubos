@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import { Wallet, Handshake, Copy, MessageCircle, Megaphone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import AIBanner from '@/components/AIBanner';
 
 export default function AffiliatePage() {
   const router = useRouter();
@@ -141,7 +142,9 @@ export default function AffiliatePage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto -mt-10 px-4 relative z-20 space-y-6">
+      <AIBanner />
+
+      <div className="max-w-5xl mx-auto -mt-4 px-4 relative z-20 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-card rounded-2xl p-5">

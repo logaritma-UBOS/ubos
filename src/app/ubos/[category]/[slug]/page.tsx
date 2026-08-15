@@ -10,6 +10,7 @@ import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Copilot from '@/components/Copilot';
 import CopilotWidget from '@/components/CopilotWidget';
+import AIBanner from '@/components/AIBanner';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -167,6 +168,18 @@ return (
 
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
+        <AIBanner 
+          actionButton={
+            <button 
+              onClick={() => setShowTargetModal(true)}
+              className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm active:scale-95" 
+            >
+              <Target size={16} />
+              Tentukan Target
+            </button>
+          }
+        />
+
         {/* Onboarding Widget Majoo Style */}
         {showOnboarding && (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">

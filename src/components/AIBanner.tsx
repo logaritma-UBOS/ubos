@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sparkles, ChevronDown, ChevronUp, BrainCircuit } from 'lucide-react';
 
-export default function AIBanner() {
+interface AIBannerProps {
+  actionButton?: React.ReactNode;
+}
+
+export default function AIBanner({ actionButton }: AIBannerProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -76,7 +80,7 @@ export default function AIBanner() {
 
         <button 
           onClick={toggleCollapse}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/5 rounded-full p-1.5 backdrop-blur-md transition-colors z-10"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/5 rounded-full p-1.5 backdrop-blur-md transition-colors z-30 cursor-pointer"
         >
           <ChevronUp size={16} />
         </button>
@@ -95,6 +99,11 @@ export default function AIBanner() {
             <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-2xl font-medium">
               {insightDesc}
             </p>
+            {actionButton && (
+              <div className="mt-3">
+                {actionButton}
+              </div>
+            )}
           </div>
         </div>
       </div>

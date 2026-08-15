@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import { ShieldCheck, Wallet, Loader2, MessageCircle, Flame, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import AIBanner from '@/components/AIBanner';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -110,7 +111,9 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto -mt-10 px-4 relative z-20">
+      <AIBanner />
+
+      <div className="max-w-4xl mx-auto -mt-4 px-4 relative z-20">
         <div className="glass-card rounded-3xl p-6 md:p-10 text-center">
           
           <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-slate-200">

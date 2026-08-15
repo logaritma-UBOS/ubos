@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import DummyDataInjector from '@/components/DummyDataInjector';
 import { toast } from 'sonner';
-// We don't import anything specific yet for Inventory context
+import AIBanner from '@/components/AIBanner';
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -130,7 +130,9 @@ export default function InventoryPage() {
         </div>
       </header>
 
-      <div className="p-5 -mt-6 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
+      <AIBanner />
+
+      <div className="p-5 -mt-2 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
         {/* ONBOARDING BANNER STEP 2 */}
         {isOnboarding && products.length === 0 && (
           <div className="bg-indigo-50 border-2 border-indigo-500 text-indigo-900 p-4 rounded-2xl flex items-start gap-4 mb-6 shadow-md shadow-indigo-200/50">
