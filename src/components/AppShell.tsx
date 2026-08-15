@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import AIBanner from './AIBanner';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -174,7 +175,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       
-      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''}`}>
+      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''} ${showWarningBanner ? 'pb-40 md:pb-28' : 'pb-6'}`}>
+        {!hideSidebar && <AIBanner />}
         <div className="flex-1">
           {children}
         </div>
