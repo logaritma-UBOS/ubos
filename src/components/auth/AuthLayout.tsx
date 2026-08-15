@@ -54,7 +54,7 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
           
           {/* UBOS Logo Header */}
           <div className="flex flex-col items-center justify-center mb-8">
-            <img src="/logo-ubos-new.png" alt="UBOS Logo" className="h-16 w-auto object-contain mb-4" />
+            <img src="/logo-ubos-wide.png" alt="UBOS Logo" className="w-56 sm:w-64 h-auto object-contain mb-4" />
             <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
           </div>
 
