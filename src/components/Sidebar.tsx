@@ -223,7 +223,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             </div>
           </div>
 
-          <div className="hidden md:block">
+          <div>
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
@@ -264,9 +264,9 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             })}
           </div>
 
-          <div className="hidden md:block my-2 border-t border-white/10"></div>
+          <div className="my-2 border-t border-white/10"></div>
           
-          <div className="hidden md:block">
+          <div>
             {bottomItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
