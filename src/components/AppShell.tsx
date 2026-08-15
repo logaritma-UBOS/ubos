@@ -62,9 +62,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && !pathname.startsWith('/auth') && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor') && !pathname.startsWith('/store')) {
+      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/member') && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
-      } else if (session && pathname.startsWith('/auth')) {
+      } else if (session && pathname?.startsWith('/auth')) {
         router.push('/member');
       } else if (session && fetchedMerchant) {
         let expiresDate = new Date();
@@ -120,9 +120,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      if (!newSession && !pathname.startsWith('/auth') && pathname !== '/' && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor') && !pathname.startsWith('/store')) {
+      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/member') && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
-      } else if (newSession && pathname.startsWith('/auth')) {
+      } else if (newSession && pathname?.startsWith('/auth')) {
         router.push('/member');
       }
     });
@@ -142,12 +142,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const isLandingPage = pathname === '/';
-  const isAuthPage = pathname.startsWith('/auth');
-  const isAdminPage = pathname.startsWith('/admin');
-  const isInvestorPage = pathname.startsWith('/investor');
-  const isMemberArea = pathname.startsWith('/member');
-  const isStorefrontPage = pathname.startsWith('/store');
-  const isSubPage = pathname.includes('/new') || pathname.includes('/edit') || pathname.includes('/settings');
+  const isAuthPage = pathname?.startsWith('/auth');
+  const isAdminPage = pathname?.startsWith('/admin');
+  const isInvestorPage = pathname?.startsWith('/investor');
+  const isMemberArea = pathname?.startsWith('/member');
+  const isStorefrontPage = pathname?.startsWith('/store');
+  const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
   const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
   const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
 
