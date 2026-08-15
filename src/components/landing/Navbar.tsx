@@ -139,7 +139,7 @@ export default function Navbar({ onOpenEnrollment }) {
               }}
               className="w-full btn-gradient-primary text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2"
             >
-              <span>Coba Gratis 14 Hari</span>
+              <span>Coba Gratis 7 Hari</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

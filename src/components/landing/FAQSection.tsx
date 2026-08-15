@@ -32,7 +32,7 @@ export default function FAQSection({ onOpenEnrollment }) {
     {
       category: 'harga',
       question: 'Berapa biaya langganan Logaritma.id dan apakah ada uji coba gratis?',
-      answer: 'Logaritma.id menyediakan uji coba gratis selama 14 hari penuh tanpa perlu kartu kredit. Paket langganan resmi dimulai dari Rp 49.000 / bulan untuk UMKM Starter, sangat terjangkau dibanding potensi modal mati yang diselamatkan setiap bulannya.'
+      answer: 'Logaritma.id menyediakan uji coba gratis selama 7 hari penuh tanpa perlu kartu kredit. Paket langganan resmi dimulai dari Rp 49.000 / bulan untuk UMKM Starter, sangat terjangkau dibanding potensi modal mati yang diselamatkan setiap bulannya.'
     },
     {
       category: 'cabang',

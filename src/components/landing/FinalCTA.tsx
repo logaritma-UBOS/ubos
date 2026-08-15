@@ -68,7 +68,7 @@ export default function FinalCTA({ onOpenEnrollment }) {
                 onClick={() => window.location.href = '/auth/daftar'}
                 className="btn-gradient-primary w-full sm:w-auto text-sm font-extrabold px-9 py-4 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20"
               >
-                <span>Coba Gratis 14 Hari Sekarang</span>
+                <span>Coba Gratis 7 Hari Sekarang</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -84,7 +84,7 @@ export default function FinalCTA({ onOpenEnrollment }) {
             {/* Guarantee Note */}
             <div className="pt-2 flex items-center justify-center gap-2 text-xs text-slate-400 font-medium">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>14 Hari Uji Coba Gratis • Tanpa Kartu Kredit • Setup HPP Dibantu Tim Specialist</span>
+              <span>7 Hari Uji Coba Gratis • Tanpa Kartu Kredit • Setup HPP Dibantu Tim Specialist</span>
             </div>
 
           </div>

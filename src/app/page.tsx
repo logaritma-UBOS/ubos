@@ -35,7 +35,7 @@ export default function Home() {
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
 
   const handleOpenCurriculum = (program: any) => {
-    window.location.href = '/auth/daftar';
+    setSelectedProgramForCurriculum(program);
   };
 
   const handleCloseCurriculum = () => {

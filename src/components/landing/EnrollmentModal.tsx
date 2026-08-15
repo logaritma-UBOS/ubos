@@ -59,7 +59,7 @@ export default function EnrollmentModal({ initialTrack, onClose }) {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 via-sky-600 to-emerald-500 p-7 text-white space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-bold backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5" /> Uji Coba Gratis 14 Hari
+                <Sparkles className="w-3.5 h-3.5" /> Uji Coba Gratis 7 Hari
               </div>
               <h2 className="text-2xl font-extrabold tracking-tight">Aktivasi Logaritma.id UBOS AI</h2>
               <p className="text-xs text-blue-100">
@@ -185,7 +185,7 @@ export default function EnrollmentModal({ initialTrack, onClose }) {
                 type="submit"
                 className="btn-gradient-primary w-full text-xs font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-xl"
               >
-                <span>Mulai Uji Coba Gratis 14 Hari Now</span>
+                <span>Mulai Uji Coba Gratis 7 Hari Now</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -200,7 +200,7 @@ export default function EnrollmentModal({ initialTrack, onClose }) {
             <div className="space-y-2">
               <h3 className="text-2xl font-extrabold text-slate-900">Aktivasi Berhasil Terkirim! 🎉</h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-sm mx-auto">
-                Terima kasih, <strong className="text-slate-900">{formData.name}</strong> ({formData.storeName}). Akun Uji Coba 14 Hari Logaritma.id Anda siap untuk sektor:
+                Terima kasih, <strong className="text-slate-900">{formData.name}</strong> ({formData.storeName}). Akun Uji Coba 7 Hari Logaritma.id Anda siap untuk sektor:
               </p>
               <div className="inline-block bg-blue-50 text-blue-700 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 mt-2">
                 {formData.sector}

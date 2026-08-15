@@ -126,7 +126,7 @@ export default function MemberDashboard() {
   };
 
   const handleShareWA = () => {
-    const text = `Halo kawan bisnis! Saya pakai Logaritma UBOS buat rapihin laporan & kunci profit usaha. Coba gratis 14 hari pake link rekomendasi saya ini ya: ${getRefLink()}`;
+    const text = `Halo kawan bisnis! Saya pakai Logaritma UBOS buat rapihin laporan & kunci profit usaha. Coba gratis 7 hari pake link rekomendasi saya ini ya: ${getRefLink()}`;
     safeOpenUrl(`https://wa.me/?text=${encodeURIComponent(text)}`);
   };
 
@@ -972,9 +972,9 @@ export default function MemberDashboard() {
 
                 <div className="space-y-4">
                   {[
-                    { title: 'Teks WA Santai (Teman/Kenalan)', text: `Halo kawan bisnis! 👋\n\nSaya lagi pakai Logaritma UBOS nih buat rapihin laporan & kunci profit usaha. Beneran praktis banget buat pantau HPP & penjualan tiap hari.\n\nKebetulan ada free trial 14 hari, cobain deh pake link rekomendasi saya ini:\n${getRefLink()}\n\nSemoga bisnis makin lancar ya! 🚀` },
-                    { title: 'Caption Instagram / Facebook', text: `Capek ngurusin stok berantakan & duit bocor gak ketahuan? 😫\n\nSama, dulu saya juga gitu. Sampai akhirnya pakai Logaritma UBOS! Sistem kasir sekaligus pencatat HPP yang super detail & gampang banget dipakainya.\n\nBuat temen-temen pengusaha yang mau rapihin sistem, yuk cobain gratis 14 hari klik link di bawah ini 👇\n\n${getRefLink()}\n\n#LogaritmaUBOS #SistemKasir #SolusiBisnis #UMKMNaikKelas` },
-                    { title: 'Teks Ajakan Grup Pengusaha', text: `Izin share buat teman-teman di grup 🙏\n\nBuat yang lagi pusing cari sistem kasir yang bisa misahin komisi Gofood/Grabfood otomatis dan ngitung HPP detail, saya highly recommend pakai *Logaritma UBOS*.\n\nSistemnya dirancang khusus buat cegah kebocoran profit. Mumpung lagi ada free trial 14 hari, bisa langsung daftar lewat link ini ya:\n${getRefLink()}` }
+                    { title: 'Teks WA Santai (Teman/Kenalan)', text: `Halo kawan bisnis! 👋\n\nSaya lagi pakai Logaritma UBOS nih buat rapihin laporan & kunci profit usaha. Beneran praktis banget buat pantau HPP & penjualan tiap hari.\n\nKebetulan ada free trial 7 hari, cobain deh pake link rekomendasi saya ini:\n${getRefLink()}\n\nSemoga bisnis makin lancar ya! 🚀` },
+                    { title: 'Caption Instagram / Facebook', text: `Capek ngurusin stok berantakan & duit bocor gak ketahuan? 😫\n\nSama, dulu saya juga gitu. Sampai akhirnya pakai Logaritma UBOS! Sistem kasir sekaligus pencatat HPP yang super detail & gampang banget dipakainya.\n\nBuat temen-temen pengusaha yang mau rapihin sistem, yuk cobain gratis 7 hari klik link di bawah ini 👇\n\n${getRefLink()}\n\n#LogaritmaUBOS #SistemKasir #SolusiBisnis #UMKMNaikKelas` },
+                    { title: 'Teks Ajakan Grup Pengusaha', text: `Izin share buat teman-teman di grup 🙏\n\nBuat yang lagi pusing cari sistem kasir yang bisa misahin komisi Gofood/Grabfood otomatis dan ngitung HPP detail, saya highly recommend pakai *Logaritma UBOS*.\n\nSistemnya dirancang khusus buat cegah kebocoran profit. Mumpung lagi ada free trial 7 hari, bisa langsung daftar lewat link ini ya:\n${getRefLink()}` }
                   ].map((kit, i) => (
                     <div key={i} className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                       <div className="flex items-center justify-between mb-3">
@@ -1014,7 +1014,7 @@ export default function MemberDashboard() {
                   <div className="p-6 space-y-4">
                     {[
                       { name: 'Paket 7 Hari', price: 'Rp 150.000', detail: 'Optimasi awal untuk awareness dan traffic cepat.' },
-                      { name: 'Paket 14 Hari', price: 'Rp 250.000', detail: 'Kampanye terukur untuk promo menu dan event.' },
+                      { name: 'Paket 7 Hari', price: 'Rp 250.000', detail: 'Kampanye terukur untuk promo menu dan event.' },
                       { name: 'Paket 30 Hari', price: 'Rp 450.000', detail: 'Pendampingan iklan untuk hasil jangka panjang.' },
                     ].map((pkg) => (
                       <div key={pkg.name} className="rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">

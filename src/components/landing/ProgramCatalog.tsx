@@ -228,7 +228,7 @@ export default function ProgramCatalog({ onOpenCurriculum, onOpenEnrollment }) {
                     onClick={() => window.location.href = '/auth/daftar'}
                     className="btn-gradient-primary w-full text-xs font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md"
                   >
-                    <span>Coba Gratis 14 Hari</span>
+                    <span>Coba Gratis 7 Hari</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
