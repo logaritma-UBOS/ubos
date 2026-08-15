@@ -168,19 +168,19 @@ return (
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
         {/* Promo Banner Majoo Style */}
-        <div className="w-full bg-emerald-50 rounded-2xl border border-emerald-100 overflow-hidden relative shadow-sm">
+        <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden relative shadow-sm">
           <div className="flex flex-col md:flex-row items-center">
             <div className="p-6 md:p-8 flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 bg-emerald-500 rounded-md flex items-center justify-center font-bold text-white text-xs">U</div>
-                <span className="font-black text-emerald-600 text-lg tracking-tight">Capital</span>
+                <div className="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center font-bold text-white text-xs">U</div>
+                <span className="font-black text-[#3B5BDB] text-lg tracking-tight">Capital</span>
               </div>
               <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-2">BERANI TUMBUH, MODAL SIAP DUKUNG</h2>
               <p className="text-slate-600 font-medium text-sm mb-4">Hingga 280jt cair &le;2 hari. Pengajuan &plusmn;10mnt, langsung dari Logaritma*</p>
-              <button className="text-emerald-600 font-bold text-sm hover:underline">Ajukan Sekarang</button>
+              <button className="text-[#3B5BDB] font-bold text-sm hover:underline">Ajukan Sekarang</button>
             </div>
-            <div className="hidden md:block w-1/3 bg-emerald-100 h-full min-h-[160px] relative">
-              <div className="absolute inset-0 bg-gradient-to-l from-emerald-500/20 to-transparent"></div>
+            <div className="hidden md:block w-1/3 bg-blue-100 h-full min-h-[160px] relative">
+              <div className="absolute inset-0 bg-gradient-to-l from-[#4F75FF]/20 to-transparent"></div>
               {/* Graphic Placeholder */}
             </div>
           </div>
@@ -190,11 +190,11 @@ return (
         {showOnboarding && (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">
             {/* Header Green */}
-            <div className="bg-emerald-500 p-5 md:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-blue-500 p-5 md:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h3 className="text-lg md:text-xl font-bold">Langkah Mudah Buka Outlet</h3>
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <span className="font-bold text-sm">0/3</span>
-                <div className="flex-1 md:w-64 h-3 bg-emerald-600/50 rounded-full overflow-hidden">
+                <div className="flex-1 md:w-64 h-3 bg-blue-600/50 rounded-full overflow-hidden">
                   <div className="w-0 h-full bg-white rounded-full"></div>
                 </div>
               </div>
@@ -204,35 +204,35 @@ return (
             <div className="p-5 md:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 -mt-2">
               <button 
                 onClick={() => setShowTargetModal(true)}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <Target size={20} className="text-emerald-500" />
+                  <Target size={20} className="text-[#4F75FF]" />
                   <span className="font-medium text-slate-700">Siapkan Produk</span>
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
               </button>
               
               <button 
                 onClick={() => router.push(`/ubos/${params.category || 'kuliner'}/${params.slug}/inventory`)}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <Package size={20} className="text-emerald-500" />
+                  <Package size={20} className="text-[#4F75FF]" />
                   <span className="font-medium text-slate-700">Informasi Karyawan</span>
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
               </button>
 
               <button 
                 onClick={() => router.push('/settings')}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 hover:-translate-y-1 transition-all group mb-6 md:mb-0"
+                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group mb-6 md:mb-0"
               >
                 <div className="flex items-center gap-3">
-                  <Store size={20} className="text-emerald-500" />
+                  <Store size={20} className="text-[#4F75FF]" />
                   <span className="font-medium text-slate-700">Lengkapi Data Outlet</span>
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-500" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
               </button>
             </div>
           </div>
@@ -243,7 +243,7 @@ return (
           <div className="flex flex-col gap-4">
             <div>
               <h2 className="text-2xl font-medium text-slate-900 flex items-center gap-2">
-                Dashboard Penjualan <AlertCircle size={20} className="text-emerald-500" />
+                Dashboard Penjualan <AlertCircle size={20} className="text-[#4F75FF]" />
               </h2>
               <p className="text-sm text-slate-500 mt-1">Diperbarui {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}, {new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
             </div>
@@ -255,7 +255,7 @@ return (
                   <button 
                     key={filter}
                     onClick={() => setTimeFilter(filter)}
-                    className={`flex-1 md:flex-none px-6 py-2 text-sm font-medium transition-colors ${timeFilter === filter ? 'bg-emerald-500 text-white' : 'text-slate-600 bg-white hover:bg-slate-50'} ${idx !== 0 ? 'border-l border-slate-200' : ''}`}
+                    className={`flex-1 md:flex-none px-6 py-2 text-sm font-medium transition-colors ${timeFilter === filter ? 'bg-blue-500 text-white' : 'text-slate-600 bg-white hover:bg-slate-50'} ${idx !== 0 ? 'border-l border-slate-200' : ''}`}
                   >
                     {filter}
                   </button>

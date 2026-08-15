@@ -66,24 +66,24 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   };
 
   return (
-    <aside className="w-64 h-full flex flex-col bg-emerald-500 border-r border-emerald-600 shadow-xl z-50 text-white">
+    <aside className="w-64 h-full flex flex-col bg-[#4F75FF] border-r border-[#3B5BDB] shadow-xl z-50 text-white">
       
       {/* Store Selector (Mimicking Majoo) */}
-      <div className="p-4 border-b border-emerald-400/50">
-        <div className="flex items-center gap-3 bg-emerald-600/50 hover:bg-emerald-600 p-3 rounded-lg cursor-pointer transition-colors">
+      <div className="p-4 border-b border-white/10">
+        <div className="flex items-center gap-3 bg-white/10 hover:bg-white/20 p-3 rounded-lg cursor-pointer transition-colors">
           <Store size={20} className="text-white" />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-emerald-100 font-medium uppercase tracking-wider">Outlet</p>
+            <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider">Outlet</p>
             <p className="text-sm font-bold text-white truncate">Semua Outlet</p>
           </div>
-          <ChevronDown size={16} className="text-emerald-100" />
+          <ChevronDown size={16} className="text-blue-100" />
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
         {/* Menu Favorit Example */}
         <div className="mb-2">
-          <div className="flex items-center justify-between px-5 py-2 text-emerald-100/80 hover:text-white cursor-pointer group">
+          <div className="flex items-center justify-between px-5 py-2 text-blue-100/80 hover:text-white cursor-pointer group">
             <div className="flex items-center gap-3">
               <Star size={20} />
               <span className="font-medium text-sm">Menu Favorit</span>
@@ -101,13 +101,13 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
               <div 
                 key={item.name}
                 title="Terkunci - Silakan perpanjang lisensi Anda"
-                className="flex items-center justify-between px-5 py-3 text-emerald-200/50 cursor-not-allowed"
+                className="flex items-center justify-between px-5 py-3 text-white/50 cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
                   <Icon size={20} strokeWidth={2} />
                   <span className="font-medium text-sm">{item.name}</span>
                 </div>
-                <Lock size={14} className="text-emerald-200/50" />
+                <Lock size={14} className="text-white/50" />
               </div>
             );
           }
@@ -119,8 +119,8 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
               onClick={onClose}
               className={`flex items-center justify-between px-5 py-3 transition-colors duration-200 ${
                 isActive 
-                  ? 'bg-emerald-600/50 border-l-4 border-white text-white font-bold' 
-                  : 'text-emerald-50 hover:bg-emerald-600/30 font-medium border-l-4 border-transparent'
+                  ? 'bg-white/10 border-l-4 border-white text-white font-bold' 
+                  : 'text-white/80 hover:bg-white/20/30 font-medium border-l-4 border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -131,7 +131,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
           );
         })}
 
-        <div className="my-2 border-t border-emerald-400/30"></div>
+        <div className="my-2 border-t border-white/10"></div>
         
         {bottomItems.map((item) => {
           const isActive = pathname === item.href;
@@ -143,8 +143,8 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
               onClick={onClose}
               className={`flex items-center justify-between px-5 py-3 transition-colors duration-200 ${
                 isActive 
-                  ? 'bg-emerald-600/50 border-l-4 border-white text-white font-bold' 
-                  : 'text-emerald-50 hover:bg-emerald-600/30 font-medium border-l-4 border-transparent'
+                  ? 'bg-white/10 border-l-4 border-white text-white font-bold' 
+                  : 'text-white/80 hover:bg-white/20/30 font-medium border-l-4 border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -157,25 +157,25 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
       </nav>
 
       {/* Footer Support & Settings */}
-      <div className="p-4 bg-emerald-600/30 border-t border-emerald-400/30">
+      <div className="p-4 bg-black/10 border-t border-white/10">
         <Link 
           href="/settings"
           onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-50 hover:bg-emerald-500/50 hover:text-white transition-colors mb-2"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/80 hover:bg-[#4F75FF]/50 hover:text-white transition-colors mb-2"
         >
           <Settings size={20} />
           <span className="font-medium text-sm">Pengaturan</span>
         </Link>
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-500/50 hover:text-white transition-colors mb-4"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-blue-100 hover:bg-[#4F75FF]/50 hover:text-white transition-colors mb-4"
         >
           <LogOut size={20} />
           <span className="font-medium text-sm">Logout</span>
         </button>
 
         {/* Mimicking Majoo mCare Button */}
-        <button className="w-full bg-white text-emerald-600 font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg">
+        <button className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg">
           <MessageSquare size={18} />
           <span className="text-sm">Chat 24 Jam</span>
         </button>

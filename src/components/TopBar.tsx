@@ -20,18 +20,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
         </button>
         
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-white text-lg">
-            U
-          </div>
-          <span className="font-black text-xl text-emerald-500 tracking-tight hidden sm:block">
-            logaritma
-          </span>
+          <img src="/ubos-logo.png" alt="UBOS Logo" className="h-8 w-auto object-contain" />
         </Link>
       </div>
 
       {/* Center Section: Tabs (Desktop Only) - Mimicking Majoo */}
       <div className="hidden lg:flex items-center gap-1 xl:gap-4 absolute left-1/2 -translate-x-1/2">
-        <div className="bg-emerald-500 text-white px-4 py-1.5 rounded-full font-bold text-sm shadow-md shadow-emerald-500/20 cursor-pointer">
+        <div className="bg-[#4F75FF] text-white px-4 py-1.5 rounded-full font-bold text-sm shadow-md shadow-emerald-500/20 cursor-pointer">
           Penjualan
         </div>
         <div className="text-slate-500 hover:text-slate-900 px-3 py-1.5 font-medium text-sm transition-colors cursor-pointer">
@@ -52,8 +47,8 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
           Dana Siap Pakai
         </div>
         
-        <button className="relative p-2 text-emerald-500 hover:bg-emerald-50 rounded-full transition-colors">
-          <Bell size={20} className="fill-emerald-500" />
+        <button className="relative p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+          <Bell size={20} className="text-slate-600" />
           <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
         </button>
         
