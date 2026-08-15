@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, Mail, Phone, MapPin, Linkedin, Instagram, Youtube, Twitter, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
 
 export default function Footer({ onOpenEnrollment }) {
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -42,16 +42,16 @@ export default function Footer({ onOpenEnrollment }) {
 
             <div className="flex items-center gap-3 pt-2">
               <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 transition-colors">
-                <Linkedin className="w-4 h-4" />
+                <span className="font-bold">in</span>
               </a>
               <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500 transition-colors">
-                <Instagram className="w-4 h-4" />
+                <span className="font-bold">ig</span>
               </a>
               <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-500 transition-colors">
-                <Twitter className="w-4 h-4" />
+                <span className="font-bold">x</span>
               </a>
               <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-rose-500 transition-colors">
-                <Youtube className="w-4 h-4" />
+                <span className="font-bold">yt</span>
               </a>
             </div>
           </div>

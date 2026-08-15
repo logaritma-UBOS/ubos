@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { X, CheckCircle2, ArrowRight, Sparkles, User, Mail, Phone, Store, ShieldCheck, Gift } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export default function EnrollmentModal({ initialTrack, onClose }) {
   const [formData, setFormData] = useState({
@@ -25,12 +24,13 @@ export default function EnrollmentModal({ initialTrack, onClose }) {
     'Konsultasi Audit Margin HPP Gratis'
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
     
     // Trigger celebratory confetti
     try {
+      const confetti = (await import('canvas-confetti')).default;
       confetti({
         particleCount: 120,
         spread: 70,
