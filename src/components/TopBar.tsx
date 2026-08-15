@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Bell, ChevronDown, HelpCircle, Lightbulb, BarChart2, Megaphone, Clock, X, ClipboardList } from 'lucide-react';
+import { Menu, Bell, ChevronDown, HelpCircle, Lightbulb, BarChart2, Megaphone, Clock, X, ClipboardList, ShoppingCart, Brush, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -99,9 +99,9 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
 
   // TopBar: menu unik, TIDAK ada di Sidebar
   const topNavItems = [
-    { name: 'Laporan', href: `${basePath}/finance`, icon: BarChart2, description: 'Laporan penjualan & profit hari ini' },
+    { name: 'Pesanan Online', href: `${basePath}/online-orders`, icon: ShoppingCart, description: 'Order dari toko online konsumen', badge: pendingOrders > 0 ? pendingOrders : undefined },
     { name: 'Promosi', href: `${basePath}/promotions`, icon: Megaphone, description: 'Kelola kupon & diskon' },
-    { name: 'Riwayat Transaksi', href: `${basePath}/crm`, icon: ClipboardList, description: 'Semua transaksi & pelanggan', badge: pendingOrders > 0 ? pendingOrders : undefined },
+    { name: 'Riwayat Transaksi', href: `${basePath}/transactions`, icon: ClipboardList, description: 'Semua transaksi' },
   ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
@@ -163,26 +163,42 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
               <ChevronDown size={14} className={`transition-transform duration-200 ${showLainnya ? 'rotate-180' : ''}`} />
             </button>
             {showLainnya && (
-              <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
+              <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
                 <div className="px-4 py-2.5 border-b border-slate-100">
-                  <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Sumber Daya</p>
+                  <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Servis Logaritma</p>
                 </div>
-                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20UBOS%2C%20saya%20butuh%20bantuan"
+                <a href="https://logaritma.id/jasa-meta-ads"
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
-                  <HelpCircle size={16} className="text-slate-400 shrink-0" />
-                  Pusat Bantuan (WA)
+                  <Megaphone size={16} className="text-slate-400 shrink-0" />
+                  Jasa Meta Ads
                 </a>
-                <a href="https://logaritma.id"
+                <a href="https://logaritma.id/branding"
                   target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  onClick={() => setShowLainnya(false)}
+                >
+                  <Brush size={16} className="text-slate-400 shrink-0" />
+                  Branding (Bikin Spanduk, dll)
+                </a>
+                <a href="https://logaritma.id/hardware"
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  onClick={() => setShowLainnya(false)}
+                >
+                  <Printer size={16} className="text-slate-400 shrink-0" />
+                  Produk Pendukung (Printer, dll)
+                </a>
+                <div className="border-t border-slate-100"></div>
+                <Link href={`${basePath}/blog`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
                   <Lightbulb size={16} className="text-slate-400 shrink-0" />
-                  Tentang Logaritma
-                </a>
+                  Inspirasi Bisnis
+                </Link>
               </div>
             )}
           </div>
