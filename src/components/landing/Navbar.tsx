@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Menu, X, ArrowRight, ShieldCheck, ChevronRight, Calculator, Store } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Navbar({ onOpenEnrollment }) {
   const [scrolled, setScrolled] = useState(false);
