@@ -167,30 +167,27 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                 <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Servis Logaritma</p>
                 </div>
-                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20tertarik%20dengan%20layanan%20Jasa%20Meta%20Ads"
-                  target="_blank" rel="noopener noreferrer"
+                <Link href={`${basePath}/services?type=meta-ads`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
                   <Megaphone size={16} className="text-[#4F75FF] shrink-0" />
                   Jasa Meta Ads
-                </a>
-                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20butuh%20bantuan%20Branding%20dan%20Desain"
-                  target="_blank" rel="noopener noreferrer"
+                </Link>
+                <Link href={`${basePath}/services?type=branding`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
                   <Brush size={16} className="text-[#4F75FF] shrink-0" />
                   Branding & Desain
-                </a>
-                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20ingin%20pesan%20Produk%20Pendukung%20(Printer/Tablet)"
-                  target="_blank" rel="noopener noreferrer"
+                </Link>
+                <Link href={`${basePath}/services?type=hardware`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
                   <Printer size={16} className="text-[#4F75FF] shrink-0" />
                   Produk Pendukung Kasir
-                </a>
+                </Link>
                 <div className="border-t border-slate-100"></div>
                 <Link href={`${basePath}/blog`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors font-medium"
