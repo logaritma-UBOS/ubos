@@ -45,7 +45,7 @@ export default function CopilotWidget({ merchantId }: { merchantId: string }) {
   };
 
   return (
-    <div className="bg-mesh-dark p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+    <div className="bg-slate-900 bg-mesh-dark p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
       <div className="absolute top-0 right-0 p-8 opacity-10">
         <Bot size={120} />
       </div>
