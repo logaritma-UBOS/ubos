@@ -82,15 +82,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
         setProfitBersih(0);
       }
 
-      // Fetch today's transactions count (as "pesanan masuk")
+      // Fetch pending online orders count
       try {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
         const { count } = await supabase
-          .from('transactions')
+          .from('online_orders')
           .select('id', { count: 'exact', head: true })
           .eq('merchant_id', merchant.id)
-          .gte('created_at', todayStart.toISOString());
+          .eq('status', 'pending');
         setPendingOrders(count ?? 0);
       } catch {
         setPendingOrders(0);
@@ -284,7 +282,15 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                   </button>
                 </div>
                 <div className="p-8 text-center bg-slate-50 min-h-[160px] flex flex-col justify-center">
-                  <p className="text-slate-400 text-sm font-medium">Tidak ada {notifTab === 'notif' ? 'notifikasi' : 'pesan masuk'}</p>
+                  {pendingOrders > 0 && notifTab === 'pesan' ? (
+                     <div className="flex flex-col items-center gap-2">
+                       <ShoppingCart className="text-[#4F75FF] mb-1" size={28} />
+                       <p className="text-slate-700 font-bold text-sm">Ada {pendingOrders} pesanan online baru!</p>
+                       <Link href={`${basePath}/online-orders`} onClick={() => setShowNotifMenu(false)} className="mt-2 px-4 py-1.5 bg-[#4F75FF] text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm">Lihat Pesanan</Link>
+                     </div>
+                  ) : (
+                    <p className="text-slate-400 text-sm font-medium">Tidak ada {notifTab === 'notif' ? 'notifikasi' : 'pesan masuk'}</p>
+                  )}
                 </div>
                 <div className="p-3 border-t border-slate-100 text-right bg-white">
                   <button className="text-emerald-500 text-sm font-bold hover:text-emerald-600 transition-colors">
