@@ -124,7 +124,13 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             onClick={() => setShowOutletModal(!showOutletModal)}
             className="flex items-center gap-3 bg-white/10 hover:bg-white/20 p-3 rounded-lg cursor-pointer transition-colors w-10/12 md:w-full"
           >
-            <Store size={22} className="text-white shrink-0" />
+            {merchant?.logo_url ? (
+              <img src={merchant.logo_url} alt="Logo" className="w-6 h-6 rounded-full object-cover shrink-0 bg-white border border-white/20" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/20 text-[10px] font-black uppercase text-white">
+                {merchantName.substring(0, 2)}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-[10px] text-blue-100 font-bold tracking-wider uppercase">Outlet</p>
               <p className="text-sm font-bold text-white truncate">{selectedOutlet === 'all' ? 'Semua Outlet' : merchantName}</p>
