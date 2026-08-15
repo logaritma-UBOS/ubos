@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Bell, ChevronDown, HelpCircle, Lightbulb, BarChart2, Megaphone, Clock, X, ClipboardList, ShoppingCart, Brush, Printer } from 'lucide-react';
+import { Menu, Bell, ChevronDown, HelpCircle, Lightbulb, BarChart2, Megaphone, Clock, X, ClipboardList, ShoppingCart, Brush, Printer, MoreVertical, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -20,7 +20,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
   const [pendingOrders, setPendingOrders] = useState(0);
   const [showShiftModal, setShowShiftModal] = useState(false);
   const [shiftData, setShiftData] = useState<any>(null);
+  
   const lainnyaRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const [notifTab, setNotifTab] = useState<'notif' | 'pesan'>('notif');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Derive basePath from pathname (reliable, no dependency on merchant fields)
   let basePath = '';
@@ -91,6 +97,12 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
     const handler = (e: MouseEvent) => {
       if (lainnyaRef.current && !lainnyaRef.current.contains(e.target as Node)) {
         setShowLainnya(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifMenu(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -217,25 +229,130 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
           </Link>
 
           {/* Bell */}
-          <button className="relative p-2 hover:bg-slate-100 rounded-full transition-colors" aria-label="Notifikasi">
-            <Bell size={20} className="text-slate-500" />
-            {pendingOrders > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+          <div className="relative" ref={notifRef}>
+            <button 
+              onClick={() => setShowNotifMenu(!showNotifMenu)}
+              className={`relative p-2 rounded-full transition-colors ${showNotifMenu ? 'bg-slate-100' : 'hover:bg-slate-100'}`}
+              aria-label="Notifikasi"
+            >
+              <Bell size={20} className={showNotifMenu ? 'text-emerald-500' : 'text-slate-500'} />
+              {pendingOrders > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+              )}
+            </button>
+            {/* Dropdown Notif */}
+            {showNotifMenu && (
+              <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
+                <div className="flex items-center border-b border-slate-100">
+                  <button 
+                    onClick={() => setNotifTab('notif')}
+                    className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${notifTab === 'notif' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-700'}`}
+                  >
+                    Notifikasi
+                  </button>
+                  <button 
+                    onClick={() => setNotifTab('pesan')}
+                    className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${notifTab === 'pesan' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-700'}`}
+                  >
+                    Pesan Masuk {pendingOrders > 0 && <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{pendingOrders}</span>}
+                  </button>
+                </div>
+                <div className="p-8 text-center bg-slate-50 min-h-[160px] flex flex-col justify-center">
+                  <p className="text-slate-400 text-sm font-medium">Tidak ada {notifTab === 'notif' ? 'notifikasi' : 'pesan masuk'}</p>
+                </div>
+                <div className="p-3 border-t border-slate-100 text-right bg-white">
+                  <button className="text-emerald-500 text-sm font-bold hover:text-emerald-600 transition-colors">
+                    Lihat Semua
+                  </button>
+                </div>
+              </div>
             )}
-          </button>
+          </div>
 
-          {/* Avatar + Nama Usaha + Nama Pemilik */}
-          <Link href={`${basePath}/settings`}
-            className="flex items-center gap-2 hover:bg-slate-50 p-1 pr-3 rounded-full transition-all border border-transparent hover:border-slate-200"
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4F75FF] to-emerald-500 flex items-center justify-center text-xs font-black text-white uppercase shrink-0">
-              {initials}
+          {/* Avatar + Nama Usaha + Nama Pemilik + 3-Dot Menu */}
+          <div className="relative flex items-center" ref={profileRef}>
+            <div className="flex items-center gap-2 p-1 pr-1.5 md:pr-3 rounded-full transition-all border border-transparent">
+              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-700 uppercase shrink-0 overflow-hidden">
+                {initials}
+              </div>
+              <div className="hidden md:block text-left text-xs leading-tight">
+                <p className="font-bold text-slate-900 truncate max-w-[100px]">{merchantName}</p>
+                <p className="text-slate-400 truncate max-w-[100px] text-[11px]">{ownerName}</p>
+              </div>
             </div>
-            <div className="hidden md:block text-left text-xs leading-tight">
-              <p className="font-bold text-slate-900 truncate max-w-[100px]">{merchantName}</p>
-              <p className="text-slate-400 truncate max-w-[100px] text-[11px]">{ownerName}</p>
-            </div>
-          </Link>
+            
+            <button 
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className={`p-1.5 rounded-full transition-colors ${showProfileMenu ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-100 text-slate-500'}`}
+            >
+              <MoreVertical size={18} />
+            </button>
+            
+            {showProfileMenu && (
+              <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
+                <div className="p-4 border-b border-slate-100 bg-slate-50">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-black text-slate-900 uppercase flex items-center gap-1">
+                      TRIAL Account <CheckCircle size={12} className="text-emerald-500" />
+                    </span>
+                    <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600">Perpanjang</a>
+                  </div>
+                  <p className="text-[10px] text-slate-500">Akan Kedaluwarsa 14 Hari Lagi</p>
+                </div>
+                
+                <div className="py-2">
+                  <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                    Pengaturan Profil
+                  </a>
+                  <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                    Pengaturan Sistem
+                  </a>
+                </div>
+                
+                <div className="px-4 py-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-slate-600">Informasi Akun</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700">33.33%</span>
+                      <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
+                    </div>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 w-[33.33%] rounded-full"></div>
+                  </div>
+                </div>
+
+                <div className="px-4 py-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-slate-600">Informasi Bisnis</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700">36.36%</span>
+                      <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
+                    </div>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 w-[36.36%] rounded-full"></div>
+                  </div>
+                </div>
+                
+                <div className="py-2 border-t border-slate-100">
+                  <div className="px-4 py-2 flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">Bahasa</span>
+                    <button className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 px-2 py-1 rounded-md text-slate-700 hover:bg-slate-200 transition-colors">
+                      IDN <ChevronDown size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="py-2 border-t border-slate-100">
+                  <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-rose-600 transition-colors"
+                          onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }}>
+                    Keluar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
