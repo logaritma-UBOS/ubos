@@ -39,6 +39,32 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
   const ownerName = merchant?.nama_pemilik || merchant?.owner_name || merchant?.nama_owner || 'Owner';
   const initials = merchantName.substring(0, 2).toUpperCase();
 
+  // Calculate dynamic trial status
+  let trialDaysLeft = 14;
+  if (merchant) {
+    let expiresDate = new Date();
+    if (merchant.trial_expires_at) {
+      expiresDate = new Date(merchant.trial_expires_at);
+    } else if (merchant.created_at) {
+      expiresDate = new Date(merchant.created_at);
+      expiresDate.setDate(expiresDate.getDate() + 7);
+    }
+    trialDaysLeft = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  // Calculate profile completeness
+  const accountFields = [ownerName !== 'Owner', Boolean(merchant?.whatsapp)];
+  const accountProgress = Math.round(((accountFields.filter(Boolean).length + 1) / 3) * 100); // +1 for email (assumed via auth)
+  
+  const businessFields = [
+    Boolean(merchant?.nama_usaha),
+    Boolean(merchant?.alamat || merchant?.address),
+    Boolean(merchant?.kategori),
+    Boolean(merchant?.deskripsi_toko),
+    Boolean(merchant?.slogan)
+  ];
+  const businessProgress = Math.round((businessFields.filter(Boolean).length / 5) * 100);
+
   // Fetch profit bersih & pending orders
   useEffect(() => {
     if (!merchant?.id) return;
@@ -293,11 +319,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                 <div className="p-4 border-b border-slate-100 bg-slate-50">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-black text-slate-900 uppercase flex items-center gap-1">
-                      TRIAL Account <CheckCircle size={12} className="text-emerald-500" />
+                      {trialDaysLeft > 0 ? 'TRIAL Account' : 'Account Expired'} <CheckCircle size={12} className={trialDaysLeft > 0 ? "text-emerald-500" : "text-rose-500"} />
                     </span>
                     <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600">Perpanjang</a>
                   </div>
-                  <p className="text-[10px] text-slate-500">Akan Kedaluwarsa 14 Hari Lagi</p>
+                  <p className="text-[10px] text-slate-500">
+                    {trialDaysLeft > 0 ? `Akan Kedaluwarsa ${trialDaysLeft} Hari Lagi` : 'Masa aktif trial telah habis'}
+                  </p>
                 </div>
                 
                 <div className="py-2">
@@ -313,12 +341,12 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-medium text-slate-600">Informasi Akun</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700">33.33%</span>
+                      <span className="text-xs font-bold text-slate-700">{accountProgress}%</span>
                       <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 w-[33.33%] rounded-full"></div>
+                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${accountProgress}%` }}></div>
                   </div>
                 </div>
 
@@ -326,12 +354,12 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-medium text-slate-600">Informasi Bisnis</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700">36.36%</span>
+                      <span className="text-xs font-bold text-slate-700">{businessProgress}%</span>
                       <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 w-[36.36%] rounded-full"></div>
+                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${businessProgress}%` }}></div>
                   </div>
                 </div>
                 
