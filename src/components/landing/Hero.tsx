@@ -42,7 +42,7 @@ export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
           {/* Dual CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => onOpenEnrollment('Uji Coba Gratis Logaritma POS')}
+              onClick={() => window.location.href = '/auth/daftar'}
               className="btn-gradient-primary w-full sm:w-auto text-sm font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 group"
             >
               <span>Coba Demo Kasir Gratis</span>
@@ -50,7 +50,7 @@ export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
             </button>
 
             <button
-              onClick={() => onOpenCurriculum({ title: 'Solusi Modul Kasir & Margin Guard Logaritma.id', category: 'Semua Modul' })}
+              onClick={() => window.location.href = '/auth/daftar'}
               className="w-full sm:w-auto text-sm font-semibold px-7 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 hover:border-slate-300 shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <Calculator className="w-4 h-4 text-blue-600" />

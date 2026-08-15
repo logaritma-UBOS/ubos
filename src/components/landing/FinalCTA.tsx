@@ -65,7 +65,7 @@ export default function FinalCTA({ onOpenEnrollment }) {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <button
-                onClick={() => onOpenEnrollment('Final CTA Uji Coba Gratis 14 Hari')}
+                onClick={() => window.location.href = '/auth/daftar'}
                 className="btn-gradient-primary w-full sm:w-auto text-sm font-extrabold px-9 py-4 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20"
               >
                 <span>Coba Gratis 14 Hari Sekarang</span>
@@ -73,7 +73,7 @@ export default function FinalCTA({ onOpenEnrollment }) {
               </button>
 
               <button
-                onClick={() => onOpenEnrollment('WhatsApp Direct Consultation Logaritma')}
+                onClick={() => window.location.href = '/auth/daftar'}
                 className="w-full sm:w-auto text-sm font-semibold px-7 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-2.5 transition-all"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-400" />

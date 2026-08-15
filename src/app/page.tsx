@@ -35,7 +35,7 @@ export default function Home() {
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
 
   const handleOpenCurriculum = (program: any) => {
-    setSelectedProgramForCurriculum(program);
+    window.location.href = '/auth/daftar';
   };
 
   const handleCloseCurriculum = () => {
@@ -43,13 +43,7 @@ export default function Home() {
   };
 
   const handleOpenEnrollment = (trackName: string) => {
-    // If it's the live consultation, use the WhatsApp link (fallback if needed)
-    if (trackName === 'Konsultasi Live Specialist Logaritma') {
-      window.open('https://wa.me/6281211638354?text=Halo%20min,%20saya%20tertarik%20dengan%20sistem%20UBOS%20Logaritma', '_blank');
-      return;
-    }
-    setEnrollmentTrack(trackName);
-    setIsEnrollmentOpen(true);
+    window.location.href = '/auth/daftar';
   };
 
   const handleCloseEnrollment = () => {

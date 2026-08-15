@@ -126,7 +126,7 @@ export default function Navbar({ onOpenEnrollment }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenEnrollment('Simulasi HPP Gratis');
+                window.location.href = '/auth/daftar';
               }}
               className="w-full text-center text-xs font-semibold py-3 text-slate-200 border border-slate-800 rounded-xl bg-slate-900 hover:bg-slate-800"
             >
@@ -135,7 +135,7 @@ export default function Navbar({ onOpenEnrollment }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenEnrollment('Uji Coba Gratis 14 Hari');
+                window.location.href = '/auth/daftar';
               }}
               className="w-full btn-gradient-primary text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2"
             >
