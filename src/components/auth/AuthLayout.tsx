@@ -42,12 +42,7 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
       {/* Right Form Container (Full width on mobile, half on PC) */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-slate-50/50">
         
-        {/* Mobile Header Logo (Only shows when left banner is hidden) */}
-        <div className="lg:hidden mb-8">
-          <Link href="/">
-            <img src="/logaritma-logo.png" alt="Logaritma Logo" className="h-8 object-contain" />
-          </Link>
-        </div>
+
 
         {/* The White Card containing the Form */}
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10">
