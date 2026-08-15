@@ -304,9 +304,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
           {/* Avatar + Nama Usaha + Nama Pemilik + 3-Dot Menu */}
           <div className="relative flex items-center" ref={profileRef}>
             <div className="flex items-center gap-2 p-1 pr-1.5 md:pr-3 rounded-full transition-all border border-transparent">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-700 uppercase shrink-0 overflow-hidden">
-                {initials}
-              </div>
+              {merchant?.logo_url ? (
+                <img src={merchant.logo_url} alt="Logo" className="w-8 h-8 rounded-full object-cover bg-slate-200 shrink-0 border border-slate-200" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-700 uppercase shrink-0 overflow-hidden">
+                  {initials}
+                </div>
+              )}
               <div className="hidden md:block text-left text-xs leading-tight">
                 <p className="font-bold text-slate-900 truncate max-w-[100px]">{merchantName}</p>
                 <p className="text-slate-400 truncate max-w-[100px] text-[11px]">{ownerName}</p>
