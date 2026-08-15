@@ -20,13 +20,13 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
         </button>
         
         <Link href="/" className="flex items-center gap-2">
-          <img src="/ubos-logo.png" alt="UBOS Logo" className="h-8 w-auto object-contain" />
+          <img src="/logo-ubos-wide.png" alt="UBOS Logo" className="h-8 md:h-10 w-auto object-contain" />
         </Link>
       </div>
 
       {/* Center Section: Tabs (Desktop Only) - Mimicking Majoo */}
       <div className="hidden lg:flex items-center gap-1 xl:gap-4 absolute left-1/2 -translate-x-1/2">
-        <div className="bg-[#4F75FF] text-white px-4 py-1.5 rounded-full font-bold text-sm shadow-md shadow-emerald-500/20 cursor-pointer">
+        <div className="bg-[#4F75FF] text-white px-4 py-1.5 rounded-full font-bold text-sm shadow-md shadow-blue-500/20 cursor-pointer">
           Penjualan
         </div>
         <div className="text-slate-500 hover:text-slate-900 px-3 py-1.5 font-medium text-sm transition-colors cursor-pointer">

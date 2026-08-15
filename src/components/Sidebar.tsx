@@ -66,8 +66,10 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   };
 
   return (
-    <aside className="w-64 h-full flex flex-col bg-[#4F75FF] border-r border-[#3B5BDB] shadow-xl z-50 text-white">
+    <aside className="w-64 h-full flex flex-col bg-gradient-to-b from-[#3B5BDB] via-[#4F75FF] to-emerald-500 shadow-xl z-50 text-white relative">
+      <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
       
+      <div className="relative z-10 flex flex-col h-full">
       {/* Store Selector (Mimicking Majoo) */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3 bg-white/10 hover:bg-white/20 p-3 rounded-lg cursor-pointer transition-colors">
@@ -175,10 +177,11 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
         </button>
 
         {/* Mimicking Majoo mCare Button */}
-        <button className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg">
+        <button className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg">
           <MessageSquare size={18} />
           <span className="text-sm">Chat 24 Jam</span>
         </button>
+      </div>
       </div>
     </aside>
   );
