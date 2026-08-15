@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, RefreshCcw, Landmark, ShieldCheck, History, X, CheckCircle, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import Copilot from '@/components/Copilot';
+import AIBanner from '@/components/AIBanner';
 
 export default function FinancePage() {
   const router = useRouter();
@@ -167,7 +168,7 @@ export default function FinancePage() {
 
   return (
     <>
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex justify-between items-center">
+      <header className="bg-primary shadow-sm px-5 py-4 flex justify-between items-center z-20 relative">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Keuangan</h1>
           <p className="text-white/80 text-xs mt-0.5">Uang otomatis terpisah setiap transaksi.</p>
@@ -180,7 +181,11 @@ export default function FinancePage() {
         </div>
       </header>
 
-      <div className="p-5 pt-24 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-28 md:pb-8">
+      <div className="px-5 pt-4 max-w-6xl mx-auto w-full relative z-20">
+        <AIBanner />
+      </div>
+
+      <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-28 md:pb-8 relative z-30">
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Main Wallet Card (Profit Owner) */}

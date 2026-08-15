@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Users, MessageCircle, Send, Plus, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import AIBanner from '@/components/AIBanner';
 
 export default function CRMPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -91,7 +92,7 @@ export default function CRMPage() {
 
   return (
     <>
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex justify-between items-center">
+      <header className="bg-primary shadow-sm px-5 py-4 flex justify-between items-center z-20 relative">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">CRM & Profil</h1>
           <p className="text-white/80 text-xs mt-0.5">WhatsApp Marketing & Kontak</p>
@@ -101,7 +102,11 @@ export default function CRMPage() {
         </Link>
       </header>
 
-      <div className="p-5 pt-24 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24">
+      <div className="px-5 pt-4 max-w-6xl mx-auto w-full relative z-20">
+        <AIBanner />
+      </div>
+
+      <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* WA Broadcast Generator */}
         <div className="bg-surface rounded-3xl p-6 shadow-sm border border-emerald-100 relative overflow-hidden group">
