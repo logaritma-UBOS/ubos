@@ -11,16 +11,16 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
     <div className="min-h-screen flex w-full bg-slate-50 font-sans">
       
       {/* Left Promotional Banner (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 relative overflow-hidden flex-col items-center justify-center p-12 text-center">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 relative overflow-hidden flex-col items-center justify-start pt-[12vh] xl:pt-[18vh] pb-12 px-12 text-center">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-10 -left-20 w-96 h-96 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
           <div className="absolute bottom-10 -right-20 w-96 h-96 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-lg mb-8 sm:mb-12">
+        <div className="relative z-10 w-full max-w-lg">
           {/* Centered Logaritma Logo with Text */}
-          <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-12 opacity-90 hover:opacity-100 transition-opacity">
+          <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-10 opacity-90 hover:opacity-100 transition-opacity">
             <img src="/logaritma-logo.png" alt="Logaritma Logo" className="h-8 brightness-0 invert" />
             <span className="text-2xl font-bold text-white tracking-wide">logaritma</span>
           </Link>
@@ -54,9 +54,8 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
       </div>
 
       {/* Right Form Container (Full width on mobile, half on PC) */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-slate-50/50">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-start pt-12 lg:pt-[12vh] xl:pt-[18vh] pb-12 px-6 sm:px-12 bg-slate-50/50">
         
-
 
         {/* The White Card containing the Form */}
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10">
