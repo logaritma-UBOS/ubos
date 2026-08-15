@@ -8,7 +8,7 @@ import {
   Users, Clock, Activity, Crown, TrendingUp, BarChart3,
   DollarSign, ShoppingCart, Megaphone, Code2, Printer,
   ArrowRight, Sparkles, Loader2, RefreshCw, Target, ChevronRight,
-  CheckCircle2, Zap, MessageCircle
+  CheckCircle2, Zap, MessageCircle, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -36,6 +36,8 @@ export default function AdminDashboardPage() {
   const [leads, setLeads] = useState<any[]>([]);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [isSendingWA, setIsSendingWA] = useState<Record<string, boolean>>({});
+  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
+  const [isMakingPremium, setIsMakingPremium] = useState<Record<string, boolean>>({});
   const [analyticsData, setAnalyticsData] = useState({
     totalVisitors: 0,
     registerClicks: 0,
@@ -214,6 +216,49 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleDeleteAccount = async (leadId: string, userId?: string) => {
+    if (!confirm('Yakin ingin menghapus akun ini secara permanen? Data toko, produk, dan transaksi akan ikut terhapus dan tidak bisa dikembalikan.')) return;
+    
+    setIsDeleting(prev => ({ ...prev, [leadId]: true }));
+    const loadingToast = toast.loading('Menghapus akun...');
+    try {
+      const { error } = await supabase.rpc('admin_delete_account', {
+        p_lead_id: leadId,
+        p_user_id: userId || null
+      });
+      if (error) throw error;
+      toast.success('Akun berhasil dihapus permanen!', { id: loadingToast });
+      fetchData();
+    } catch (err: any) {
+      toast.error(`Gagal menghapus: ${err.message}`, { id: loadingToast });
+    } finally {
+      setIsDeleting(prev => ({ ...prev, [leadId]: false }));
+    }
+  };
+
+  const handleMakePremium = async (leadId: string, userId?: string) => {
+    if (!userId) {
+      toast.error('Gagal: Pengguna belum menyelesaikan pendaftaran merchant/toko.');
+      return;
+    }
+    if (!confirm('Jadikan akun ini Premium Selamanya?')) return;
+    
+    setIsMakingPremium(prev => ({ ...prev, [leadId]: true }));
+    const loadingToast = toast.loading('Mengupgrade akun...');
+    try {
+      const { error } = await supabase.rpc('admin_set_premium', {
+        p_user_id: userId
+      });
+      if (error) throw error;
+      toast.success('Akun berhasil diupgrade ke Premium Selamanya!', { id: loadingToast });
+      fetchData();
+    } catch (err: any) {
+      toast.error(`Gagal upgrade: ${err.message}`, { id: loadingToast });
+    } finally {
+      setIsMakingPremium(prev => ({ ...prev, [leadId]: false }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -327,7 +372,15 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {filteredLeads.slice(0, 50).map((lead, i) => (
+              {filteredLeads.slice(0, 50).map((lead, i) => {
+                const leadWa = lead.no_wa?.replace(/\D/g, '') || '';
+                const m = merchants.find(merchant => {
+                  const mWa = merchant.whatsapp?.replace(/\D/g, '') || '';
+                  return mWa && leadWa && (mWa === leadWa || mWa.endsWith(leadWa.slice(-8)));
+                });
+                const userId = m?.user_id;
+
+                return (
                 <tr key={lead.id || i} className="hover:bg-slate-800/50 transition-colors">
                   <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
                     {lead.created_at ? new Date(lead.created_at).toLocaleString('id-ID') : '-'}
@@ -359,17 +412,35 @@ export default function AdminDashboardPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <button
-                      onClick={() => handleFollowUp(lead.id, lead.no_wa, lead.nama_usaha)}
-                      disabled={isSendingWA[lead.id]}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 transition-colors disabled:opacity-50"
-                    >
-                      {isSendingWA[lead.id] ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
-                      Hubungi WA
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleFollowUp(lead.id, lead.no_wa, lead.nama_usaha)}
+                        disabled={isSendingWA[lead.id]}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 transition-colors disabled:opacity-50"
+                      >
+                        {isSendingWA[lead.id] ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                        WA
+                      </button>
+                      <button
+                        onClick={() => handleMakePremium(lead.id, userId)}
+                        disabled={isMakingPremium[lead.id]}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20 transition-colors disabled:opacity-50"
+                      >
+                        {isMakingPremium[lead.id] ? <Loader2 size={14} className="animate-spin" /> : <Crown size={14} />}
+                        Premium
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAccount(lead.id, userId)}
+                        disabled={isDeleting[lead.id]}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg border border-red-500/20 transition-colors disabled:opacity-50"
+                      >
+                        {isDeleting[lead.id] ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                        Hapus
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              )})}
               {filteredLeads.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
