@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       console.error('Missing GEMINI_API_KEY');
       return NextResponse.json({ error: 'API key configuration missing' }, { status: 500 });
     }
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
     const systemPrompt = `Kamu adalah Konsultan HPP Spesialis dari Logaritma.id. 
 Tugasmu adalah membantu pemilik UMKM dengan perhitungan HPP, strategi pricing, dan perlindungan margin.
