@@ -56,7 +56,7 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[9999] flex flex-col items-end gap-3">
       {/* Chat Window */}
       {isOpen && (
         <div className="w-[340px] sm:w-[380px] h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in slide-in-from-bottom-5 duration-300 origin-bottom-right">
@@ -142,7 +142,7 @@ export default function ChatWidget() {
 
       {/* Floating Button & Tooltip */}
       {!isOpen && (
-        <div className="flex flex-col items-end gap-3 animate-in fade-in zoom-in-95 duration-300">
+        <div className="flex flex-col items-end gap-3">
           {isTooltipVisible && (
             <div className="hidden sm:flex items-center gap-2 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-xl border border-slate-800">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
