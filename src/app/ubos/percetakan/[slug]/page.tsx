@@ -15,6 +15,7 @@ export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [timeFilter, setTimeFilter] = useState('Hari Ini');
   const [onboardingTarget, setOnboardingTarget] = useState('5000000');
   const router = useRouter();
   const params = useParams();
@@ -158,44 +159,6 @@ export default function UBOSDashboard() {
         </div>
       </div>
 
-      {/* Onboarding Modal Step 1 */}
-      {showOnboarding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Target size={120} />
-            </div>
-            <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
-                <Target size={32} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Selamat Datang!</h2>
-                <p className="text-slate-500 font-medium">Mari mulai dengan visi yang jelas. Berapa Target Profit Bersih yang Ingin Anda Capai Bulan Ini?</p>
-              </div>
-              <div className="relative">
-                <CurrencyInput
-                  value={onboardingTarget}
-                  onChange={setOnboardingTarget}
-                  icon="Rp"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors text-center"
-                />
-              </div>
-              <button 
-                onClick={() => {
-                  localStorage.setItem('targetProfit', onboardingTarget);
-                  localStorage.setItem('onboarding_step', 'step2_inventory');
-                  router.push(`/ubos/percetakan/${params.slug}/inventory?onboarding=true`);
-                }}
-                className="w-full btn-gradient-primary border-none text-white  text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
-              >
-                Lanjut: Kalkulator HPP <ArrowRight size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Tentukan Target Modal */}
       {showTargetModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
@@ -249,7 +212,94 @@ export default function UBOSDashboard() {
 
       <div className="max-w-6xl mx-auto p-6 md:px-10 mt-2 md:-mt-2 relative z-20 space-y-8">
         
+        
+        {/* Onboarding Widget */}
+        {showOnboarding && (
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-6 shadow-sm mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <Target className="text-emerald-500" size={24} /> Langkah Mudah Buka Outlet
+                </h3>
+                <p className="text-sm text-slate-500 font-medium">Selesaikan pengaturan awal untuk mengaktifkan AI Copilot.</p>
+              </div>
+              <div className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full font-bold text-sm">
+                0/3 Selesai
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button 
+                onClick={() => setShowTargetModal(true)}
+                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
+                    <Target size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Target Profit</p>
+                    <p className="text-xs text-slate-500">Tentukan goal bulan ini</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+              </button>
+              
+              <button 
+                onClick={() => router.push(`/ubos/${params.category || 'kuliner'}/${params.slug}/inventory`)}
+                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
+                    <Package size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Siapkan Produk</p>
+                    <p className="text-xs text-slate-500">Input stok / layanan</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+              </button>
+
+              <button 
+                onClick={() => router.push('/settings')}
+                className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-all border border-slate-100 group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
+                    <Store size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Data Outlet</p>
+                    <p className="text-xs text-slate-500">Lengkapi profil bisnis</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Filter Waktu Transaksi */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            Dashboard Penjualan <span className="text-slate-400 font-normal text-sm ml-2 hidden md:inline">Diperbarui {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span>
+          </h2>
+          <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200 w-full md:w-auto overflow-x-auto hide-scrollbar">
+            {['Hari Ini', '7 Hari', 'Bulan Ini'].map((filter) => (
+              <button 
+                key={filter}
+                onClick={() => setTimeFilter(filter)}
+                className={`flex-1 md:flex-none px-4 py-2 text-sm font-bold rounded-lg whitespace-nowrap transition-all ${timeFilter === filter ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 2. Top Stats Grid - 4 Metric Cards */}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-card p-6 rounded-3xl">
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">

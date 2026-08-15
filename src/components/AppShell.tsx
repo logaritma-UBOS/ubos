@@ -10,6 +10,7 @@ import Sidebar from './Sidebar';
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [merchant, setMerchant] = useState<any>(null);
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -58,6 +59,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
           pingActivity(session.user.id);
+          
+          let expiresDate = new Date();
+          if (merchantData.trial_expires_at) {
+            expiresDate = new Date(merchantData.trial_expires_at);
+          } else if (merchantData.created_at) {
+            expiresDate = new Date(merchantData.created_at);
+            expiresDate.setDate(expiresDate.getDate() + 7);
+          }
+          const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          setTrialDaysLeft(diff);
         }
       }
 
@@ -90,6 +101,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
           pingActivity(newSession.user.id);
+          
+          let expiresDate = new Date();
+          if (merchantData.trial_expires_at) {
+            expiresDate = new Date(merchantData.trial_expires_at);
+          } else if (merchantData.created_at) {
+            expiresDate = new Date(merchantData.created_at);
+            expiresDate.setDate(expiresDate.getDate() + 7);
+          }
+          const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          setTrialDaysLeft(diff);
         }
       } else {
         // Reset to default
@@ -131,17 +152,43 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }
 
+  const isBillingPage = pathname?.includes('/billing');
+  const showWarningBanner = trialDaysLeft !== null && trialDaysLeft <= 14 && trialDaysLeft > 0 && !isBillingPage && merchant?.status !== 'Premium';
+
   return (
     <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
       
       {!hideSidebar && <Sidebar merchant={merchant} />}
       
-      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
-        {children}
+      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
+        <div className="flex-1">
+          {children}
+        </div>
+        
+        {/* Sticky Warning Banner */}
+        {showWarningBanner && (
+          <div className="sticky bottom-0 left-0 right-0 z-[60] bg-danger text-white px-4 py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2 md:bottom-auto md:top-0 md:shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+              <span className="font-bold text-sm">Masa Aktif akun trial tersisa {trialDaysLeft} hari.</span>
+              <span className="text-xs opacity-90">Segera beli langganan sebelum masa trial berakhir untuk mendapatkan diskon langganan hingga 50%.</span>
+            </div>
+            <button 
+              onClick={() => {
+                const categoryRaw = merchant?.kategori_usaha || 'kuliner';
+                const category = encodeURIComponent(categoryRaw.toLowerCase().split(' ')[0] || 'kuliner');
+                const slug = merchant?.nama_usaha ? merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+                router.push(`/ubos/${category}/${slug}/billing`);
+              }}
+              className="bg-white text-danger px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm shadow-sm whitespace-nowrap hover:bg-slate-50 transition-colors active:scale-95 shrink-0"
+            >
+              Perpanjang
+            </button>
+          </div>
+        )}
       </main>
       
       {!hideBottomNav && (
-        <div className="md:hidden">
+        <div className="md:hidden z-50 relative">
           <BottomNav merchant={merchant} />
         </div>
       )}
