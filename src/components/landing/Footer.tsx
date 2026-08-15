@@ -26,9 +26,7 @@ export default function Footer({ onOpenEnrollment }) {
           {/* Col 1: Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 p-1 shadow-md border border-slate-800 flex items-center justify-center">
-                <img src="/logaritma-logo.png" alt="Logaritma Logo" className="w-full h-full object-contain" />
-              </div>
+              <img src="/logaritma-logo.png" alt="Logaritma Logo" className="w-10 h-10 object-contain" />
               <span className="font-extrabold text-xl text-white tracking-tight">
                 Logaritma<span className="text-gradient-blue-emerald">.id</span>
               </span>

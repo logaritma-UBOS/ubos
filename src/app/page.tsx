@@ -14,6 +14,19 @@ import FinalCTA from '@/components/landing/FinalCTA';
 import Footer from '@/components/landing/Footer';
 import { MessageCircle, X, Sparkles } from 'lucide-react';
 
+import { motion } from 'framer-motion';
+
+const FadeIn = ({ children, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.6, delay, ease: "easeOut" }}
+  >
+    {children}
+  </motion.div>
+);
+
 export default function Home() {
   const [selectedProgramForCurriculum, setSelectedProgramForCurriculum] = useState<any>(null);
   const [enrollmentTrack, setEnrollmentTrack] = useState<string | null>(null);
@@ -51,35 +64,49 @@ export default function Home() {
 
       {/* Main Sections */}
       <main>
-        <Hero 
-          onOpenEnrollment={handleOpenEnrollment} 
-          onOpenCurriculum={handleOpenCurriculum} 
-        />
+        <FadeIn delay={0.1}>
+          <Hero 
+            onOpenEnrollment={handleOpenEnrollment} 
+            onOpenCurriculum={handleOpenCurriculum} 
+          />
+        </FadeIn>
 
-        <BentoGrid 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <BentoGrid 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
 
-        <ProgramCatalog 
-          onOpenCurriculum={handleOpenCurriculum} 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <ProgramCatalog 
+            onOpenCurriculum={handleOpenCurriculum} 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
 
-        <CareerCalculator 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <CareerCalculator 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
 
-        <StudentSuccess 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <StudentSuccess 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
 
-        <FAQSection 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <FAQSection 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
 
-        <FinalCTA 
-          onOpenEnrollment={handleOpenEnrollment} 
-        />
+        <FadeIn delay={0.1}>
+          <FinalCTA 
+            onOpenEnrollment={handleOpenEnrollment} 
+          />
+        </FadeIn>
       </main>
 
       {/* Footer */}
