@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Sparkles, ChevronDown, ChevronUp, BrainCircuit } from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp, Bot } from 'lucide-react';
 
 interface AIBannerProps {
   actionButton?: React.ReactNode;
@@ -86,8 +86,9 @@ export default function AIBanner({ actionButton }: AIBannerProps) {
         </button>
 
         <div className="flex items-start gap-4 md:gap-5 relative z-10">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#3B5BDB] to-[#4F75FF] shadow-inner flex items-center justify-center shrink-0 border border-white/10">
-            <BrainCircuit size={28} className="text-white" />
+          <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 shrink-0 relative group">
+            <div className="absolute inset-0 bg-emerald-400/20 blur-xl rounded-full group-hover:bg-emerald-400/40 transition-all duration-500"></div>
+            <Bot size={26} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-pulse-slow" />
           </div>
           <div className="flex-1 pr-8">
             <div className="flex items-center gap-2.5 mb-1.5">

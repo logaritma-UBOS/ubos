@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send, BrainCircuit } from 'lucide-react';
+import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Insight = {
@@ -340,7 +340,7 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
               <div className="flex items-center gap-4 relative z-10">
                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 shrink-0 relative group">
                   <div className="absolute inset-0 bg-emerald-400/20 blur-xl rounded-full group-hover:bg-emerald-400/40 transition-all duration-500"></div>
-                  <BrainCircuit size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  <Bot size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                 </div>
                 <div>
                   <h2 className="font-black text-xl tracking-tight text-white drop-shadow-md">AI Logaritma</h2>
