@@ -54,9 +54,14 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
         const diff = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         
         if (diff <= 0) {
-          toast.error("Masa aktif habis. Silakan perpanjang lisensi Anda.");
-          router.push('/member?expired=true');
-          return;
+          const currentPath = window.location.pathname;
+          const billingPath = `/ubos/${params.category === 'undefined' ? encodeURIComponent((merchantData.kategori_usaha || 'percetakan').toLowerCase().split(' ')[0]) : params.category}/${params.slug}/billing`;
+          
+          if (!currentPath.includes('/billing') && !currentPath.includes('/affiliate') && !currentPath.includes('/services')) {
+            toast.error("Masa aktif habis. Silakan perpanjang lisensi Anda.");
+            router.push(billingPath);
+            return;
+          }
         }
       }
 

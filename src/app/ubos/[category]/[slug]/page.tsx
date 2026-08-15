@@ -46,9 +46,6 @@ export default function UBOSDashboard() {
         }
 
         if (data) {
-          if (data.brand_color) {
-            document.documentElement.style.setProperty('--brand-color', data.brand_color);
-          }
           const { data: products } = await supabase.from('products').select('id').eq('merchant_id', data.id).limit(1);
           if (!products || products.length === 0) setShowOnboarding(true);
         }
@@ -113,18 +110,10 @@ export default function UBOSDashboard() {
   const harianTarget = omzetTarget / 30;
   const porsiHarian = Math.ceil(harianTarget / 25000); // Asumsi harga rata-rata 25k
 
-  // Dynamic Brand Color
-  const primaryColor = merchant?.brand_color || '#1d4ed8';
-
   return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
-      {/* 1. Header Banner Atas (Dynamic Brand Color) */}
-      <div 
-        className="text-white p-4 md:p-10 pb-4 md:pb-8 rounded-b-[1.5rem] md:rounded-b-[2rem] shadow-xl relative"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`
-        }}
-      >
+      {/* 1. Header Banner Atas */}
+      <div className="text-white p-4 md:p-10 pb-4 md:pb-8 rounded-b-[1.5rem] md:rounded-b-[2rem] shadow-xl relative bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600">
         {/* Abstract Background Decoration - Wrapped to contain overflow */}
         <div className="absolute inset-0 overflow-hidden rounded-b-[1.5rem] md:rounded-b-[2rem] pointer-events-none">
           <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10">
@@ -155,8 +144,7 @@ export default function UBOSDashboard() {
           
           <button 
             onClick={() => setShowTargetModal(true)}
-            className="w-full md:w-auto bg-white px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30" 
-            style={{ color: primaryColor }}
+            className="w-full md:w-auto bg-white text-emerald-600 px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30 hover:bg-slate-50" 
           >
             <Target size={20} />
             TENTUKAN TARGET
@@ -172,7 +160,7 @@ export default function UBOSDashboard() {
               <Target size={120} />
             </div>
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
                 <Target size={32} />
               </div>
               <div>
@@ -184,7 +172,7 @@ export default function UBOSDashboard() {
                   value={onboardingTarget}
                   onChange={setOnboardingTarget}
                   icon="Rp"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-indigo-900 focus:outline-none focus:border-indigo-500 transition-colors text-center"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors text-center"
                 />
               </div>
               <button 
@@ -193,7 +181,7 @@ export default function UBOSDashboard() {
                   localStorage.setItem('onboarding_step', 'step2_inventory');
                   router.push(`/ubos/${params.category}/${params.slug}/inventory?onboarding=true`);
                 }}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+                className="w-full btn-gradient-primary border-none text-white  text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
                 Lanjut: Input Produk Pertama <ArrowRight size={20} />
               </button>
@@ -216,7 +204,7 @@ export default function UBOSDashboard() {
               <Target size={120} />
             </div>
             <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
                 <Target size={32} />
               </div>
               <div>
@@ -234,7 +222,7 @@ export default function UBOSDashboard() {
                   value={targetProfit}
                   onChange={setTargetProfit}
                   icon="Rp"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-indigo-900 focus:outline-none focus:border-indigo-500 transition-colors text-center"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors text-center"
                 />
               </div>
               <button 
@@ -244,7 +232,7 @@ export default function UBOSDashboard() {
                   setShowTargetModal(false);
                   window.dispatchEvent(new Event('storage')); // Trigger update for other components if needed
                 }}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+                className="w-full btn-gradient-primary border-none text-white  text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
                 Kunci Target
               </button>
@@ -295,7 +283,7 @@ export default function UBOSDashboard() {
         {/* 3b. AI Logaritma Copilot (Inline Widget) */}
         <div>
           <h2 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-            <Sparkles className="text-indigo-600" size={20} /> Asisten AI Logaritma
+            <Sparkles className="text-emerald-600" size={20} /> Asisten AI Logaritma
           </h2>
           <div className="h-[450px]">
             <Copilot inline={true} />
@@ -307,7 +295,7 @@ export default function UBOSDashboard() {
           {/* Card Left: Pola Pikir Tarik Mundur Profit */}
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><Target size={24} /></div>
+              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><Target size={24} /></div>
               <div>
                 <h2 className="text-xl font-black text-slate-900">Pola Pikir Tarik Mundur Profit</h2>
                 <p className="text-sm text-slate-500 font-medium">Hitung target harian dari impian bulanan</p>
@@ -336,11 +324,11 @@ export default function UBOSDashboard() {
                 <p className="text-sm font-medium text-indigo-800 mb-4">Agar untung {formatIDR(profitVal)}/bulan, target kasir Anda hari ini:</p>
                 <div className="flex justify-between items-center py-3 border-b border-indigo-200/50">
                   <span className="text-sm font-bold text-indigo-700">Target Omzet Harian</span>
-                  <span className="font-black text-indigo-900 text-lg">{formatIDR(harianTarget)}</span>
+                  <span className="font-black text-slate-900 text-lg">{formatIDR(harianTarget)}</span>
                 </div>
                 <div className="flex justify-between items-center py-3">
                   <span className="text-sm font-bold text-indigo-700">Estimasi Terjual</span>
-                  <span className="font-black text-indigo-900 text-lg">{porsiHarian} Porsi/hari</span>
+                  <span className="font-black text-slate-900 text-lg">{porsiHarian} Porsi/hari</span>
                 </div>
               </div>
             </div>

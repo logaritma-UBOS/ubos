@@ -46,9 +46,7 @@ export default function UBOSDashboard() {
         }
 
         if (data) {
-          if (data.brand_color) {
-            document.documentElement.style.setProperty('--brand-color', data.brand_color);
-          }
+          
           const { data: products } = await supabase.from('products').select('id').eq('merchant_id', data.id).limit(1);
           if (!products || products.length === 0) setShowOnboarding(true);
         }
@@ -118,10 +116,8 @@ export default function UBOSDashboard() {
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
       {/* 1. Header Banner Atas (Dynamic Brand Color) */}
       <div 
-        className="text-white p-4 md:p-10 pb-4 md:pb-8 rounded-b-[1.5rem] md:rounded-b-[2rem] shadow-xl relative"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`
-        }}
+        className="text-white p-4 md:p-10 pb-4 md:pb-8 rounded-b-[1.5rem] md:rounded-b-[2rem] shadow-xl relative bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600"
+        
       >
         <div className="absolute inset-0 overflow-hidden rounded-b-[1.5rem] md:rounded-b-[2rem] pointer-events-none">
           <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10">
@@ -152,8 +148,8 @@ export default function UBOSDashboard() {
           
           <button 
             onClick={() => setShowTargetModal(true)}
-            className="w-full md:w-auto bg-white px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30" 
-            style={{ color: primaryColor }}
+            className="w-full md:w-auto bg-white px-6 py-3 md:px-5 md:py-2.5 rounded-[1.5rem] md:rounded-xl font-black transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-xl md:shadow-md mt-4 md:mt-0 text-sm md:text-base mb-[-36px] md:mb-0 md:mr-4 relative z-30 text-emerald-600 hover:bg-slate-50" 
+            
           >
             <Target size={20} />
             TENTUKAN TARGET
