@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send } from 'lucide-react';
+import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send, BrainCircuit } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Insight = {
@@ -333,14 +333,18 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
           
           <div className={inline ? "relative w-full h-full flex flex-col" : "relative w-full max-w-md bg-slate-50 h-full max-h-[85vh] md:max-h-screen mt-auto md:mt-0 flex flex-col shadow-2xl rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none animate-in slide-in-from-bottom-full md:slide-in-from-right-full duration-300"}>
             {/* Header */}
-            <div className={`flex items-center justify-between p-6 bg-slate-900 text-white ${inline ? '' : 'rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none'}`}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700">
-                  <Bot size={20} className="text-emerald-400" />
+            <div className={`flex items-center justify-between p-6 bg-slate-900 text-white relative overflow-hidden ${inline ? '' : 'rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none'}`}>
+              {/* Glow Effect Background */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B5BDB]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+              
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 shrink-0 relative group">
+                  <div className="absolute inset-0 bg-emerald-400/20 blur-xl rounded-full group-hover:bg-emerald-400/40 transition-all duration-500"></div>
+                  <BrainCircuit size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                 </div>
                 <div>
-                  <h2 className="font-black text-lg">AI Logaritma</h2>
-                  <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Business Copilot</p>
+                  <h2 className="font-black text-xl tracking-tight text-white drop-shadow-md">AI Logaritma</h2>
+                  <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5">Business Copilot</p>
                 </div>
               </div>
               {!inline && (
