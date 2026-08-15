@@ -34,10 +34,8 @@ export default function Navbar({ onOpenEnrollment }) {
           
           {/* Logo */}
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-emerald-500 p-0.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 text-xl tracking-wider">L</span>
-              </div>
+            <div className="w-10 h-10 rounded-xl bg-slate-900 p-1 shadow-md border border-slate-800 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+              <img src="/logaritma-logo.png" alt="Logaritma Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
