@@ -8,7 +8,7 @@ import {
 
 export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
   return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-mesh-glow">
+    <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden bg-mesh-glow">
       
       {/* Background Ambient Glow Orbs */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-slow" />
