@@ -321,7 +321,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                     <span className="text-xs font-black text-slate-900 uppercase flex items-center gap-1">
                       {trialDaysLeft > 0 ? 'TRIAL Account' : 'Account Expired'} <CheckCircle size={12} className={trialDaysLeft > 0 ? "text-emerald-500" : "text-rose-500"} />
                     </span>
-                    <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600">Perpanjang</a>
+                    <Link href={`${basePath}/billing`} onClick={() => setShowProfileMenu(false)} className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600">Perpanjang</Link>
                   </div>
                   <p className="text-[10px] text-slate-500">
                     {trialDaysLeft > 0 ? `Akan Kedaluwarsa ${trialDaysLeft} Hari Lagi` : 'Masa aktif trial telah habis'}
@@ -329,12 +329,12 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                 </div>
                 
                 <div className="py-2">
-                  <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                     Pengaturan Profil
-                  </a>
-                  <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  </Link>
+                  <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                     Pengaturan Sistem
-                  </a>
+                  </Link>
                 </div>
                 
                 <div className="px-4 py-3 border-t border-slate-100">
@@ -342,7 +342,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                     <span className="text-xs font-medium text-slate-600">Informasi Akun</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-700">{accountProgress}%</span>
-                      <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
+                      <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -355,7 +355,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
                     <span className="text-xs font-medium text-slate-600">Informasi Bisnis</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-700">{businessProgress}%</span>
-                      <a href="https://logaritma.id/admin" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</a>
+                      <Link href={`${basePath}/settings`} onClick={() => setShowProfileMenu(false)} className="text-xs font-bold text-emerald-500 hover:text-emerald-600">Update</Link>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
