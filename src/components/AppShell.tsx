@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
-import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
@@ -147,7 +146,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isMemberArea = pathname?.startsWith('/member');
   const isStorefrontPage = pathname?.startsWith('/store');
   const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
-  const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
   const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
 
   if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage) {
@@ -176,7 +174,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       
-      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
+      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''}`}>
         <div className="flex-1">
           {children}
         </div>
@@ -202,11 +200,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
       
-      {!hideBottomNav && (
-        <div className="md:hidden z-50 relative">
-          <BottomNav merchant={merchant} />
-        </div>
-      )}
+      {/* Bottom Nav removed completely as per Majoo UI design preference */}
     </div>
   );
 }
