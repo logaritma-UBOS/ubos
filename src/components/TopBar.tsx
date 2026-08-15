@@ -146,7 +146,7 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
           <button
             onClick={() => setShowShiftModal(true)}
             title="Ringkasan shift kasir hari ini"
-            className="px-3.5 py-1.5 rounded-full font-semibold text-sm transition-all flex items-center gap-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            className="px-3.5 py-1.5 rounded-full font-semibold text-sm transition-all flex items-center gap-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 whitespace-nowrap"
           >
             <Clock size={14} />
             Shift Hari Ini
@@ -163,40 +163,40 @@ export default function TopBar({ merchant, onOpenSidebar }: { merchant: any, onO
               <ChevronDown size={14} className={`transition-transform duration-200 ${showLainnya ? 'rotate-180' : ''}`} />
             </button>
             {showLainnya && (
-              <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
-                <div className="px-4 py-2.5 border-b border-slate-100">
-                  <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Servis Logaritma</p>
+              <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in-0 zoom-in-95 duration-150 origin-top-right">
+                <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Servis Logaritma</p>
                 </div>
-                <a href="https://logaritma.id/jasa-meta-ads"
+                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20tertarik%20dengan%20layanan%20Jasa%20Meta%20Ads"
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
-                  <Megaphone size={16} className="text-slate-400 shrink-0" />
+                  <Megaphone size={16} className="text-[#4F75FF] shrink-0" />
                   Jasa Meta Ads
                 </a>
-                <a href="https://logaritma.id/branding"
+                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20butuh%20bantuan%20Branding%20dan%20Desain"
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
-                  <Brush size={16} className="text-slate-400 shrink-0" />
-                  Branding (Bikin Spanduk, dll)
+                  <Brush size={16} className="text-[#4F75FF] shrink-0" />
+                  Branding & Desain
                 </a>
-                <a href="https://logaritma.id/hardware"
+                <a href="https://api.whatsapp.com/send?phone=6281234567890&text=Halo%20Tim%20Logaritma%2C%20saya%20ingin%20pesan%20Produk%20Pendukung%20(Printer/Tablet)"
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors"
                   onClick={() => setShowLainnya(false)}
                 >
-                  <Printer size={16} className="text-slate-400 shrink-0" />
-                  Produk Pendukung (Printer, dll)
+                  <Printer size={16} className="text-[#4F75FF] shrink-0" />
+                  Produk Pendukung Kasir
                 </a>
                 <div className="border-t border-slate-100"></div>
                 <Link href={`${basePath}/blog`}
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-[#4F75FF] transition-colors font-medium"
                   onClick={() => setShowLainnya(false)}
                 >
-                  <Lightbulb size={16} className="text-slate-400 shrink-0" />
+                  <Lightbulb size={16} className="text-[#4F75FF] shrink-0" />
                   Inspirasi Bisnis
                 </Link>
               </div>
