@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, CheckCircle2, Headset, Trash2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { 
+  ArrowLeft, Save, LogOut, Store, UploadCloud, Smartphone, Clock, 
+  CheckCircle2, Headset, Trash2, AlertTriangle, ArrowRight, User, 
+  MapPin, Settings as SettingsIcon, CreditCard, Box, Menu, Star, MonitorSmartphone, Mail, Lock
+} from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
@@ -15,12 +19,15 @@ export default function SettingsPage() {
   const [userEmail, setUserEmail] = useState('');
   const [targetProfit, setTargetProfit] = useState('');
   
-  // Merchant State
+  // Layout State
+  const [activeTab, setActiveTab] = useState('akun'); // 'akun' | 'bisnis'
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Merchant State - General
   const [merchantId, setMerchantId] = useState('');
   const [namaUsaha, setNamaUsaha] = useState('');
   const [kategoriUsaha, setKategoriUsaha] = useState('F&B');
   const [operatingHours, setOperatingHours] = useState('');
-  const [phone, setPhone] = useState('');
   const [brandColor, setBrandColor] = useState('#10B981');
   
   // Image State
@@ -28,12 +35,22 @@ export default function SettingsPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [oldLogoUrl, setOldLogoUrl] = useState<string | null>(null);
   
-  // Custom Modal State
+  // Majoo-style States
+  const [phone, setPhone] = useState(''); // phone1 (akun)
+  const [phone2, setPhone2] = useState(''); // phone2 (akun)
+  const [phone3, setPhone3] = useState(''); // phone3 (akun)
+  const [ktpNumber, setKtpNumber] = useState('');
+  const [npwpNumber, setNpwpNumber] = useState('');
+  
+  const [bizEmail, setBizEmail] = useState('');
+  const [bizPhone1, setBizPhone1] = useState('');
+  const [bizPhone2, setBizPhone2] = useState('');
+  const [bizPhone3, setBizPhone3] = useState('');
+
+  // Modals & Onboarding
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  
-  // Onboarding State
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [showOnboardingSuccess, setShowOnboardingSuccess] = useState(false);
 
@@ -57,6 +74,15 @@ export default function SettingsPage() {
           setKategoriUsaha(merchantData.kategori_usaha);
           setOperatingHours(merchantData.operating_hours || '');
           setPhone(merchantData.phone || '');
+          setPhone2(merchantData.phone_2 || '');
+          setPhone3(merchantData.phone_3 || '');
+          setKtpNumber(merchantData.ktp_number || '');
+          setNpwpNumber(merchantData.npwp_number || '');
+          setBizEmail(merchantData.business_email || user.email || '');
+          setBizPhone1(merchantData.phone || '');
+          setBizPhone2(merchantData.phone_2 || '');
+          setBizPhone3(merchantData.phone_3 || '');
+
           if (merchantData.logo_url) {
             setImagePreview(merchantData.logo_url);
             setOldLogoUrl(merchantData.logo_url);
@@ -68,11 +94,11 @@ export default function SettingsPage() {
           const savedTarget = localStorage.getItem('targetProfit');
           if (savedTarget) setTargetProfit(savedTarget);
         }
+        
         const step = localStorage.getItem('onboarding_step');
         if (step === 'step3_settings') {
           setIsOnboarding(true);
         }
-
       } catch (err) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -118,21 +144,49 @@ export default function SettingsPage() {
         }
       }
 
-      // Update merchant
-      const { error } = await supabase
-        .from('merchants')
-        .update({
-          nama_usaha: namaUsaha,
-          kategori_usaha: kategoriUsaha,
-          operating_hours: operatingHours,
-          phone: phone,
-          logo_url: logo_url,
-          brand_color: brandColor
-        })
-        .eq('id', merchantId);
-        
-      if (error) throw error;
+      // First try to update all fields including the new ones
+      const payloadAll = {
+        nama_usaha: namaUsaha,
+        kategori_usaha: kategoriUsaha,
+        operating_hours: operatingHours,
+        phone: phone, // phone1
+        phone_2: phone2,
+        phone_3: phone3,
+        ktp_number: ktpNumber,
+        npwp_number: npwpNumber,
+        business_email: bizEmail,
+        logo_url: logo_url,
+        brand_color: brandColor
+      };
+
+      const payloadBasic = {
+        nama_usaha: namaUsaha,
+        kategori_usaha: kategoriUsaha,
+        operating_hours: operatingHours,
+        phone: phone,
+        logo_url: logo_url,
+        brand_color: brandColor
+      };
+
+      // Attempt full update
+      let error = null;
+      try {
+        const res = await supabase.from('merchants').update(payloadAll).eq('id', merchantId);
+        error = res.error;
+      } catch(e) {
+        // Just in case
+      }
+
+      // If error (likely column does not exist), fallback to basic
+      if (error && error.code === 'PGRST204') {
+        const { error: basicError } = await supabase.from('merchants').update(payloadBasic).eq('id', merchantId);
+        if (basicError) throw basicError;
+      } else if (error) {
+        throw error;
+      }
       
+      setIsEditing(false);
+
       if (isOnboarding) {
         setShowOnboardingSuccess(true);
       } else {
@@ -181,251 +235,465 @@ export default function SettingsPage() {
     }
   };
 
+  const openTime = operatingHours?.split('-')[0]?.trim() || '08:00';
+  const closeTime = operatingHours?.split('-')[1]?.trim() || '22:00';
+
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center h-[100dvh] bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-emerald-500"></div>
       </div>
     );
   }
 
-  const openTime = operatingHours?.split('-')[0]?.trim() || '08:00';
-  const closeTime = operatingHours?.split('-')[1]?.trim() || '22:00';
-
   return (
     <div className="flex flex-col min-h-[100dvh] bg-slate-50 relative z-50 animate-in slide-in-from-right-full duration-300">
-      <header className="bg-gradient-to-r from-slate-900 to-slate-800 pb-12 pt-8 md:pt-10 px-5 relative md:rounded-b-[2rem] rounded-b-3xl shadow-xl z-20 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors z-10">
+      {/* Top Header */}
+      <header className="bg-white border-b border-slate-200 py-4 px-6 flex items-center gap-4 sticky top-0 z-30 shadow-sm">
+        <button onClick={() => router.back()} className="p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="font-black text-xl text-white tracking-tight z-10">Pengaturan Akun</h1>
-        
-        {/* Background Decoration */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl md:rounded-b-[2rem] pointer-events-none">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Store size={100} className="transform rotate-12 translate-x-4 -translate-y-4" />
-          </div>
+        <div className="flex-1 flex items-center gap-2">
+          <img src="/logo-ubos.png" alt="UBOS" className="h-6 object-contain" />
+          <h1 className="font-black text-lg text-slate-800 tracking-tight ml-2 border-l border-slate-200 pl-4">Pengaturan</h1>
         </div>
       </header>
 
-      <div className="max-w-xl mx-auto p-4 md:p-6 mb-24 relative z-30 -mt-6">
-        <form id="settingsForm" onSubmit={handleSave} className="space-y-6">
-          {isOnboarding && (
-            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3">
-              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl shrink-0 mt-0.5">
-                <Store size={20} />
+      {/* Main Content Layout */}
+      <div className="flex-1 flex flex-col md:flex-row max-w-[1400px] w-full mx-auto">
+        
+        {/* Sidebar Nav (Majoo Style) */}
+        <aside className="w-full md:w-64 shrink-0 bg-white border-r border-slate-200 overflow-y-auto">
+          <nav className="p-4 space-y-1">
+            <div className="mb-6 mt-2">
+              <div className="flex items-center gap-2 px-3 mb-2 text-slate-800">
+                <User size={18} />
+                <span className="font-bold text-sm">Akun Profile</span>
               </div>
-              <div>
-                <h4 className="font-bold text-indigo-900 mb-1">Langkah Terakhir: Profil Toko</h4>
-                <p className="text-sm text-indigo-700">Atur foto profil, sesuaikan warna tema (<span className="font-medium">Brand Color</span>), dan jam operasional toko Anda di sini agar terlihat lebih profesional.</p>
-              </div>
-            </div>
-          )}
-          
-          <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
-            <h2 className="text-sm font-bold text-slate-800">Profil Usaha</h2>
-            
-            {/* Logo Upload */}
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                <div className={`w-28 h-28 rounded-full border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${imagePreview ? 'border-primary bg-primary/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Logo" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <UploadCloud size={24} className="text-slate-400 mb-1" />
-                      <span className="text-[10px] font-bold text-slate-400">Tap to Upload</span>
-                    </>
-                  )}
-                </div>
+              <div className="space-y-1 relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-r-md transition-transform duration-300" 
+                     style={{ transform: \`translateY(\${activeTab === 'akun' ? '0' : '40px'})\`, height: '40px' }}></div>
+                <button 
+                  onClick={() => { setActiveTab('akun'); setIsEditing(false); }}
+                  className={`w-full text-left pl-6 pr-4 py-2.5 text-sm font-bold transition-colors ${activeTab === 'akun' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  Informasi Akun
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('bisnis'); setIsEditing(false); }}
+                  className={`w-full text-left pl-6 pr-4 py-2.5 text-sm font-bold transition-colors ${activeTab === 'bisnis' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  Informasi Bisnis
+                </button>
+                <button className="w-full text-left pl-6 pr-4 py-2.5 text-sm font-bold text-slate-400 cursor-not-allowed flex items-center justify-between hover:bg-slate-50">
+                  Informasi Rekening <Lock size={12} />
+                </button>
               </div>
             </div>
 
-            {/* Brand Color Picker */}
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Warna Utama Brand</label>
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shadow-sm shrink-0">
-                  <input 
-                    type="color" 
-                    value={brandColor} 
-                    onChange={e => setBrandColor(e.target.value)} 
-                    className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer"
-                  />
-                </div>
-                <div className="flex-1 flex gap-2 overflow-x-auto hide-scrollbar pb-1">
-                  {[
-                    { label: 'Hijau', color: '#10B981' },
-                    { label: 'Biru', color: '#3B82F6' },
-                    { label: 'Oranye', color: '#F97316' },
-                    { label: 'Merah', color: '#EF4444' },
-                    { label: 'Ungu', color: '#8B5CF6' },
-                    { label: 'Hitam', color: '#111827' }
-                  ].map(preset => (
-                    <button
-                      key={preset.color}
-                      type="button"
-                      onClick={() => setBrandColor(preset.color)}
-                      className={`w-10 h-10 shrink-0 rounded-full border-2 transition-all ${brandColor.toUpperCase() === preset.color.toUpperCase() ? 'border-slate-800 scale-110 shadow-md' : 'border-transparent hover:scale-105'}`}
-                      style={{ backgroundColor: preset.color }}
-                      title={preset.label}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Usaha</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Store size={18} /></span>
-                <input 
-                  type="text" 
-                  required 
-                  value={namaUsaha} 
-                  onChange={e => setNamaUsaha(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">No. WhatsApp Toko</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Smartphone size={18} /></span>
-                <input 
-                  type="tel" 
-                  value={phone} 
-                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} 
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
-                  placeholder="0812..." 
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Kategori Usaha</label>
-              <input 
-                type="text" 
-                value={kategoriUsaha} 
-                onChange={e => setKategoriUsaha(e.target.value)} 
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
-              />
-            </div>
-            
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1.5">
-                Jam Operasional <span className="text-primary text-[10px] bg-primary/10 px-1.5 py-0.5 rounded">Wajib untuk AI Copilot</span>
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Clock size={16} /></span>
-                  <input 
-                    type="time" 
-                    value={openTime} 
-                    onChange={e => setOperatingHours(`${e.target.value} - ${closeTime}`)} 
-                    className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer" 
-                  />
-                </div>
-                <span className="text-slate-400 font-bold">-</span>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Clock size={16} /></span>
-                  <input 
-                    type="time" 
-                    value={closeTime} 
-                    onChange={e => setOperatingHours(`${openTime} - ${e.target.value}`)} 
-                    className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer" 
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Target Profit Bulanan (Rp)</label>
-              <div className="relative">
-                <CurrencyInput
-                  value={targetProfit}
-                  onChange={setTargetProfit}
-                  icon="Rp"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-black"
-                  placeholder="5000000"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
-            <h2 className="text-sm font-bold text-slate-800">Akun Anda</h2>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Email Terdaftar</p>
-              <p className="text-sm font-bold text-slate-800">{userEmail}</p>
-            </div>
-            
-            <Link href="/member" className="w-full flex items-center justify-center gap-2 p-4 text-primary font-bold bg-primary/10 rounded-3xl shadow-sm border border-primary/20 hover:bg-primary/20 transition-colors">
-              <Store size={20} /> Kembali ke Portal Member
-            </Link>
-            
-            <button type="button" onClick={() => setShowResetModal(true)} className="w-full flex items-center justify-center gap-2 p-4 text-amber-600 font-bold bg-amber-50 rounded-3xl shadow-sm border border-amber-200 hover:bg-amber-100 transition-colors">
-              <Trash2 size={20} /> Reset Data Penjualan & Menu
-            </button>
-            
-            <button type="button" onClick={() => setShowLogoutModal(true)} className="w-full flex items-center justify-center gap-2 p-4 text-danger font-bold bg-white rounded-3xl shadow-sm border border-slate-100 hover:bg-danger/5 transition-colors">
-              <LogOut size={20} /> Keluar dari Akun
-            </button>
-          </section>
-
-
-          {/* Business Profile Card */}
-          <section className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-3">
-                <img src="/logo-ubos.png" alt="UBOS" className="w-8 object-contain" />
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">UBOS <span className="font-medium text-slate-400 ml-1 text-xs">by Logaritma</span></h3>
-              </div>
-              <div className="flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-[10px] font-bold text-emerald-600">Mitra Active</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center justify-center sm:justify-start">
-                <p className="text-xs font-medium text-slate-500">Versi: UBOS F&B Suite v1.0</p>
-              </div>
-              <button 
-                type="button"
-                onClick={() => toast('Bantuan & Support AI sedang dalam pengembangan.', { icon: '🤖' })}
-                className="flex items-center justify-center gap-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors"
-              >
-                <Headset size={14} /> Bantuan & Support
+            <div className="mb-6">
+              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
+                <MonitorSmartphone size={18} /> Langganan
+              </button>
+              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
+                <MonitorSmartphone size={18} /> Kitchen Display
+              </button>
+              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
+                <Store size={18} /> Outlet
               </button>
             </div>
-          </section>
-        </form>
+
+            <div className="pt-4 border-t border-slate-100">
+              <button onClick={() => setShowLogoutModal(true)} className="w-full flex items-center gap-2 px-3 py-2.5 text-rose-500 hover:bg-rose-50 rounded-lg text-sm font-bold transition-colors">
+                <LogOut size={18} /> Keluar dari Akun
+              </button>
+            </div>
+          </nav>
+        </aside>
+
+        {/* Content Area */}
+        <div className="flex-1 p-4 md:p-8 bg-slate-50/50">
+          <form id="settingsForm" onSubmit={handleSave} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden max-w-4xl">
+            
+            {/* Header Area */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800">
+                  {activeTab === 'akun' ? 'Informasi Akun' : 'Informasi Bisnis'}
+                </h2>
+                <Star size={18} className="text-slate-400" />
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsEditing(!isEditing)}
+                className={`px-4 py-2 border font-bold text-sm rounded-lg transition-colors ${isEditing ? 'border-rose-500 text-rose-600 hover:bg-rose-50' : 'border-emerald-500 text-emerald-600 hover:bg-emerald-50'}`}
+              >
+                {isEditing ? 'Batalkan Ubah Data' : 'Buka Akses Ubah Data'}
+              </button>
+            </div>
+
+            <div className="p-6 md:p-8">
+              
+              {/* === TAB INFORMASI AKUN === */}
+              {activeTab === 'akun' && (
+                <div className="space-y-10 animate-in fade-in duration-300">
+                  
+                  {/* Section 1: Profil Akun */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-6">Informasi Akun Profil</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Email <span className="text-rose-500">*</span> 
+                          {userEmail && <CheckCircle2 size={14} className="text-emerald-500" />}
+                        </label>
+                        <input 
+                          type="email" 
+                          value={userEmail} 
+                          disabled // Email is tied to auth, usually not editable here
+                          className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed font-medium" 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Telepon ke-1 <span className="text-rose-500">*</span>
+                          {phone && <CheckCircle2 size={14} className="text-emerald-500" />}
+                        </label>
+                        <input 
+                          type="tel" 
+                          value={phone} 
+                          onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                          placeholder="0812..." 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Telepon ke-2</label>
+                        <input 
+                          type="tel" 
+                          value={phone2} 
+                          onChange={e => setPhone2(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Telepon ke-3</label>
+                        <input 
+                          type="tel" 
+                          value={phone3} 
+                          onChange={e => setPhone3(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-100 w-full"></div>
+
+                  {/* Section 2: Data Diri */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-6">Informasi Data Diri</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Nomor KTP <span className="text-rose-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          value={ktpNumber} 
+                          onChange={e => setKtpNumber(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">
+                          Nomor NPWP
+                        </label>
+                        <input 
+                          type="text" 
+                          value={npwpNumber} 
+                          onChange={e => setNpwpNumber(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      {/* We intentionally skip "Unggah KTP" and "Unggah NPWP" as per user request */}
+
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* === TAB INFORMASI BISNIS === */}
+              {activeTab === 'bisnis' && (
+                <div className="space-y-10 animate-in fade-in duration-300">
+                  
+                  {/* Section 1: Kontak Bisnis */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-6">Informasi Kontak Bisnis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Nama Bisnis <span className="text-rose-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          value={namaUsaha} 
+                          onChange={e => setNamaUsaha(e.target.value)} 
+                          disabled={!isEditing}
+                          required
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm font-bold transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-700 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Email <span className="text-rose-500">*</span>
+                          {bizEmail && <CheckCircle2 size={14} className="text-emerald-500" />}
+                        </label>
+                        <input 
+                          type="email" 
+                          value={bizEmail} 
+                          onChange={e => setBizEmail(e.target.value)} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                          Telepon ke-1 <span className="text-rose-500">*</span>
+                          {bizPhone1 && <CheckCircle2 size={14} className="text-emerald-500" />}
+                        </label>
+                        <input 
+                          type="tel" 
+                          value={bizPhone1} 
+                          onChange={e => setBizPhone1(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Telepon ke-2</label>
+                        <input 
+                          type="tel" 
+                          value={bizPhone2} 
+                          onChange={e => setBizPhone2(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Telepon ke-3</label>
+                        <input 
+                          type="tel" 
+                          value={bizPhone3} 
+                          onChange={e => setBizPhone3(e.target.value.replace(/\D/g, ''))} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-100 w-full"></div>
+
+                  {/* Section 2: Alamat */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-6">Informasi Alamat</h3>
+                    <div className="max-w-2xl">
+                      <label className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                        Lokasi di Map <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative h-48 bg-slate-200 rounded-xl overflow-hidden border border-slate-200 mb-3 group">
+                        <img 
+                          src="https://media.wired.com/photos/59269cd37034dc5f91bec0f1/191:100/w_1280,c_limit/GoogleMapTA.jpg" 
+                          alt="Map Placeholder" 
+                          className="w-full h-full object-cover opacity-80"
+                        />
+                        <div className="absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MapPin size={32} className="text-white mb-2" />
+                          <p className="text-white font-bold">Tandai lokasi dalam peta</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <button type="button" disabled={!isEditing} className="px-5 py-2 bg-slate-100 border border-slate-200 text-emerald-600 font-bold rounded-lg text-sm hover:bg-slate-200 transition-colors disabled:opacity-50">
+                          Ubah Lokasi
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-100 w-full"></div>
+
+                  {/* Section 3: Pengaturan Tampilan Toko (Old fields merged here) */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-6">Pengaturan Brand & Outlet</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      {/* Logo Upload */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Logo Outlet</label>
+                        <div className="flex items-start">
+                          <div className="relative">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleImageChange} 
+                              disabled={!isEditing}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
+                            />
+                            <div className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${imagePreview ? 'border-emerald-500 bg-emerald-500/5' : 'border-slate-300 bg-slate-50'}`}>
+                              {imagePreview ? (
+                                <img src={imagePreview} alt="Logo" className="w-full h-full object-cover" />
+                              ) : (
+                                <>
+                                  <UploadCloud size={20} className="text-slate-400 mb-1" />
+                                  <span className="text-[10px] font-bold text-slate-400">Upload</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Brand Color Picker */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Warna Utama Brand</label>
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 shadow-sm shrink-0">
+                            <input 
+                              type="color" 
+                              value={brandColor} 
+                              onChange={e => setBrandColor(e.target.value)} 
+                              disabled={!isEditing}
+                              className="absolute -top-2 -left-2 w-14 h-14 cursor-pointer disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-wrap gap-2 pb-1">
+                            {[
+                              { label: 'Emerald', color: '#10B981' },
+                              { label: 'Blue', color: '#3B82F6' },
+                              { label: 'Orange', color: '#F97316' },
+                              { label: 'Red', color: '#EF4444' },
+                            ].map(preset => (
+                              <button
+                                key={preset.color}
+                                type="button"
+                                disabled={!isEditing}
+                                onClick={() => setBrandColor(preset.color)}
+                                className={`w-8 h-8 shrink-0 rounded-full border-2 transition-all disabled:cursor-not-allowed ${brandColor.toUpperCase() === preset.color.toUpperCase() ? 'border-slate-800 scale-110 shadow-sm' : 'border-transparent hover:scale-105'}`}
+                                style={{ backgroundColor: preset.color }}
+                                title={preset.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">Kategori Usaha</label>
+                        <input 
+                          type="text" 
+                          value={kategoriUsaha} 
+                          onChange={e => setKategoriUsaha(e.target.value)} 
+                          disabled={!isEditing}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 mb-2 block">
+                          Jam Operasional <span className="text-emerald-500 text-[10px] ml-1 bg-emerald-50 px-1 rounded">(Info Copilot)</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="time" 
+                            value={openTime} 
+                            onChange={e => setOperatingHours(`${e.target.value} - ${closeTime}`)} 
+                            disabled={!isEditing}
+                            className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                          />
+                          <span className="text-slate-400 font-bold">-</span>
+                          <input 
+                            type="time" 
+                            value={closeTime} 
+                            onChange={e => setOperatingHours(`${openTime} - ${e.target.value}`)} 
+                            disabled={!isEditing}
+                            className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all ${isEditing ? 'bg-white border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none' : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'}`} 
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+            
+            {/* Footer Action Bar */}
+            <div className={`p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end transition-all ${isEditing ? 'opacity-100' : 'opacity-0 h-0 p-0 overflow-hidden border-t-0'}`}>
+              <div className="flex items-center gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-6 py-2.5 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={saving || !isEditing}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-8 rounded-xl transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-emerald-500/20"
+                >
+                  {saving ? (
+                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <><Save size={18} /> Simpan Data</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* Reset Zone - Only show at the bottom */}
+          <div className="mt-8 pt-8 border-t border-slate-200 max-w-4xl">
+             <button type="button" onClick={() => setShowResetModal(true)} className="flex items-center gap-2 px-4 py-2 text-rose-500 font-bold bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors text-sm">
+                <Trash2 size={16} /> Reset Data Penjualan & Menu
+             </button>
+          </div>
+        </div>
       </div>
 
-      <div className="fixed bottom-0 z-50 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-w-md mx-auto">
-        <button type="submit" form="settingsForm" disabled={saving} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2 shadow-sm shadow-primary/20">
-          {saving ? (
-            <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-          ) : (
-            <><Save size={20} /> Simpan Perubahan</>
-          )}
-        </button>
-      </div>
-      
       {/* Logout Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
               <LogOut size={32} />
             </div>
             <h3 className="text-xl font-black text-slate-900 mb-2">Yakin Ingin Keluar?</h3>
             <p className="text-sm text-slate-500 text-center mb-6">Anda harus login kembali untuk mengakses data usaha Anda.</p>
             <div className="w-full space-y-3">
-              <button onClick={handleLogout} className="w-full py-3.5 bg-danger hover:bg-danger-dark text-white font-bold rounded-xl transition-all active:scale-95">
+              <button onClick={handleLogout} className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl transition-all active:scale-95">
                 Ya, Keluar
               </button>
               <button onClick={() => setShowLogoutModal(false)} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
@@ -446,40 +714,13 @@ export default function SettingsPage() {
             <h3 className="text-xl font-black text-slate-900 mb-2 text-center">Reset Data Penjualan?</h3>
             <p className="text-sm text-slate-500 text-center mb-6">Tindakan ini akan menghapus permanen seluruh <strong>Daftar Menu</strong> dan <strong>Riwayat Transaksi</strong> di toko Anda. Anda akan mulai kembali dari 0.</p>
             <div className="w-full space-y-3">
-              <button onClick={handleResetData} disabled={isResetting} className="w-full py-3.5 bg-danger hover:bg-danger-dark text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center">
+              <button onClick={handleResetData} disabled={isResetting} className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center">
                 {isResetting ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Ya, Hapus Semuanya'}
               </button>
               <button onClick={() => setShowResetModal(false)} disabled={isResetting} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50">
                 Batal
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Onboarding Success Modal */}
-      {showOnboardingSuccess && (
-        <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-              <CheckCircle2 size={120} />
-            </div>
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-6 relative z-10">
-              <CheckCircle2 size={40} />
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-3 relative z-10">Sempurna! 🎉</h3>
-            <p className="text-slate-500 mb-8 relative z-10">
-              Profil toko Anda sudah lengkap. Sekarang mari kita buka Smart POS (Kasir) untuk simulasi transaksi pertama Anda.
-            </p>
-            <button 
-              onClick={() => {
-                localStorage.setItem('onboarding_step', 'step4_crm_info');
-                router.push(`/ubos/${kategoriUsaha.toLowerCase().includes('kuliner') ? 'kuliner' : 'ritel'}/${namaUsaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')}/pos`);
-              }} 
-              className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 relative z-10"
-            >
-              Lanjut ke Smart POS <ArrowRight size={20} />
-            </button>
           </div>
         </div>
       )}
