@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Receipt from '@/components/Receipt';
+import Copilot from '@/components/Copilot';
+import AIBanner from '@/components/AIBanner';
 
 type Channel = 'DINE_IN' | 'GOFOOD' | 'GRABFOOD' | 'SHOPEEFOOD';
 type PaymentMethod = 'TUNAI' | 'QRIS';
@@ -543,7 +545,7 @@ export default function POSPercetakanPage() {
 
   return (
     <>
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex justify-between items-center">
+      <header className="bg-primary shadow-sm px-5 py-4 flex justify-between items-center z-10 relative">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">POS Percetakan</h1>
           <p className="text-white/80 text-xs mt-0.5 flex items-center gap-1">
@@ -552,9 +554,12 @@ export default function POSPercetakanPage() {
         </div>
       </header>
 
-      <div className="flex flex-col md:flex-row min-h-full pb-[100px] md:pb-0 animate-in fade-in duration-500 relative pt-24">
+      <div className="flex flex-col md:flex-row min-h-full pb-[100px] md:pb-0 animate-in fade-in duration-500 relative pt-0">
         <div className="flex-1 md:h-[calc(100vh-80px)] md:overflow-y-auto">
-        <div className="p-5 space-y-5 pt-2">
+          <div className="relative pt-4 px-4 md:px-5 z-20">
+            <AIBanner />
+          </div>
+          <div className="p-5 space-y-5 pt-2">
 
           {/* Custom Print Form */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
