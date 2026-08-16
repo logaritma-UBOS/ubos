@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, StickyNote, Send, Phone, UserCircle2, Trash2, Upload } from 'lucide-react';
+import { Users, Plus, StickyNote, Send, Phone, UserCircle2, Trash2, Upload, Activity } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import WhatsappDispatcherModal from '@/components/admin/WhatsappDispatcherModal';
@@ -36,9 +36,30 @@ export default function FounderWorkspacePage() {
   const [waModalOpen, setWaModalOpen] = useState(false);
   const [waTarget, setWaTarget] = useState({ name: '', phone: '' });
 
+  const [leadsList, setLeadsList] = useState<any[]>([]);
+  const [loadingLeads, setLoadingLeads] = useState(true);
+
   useEffect(() => {
     fetchNotes();
+    fetchLeads();
   }, []);
+
+  const fetchLeads = async () => {
+    try {
+      setLoadingLeads(true);
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setLeadsList(data || []);
+    } catch (error: any) {
+      toast.error('Gagal memuat riwayat leads: ' + error.message);
+    } finally {
+      setLoadingLeads(false);
+    }
+  };
 
   const fetchNotes = async () => {
     try {
@@ -99,13 +120,13 @@ export default function FounderWorkspacePage() {
     
     setIsSubmittingLead(true);
     try {
-      // Create trial merchant as lead
-      const { data, error } = await supabase.from('merchants').insert([{
-        nama_usaha: leadName,
+      // Insert to leads table for attribution
+      const { data, error } = await supabase.from('leads').insert([{
+        name: leadName,
         whatsapp: leadPhone,
-        status: 'Trial',
-        kategori_usaha: 'General',
-        subscription_status: 'inactive'
+        source: 'Manual Input',
+        status: 'New',
+        created_by: activeFounder
       }]).select().single();
       
       if (error) throw error;
@@ -113,6 +134,7 @@ export default function FounderWorkspacePage() {
       toast.success('Lead berhasil disimpan!');
       setLeadName('');
       setLeadPhone('');
+      fetchLeads();
       
       // Trigger WA Modal
       setWaTarget({ name: leadName, phone: leadPhone });
@@ -154,11 +176,11 @@ export default function FounderWorkspacePage() {
             const whatsapp = cols[1].trim();
             if (nama_usaha && whatsapp) {
               bulkData.push({
-                nama_usaha,
-                whatsapp,
-                status: 'Trial',
-                kategori_usaha: 'General',
-                subscription_status: 'inactive'
+                name: nama_usaha,
+                whatsapp: whatsapp,
+                source: 'CSV Bulk',
+                status: 'New',
+                created_by: activeFounder
               });
             }
           }
@@ -169,10 +191,11 @@ export default function FounderWorkspacePage() {
           return;
         }
 
-        const { error } = await supabase.from('merchants').insert(bulkData);
+        const { error } = await supabase.from('leads').insert(bulkData);
         if (error) throw error;
 
         toast.success(`${bulkData.length} leads berhasil diimport!`);
+        fetchLeads();
         
       } catch (error: any) {
         toast.error('Gagal mengimport CSV: ' + error.message);
@@ -356,6 +379,83 @@ export default function FounderWorkspacePage() {
           </div>
         </div>
 
+      </div>
+
+      {/* Riwayat Input Prospek & Performa Tim */}
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl mt-6">
+        <h2 className="text-lg font-black text-white mb-6 flex items-center gap-2">
+          <Activity size={18} className="text-blue-400" /> Riwayat Input Prospek & Performa Tim
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-[10px] text-slate-400 uppercase bg-slate-950/50 border-b border-slate-800">
+              <tr>
+                <th className="px-4 py-3 font-bold">Tanggal & Jam</th>
+                <th className="px-4 py-3 font-bold">Diinput Oleh</th>
+                <th className="px-4 py-3 font-bold">Nama Prospek / Usaha</th>
+                <th className="px-4 py-3 font-bold">WhatsApp</th>
+                <th className="px-4 py-3 font-bold">Status Hasil</th>
+                <th className="px-4 py-3 font-bold text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingLeads ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">Memuat data...</td>
+                </tr>
+              ) : leadsList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500 bg-slate-950/30 rounded-xl">Belum ada riwayat input.</td>
+                </tr>
+              ) : (
+                leadsList.map((lead) => (
+                  <tr key={lead.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                      {new Date(lead.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                        lead.created_by === 'Baim' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        lead.created_by === 'Tony Herman' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                        lead.created_by === 'Reza' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                      }`}>
+                        {lead.created_by || 'System'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-bold text-white">{lead.name}</td>
+                    <td className="px-4 py-3 font-mono text-slate-400">{lead.whatsapp}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase border whitespace-nowrap ${
+                        lead.status === 'New' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        lead.status === 'Trial' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        lead.status === 'Premium' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                      }`}>
+                        {lead.status === 'New' ? '🔵 BARU DIINPUT' :
+                         lead.status === 'Trial' ? '🟡 TRIAL AKTIF' :
+                         lead.status === 'Premium' ? '🟢 PAID PREMIUM' :
+                         '🔴 LOST / EXPIRED'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button 
+                        onClick={() => {
+                          setWaTarget({ name: lead.name, phone: lead.whatsapp });
+                          setWaModalOpen(true);
+                        }}
+                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg transition-colors inline-flex items-center"
+                        title="Chat WA via Fonnte"
+                      >
+                        <Send size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <WhatsappDispatcherModal 

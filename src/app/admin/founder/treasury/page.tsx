@@ -124,22 +124,30 @@ export default function FounderTreasuryPage() {
           </div>
           <p className="text-slate-400 text-sm">Pemantauan kas utama perusahaan, OPEX bulanan, dan distribusi pembagian hasil Mayar.id.</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col items-end">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">MODAL DISETOR (KAS AWAL)</p>
-            <p className="text-2xl font-black text-white">{formatIDR(modalDisetor)}</p>
-            <p className="text-[10px] text-slate-500 mt-1">Suntikan founder untuk OPEX</p>
-          </div>
-          <div className="bg-slate-950 border border-blue-500/20 p-4 rounded-xl flex flex-col items-end">
-            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">SALDO REVENUE MAYAR.ID</p>
-            <p className="text-2xl font-black text-white">{formatIDR(revenueMayar)}</p>
-            <div className="flex items-center gap-2 mt-1.5 mb-2">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">🟢 Siap Tarik: Rp 0</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">🟡 Pending: Rp 0</span>
+        <div className="flex flex-col md:flex-row gap-4 mt-4 md:mt-0">
+          <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex flex-col justify-between items-start min-w-[240px]">
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">MODAL DISETOR (KAS AWAL)</p>
+              <p className="text-3xl font-black text-white">{formatIDR(modalDisetor)}</p>
             </div>
-            <a href="https://wallet.mayar.id" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition-colors">
-              Buka Mayar Wallet &rarr;
-            </a>
+            <p className="text-[10px] text-slate-500 mt-3">Suntikan founder untuk operasional</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-900/20 to-slate-950 border border-blue-500/30 p-5 rounded-xl flex flex-col justify-between items-start min-w-[320px] shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <div className="w-full flex justify-between items-start mb-2">
+              <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mt-1">SALDO REVENUE MAYAR</p>
+              <a href="https://wallet.mayar.id" target="_blank" rel="noopener noreferrer" className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded flex items-center gap-1 font-bold transition-all shadow-sm">
+                Buka Wallet ↗
+              </a>
+            </div>
+            <p className="text-3xl font-black text-white">{formatIDR(revenueMayar)}</p>
+            <div className="flex items-center justify-between gap-2 mt-4 w-full">
+              <div className="flex-1 text-[10px] font-bold px-2.5 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-center">
+                🟢 Siap Tarik: Rp 0
+              </div>
+              <div className="flex-1 text-[10px] font-bold px-2.5 py-1.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-center">
+                🟡 Pending: Rp 0
+              </div>
+            </div>
           </div>
         </div>
       </div>

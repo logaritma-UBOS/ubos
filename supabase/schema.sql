@@ -420,3 +420,5 @@ VALUES
 ('Reza', 'Penasehat', 0, 20)
 ON CONFLICT DO NOTHING;
 
+
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS created_by TEXT;
