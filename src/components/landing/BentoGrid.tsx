@@ -161,10 +161,10 @@ export default function BentoGrid({ onOpenEnrollment }) {
         <div className="mt-12 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="text-xl font-extrabold">Ingin Tahu Berapa HPP Asli & Profit Bersih Tokomu?</h4>
-            <p className="text-sm text-blue-100 font-normal">Dapatkan audit margin gratis bersama Konsultan Bisnis Logaritma.id via WhatsApp.</p>
+            <p className="text-sm text-blue-100 font-normal">Dapatkan audit margin gratis bersama Konsultan Bisnis Logaritma.id.</p>
           </div>
           <button
-            onClick={() => onOpenEnrollment('Audit Margin Gratis via WhatsApp')}
+            onClick={() => window.dispatchEvent(new CustomEvent('open-chat-widget'))}
             className="whitespace-nowrap px-6 py-3.5 bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold rounded-2xl shadow-lg transition-all transform active:scale-95 hover:scale-105"
           >
             Konsultasi HPP Gratis →

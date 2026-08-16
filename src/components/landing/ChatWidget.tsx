@@ -27,6 +27,12 @@ export default function ChatWidget() {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('open-chat-widget', handleOpenChat);
+    return () => window.removeEventListener('open-chat-widget', handleOpenChat);
+  }, []);
+
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!inputValue.trim() || isLoading) return;
