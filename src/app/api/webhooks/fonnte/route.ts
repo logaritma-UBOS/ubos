@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const finalMessage = `${answer}\n\n_Pesan otomatis dari Logaritma Support. Ketik 'ADMIN' jika butuh bicara dengan tim manusia._`;
 
     // 4. Kirim balasan via Fonnte
-    const fonnteToken = process.env.FONNTE_API_TOKEN;
+    const fonnteToken = process.env.FONNTE_API_TOKEN || 'rw47gsoTHcy86wGbxAtW';
     if (fonnteToken) {
       await fetch('https://api.fonnte.com/send', {
         method: 'POST',
