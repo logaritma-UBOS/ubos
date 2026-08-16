@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   const [selectedAgentRole, setSelectedAgentRole] = useState<AgentRole | null>(null);
 
   const aiAgents: { name: string, role: AgentRole, color: string }[] = [
-    { name: 'AI Growth Lead', role: 'GROWTH', color: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30' },
+    { name: 'AI Growth Lead 🚀', role: 'GROWTH', color: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30' },
     { name: 'AI Ops & Retention', role: 'OPS', color: 'text-blue-400 border-blue-800/50 bg-blue-950/30' },
     { name: 'AI Finance Officer', role: 'FINANCE', color: 'text-amber-400 border-amber-800/50 bg-amber-950/30' },
     { name: 'AI Tech Lead', role: 'TECH', color: 'text-purple-400 border-purple-800/50 bg-purple-950/30' },
