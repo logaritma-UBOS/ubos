@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, Loader2, MessageSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -59,9 +60,12 @@ export default function MerchantTicketModal({ isOpen, onClose, merchantName, wha
     }
   };
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
@@ -134,4 +138,6 @@ export default function MerchantTicketModal({ isOpen, onClose, merchantName, wha
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
