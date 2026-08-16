@@ -13,38 +13,50 @@ export default function MemberRedirectPage() {
     let isMounted = true;
     
     const fetchAndRedirect = async () => {
+      // 1. Cek Frictionless Session (LocalStorage)
+      try {
+        const waSession = localStorage.getItem('wa_member_session');
+        if (waSession) {
+          const sessionData = JSON.parse(waSession);
+          if (sessionData && sessionData.no_wa && sessionData.nama_usaha) {
+            const categoryRaw = sessionData.kategori || 'kuliner';
+            const categorySafe = categoryRaw === 'undefined' ? 'kuliner' : categoryRaw;
+            const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
+            
+            const slug = sessionData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            router.replace(`/ubos/${category}/${slug}`);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error reading localStorage session:', err);
+      }
+
+      // 2. Fallback: Cek Supabase Auth Session
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
+      if (user) {
+        const { data: merchantData } = await supabase
+          .from('merchants')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!merchantData) {
-        toast.error("Toko tidak ditemukan. Silakan daftar kembali.");
-        router.push('/auth/daftar');
-        return;
-      }
-
-      if (merchantData && isMounted) {
-        const catRaw = merchantData.kategori_usaha || merchantData.kategori || 'kuliner';
-        const categorySafe = catRaw === 'undefined' ? 'kuliner' : catRaw;
-        const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
-        
-        const expectedSlug = merchantData.nama_usaha 
-          ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') 
-          : merchantData.id || merchantData.no_wa;
+        if (merchantData && isMounted) {
+          const catRaw = merchantData.kategori_usaha || merchantData.kategori || 'kuliner';
+          const categorySafe = catRaw === 'undefined' ? 'kuliner' : catRaw;
+          const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
           
-        const ubosUrl = `/ubos/${category}/${expectedSlug}`;
-        
-        // Auto-redirect to the new UBOS structure
-        router.replace(ubosUrl);
+          const expectedSlug = merchantData.nama_usaha 
+            ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') 
+            : merchantData.id || merchantData.whatsapp;
+            
+          router.replace(`/ubos/${category}/${expectedSlug}`);
+          return;
+        }
       }
+
+      // 3. Jika tidak ada sesi aktif sama sekali, arahkan ke halaman Login baru
+      router.push('/login');
     };
 
     fetchAndRedirect();

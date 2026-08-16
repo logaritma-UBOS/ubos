@@ -42,19 +42,19 @@ export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
           {/* Dual CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => window.location.href = '/register'}
               className="btn-gradient-primary w-full sm:w-auto text-sm font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 group"
             >
-              <span>Coba Demo Kasir Gratis</span>
+              <span>Mulai Transformasi Bisnis</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => window.location.href = '/register'}
               className="w-full sm:w-auto text-sm font-semibold px-7 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 hover:border-slate-300 shadow-sm flex items-center justify-center gap-2 transition-all"
             >
-              <Calculator className="w-4 h-4 text-blue-600" />
-              <span>Hitung HPP Bisnismu</span>
+              <Calculator className="w-4 h-4 text-emerald-500" />
+              <span>Hitung Target HPP</span>
             </button>
           </div>
 
