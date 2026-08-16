@@ -131,7 +131,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (!aiResponseText) {
-      const finalErrorMsg = lastError instanceof Error ? lastError.message : 'Server AI sedang mengalami kepadatan tinggi. Mohon coba lagi beberapa saat.';
+      let finalErrorMsg = lastError instanceof Error ? lastError.message : 'Server AI sedang mengalami kepadatan tinggi. Mohon coba lagi beberapa saat.';
+      
+      // Parse quota exceeded error
+      if (finalErrorMsg.includes('429') || finalErrorMsg.includes('quota') || finalErrorMsg.toLowerCase().includes('exceeded')) {
+        finalErrorMsg = 'Limit kuota AI gratis Anda telah habis (Error 429). Silakan tunggu beberapa menit untuk reset kuota, atau tingkatkan API Key Gemini Anda ke paket berbayar di Google AI Studio.';
+      }
+
       throw new Error(finalErrorMsg);
     }
 
@@ -142,7 +148,13 @@ export async function POST(req: NextRequest) {
 
   } catch (error: unknown) {
     console.error('AI Consultant API Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan pada server AI';
+    let errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan pada server AI';
+    
+    // Safety check just in case it was caught in the outer block
+    if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.toLowerCase().includes('exceeded')) {
+      errorMessage = 'Limit kuota AI gratis Anda telah habis (Error 429). Silakan tunggu beberapa menit untuk reset kuota, atau tingkatkan API Key Gemini Anda ke paket berbayar di Google AI Studio.';
+    }
+
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

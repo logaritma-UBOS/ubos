@@ -94,7 +94,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const answer = aiResponseText || 'Maaf, sistem AI kami sedang mengalami kendala (server sibuk). Silakan coba lagi nanti.';
+    let answer = aiResponseText;
+    
+    if (!answer) {
+      answer = 'Maaf, sistem AI kami sedang mengalami kendala (server sibuk). Silakan coba lagi nanti.';
+    } else if (answer.includes('429') || answer.includes('quota') || answer.toLowerCase().includes('exceeded')) {
+       // This shouldn't normally happen in the response text, but just in case
+       answer = 'Mohon maaf, limit AI harian kami sedang habis. Silakan hubungi admin manusia.';
+    }
     
     // 3. Tambahkan footer
     const finalMessage = `${answer}\n\n_Pesan otomatis dari Logaritma Support. Ketik 'ADMIN' jika butuh bicara dengan tim manusia._`;
@@ -118,7 +125,22 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ status: 'success' });
   } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    let errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    
+    if (errorMsg.includes('429') || errorMsg.includes('quota') || errorMsg.toLowerCase().includes('exceeded')) {
+      errorMsg = 'Limit kuota AI gratis habis.';
+      
+      // Auto reply to user via fonnte even if we crash, notifying them of the limit
+      const fonnteToken = process.env.FONNTE_API_TOKEN || 'rw47gsoTHcy86wGbxAtW';
+      try {
+        await fetch('https://api.fonnte.com/send', {
+          method: 'POST',
+          headers: { 'Authorization': fonnteToken },
+          body: new URLSearchParams({ target: sender, message: `Mohon maaf, layanan otomatis Support Logaritma sedang penuh kapasitas (Limit Kuota AI Habis). Tim manusia kami akan segera membalas pesan Anda.` })
+        });
+      } catch (e) { /* ignore */ }
+    }
+    
     console.error('[Fonnte Bot] Webhook Error:', errorMsg);
     return NextResponse.json({ status: 'error', message: errorMsg }, { status: 500 });
   }
