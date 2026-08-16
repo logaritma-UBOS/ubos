@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, StickyNote, Send, Phone, UserCircle2, Trash2 } from 'lucide-react';
+import { Users, Plus, StickyNote, Send, Phone, UserCircle2, Trash2, Upload } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import WhatsappDispatcherModal from '@/components/admin/WhatsappDispatcherModal';
@@ -125,6 +125,73 @@ export default function FounderWorkspacePage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsSubmittingLead(true);
+    const reader = new FileReader();
+    
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        if (!text) return;
+
+        // Simple CSV parser (assuming format: NamaUsaha,WhatsApp)
+        const rows = text.split('\n').filter(row => row.trim().length > 0);
+        
+        // Skip header if it exists, but let's just assume we check the first column
+        let startIndex = 0;
+        if (rows[0].toLowerCase().includes('nama') || rows[0].toLowerCase().includes('whatsapp')) {
+          startIndex = 1;
+        }
+
+        const bulkData = [];
+        for (let i = startIndex; i < rows.length; i++) {
+          const cols = rows[i].split(',');
+          if (cols.length >= 2) {
+            const nama_usaha = cols[0].trim();
+            const whatsapp = cols[1].trim();
+            if (nama_usaha && whatsapp) {
+              bulkData.push({
+                nama_usaha,
+                whatsapp,
+                status: 'Trial',
+                kategori_usaha: 'General',
+                subscription_status: 'inactive'
+              });
+            }
+          }
+        }
+
+        if (bulkData.length === 0) {
+          toast.error('Tidak ada data valid di CSV (Format: Nama,WhatsApp)');
+          return;
+        }
+
+        const { error } = await supabase.from('merchants').insert(bulkData);
+        if (error) throw error;
+
+        toast.success(`${bulkData.length} leads berhasil diimport!`);
+        
+      } catch (error: any) {
+        toast.error('Gagal mengimport CSV: ' + error.message);
+      } finally {
+        setIsSubmittingLead(false);
+        // Reset file input
+        e.target.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      toast.error('Gagal membaca file');
+      setIsSubmittingLead(false);
+    };
+
+    reader.readAsText(file);
+  };
+
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Header & Role Switcher */}
@@ -196,6 +263,23 @@ export default function FounderWorkspacePage() {
                 {isSubmittingLead ? 'Menyimpan...' : <><Send size={18} /> Simpan & Chat WA</>}
               </button>
             </form>
+
+            <div className="mt-6 pt-6 border-t border-slate-800">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Atau Import CSV (Nama, WA)</label>
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  disabled={isSubmittingLead}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <div className="w-full bg-slate-950 border border-dashed border-slate-700 text-slate-400 rounded-xl px-4 py-4 text-center text-sm font-bold flex flex-col items-center gap-2 hover:border-indigo-500 hover:text-indigo-400 transition-colors">
+                  <Upload size={20} />
+                  Pilih File CSV / Excel (CSV)
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
