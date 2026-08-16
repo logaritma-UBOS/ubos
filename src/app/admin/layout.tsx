@@ -12,6 +12,7 @@ import {
   DollarSign, CreditCard, PieChart
 } from 'lucide-react';
 import { toast } from 'sonner';
+import GlobalPageGuide from '@/components/admin/GlobalPageGuide';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -79,43 +80,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const pillars = [
     {
-      title: 'FOUNDER / CEO ROOM',
+      title: 'RUANG FOUNDER',
       items: [
-        { href: '/admin', label: 'Executive Overview', icon: LayoutDashboard, color: 'blue' },
-        { href: '/admin/founder/workspace', label: 'Workspace Tim', icon: Users, color: 'blue' },
-        { href: '/admin/founder/treasury', label: 'Kas & Royalti Mayar', icon: DollarSign, color: 'blue' }
+        { href: '/admin', label: 'Ringkasan Bisnis', icon: LayoutDashboard, color: 'blue' },
+        { href: '/admin/founder/workspace', label: 'Ruang Kerja Founder', icon: Users, color: 'blue' },
+        { href: '/admin/founder/treasury', label: 'Kas & Bagi Hasil', icon: DollarSign, color: 'blue' }
       ]
     },
     {
-      title: 'PRODUCT & TECH',
+      title: 'SISTEM & TEKNOLOGI',
       items: [
-        { href: '/admin/tech/ubos', label: 'UBOS Modules', icon: Settings, color: 'emerald' },
-        { href: '/admin/tech/ai-copilot', label: 'AI Copilot Config', icon: Bot, color: 'emerald' },
-        { href: '/admin/tech/health', label: 'System Health', icon: Activity, color: 'emerald' },
+        { href: '/admin/tech/ubos', label: 'Fitur Kasir & Toko', icon: Settings, color: 'emerald' },
+        { href: '/admin/tech/ai-copilot', label: 'Atur Otak AI', icon: Bot, color: 'emerald' },
+        { href: '/admin/tech/health', label: 'Kesehatan Server', icon: Activity, color: 'emerald' },
       ]
     },
     {
-      title: 'GROWTH & MARKETING',
+      title: 'PEMASARAN & PENJUALAN',
       items: [
-        { href: '/admin/growth/funnel', label: 'Funnel Pipeline', icon: Filter, color: 'purple' },
-        { href: '/admin/growth/affiliate', label: 'Affiliate System', icon: Share2, color: 'purple' },
-        { href: '/admin/growth/store', label: 'Ecosystem Store', icon: Store, color: 'purple' },
+        { href: '/admin/growth/funnel', label: 'Arus Calon Pelanggan', icon: Filter, color: 'purple' },
+        { href: '/admin/growth/affiliate', label: 'Bagi Hasil Mitra', icon: Share2, color: 'purple' },
+        { href: '/admin/growth/store', label: 'Toko Alat & Layanan', icon: Store, color: 'purple' },
       ]
     },
     {
-      title: 'OPS & CUSTOMER SUCCESS',
+      title: 'LAYANAN PELANGGAN',
       items: [
-        { href: '/admin/ops/merchants', label: 'Merchant Monitor', icon: Users, color: 'amber' },
-        { href: '/admin/ops/wa-crm', label: 'WA CRM Automations', icon: MessageCircle, color: 'amber' },
-        { href: '/admin/ops/tickets', label: 'Support Tickets', icon: Ticket, color: 'amber' },
+        { href: '/admin/ops/merchants', label: 'Daftar Toko & Kasir', icon: Users, color: 'amber' },
+        { href: '/admin/ops/wa-crm', label: 'Riwayat Pesan WA', icon: MessageCircle, color: 'amber' },
+        { href: '/admin/ops/tickets', label: 'Pusat Bantuan Toko', icon: Ticket, color: 'amber' },
       ]
     },
     {
-      title: 'FINANCE & ADMIN',
+      title: 'KEUANGAN & KAS',
       items: [
-        { href: '/admin/finance/mrr', label: 'MRR & Subscriptions', icon: DollarSign, color: 'indigo' },
-        { href: '/admin/finance/affiliate-payout', label: 'Affiliate Payouts', icon: CreditCard, color: 'indigo' },
-        { href: '/admin/finance/streams', label: 'Revenue Streams', icon: PieChart, color: 'indigo' },
+        { href: '/admin/finance/mrr', label: 'Pendapatan Langganan', icon: DollarSign, color: 'indigo' },
+        { href: '/admin/finance/affiliate-payout', label: 'Pencairan Komisi', icon: CreditCard, color: 'indigo' },
+        { href: '/admin/finance/streams', label: '5 Sumber Uang Masuk', icon: PieChart, color: 'indigo' },
       ]
     }
   ];
@@ -285,6 +286,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-slate-950">
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <GlobalPageGuide />
           {children}
         </div>
       </div>

@@ -405,7 +405,7 @@ export default function FounderWorkspacePage() {
                 </tr>
               ) : leadsList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500 bg-slate-950/30 rounded-xl">Belum ada riwayat input.</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500 bg-slate-950/30 rounded-xl">Belum ada prospek yang diinput. Gunakan form di atas untuk menambah prospek baru.</td>
                 </tr>
               ) : (
                 leadsList.map((lead) => (
