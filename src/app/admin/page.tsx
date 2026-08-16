@@ -173,6 +173,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      <AiConsultantModal 
+        isOpen={isAiModalOpen} 
+        onClose={() => setIsAiModalOpen(false)} 
+        agentRole={selectedAgentRole} 
+      />
       
       {/* 1. HEADER STATUS 4 AGEN AI */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
