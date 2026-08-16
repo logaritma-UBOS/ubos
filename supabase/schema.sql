@@ -277,12 +277,7 @@ INSERT INTO merchants (nama_usaha, whatsapp, kategori_usaha, status, trial_expir
 SELECT 'Toko Kelontong Makmur', '081234567894', 'Ritel', 'Premium', NOW() + INTERVAL '45 days', 'active', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM merchants WHERE nama_usaha = 'Toko Kelontong Makmur');
 
--- Seed Leads
-INSERT INTO leads (name, whatsapp, source, status) VALUES
-('Budi', '08111222333', 'Facebook Ads', 'New'),
-('Siti', '08111222334', 'Instagram', 'Contacted'),
-('Agus', '08111222335', 'Google Search', 'Converted'),
-('Rina', '08111222336', 'Referral', 'Lost');
+
 
 -- Seed Subscriptions
 INSERT INTO subscriptions (merchant_id, plan_name, amount, status) 
