@@ -15,7 +15,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
       newRole: 'Toko Ritel Rapi & Bebas Dead-Stock',
       salaryJump: 'Margin Profit +22% Terkunci',
       track: 'Solusi Toko Kelontong & Minimarket',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatar: '/images/testimonials/pak-slamet.jpg',
       quote: 'Dulu sering bingung omset ramai tapi pas belanja barang modalnya tekor. Ternyata banyak stok mengendap expired di pojok gudang. Sekarang Logaritma AI kasih warning H-30 barang laku lambat. Sangat membantu!',
       linkedinVerified: true,
       company: 'Toko Kelontong'
@@ -28,7 +28,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
       newRole: 'Kuliner Standar Resto Enterprise',
       salaryJump: 'Profit Bersih Rp 18.500.000 / bln',
       track: 'Solusi FnB & Resto Kuliner',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+      avatar: '/images/testimonials/ibu-ratna.jpg',
       quote: 'Dulu biaya kemasan, minyak goreng, dan bumbu halus tidak saya hitung presisi. Setelah pakai kalkulator HPP resep Logaritma.id, harga jual porsi saya jadi tepat dan profit bersih dingin langsung kelihatan di rekening.',
       linkedinVerified: true,
       company: 'FnB & Catering'
@@ -41,7 +41,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
       newRole: 'Percetakan Digital Multi-Mesin',
       salaryJump: 'Penyelamatan Modal Rp 12M / bln',
       track: 'Solusi Percetakan & Digital Print',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar: '/images/testimonials/dimas-setiawan.jpg',
       quote: 'Kalkulator HPP cetak Logaritma.id luar biasa presisi. Menghitung biaya kertas per meter, tinta, finishing, dan kertas terbuang otomatis. Nota DP pelanggan dan cetak SPK dapur langsung rapi.',
       linkedinVerified: true,
       company: 'Digital Printing'
@@ -54,7 +54,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
       newRole: 'Laundry 3 Cabang Terintegrasi',
       salaryJump: '+180% Peningkatan Transaksi',
       track: 'Solusi Laundry & Service Center',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      avatar: '/images/testimonials/siska-febriani.jpg',
       quote: 'Pelanggan saya senang banget karena nota otomatis masuk ke WhatsApp saat cucian selesai dipacking. Stok parfum dan deterjen terpantau akurat, bebas kecurangan kasir.',
       linkedinVerified: true,
       company: 'Laundry Service'
@@ -121,7 +121,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
                     <img
                       src={item.avatar}
                       alt={item.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-emerald-400"
+                      className="rounded-full w-12 h-12 md:w-14 md:h-14 object-cover border-2 border-emerald-500/20 shadow-sm"
                     />
                     <div>
                       <div className="flex items-center gap-1.5">
