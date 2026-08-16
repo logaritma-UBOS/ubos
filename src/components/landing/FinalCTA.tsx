@@ -73,7 +73,7 @@ export default function FinalCTA({ onOpenEnrollment }) {
               </button>
 
               <button
-                onClick={() => window.location.href = '/auth/daftar'}
+                onClick={() => window.open('https://wa.me/6281211638357?text=Halo%20Reza,%20saya%20butuh%20bantuan%20konsultasi%20HPP%20dari%20Logaritma.id', '_blank')}
                 className="w-full sm:w-auto text-sm font-semibold px-7 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-2.5 transition-all"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-400" />

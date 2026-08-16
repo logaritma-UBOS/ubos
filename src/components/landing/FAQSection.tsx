@@ -148,7 +148,7 @@ export default function FAQSection({ onOpenEnrollment }) {
             </div>
           </div>
           <button
-            onClick={() => onOpenEnrollment('FAQ Live Chat Logaritma')}
+            onClick={() => window.open('https://wa.me/6281211638357?text=Halo%20Reza,%20saya%20butuh%20bantuan%20konsultasi%20HPP%20dari%20Logaritma.id', '_blank')}
             className="text-xs font-bold px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all whitespace-nowrap"
           >
             Tanya via WhatsApp →
