@@ -182,11 +182,15 @@ export default function AdminDashboardPage() {
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
           {aiAgents.map((agent, i) => (
-            <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-full w-full sm:w-auto">
-              <Bot size={14} className="text-emerald-400 shrink-0" />
-              <span className="text-[11px] sm:text-xs font-bold text-slate-300 truncate">{agent.name}</span>
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse shrink-0 ml-auto sm:ml-0"></div>
-            </div>
+            <button 
+              key={i} 
+              onClick={() => handleOpenAiModal(agent.role)}
+              className={`flex items-center gap-2 px-3 py-1.5 border rounded-full w-full sm:w-auto transition-all hover:scale-105 hover:bg-opacity-50 ${agent.color}`}
+            >
+              <Bot size={14} className="shrink-0" />
+              <span className="text-[11px] sm:text-xs font-bold truncate">{agent.name}</span>
+              <div className={`w-2 h-2 rounded-full bg-current shadow-[0_0_8px_currentColor] animate-pulse shrink-0 ml-auto sm:ml-0`}></div>
+            </button>
           ))}
         </div>
       </div>
