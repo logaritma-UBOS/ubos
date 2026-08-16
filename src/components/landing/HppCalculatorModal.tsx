@@ -97,7 +97,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
               <div className="p-6 overflow-y-auto hide-scrollbar flex flex-col gap-6">
                 
                 {/* 1. Category */}
-                <div className="space-y-3">
+                <div className="space-y-3 shrink-0">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">1. Pilih Kategori Usaha</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
@@ -130,7 +130,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
                 </div>
 
                 {/* 2. Inputs */}
-                <div className="grid sm:grid-cols-2 gap-5">
+                <div className="grid sm:grid-cols-2 gap-5 shrink-0">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                       <DollarSign size={14}/> Total HPP / Modal Dasar
@@ -176,7 +176,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
 
                 {/* 3. Channels (Only Kuliner) */}
                 {category === 'kuliner' && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 shrink-0">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Channel Penjualan</label>
                     <div className="flex flex-wrap gap-2">
                       {[
@@ -202,7 +202,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
                 )}
 
                 {/* 4. Results Board */}
-                <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden shrink-0">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl -mr-10 -mt-10" />
                   
                   <div className="relative z-10 flex flex-col sm:flex-row gap-6">
