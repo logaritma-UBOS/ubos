@@ -37,6 +37,7 @@ export default function CreateTicketModal({ isOpen, onClose, onSuccess }: Create
       const { error } = await supabase.from('support_tickets').insert([{
         merchant_name: formData.merchant_name,
         whatsapp: formData.whatsapp,
+        subject: formData.category, // Required field
         category: formData.category,
         priority: formData.priority,
         issue_description: formData.issue_description,

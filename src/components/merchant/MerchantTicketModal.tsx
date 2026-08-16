@@ -35,6 +35,7 @@ export default function MerchantTicketModal({ isOpen, onClose, merchantName, wha
       const { error } = await supabase.from('support_tickets').insert([{
         merchant_name: merchantName || 'Merchant Tanpa Nama',
         whatsapp: whatsapp || '-',
+        subject: formData.category, // Required field
         category: formData.category,
         priority: priority,
         issue_description: formData.issue_description,
