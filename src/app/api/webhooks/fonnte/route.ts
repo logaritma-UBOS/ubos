@@ -67,17 +67,28 @@ export async function POST(req: NextRequest) {
       aiPrompt = `User adalah pemilik usaha: ${merchant.nama_usaha}.\n\nPertanyaan user:\n${message}`;
     }
 
-    // 2. Generate jawaban via Gemini
-    const aiResponse = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
-      contents: aiPrompt,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        temperature: 0.7,
-      }
-    });
+    // 2. Generate jawaban via Gemini dengan Fallback
+    const modelsToTry = ['gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    let aiResponseText = '';
 
-    const answer = aiResponse.text || 'Maaf, saya sedang mengalami kendala. Silakan coba lagi nanti.';
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: aiPrompt,
+          config: {
+            systemInstruction: SYSTEM_PROMPT,
+            temperature: 0.7,
+          }
+        });
+        aiResponseText = response.text || '';
+        if (aiResponseText) break;
+      } catch (err) {
+        console.warn(`[Fonnte Bot] Model ${modelName} failed, retrying next...`);
+      }
+    }
+
+    const answer = aiResponseText || 'Maaf, sistem AI kami sedang mengalami kendala (server sibuk). Silakan coba lagi nanti.';
     
     // 3. Tambahkan footer
     const finalMessage = `${answer}\n\n_Pesan otomatis dari Logaritma Support. Ketik 'ADMIN' jika butuh bicara dengan tim manusia._`;
