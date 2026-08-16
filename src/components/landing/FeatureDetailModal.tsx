@@ -109,28 +109,39 @@ export default function FeatureDetailModal({ feature, isOpen, onClose }: Feature
               <div className="p-6 overflow-y-auto hide-scrollbar flex flex-col gap-6 flex-1 min-h-0 bg-white">
                 
                 {/* Visual / Mockup Container */}
-                <div className={`w-full aspect-video rounded-2xl bg-gradient-to-br ${feature.accent} opacity-90 p-1 shrink-0 shadow-inner relative overflow-hidden flex items-center justify-center group`}>
+                <div className={`w-full aspect-video rounded-2xl bg-gradient-to-br ${feature.accent} p-1 shrink-0 shadow-inner relative overflow-hidden flex items-center justify-center group`}>
                    {/* Abstract Dashboard UI Elements */}
-                   <div className="absolute inset-0 bg-white/10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+                   <div className="absolute inset-0 bg-black/10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '16px 16px' }} />
                    
-                   <div className="w-[85%] h-[80%] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-white/50 flex flex-col overflow-hidden relative z-10 group-hover:scale-105 transition-transform duration-500">
-                     <div className="h-4 bg-slate-100 border-b border-slate-200 flex items-center px-2 gap-1.5 shrink-0">
-                       <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                   <div className="w-[85%] h-[80%] bg-slate-900/95 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 flex flex-col overflow-hidden relative z-10 group-hover:scale-105 transition-transform duration-500">
+                     {/* MacOS-style Window Header */}
+                     <div className="h-5 bg-slate-800/80 border-b border-slate-700/50 flex items-center px-3 gap-1.5 shrink-0">
+                       <div className="w-2 h-2 rounded-full bg-rose-400" />
+                       <div className="w-2 h-2 rounded-full bg-amber-400" />
+                       <div className="w-2 h-2 rounded-full bg-emerald-400" />
                      </div>
-                     <div className="p-4 flex-1 flex flex-col gap-3 opacity-70">
-                       <div className="w-1/3 h-3 bg-slate-200 rounded-full" />
-                       <div className="w-full h-16 bg-slate-100 rounded-lg flex gap-2 p-2">
-                         <div className="w-16 h-full bg-slate-200 rounded-md" />
-                         <div className="flex-1 flex flex-col gap-2 py-1">
-                           <div className="w-1/2 h-2 bg-slate-200 rounded-full" />
-                           <div className="w-1/4 h-2 bg-slate-200 rounded-full" />
+                     
+                     {/* Dashboard Content */}
+                     <div className="p-4 flex-1 flex flex-col gap-3">
+                       <div className="w-1/3 h-2.5 bg-slate-700 rounded-full" />
+                       
+                       <div className="w-full h-16 bg-slate-800/80 rounded-lg border border-slate-700/50 flex items-center gap-3 p-3">
+                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-md shadow-inner" />
+                         <div className="flex-1 flex flex-col gap-2">
+                           <div className="w-1/2 h-2 bg-slate-600 rounded-full" />
+                           <div className="w-1/3 h-2 bg-slate-700 rounded-full" />
                          </div>
                        </div>
-                       <div className="flex gap-2">
-                         <div className="flex-1 h-24 bg-blue-50 rounded-lg" />
-                         <div className="flex-1 h-24 bg-emerald-50 rounded-lg" />
+                       
+                       <div className="flex gap-3">
+                         <div className="flex-1 h-20 bg-slate-800/80 border border-slate-700/50 rounded-lg p-3 flex flex-col gap-2">
+                            <div className="w-1/2 h-1.5 bg-slate-600 rounded-full" />
+                            <div className="w-3/4 h-4 bg-emerald-500/80 rounded-sm mt-auto" />
+                         </div>
+                         <div className="flex-1 h-20 bg-slate-800/80 border border-slate-700/50 rounded-lg p-3 flex flex-col gap-2">
+                            <div className="w-1/2 h-1.5 bg-slate-600 rounded-full" />
+                            <div className="w-full h-4 bg-blue-500/80 rounded-sm mt-auto" />
+                         </div>
                        </div>
                      </div>
                    </div>
