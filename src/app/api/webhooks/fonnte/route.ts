@@ -73,7 +73,11 @@ export async function POST(req: NextRequest) {
 
     for (const modelName of modelsToTry) {
       try {
-        const response = await ai.models.generateContent({
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout: API response took too long')), 8000)
+        );
+
+        const generatePromise = ai.models.generateContent({
           model: modelName,
           contents: aiPrompt,
           config: {
@@ -81,6 +85,10 @@ export async function POST(req: NextRequest) {
             temperature: 0.7,
           }
         });
+
+        // @ts-ignore
+        const response: any = await Promise.race([generatePromise, timeoutPromise]);
+        
         aiResponseText = response.text || '';
         if (aiResponseText) break;
       } catch (err) {
