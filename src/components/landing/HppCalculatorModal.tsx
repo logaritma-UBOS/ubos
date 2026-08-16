@@ -75,7 +75,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
               className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl pointer-events-auto flex flex-col overflow-hidden max-h-[90vh]"
             >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
                     <Calculator size={20} />
@@ -94,7 +94,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
               </div>
 
               {/* Body */}
-              <div className="p-6 overflow-y-auto hide-scrollbar flex flex-col gap-6">
+              <div className="p-6 overflow-y-auto hide-scrollbar flex flex-col gap-6 flex-1 min-h-0">
                 
                 {/* 1. Category */}
                 <div className="space-y-3 shrink-0">
@@ -235,7 +235,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
               </div>
 
               {/* Footer CTA */}
-              <div className="bg-slate-50 p-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="bg-slate-50 p-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
                 <p className="text-xs font-semibold text-slate-600 text-center sm:text-left flex-1 max-w-xs leading-relaxed">
                   Mau kalkulasi resep otomatis, potong stok bahan baku, dan pantau laba kasir secara lengkap?
                 </p>
