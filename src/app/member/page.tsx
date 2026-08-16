@@ -13,50 +13,41 @@ export default function MemberRedirectPage() {
     let isMounted = true;
     
     const fetchAndRedirect = async () => {
-      // 1. Cek Frictionless Session (LocalStorage)
-      try {
-        const waSession = localStorage.getItem('wa_member_session');
-        if (waSession) {
-          const sessionData = JSON.parse(waSession);
-          if (sessionData && sessionData.no_wa && sessionData.nama_usaha) {
-            const categoryRaw = sessionData.kategori || 'kuliner';
-            const categorySafe = categoryRaw === 'undefined' ? 'kuliner' : categoryRaw;
-            const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
-            
-            const slug = sessionData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-            router.replace(`/ubos/${category}/${slug}`);
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Error reading localStorage session:', err);
-      }
-
-      // 2. Fallback: Cek Supabase Auth Session
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: merchantData } = await supabase
-          .from('merchants')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (merchantData && isMounted) {
-          const catRaw = merchantData.kategori_usaha || merchantData.kategori || 'kuliner';
-          const categorySafe = catRaw === 'undefined' ? 'kuliner' : catRaw;
-          const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
-          
-          const expectedSlug = merchantData.nama_usaha 
-            ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') 
-            : merchantData.id || merchantData.whatsapp;
-            
-          router.replace(`/ubos/${category}/${expectedSlug}`);
-          return;
-        }
+      if (!user) {
+        router.push('/auth/login');
+        return;
       }
 
-      // 3. Jika tidak ada sesi aktif sama sekali, arahkan ke halaman Login baru
-      router.push('/login');
+      // Check merchant
+      const phoneQuery = user.phone || user.user_metadata?.phone || '';
+      let orQuery = `user_id.eq.${user.id},email.eq.${user.email}`;
+      if (phoneQuery) {
+        orQuery += `,whatsapp.eq.${phoneQuery}`;
+      }
+
+      const { data: merchantData } = await supabase
+        .from('merchants')
+        .select('*')
+        .or(orQuery)
+        .maybeSingle();
+
+      if (merchantData && isMounted) {
+        const catRaw = merchantData.kategori_usaha || merchantData.kategori || 'kuliner';
+        const categorySafe = catRaw === 'undefined' ? 'kuliner' : catRaw;
+        const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
+        
+        const expectedSlug = merchantData.nama_usaha 
+          ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') 
+          : merchantData.id || merchantData.whatsapp;
+          
+        router.replace(`/ubos/${category}/${expectedSlug}`);
+      } else {
+        if (isMounted) {
+          toast.info("Akun Anda belum memiliki toko, silakan selesaikan pembuatan toko Anda.");
+          router.replace('/auth/daftar');
+        }
+      }
     };
 
     fetchAndRedirect();

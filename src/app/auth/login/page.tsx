@@ -93,40 +93,8 @@ export default function LoginPage() {
       if (signInError) throw new Error('Nomor WA atau password salah. Silakan coba lagi.');
 
       if (data?.user) {
-        const { data: merchantData } = await supabase
-          .from('merchants')
-          .select('nama_usaha, kategori_usaha')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        let category = 'kuliner';
-        let slug = 'merchant';
-
-        if (merchantData) {
-          category = (merchantData.kategori_usaha || 'kuliner').toLowerCase().split(' ')[0];
-          slug = (merchantData.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        } else {
-          // Re-create merchant record if it's missing
-          const { data: lead } = await supabase.from('leads').select('*').eq('no_wa', cleanWA).maybeSingle();
-          if (lead) {
-            const insertData = {
-              user_id: data.user.id,
-              nama_usaha: lead.nama_usaha || 'Toko Baru',
-              whatsapp: cleanWA,
-              kategori_usaha: lead.kategori || 'Kuliner & F&B',
-              status: 'Trial',
-              created_at: new Date().toISOString()
-            };
-            await supabase.from('merchants').insert([insertData]);
-            category = (lead.kategori || 'kuliner').toLowerCase().split(' ')[0];
-            slug = (lead.nama_usaha || 'merchant').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-          } else {
-            router.push('/member');
-            return;
-          }
-        }
-        
-        router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
+        // Biarkan /member resolver yang melakukan validasi dan redirect ke /ubos/...
+        router.push('/member');
         return;
       }
       
