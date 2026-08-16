@@ -117,20 +117,22 @@ export async function POST(req: NextRequest) {
           }
         });
 
-        // @ts-ignore
-        const response: any = await Promise.race([generatePromise, timeoutPromise]);
+        // @ts-expect-error - Promise.race returning unknown
+        const response = await Promise.race([generatePromise, timeoutPromise]) as { text?: string };
         
         aiResponseText = response.text || '';
         if (aiResponseText) break; // Berhasil
-      } catch (err: any) {
-        console.warn(`Model ${modelName} failed:`, err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.warn(`Model ${modelName} failed:`, errorMessage);
         lastError = err;
         // Continue to the next attempt
       }
     }
 
     if (!aiResponseText) {
-      throw lastError || new Error('Server AI sedang mengalami kepadatan tinggi. Mohon coba lagi beberapa saat.');
+      const finalErrorMsg = lastError instanceof Error ? lastError.message : 'Server AI sedang mengalami kepadatan tinggi. Mohon coba lagi beberapa saat.';
+      throw new Error(finalErrorMsg);
     }
 
     return NextResponse.json({
@@ -138,8 +140,9 @@ export async function POST(req: NextRequest) {
       analysis: aiResponseText
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('AI Consultant API Error:', error);
-    return NextResponse.json({ error: error.message || 'Terjadi kesalahan pada server AI' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan pada server AI';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

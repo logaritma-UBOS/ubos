@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Normalize phone number to check both 08xxx and 628xxx formats
-    let rawWA = sender.replace(/\D/g, '');
+    const rawWA = sender.replace(/\D/g, '');
     let format62 = rawWA;
     let format0 = rawWA;
 
@@ -53,15 +53,13 @@ export async function POST(req: NextRequest) {
       format0 = '0' + rawWA.slice(2);
     }
 
-    // 1. Cek apakah nomor terdaftar di merchants
+    // 1. Cek apakah nomor WA ada di tabel merchants
     const { data: merchant } = await supabaseAdmin
       .from('merchants')
       .select('nama_usaha')
-      .or(`whatsapp.eq.${format62},whatsapp.eq.${format0}`)
-      .limit(1)
-      .maybeSingle();
+      .in('whatsapp', [rawWA, format62, format0])
+      .single();
 
-    // Buat prompt kontekstual
     let aiPrompt = message;
     if (merchant && merchant.nama_usaha) {
       aiPrompt = `User adalah pemilik usaha: ${merchant.nama_usaha}.\n\nPertanyaan user:\n${message}`;
@@ -86,12 +84,12 @@ export async function POST(req: NextRequest) {
           }
         });
 
-        // @ts-ignore
-        const response: any = await Promise.race([generatePromise, timeoutPromise]);
+        // @ts-expect-error - Promise.race returning unknown
+        const response = await Promise.race([generatePromise, timeoutPromise]) as { text?: string };
         
         aiResponseText = response.text || '';
         if (aiResponseText) break;
-      } catch (err) {
+      } catch {
         console.warn(`[Fonnte Bot] Model ${modelName} attempt failed, retrying next...`);
       }
     }
@@ -119,8 +117,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ status: 'success' });
-  } catch (error: any) {
-    console.error('[Fonnte Bot] Webhook Error:', error);
-    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Fonnte Bot] Webhook Error:', errorMsg);
+    return NextResponse.json({ status: 'error', message: errorMsg }, { status: 500 });
   }
 }
