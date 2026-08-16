@@ -141,10 +141,16 @@ export default function AdminDashboardPage() {
   const handleSaveTarget = async () => {
     setIsSaving(true);
     try {
-      await supabase.from('admin_goals').insert([{ target_mrr: targetMRR }]);
-      // Assuming sonner is available for toast, if not we'll just ignore
-    } catch (e) {
-      console.error(e);
+      const now = new Date();
+      const { error } = await supabase.from('admin_goals').insert([{ 
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+        target_mrr: targetMRR 
+      }]);
+      if (error) throw error;
+      // Optionally show success toast if sonner is imported, but we'll leave it simple
+    } catch (e: any) {
+      console.error('Error saving target:', e.message);
     } finally {
       setIsSaving(false);
     }
@@ -206,28 +212,28 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
             {/* Input Section */}
             <div className="bg-slate-950/50 p-5 rounded-2xl border border-blue-500/10 relative z-20">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-3">
                 Target MRR / Profit Bulan Ini
               </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div className="flex flex-col gap-3">
+                <div className="relative w-full">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Rp</span>
                   <input 
                     type="text" 
                     value={new Intl.NumberFormat('id-ID').format(targetMRR)}
                     onChange={handleMRRChange}
-                    className="w-full bg-slate-900 border border-slate-700 text-white text-lg font-black rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    className="w-full bg-slate-900 border border-slate-700 text-white text-xl font-black rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
                 <button 
                   onClick={handleSaveTarget}
                   disabled={isSaving}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-colors"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20"
                 >
-                  {isSaving ? 'Menyimpan...' : 'Simpan'}
+                  {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 mt-2 font-medium">Ubah nilai untuk melihat simulasi target mundur.</p>
+              <p className="text-xs text-slate-500 mt-3 font-medium">Ubah nilai untuk melihat simulasi target mundur.</p>
             </div>
 
             {/* Arrow Divider (Desktop) */}
