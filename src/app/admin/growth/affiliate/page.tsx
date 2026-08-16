@@ -75,12 +75,9 @@ export default function AffiliatePage() {
       let totalConv = 0;
       let totalPayout = 0;
 
-      // Filter dummy merchants yang dibuat saat seed awal agar tidak masuk hitungan
-      const dummyMerchants = ['Kedai Kopi Senja', 'Warteg Bahari', 'Percetakan Maju Jaya', 'Laundry Bersih', 'Toko Kelontong Makmur'];
+      const validMerchants = merchantsData || [];
 
-      const validMerchants = merchantsData.filter(m => !dummyMerchants.includes(m.nama_usaha));
-
-      const unifiedData: MerchantAffiliate[] = validMerchants.map(m => {
+      const unifiedData = validMerchants.map(async m => {
         // Referral ID prioritas: slug -> id
         const refId = m.slug || m.id;
         
@@ -107,6 +104,15 @@ export default function AffiliatePage() {
           is_paid: ref.subscription_status === 'active' || ref.status === 'Premium'
         })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+        // Fetch completed payouts for this merchant/affiliate
+        const { data: payouts } = await supabase
+          .from('payout_requests')
+          .select('amount')
+          .eq('merchant_id', m.id)
+          .eq('status', 'PROCESSED');
+        
+        const payout_terbayar = payouts?.reduce((sum, req) => sum + Number(req.amount), 0) || 0;
+
         return {
           id: m.id,
           nama_usaha: m.nama_usaha || 'Unknown Store',
@@ -121,13 +127,15 @@ export default function AffiliatePage() {
           total_daftar: daftarCount,
           total_paid: paidCount,
           total_komisi: komisi,
-          payout_terbayar: 0, // Mock: belum ada sistem payout
+          payout_terbayar: payout_terbayar,
           referred_list
         };
       });
 
-      setAffiliates(unifiedData);
-      setTotalMitra(unifiedData.length);
+      const resolvedData = await Promise.all(unifiedData);
+
+      setAffiliates(resolvedData);
+      setTotalMitra(resolvedData.length);
       setTotalConversion(totalConv);
       setPendingPayout(totalPayout);
 

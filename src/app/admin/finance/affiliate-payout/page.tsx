@@ -57,8 +57,15 @@ export default function AffiliatePayoutPage() {
           }
         });
 
-        // Dummy estimation for liability
-        const liability = pending + 250000; 
+        // Calculate real liability: (Total Premium Referred * 19600) - Processed
+        const { count: referredCount } = await supabase
+          .from('merchants')
+          .select('*', { count: 'exact', head: true })
+          .not('referred_by', 'is', null)
+          .eq('is_premium', true);
+          
+        const totalHistoricalCommissions = (referredCount || 0) * 19600;
+        const liability = totalHistoricalCommissions - processed;
 
         setMetrics({
           totalPendingAmount: pending,

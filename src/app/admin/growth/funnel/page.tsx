@@ -73,12 +73,7 @@ export default function FunnelPage() {
       });
 
       // Map Merchants Asli (Stage: TRIAL_ACTIVE, PREMIUM_PAID, EXPIRED_CHURN, LEAD)
-      const dummyMerchants = ['Kedai Kopi Senja', 'Warteg Bahari', 'Percetakan Maju Jaya', 'Laundry Bersih', 'Toko Kelontong Makmur'];
-      
       merchantsData?.forEach(m => {
-        // Otomatis skip/hapus dummy data
-        if (dummyMerchants.includes(m.nama_usaha)) return;
-
         let mappedStatus = 'EXPIRED_CHURN'; // Default
         
         // Logika sesuai request:
