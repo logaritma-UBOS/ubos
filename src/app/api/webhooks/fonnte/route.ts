@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
     let errorMsg = error instanceof Error ? error.message : 'Unknown error';
     
     if (errorMsg.includes('429') || errorMsg.includes('quota') || errorMsg.toLowerCase().includes('exceeded')) {
-      errorMsg = 'Limit kuota AI gratis habis.';
+      errorMsg = 'Sistem AI sedang pada kapasitas maksimal.';
       
       // Auto reply to user via fonnte even if we crash, notifying them of the limit
       const fonnteToken = process.env.FONNTE_API_TOKEN || 'rw47gsoTHcy86wGbxAtW';
@@ -136,9 +136,9 @@ export async function POST(req: NextRequest) {
         await fetch('https://api.fonnte.com/send', {
           method: 'POST',
           headers: { 'Authorization': fonnteToken },
-          body: new URLSearchParams({ target: sender, message: `Mohon maaf, layanan otomatis Support Logaritma sedang penuh kapasitas (Limit Kuota AI Habis). Tim manusia kami akan segera membalas pesan Anda.` })
+          body: new URLSearchParams({ target: sender, message: `Mohon maaf, layanan otomatis Support Logaritma saat ini sedang sibuk. Tim kami akan segera merespons pesan Anda secara langsung.` })
         });
-      } catch (e) { /* ignore */ }
+      } catch { /* ignore */ }
     }
     
     console.error('[Fonnte Bot] Webhook Error:', errorMsg);
