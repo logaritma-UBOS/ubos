@@ -124,9 +124,13 @@ export default function InventoryPage() {
             <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-sm">Kalkulator HPP & Stok</h1>
             <p className="text-slate-300 text-sm mt-1 font-medium">Manajemen produk & biaya produksi</p>
           </div>
-          <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-            <Package size={24} className="text-white" />
-          </div>
+          <Link 
+            href={`/ubos/${params.category}/${params.slug}/inventory/new`}
+            className="h-12 px-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center gap-2 border border-white/20 transition-all shadow-sm active:scale-95"
+          >
+            <Plus size={20} className="text-white" />
+            <span className="text-white font-bold text-sm hidden md:inline">Tambah Produk</span>
+          </Link>
         </div>
       </header>
 
