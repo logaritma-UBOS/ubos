@@ -1,6 +1,8 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bot, Copy, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+'use client';
 import ReactMarkdown from 'react-markdown';
 
 export type AgentRole = 'GROWTH' | 'OPS' | 'FINANCE' | 'TECH';
