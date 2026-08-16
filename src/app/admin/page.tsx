@@ -8,6 +8,7 @@ import {
   Settings, Zap, Clock, DollarSign, Calculator, ChevronRight, Share2 
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import AiConsultantModal, { AgentRole } from '@/components/admin/AiConsultantModal';
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,22 @@ export default function AdminDashboardPage() {
   const [targetMRR, setTargetMRR] = useState<number>(50000000); // Default 50 Juta
   const SUBSCRIPTION_PRICE = 49000;
   
+  // --- AI MODAL STATES ---
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [selectedAgentRole, setSelectedAgentRole] = useState<AgentRole | null>(null);
+
+  const aiAgents: { name: string, role: AgentRole, color: string }[] = [
+    { name: 'AI Growth Lead', role: 'GROWTH', color: 'text-emerald-400 border-emerald-800/50 bg-emerald-950/30' },
+    { name: 'AI Ops & Retention', role: 'OPS', color: 'text-blue-400 border-blue-800/50 bg-blue-950/30' },
+    { name: 'AI Finance Officer', role: 'FINANCE', color: 'text-amber-400 border-amber-800/50 bg-amber-950/30' },
+    { name: 'AI Tech Lead', role: 'TECH', color: 'text-purple-400 border-purple-800/50 bg-purple-950/30' },
+  ];
+
+  const handleOpenAiModal = (role: AgentRole) => {
+    setSelectedAgentRole(role);
+    setIsAiModalOpen(true);
+  };
+  
   // --- REAL DATA STATES ---
   const [metrics, setMetrics] = useState({
     tech: { activeModules: 0, errorRate: '0%', uptime: '0%' },
@@ -23,13 +40,6 @@ export default function AdminDashboardPage() {
     ops: { activeMerchantsToday: 0, trialExpiring: 0, csat: '0.0/5.0' },
     finance: { realtimeMRR: 0, pendingCommissions: 0, estNetProfit: 0 }
   });
-
-  const [aiAgents, setAiAgents] = useState([
-    { name: 'AI Tech Lead', status: 'Active', color: 'emerald' },
-    { name: 'AI Growth Marketer', status: 'Active', color: 'emerald' },
-    { name: 'AI Ops Manager', status: 'Active', color: 'emerald' },
-    { name: 'AI Finance Officer', status: 'Active', color: 'emerald' },
-  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,17 +59,6 @@ export default function AdminDashboardPage() {
         const errorRates = systemLogs?.map(l => l.error_rate) || [0];
         const avgError = errorRates.length > 0 ? (errorRates.reduce((a, b) => a + Number(b), 0) / errorRates.length).toFixed(1) : '0.0';
         
-        // Fetch AI Agents
-        const { data: prompts } = await supabase.from('ai_prompts').select('*');
-        if (prompts && prompts.length > 0) {
-          const agents = prompts.map(p => ({
-            name: p.agent_name,
-            status: p.is_active ? 'Active' : 'Inactive',
-            color: p.is_active ? 'emerald' : 'slate'
-          }));
-          setAiAgents(agents);
-        }
-
         // Fetch Growth Metrics
         const { count: leadsCount } = await supabase.from('visitor_logs').select('*', { count: 'exact', head: true });
         const { count: affiliatesCount } = await supabase.from('merchants').select('*', { count: 'exact', head: true }).not('whatsapp', 'is', null);
