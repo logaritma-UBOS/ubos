@@ -68,13 +68,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Generate jawaban via Gemini dengan Fallback
-    const modelsToTry = ['gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    const modelsToTry = ['gemini-3.7-flash', 'gemini-3.7-flash'];
     let aiResponseText = '';
 
     for (const modelName of modelsToTry) {
       try {
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: API response took too long')), 8000)
+          setTimeout(() => reject(new Error('Timeout: API response took too long')), 25000)
         );
 
         const generatePromise = ai.models.generateContent({
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         aiResponseText = response.text || '';
         if (aiResponseText) break;
       } catch (err) {
-        console.warn(`[Fonnte Bot] Model ${modelName} failed, retrying next...`);
+        console.warn(`[Fonnte Bot] Model ${modelName} attempt failed, retrying next...`);
       }
     }
 

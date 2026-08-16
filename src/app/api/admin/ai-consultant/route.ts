@@ -97,15 +97,15 @@ export async function POST(req: NextRequest) {
     const systemInstruction = `Bertindaklah sebagai Konsultan Eksekutif Senior Logaritma. Berikan briefing harian yang sangat to-the-point, berikan 3 langkah aksi konkret hari ini yang bisa dieksekusi oleh tim (Baim, Tony, Reza), dan hindari basa-basi teknis. Format jawaban Anda menggunakan markdown yang rapi dengan bullet points.`;
     const prompt = `Analisis data real-time berikut untuk bidang ${agent_role}:\n\n${contextData}\n\nBerikan laporan singkat dan 3 rencana aksi hari ini.`;
 
-    const modelsToTry = ['gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    const modelsToTry = ['gemini-3.7-flash', 'gemini-3.7-flash']; // Retry the same model if it fails
     let aiResponseText = '';
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
-        // Implement 8-second timeout per model
+        // Implement 25-second timeout per model attempt
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: API response took too long')), 8000)
+          setTimeout(() => reject(new Error('Timeout: API response took too long')), 25000)
         );
 
         const generatePromise = ai.models.generateContent({
@@ -125,12 +125,12 @@ export async function POST(req: NextRequest) {
       } catch (err: any) {
         console.warn(`Model ${modelName} failed:`, err.message);
         lastError = err;
-        // Continue to the next model
+        // Continue to the next attempt
       }
     }
 
     if (!aiResponseText) {
-      throw lastError || new Error('Semua model AI sedang sibuk atau gagal merespons.');
+      throw lastError || new Error('Server AI sedang mengalami kepadatan tinggi. Mohon coba lagi beberapa saat.');
     }
 
     return NextResponse.json({
