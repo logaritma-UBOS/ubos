@@ -111,7 +111,7 @@ export default function RegisterPage() {
           router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
         }, 1500);
       } else {
-        router.push('/member');
+        router.push('/auth/login');
       }
 
     } catch (err: any) {

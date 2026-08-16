@@ -93,12 +93,19 @@ export default function LoginPage() {
       if (signInError) throw new Error('Nomor WA atau password salah. Silakan coba lagi.');
 
       if (data?.user) {
-        // Biarkan /member resolver yang melakukan validasi dan redirect ke /ubos/...
-        router.push('/member');
+        const { data: merchantData } = await supabase.from('merchants').select('*').eq('user_id', data.user.id).maybeSingle();
+        if (merchantData) {
+          const catRaw = merchantData.kategori_usaha || 'kuliner';
+          const category = encodeURIComponent(catRaw.toLowerCase().split(' ')[0] || 'kuliner');
+          const slug = merchantData.nama_usaha ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : merchantData.id || 'merchant';
+          router.push(`/ubos/${category}/${slug}`);
+        } else {
+          router.push('/auth/daftar');
+        }
         return;
       }
       
-      router.push('/member');
+      router.push('/auth/daftar');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);

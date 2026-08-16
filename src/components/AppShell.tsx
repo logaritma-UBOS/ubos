@@ -74,10 +74,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/member') && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
       } else if (session && pathname?.startsWith('/auth')) {
-        router.push('/member');
+        if (fetchedMerchant) {
+          const catRaw = fetchedMerchant.kategori_usaha || 'kuliner';
+          const category = encodeURIComponent(catRaw.toLowerCase().split(' ')[0] || 'kuliner');
+          const slug = fetchedMerchant.nama_usaha ? fetchedMerchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : fetchedMerchant.id || 'merchant';
+          router.push(`/ubos/${category}/${slug}`);
+        } else if (pathname !== '/auth/daftar') {
+          router.push('/auth/daftar');
+        }
       }
     };
 
@@ -118,10 +125,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/member') && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      
+      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
       } else if (newSession && pathname?.startsWith('/auth')) {
-        router.push('/member');
+        // Since we are inside the callback, we should fetch merchant again if needed, or rely on state.
+        // But to be safe, we just use the fetched merchantData locally if newSession exists.
+        if (newSession && pathname?.startsWith('/auth')) {
+          const fetchAndRedirect = async () => {
+            const { data: merchantData } = await supabase.from('merchants').select('*').eq('user_id', newSession.user.id).maybeSingle();
+            if (merchantData) {
+              const catRaw = merchantData.kategori_usaha || 'kuliner';
+              const category = encodeURIComponent(catRaw.toLowerCase().split(' ')[0] || 'kuliner');
+              const slug = merchantData.nama_usaha ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : merchantData.id || 'merchant';
+              router.push(`/ubos/${category}/${slug}`);
+            } else if (pathname !== '/auth/daftar') {
+              router.push('/auth/daftar');
+            }
+          };
+          fetchAndRedirect();
+        }
       }
     });
 
@@ -143,18 +166,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname?.startsWith('/auth');
   const isAdminPage = pathname?.startsWith('/admin');
   const isInvestorPage = pathname?.startsWith('/investor');
-  const isMemberArea = pathname?.startsWith('/member');
   const isStorefrontPage = pathname?.startsWith('/store');
   const isLoginPage = false;
   const isRegisterPage = false;
   const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
-  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
+  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isInvestorPage || isStorefrontPage;
 
   if (isAdminPage) {
     return <>{children}</>;
   }
 
-  if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage) {
+  if (isLandingPage || isInvestorPage || isAuthPage || isStorefrontPage) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }
 
