@@ -11,7 +11,8 @@ export default function FounderTreasuryPage() {
   const [shares, setShares] = useState<any[]>([]);
   const [opex, setOpex] = useState<any[]>([]);
   const [injections, setInjections] = useState<any[]>([]);
-  const [totalKas, setTotalKas] = useState(0);
+  const [modalDisetor, setModalDisetor] = useState(0);
+  const [revenueMayar, setRevenueMayar] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Suntik Modal State
@@ -41,17 +42,15 @@ export default function FounderTreasuryPage() {
       setOpex(opexRes.data || []);
       setInjections(injectionsRes.data || []);
 
-      // Hitung Total Kas
-      // Kas = Total Initial Capital + Total Injections + Total Profit from transactions
-      let kas = 0;
-      sharesRes.data?.forEach(s => kas += Number(s.initial_capital || 0));
-      injectionsRes.data?.forEach(i => kas += Number(i.amount || 0));
-      txRes.data?.forEach(t => kas += Number(t.net_profit || 0));
-      
-      // Kurangi kas dengan OPEX PAID
-      opexRes.data?.filter(o => o.status === 'PAID').forEach(o => kas -= Number(o.amount || 0));
+      let modal = 0;
+      sharesRes.data?.forEach(s => modal += Number(s.initial_capital || 0));
+      injectionsRes.data?.forEach(i => modal += Number(i.amount || 0));
 
-      setTotalKas(kas);
+      let revenue = 0;
+      txRes.data?.forEach(t => revenue += Number(t.net_profit || 0));
+      
+      setModalDisetor(modal);
+      setRevenueMayar(revenue);
 
     } catch (error: any) {
       toast.error('Gagal memuat data treasury');
@@ -125,9 +124,23 @@ export default function FounderTreasuryPage() {
           </div>
           <p className="text-slate-400 text-sm">Pemantauan kas utama perusahaan, OPEX bulanan, dan distribusi pembagian hasil Mayar.id.</p>
         </div>
-        <div className="bg-slate-950 border border-emerald-500/20 p-4 rounded-xl flex flex-col items-end">
-          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Total Kas Logaritma</p>
-          <p className="text-3xl font-black text-white">{formatIDR(totalKas)}</p>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col items-end">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">MODAL DISETOR (KAS AWAL)</p>
+            <p className="text-2xl font-black text-white">{formatIDR(modalDisetor)}</p>
+            <p className="text-[10px] text-slate-500 mt-1">Suntikan founder untuk OPEX</p>
+          </div>
+          <div className="bg-slate-950 border border-blue-500/20 p-4 rounded-xl flex flex-col items-end">
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">SALDO REVENUE MAYAR.ID</p>
+            <p className="text-2xl font-black text-white">{formatIDR(revenueMayar)}</p>
+            <div className="flex items-center gap-2 mt-1.5 mb-2">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">🟢 Siap Tarik: Rp 0</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">🟡 Pending: Rp 0</span>
+            </div>
+            <a href="https://wallet.mayar.id" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition-colors">
+              Buka Mayar Wallet &rarr;
+            </a>
+          </div>
         </div>
       </div>
 
@@ -157,7 +170,6 @@ export default function FounderTreasuryPage() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-bold text-white">{s.name}</p>
-                        <p className="text-xs text-slate-500">{s.role}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-500 mb-1">Modal Masuk</p>
