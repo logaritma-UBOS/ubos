@@ -145,14 +145,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isInvestorPage = pathname?.startsWith('/investor');
   const isMemberArea = pathname?.startsWith('/member');
   const isStorefrontPage = pathname?.startsWith('/store');
+  const isLoginPage = pathname?.startsWith('/login');
+  const isRegisterPage = pathname?.startsWith('/register');
   const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
-  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
+  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage || isLoginPage || isRegisterPage;
 
   if (isAdminPage) {
     return <>{children}</>;
   }
 
-  if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage) {
+  if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage || isLoginPage || isRegisterPage) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }
 
