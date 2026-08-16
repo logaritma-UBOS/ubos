@@ -359,6 +359,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             <LogOut size={16} />
             <span className="font-medium text-sm">Keluar dari Sistem</span>
           </button>
+        </div>
       </div>
     </aside>
 
