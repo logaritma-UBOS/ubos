@@ -29,11 +29,13 @@ const FadeIn = ({ children, delay = 0 }) => (
 
 import ChatWidget from '@/components/landing/ChatWidget';
 import VisitorTracker from '@/components/VisitorTracker';
+import HppCalculatorModal from '@/components/landing/HppCalculatorModal';
 
 export default function Home() {
   const [selectedProgramForCurriculum, setSelectedProgramForCurriculum] = useState<any>(null);
   const [enrollmentTrack, setEnrollmentTrack] = useState<string | null>(null);
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   const handleOpenCurriculum = (program: any) => {
     setSelectedProgramForCurriculum(program);
@@ -52,12 +54,16 @@ export default function Home() {
     setEnrollmentTrack(null);
   };
 
+  const handleOpenCalculator = () => {
+    setIsCalculatorOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-500 selection:text-white relative overflow-hidden">
       <VisitorTracker />
       
       {/* Navbar */}
-      <Navbar onOpenEnrollment={handleOpenEnrollment} />
+      <Navbar onOpenEnrollment={handleOpenEnrollment} onOpenCalculator={handleOpenCalculator} />
 
       {/* Main Sections */}
       <main>
@@ -65,6 +71,7 @@ export default function Home() {
           <Hero 
             onOpenEnrollment={handleOpenEnrollment} 
             onOpenCurriculum={handleOpenCurriculum} 
+            onOpenCalculator={handleOpenCalculator}
           />
         </FadeIn>
 
@@ -124,6 +131,11 @@ export default function Home() {
           onClose={handleCloseEnrollment} 
         />
       )}
+
+      <HppCalculatorModal 
+        isOpen={isCalculatorOpen} 
+        onClose={() => setIsCalculatorOpen(false)} 
+      />
 
       {/* AI Chatbot Widget */}
       <ChatWidget />

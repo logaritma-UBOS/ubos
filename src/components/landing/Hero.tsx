@@ -6,7 +6,13 @@ import {
   ChevronRight, Calculator
 } from 'lucide-react';
 
-export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
+interface HeroProps {
+  onOpenEnrollment: (track?: string) => void;
+  onOpenCurriculum: (program: any) => void;
+  onOpenCalculator?: () => void;
+}
+
+export default function Hero({ onOpenEnrollment, onOpenCurriculum, onOpenCalculator }: HeroProps) {
   return (
     <section className="relative pt-24 pb-12 md:pt-28 md:pb-16 overflow-hidden bg-mesh-glow">
       
@@ -50,7 +56,7 @@ export default function Hero({ onOpenEnrollment, onOpenCurriculum }) {
             </button>
 
             <button
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => onOpenCalculator?.()}
               className="w-full sm:w-auto text-sm font-semibold px-7 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 hover:border-slate-300 shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <Calculator className="w-4 h-4 text-emerald-500" />

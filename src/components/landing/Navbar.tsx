@@ -4,7 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Menu, X, ArrowRight, ShieldCheck, ChevronRight, Calculator, Store } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Navbar({ onOpenEnrollment }) {
+interface NavbarProps {
+  onOpenEnrollment: (track?: string) => void;
+  onOpenCalculator?: () => void;
+}
+
+export default function Navbar({ onOpenEnrollment, onOpenCalculator }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -71,7 +76,7 @@ export default function Navbar({ onOpenEnrollment }) {
               Masuk
             </Link>
             <button 
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => onOpenCalculator?.()}
               className="text-xs font-semibold px-4 py-2.5 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-xl bg-slate-900/90 hover:bg-slate-800 transition-all shadow-sm flex items-center gap-1.5"
             >
               <Calculator className="w-3.5 h-3.5 text-emerald-400" />
@@ -126,7 +131,7 @@ export default function Navbar({ onOpenEnrollment }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                window.location.href = '/auth/daftar';
+                onOpenCalculator?.();
               }}
               className="w-full text-center text-xs font-semibold py-3 text-slate-200 border border-slate-800 rounded-xl bg-slate-900 hover:bg-slate-800"
             >
