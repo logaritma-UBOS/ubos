@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   // Instantiate inside handler so env vars are available at runtime only
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const finalMessage = `${answer}\n\n_Pesan otomatis dari Logaritma Support. Ketik 'ADMIN' jika butuh bicara dengan tim manusia._`;
 
     // 4. Kirim balasan via Fonnte
-    const fonnteToken = process.env.FONNTE_TOKEN;
+    const fonnteToken = process.env.FONNTE_API_TOKEN;
     if (fonnteToken) {
       await fetch('https://api.fonnte.com/send', {
         method: 'POST',
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
         })
       });
     } else {
-      console.error('[Fonnte Bot] FONNTE_TOKEN is missing in environment variables');
+      console.error('[Fonnte Bot] FONNTE_API_TOKEN is missing in environment variables');
     }
 
     return NextResponse.json({ status: 'success' });
