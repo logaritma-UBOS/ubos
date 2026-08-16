@@ -7,8 +7,9 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import {
-  LayoutDashboard, Activity, ShoppingCart, DollarSign, LogOut,
-  Menu, X, Zap, AlertCircle, ArrowRight, TrendingUp, ChevronRight, Users, Target
+  LayoutDashboard, Menu, X, ArrowRight, TrendingUp, ChevronRight, AlertCircle, LogOut,
+  Settings, Bot, Activity, Filter, Share2, Store, Users, MessageCircle, Ticket,
+  DollarSign, CreditCard, PieChart
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -76,13 +77,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     toast.success('Berhasil logout');
   };
 
-  const navItems = [
-    { href: '/admin', label: 'Dashboard Overview', icon: LayoutDashboard, color: 'blue', badge: null },
-    { href: '/admin/playbook', label: 'Marketing Playbook', icon: Target, color: 'emerald', badge: 'NEW' },
-    { href: '/admin/marketing', label: 'Extreme Funneling', icon: Activity, color: 'purple', badge: 'HOT' },
-    { href: '/admin/prospects', label: 'Leads Prospecting', icon: Users, color: 'indigo', badge: null },
-    { href: '/admin/services', label: 'Ecosystem Services', icon: ShoppingCart, color: 'emerald', badge: null },
-    { href: '/admin/finance', label: 'Finance & Payouts', icon: DollarSign, color: 'amber', badge: null },
+  const pillars = [
+    {
+      title: 'FOUNDER / CEO ROOM',
+      items: [
+        { href: '/admin', label: 'Executive Overview', icon: LayoutDashboard, color: 'blue' }
+      ]
+    },
+    {
+      title: 'PRODUCT & TECH',
+      items: [
+        { href: '/admin/tech/ubos', label: 'UBOS Modules', icon: Settings, color: 'emerald' },
+        { href: '/admin/tech/ai-copilot', label: 'AI Copilot Config', icon: Bot, color: 'emerald' },
+        { href: '/admin/tech/health', label: 'System Health', icon: Activity, color: 'emerald' },
+      ]
+    },
+    {
+      title: 'GROWTH & MARKETING',
+      items: [
+        { href: '/admin/growth/funnel', label: 'Funnel Pipeline', icon: Filter, color: 'purple' },
+        { href: '/admin/growth/affiliate', label: 'Affiliate System', icon: Share2, color: 'purple' },
+        { href: '/admin/growth/store', label: 'Ecosystem Store', icon: Store, color: 'purple' },
+      ]
+    },
+    {
+      title: 'OPS & CUSTOMER SUCCESS',
+      items: [
+        { href: '/admin/ops/merchants', label: 'Merchant Monitor', icon: Users, color: 'amber' },
+        { href: '/admin/ops/wa-crm', label: 'WA CRM Automations', icon: MessageCircle, color: 'amber' },
+        { href: '/admin/ops/tickets', label: 'Support Tickets', icon: Ticket, color: 'amber' },
+      ]
+    },
+    {
+      title: 'FINANCE & ADMIN',
+      items: [
+        { href: '/admin/finance/mrr', label: 'MRR & Subscriptions', icon: DollarSign, color: 'indigo' },
+        { href: '/admin/finance/affiliate-payout', label: 'Affiliate Payouts', icon: CreditCard, color: 'indigo' },
+        { href: '/admin/finance/streams', label: 'Revenue Streams', icon: PieChart, color: 'indigo' },
+      ]
+    }
   ];
 
   const isActive = (href: string) => {
@@ -166,7 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50 relative">
         <div className="flex items-center gap-3">
@@ -175,7 +208,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div>
             <span className="font-black text-white text-sm block leading-tight">LOGARITMA</span>
-            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Admin Control</span>
+            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">HQ Admin</span>
           </div>
         </div>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -191,89 +224,64 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-slate-800 flex flex-col
+        fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col
         transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:static md:shrink-0
       `}>
         {/* Logo */}
-        <div className="p-5 hidden md:flex items-center gap-3 mb-2">
+        <div className="p-5 hidden md:flex items-center gap-3 mb-2 border-b border-slate-800">
           <div className="w-10 h-10 bg-white rounded-xl p-1.5 shadow-lg shadow-white/5 shrink-0">
             <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="font-black text-white text-base leading-tight tracking-tight">LOGARITMA</h1>
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Admin Control Panel</p>
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Kantor Pusat</p>
           </div>
-        </div>
-
-        {/* Version */}
-        <div className="hidden md:flex items-center gap-2 mx-4 mb-4 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-          <TrendingUp size={13} className="text-blue-400 shrink-0" />
-          <span className="text-xs font-bold text-blue-300">AI Business Copilot v2.0</span>
         </div>
 
         {/* Nav */}
-        <div className="flex-1 overflow-y-auto px-3 space-y-1">
-          <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 mt-2">Main Menu</p>
-          
-          {/* Explicit Dashboard Overview Link for Safety */}
-          <Link href="/admin" onClick={() => setIsSidebarOpen(false)}
-            className={`
-              w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
-              ${isActive('/admin')
-                ? activeColorMap['blue']
-                : `text-slate-400 ${inactiveHoverMap['blue']}`
-              }
-            `}>
-            <LayoutDashboard size={17} className="shrink-0" />
-            <span className="flex-1">Dashboard Overview</span>
-            {isActive('/admin') && <ChevronRight size={13} className="shrink-0 opacity-70" />}
-          </Link>
-
-          {navItems.filter(i => i.href !== '/admin').map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setIsSidebarOpen(false)}
-              className={`
-                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
-                ${isActive(item.href)
-                  ? activeColorMap[item.color]
-                  : `text-slate-400 ${inactiveHoverMap[item.color]}`
-                }
-              `}>
-              <item.icon size={17} className="shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <span className="text-[9px] font-black bg-red-500 text-white px-1.5 py-0.5 rounded-full">{item.badge}</span>
-              )}
-              {isActive(item.href) && <ChevronRight size={13} className="shrink-0 opacity-70" />}
-            </Link>
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+          {pillars.map((pillar, index) => (
+            <div key={index}>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 pl-1">
+                {pillar.title}
+              </p>
+              <div className="space-y-1">
+                {pillar.items.map((item) => (
+                  <Link key={item.href} href={item.href} onClick={() => setIsSidebarOpen(false)}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
+                      ${isActive(item.href)
+                        ? activeColorMap[item.color]
+                        : `text-slate-400 ${inactiveHoverMap[item.color]}`
+                      }
+                    `}>
+                    <item.icon size={17} className="shrink-0" />
+                    <span className="flex-1">{item.label}</span>
+                    {isActive(item.href) && <ChevronRight size={13} className="shrink-0 opacity-70" />}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
-
-          <div className="pt-3 border-t border-slate-800/50 mt-3">
-            <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Legacy Tools</p>
-            <Link href="/admin/crm" onClick={() => setIsSidebarOpen(false)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${isActive('/admin/crm') ? activeColorMap['emerald'] : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'}`}>
-              <Zap size={17} className="shrink-0" />
-              WA CRM
-            </Link>
-          </div>
         </div>
 
         {/* User Footer */}
-        <div className="p-3 border-t border-slate-800">
-          <div className="p-3 bg-slate-800/50 rounded-xl mb-2">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Logged in as</p>
-            <p className="text-xs text-white font-bold truncate mt-0.5">{adminEmail}</p>
+        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+          <div className="p-3 bg-slate-800 rounded-xl mb-3 border border-slate-700/50">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Admin Akun</p>
+            <p className="text-xs text-white font-bold truncate">{adminEmail}</p>
           </div>
           <button onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-sm font-bold rounded-xl transition-colors">
-            <LogOut size={15} /> Keluar
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-sm font-bold rounded-xl transition-colors">
+            <LogOut size={16} /> Keluar
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden">
+      <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-slate-950">
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </div>

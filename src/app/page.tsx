@@ -28,6 +28,7 @@ const FadeIn = ({ children, delay = 0 }) => (
 );
 
 import ChatWidget from '@/components/landing/ChatWidget';
+import VisitorTracker from '@/components/VisitorTracker';
 
 export default function Home() {
   const [selectedProgramForCurriculum, setSelectedProgramForCurriculum] = useState<any>(null);
@@ -53,6 +54,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-500 selection:text-white relative overflow-hidden">
+      <VisitorTracker />
       
       {/* Navbar */}
       <Navbar onOpenEnrollment={handleOpenEnrollment} />

@@ -148,6 +148,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
   const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isMemberArea || isInvestorPage || isStorefrontPage;
 
+  if (isAdminPage) {
+    return <>{children}</>;
+  }
+
   if (isLandingPage || isInvestorPage || isAuthPage || isMemberArea || isStorefrontPage) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }

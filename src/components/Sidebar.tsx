@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store, Handshake, ShieldCheck, Lock, ChevronDown, MessageSquare, Star, Search, X, ClipboardList, Megaphone, Smartphone, HelpCircle, Briefcase, Lightbulb } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import MerchantTicketModal from '@/components/merchant/MerchantTicketModal';
 
 export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose?: () => void }) {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   const [outletTab, setOutletTab] = useState<'Semua' | 'Laporan' | 'Produk'>('Semua');
   const [outletSearch, setOutletSearch] = useState('');
   const [selectedOutlet, setSelectedOutlet] = useState<string>('merchant'); // 'all' or 'merchant'
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -331,7 +333,10 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
           </button>
 
           {/* Mimicking Majoo mCare Button */}
-          <button className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg">
+          <button 
+            onClick={() => setIsTicketModalOpen(true)}
+            className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg"
+          >
             <MessageSquare size={18} />
             <span className="text-sm">Chat 24 Jam</span>
           </button>
@@ -339,7 +344,10 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
         
         {/* Mobile footer for logout only since settings is in grid */}
         <div className="p-4 bg-black/10 border-t border-white/10 md:hidden">
-          <button className="w-full bg-white text-[#4F75FF] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg mb-3">
+          <button 
+            onClick={() => setIsTicketModalOpen(true)}
+            className="w-full bg-white text-[#4F75FF] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg mb-3"
+          >
             <MessageSquare size={18} />
             <span className="text-sm">Chat 24 Jam</span>
           </button>
@@ -352,6 +360,13 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
           </button>
         </div>
       </div>
+
+      <MerchantTicketModal 
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+        merchantName={merchantName}
+        whatsapp={merchant?.whatsapp || ''}
+      />
     </aside>
   );
 }
