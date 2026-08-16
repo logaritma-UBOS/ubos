@@ -5,8 +5,11 @@ import {
   ShieldCheck, AlertTriangle, ShoppingBag, Bot, LineChart, Store,
   Sparkles, CheckCircle, ArrowUpRight, Zap
 } from 'lucide-react';
+import FeatureDetailModal from './FeatureDetailModal';
 
 export default function BentoGrid({ onOpenEnrollment }) {
+  const [selectedFeature, setSelectedFeature] = React.useState<any>(null);
+
   const bentoItems = [
     {
       id: 1,
@@ -142,7 +145,7 @@ export default function BentoGrid({ onOpenEnrollment }) {
                     {item.stats}
                   </span>
                   <button 
-                    onClick={() => onOpenEnrollment(item.badge)}
+                    onClick={() => setSelectedFeature(item)}
                     className="font-bold text-blue-600 hover:text-emerald-600 flex items-center gap-1 group-hover:translate-x-1 transition-all"
                   >
                     <span>Pelajari Fitur</span>
@@ -169,6 +172,13 @@ export default function BentoGrid({ onOpenEnrollment }) {
         </div>
 
       </div>
+
+      <FeatureDetailModal 
+        feature={selectedFeature} 
+        isOpen={!!selectedFeature} 
+        onClose={() => setSelectedFeature(null)} 
+      />
+
     </section>
   );
 }
