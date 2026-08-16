@@ -1,8 +1,8 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bot, Copy, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
-'use client';
 import ReactMarkdown from 'react-markdown';
 
 export type AgentRole = 'GROWTH' | 'OPS' | 'FINANCE' | 'TECH';
@@ -81,7 +81,7 @@ export default function AiConsultantModal({ isOpen, onClose, agentRole }: AiCons
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:p-0">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6 sm:p-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
