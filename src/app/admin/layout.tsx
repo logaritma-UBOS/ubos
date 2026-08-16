@@ -81,7 +81,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       title: 'FOUNDER / CEO ROOM',
       items: [
-        { href: '/admin', label: 'Executive Overview', icon: LayoutDashboard, color: 'blue' }
+        { href: '/admin', label: 'Executive Overview', icon: LayoutDashboard, color: 'blue' },
+        { href: '/admin/founder/workspace', label: 'Workspace Tim', icon: Users, color: 'blue' },
+        { href: '/admin/founder/treasury', label: 'Kas & Royalti Mayar', icon: DollarSign, color: 'blue' }
       ]
     },
     {

@@ -369,3 +369,54 @@ ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS category TEXT;
 ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS issue_description TEXT;
 ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS ai_suggested_solution TEXT;
 
+
+-- -----------------------------------------------------------------------------
+-- NEW FOUNDER ROOM TABLES & SEED DATA
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS founder_shares (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    role TEXT,
+    initial_capital NUMERIC DEFAULT 0,
+    royalty_percentage NUMERIC DEFAULT 0,
+    bank_name TEXT,
+    account_number TEXT,
+    account_name TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS capital_injections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    founder_name TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS fixed_monthly_opex (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    expense_name TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    billing_cycle TEXT DEFAULT 'MONTHLY',
+    status TEXT DEFAULT 'UNPAID',
+    due_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS founder_notes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    author_name TEXT NOT NULL,
+    note_text TEXT NOT NULL,
+    priority TEXT DEFAULT 'NORMAL',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Seed initial founder shares
+INSERT INTO founder_shares (name, role, initial_capital, royalty_percentage)
+VALUES 
+('Baim', 'Inisiator / CEO', 2100000, 50),
+('Tony Herman', 'Inisiator / Teknisi', 700000, 30),
+('Reza', 'Penasehat', 0, 20)
+ON CONFLICT DO NOTHING;
+
