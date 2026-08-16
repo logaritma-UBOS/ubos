@@ -108,6 +108,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   };
 
   return (
+    <>
     <aside className="w-full md:w-64 h-full flex flex-col bg-gradient-to-b from-[#3B5BDB] via-[#4F75FF] to-emerald-500 shadow-xl z-50 text-white relative md:pt-16 max-w-sm mx-auto md:max-w-none md:mx-0">
       <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
       
@@ -358,15 +359,15 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             <LogOut size={16} />
             <span className="font-medium text-sm">Keluar dari Sistem</span>
           </button>
-        </div>
       </div>
-
-      <MerchantTicketModal 
-        isOpen={isTicketModalOpen}
-        onClose={() => setIsTicketModalOpen(false)}
-        merchantName={merchantName}
-        whatsapp={merchant?.whatsapp || ''}
-      />
     </aside>
+
+    <MerchantTicketModal 
+      isOpen={isTicketModalOpen}
+      onClose={() => setIsTicketModalOpen(false)}
+      merchantName={merchantName}
+      whatsapp={merchant?.whatsapp || ''}
+    />
+    </>
   );
 }
