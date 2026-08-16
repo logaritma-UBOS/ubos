@@ -152,6 +152,30 @@ CREATE TABLE IF NOT EXISTS payout_requests (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ADD NEW COLUMNS FOR PAYOUT REQUESTS
+ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS merchant_id UUID REFERENCES merchants(id);
+ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS merchant_name TEXT;
+ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS proof_image_url TEXT;
+ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP WITH TIME ZONE;
+
+-- Table: financial_transactions
+CREATE TABLE IF NOT EXISTS financial_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stream_category TEXT NOT NULL,
+    source_name TEXT NOT NULL,
+    gross_amount NUMERIC NOT NULL,
+    affiliate_cut NUMERIC DEFAULT 0,
+    net_profit NUMERIC NOT NULL,
+    status TEXT DEFAULT 'SETTLED',
+    transaction_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Setup RLS for financial_transactions
+ALTER TABLE financial_transactions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable all for financial_transactions" ON financial_transactions;
+CREATE POLICY "Enable all for financial_transactions" ON financial_transactions FOR ALL USING (true) WITH CHECK (true);
+
 -- Setup RLS (Open for now as requested)
 ALTER TABLE admin_goals ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Enable all for admin_goals" ON admin_goals;
