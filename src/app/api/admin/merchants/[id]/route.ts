@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const merchantId = params.id;
+    const { id: merchantId } = await params;
     if (!merchantId) {
       return NextResponse.json({ error: 'Merchant ID is required' }, { status: 400 });
     }
