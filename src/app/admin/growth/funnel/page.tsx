@@ -76,33 +76,29 @@ export default function FunnelPage() {
       merchantsData?.forEach(m => {
         let mappedStatus = 'EXPIRED_CHURN'; // Default
         
-        // Logika sesuai request:
-        const isPremium = m.status === 'Premium' || m.subscription_status === 'active' || m.is_premium === true;
+        // Logika sesuai Merchants Center (sinkronisasi status):
+        const isPremium = m.status === 'Premium' || m.subscription_status === 'active' || m.status === 'PREMIUM_PAID' || m.is_premium === true;
         
         if (isPremium) {
           mappedStatus = 'PREMIUM_PAID';
         } else {
-          // Banyak merchant produksi nyata yang kolom 'trial_expires_at' nya masih null.
-          // Kita gunakan juga kolom 'expired_at' jika ada.
-          const expiresAtStr = m.trial_expires_at || m.expired_at;
-          const expiresAt = expiresAtStr ? new Date(expiresAtStr).getTime() : 0;
+          const expiryDate = m.trial_expires_at 
+            ? new Date(m.trial_expires_at) 
+            : new Date(new Date(m.created_at || Date.now()).getTime() + 7 * 24 * 60 * 60 * 1000);
           
-          const now = Date.now();
-          const createdAtTime = new Date(m.created_at || now).getTime();
-          const oneDayInMs = 24 * 60 * 60 * 1000;
+          const now = new Date();
+          const timeDiff = expiryDate.getTime() - now.getTime();
+          const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+          const isExpired = daysRemaining < 0;
 
-          if (expiresAt > now) {
-            mappedStatus = 'TRIAL_ACTIVE';
-          } else if (expiresAt > 0 && expiresAt <= now) {
+          if (isExpired) {
             mappedStatus = 'EXPIRED_CHURN';
-          } else if (!expiresAtStr) {
-            // Jika tanggal expired sama sekali belum di-set di DB (null)
-            if (now - createdAtTime < oneDayInMs) {
-              // Jika baru daftar di bawah 24 jam, masuk Leads Masuk
+          } else {
+            // Check if < 24 hours old for LEAD status
+            const createdAtTime = new Date(m.created_at || Date.now()).getTime();
+            if (now.getTime() - createdAtTime < 24 * 60 * 60 * 1000) {
               mappedStatus = 'LEAD';
             } else {
-              // Jika sudah lebih dari 24 jam tapi expired belum di set (mungkin belum aktivasi alat kasir)
-              // Maka dianggap masih masuk Trial Aktif, BUKAN Churn.
               mappedStatus = 'TRIAL_ACTIVE';
             }
           }
