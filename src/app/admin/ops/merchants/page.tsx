@@ -86,40 +86,15 @@ export default function MerchantsPage() {
     try {
       const merchantId = selectedMerchant.id;
       
-      // 1. Ambil semua ID produk dan transaksi milik merchant ini
-      const { data: prodList } = await supabase.from('products').select('id').eq('merchant_id', merchantId);
-      const { data: trxList } = await supabase.from('transactions').select('id').eq('merchant_id', merchantId);
+      const res = await fetch(`/api/admin/merchants/${merchantId}`, {
+        method: 'DELETE',
+      });
       
-      const prodIds = prodList?.map(p => p.id) || [];
-      const trxIds = trxList?.map(t => t.id) || [];
-
-      // 2. Hapus SEMUA ketergantungan yang mengikat produk (transaction_items & recipes)
-      if (prodIds.length > 0) {
-        // Hapus recipes
-        await supabase.from('recipes').delete().in('product_id', prodIds);
-        // PENTING: Hapus transaction_items yang memegang product_id ini untuk mencegah error foreign key
-        await supabase.from('transaction_items').delete().in('product_id', prodIds);
+      const result = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(result.error || 'Gagal menghapus akun');
       }
-      
-      // 3. Hapus SEMUA ketergantungan transaksi (untuk berjaga-jaga jika ada sisa item)
-      if (trxIds.length > 0) {
-        await supabase.from('transaction_items').delete().in('transaction_id', trxIds);
-      }
-      
-      // 4. Hapus data utama merchant di berbagai tabel lainnya
-      await Promise.all([
-        supabase.from('transactions').delete().eq('merchant_id', merchantId),
-        supabase.from('products').delete().eq('merchant_id', merchantId),
-        supabase.from('customers').delete().eq('merchant_id', merchantId),
-        supabase.from('wallets').delete().eq('merchant_id', merchantId),
-        supabase.from('cash_transactions').delete().eq('merchant_id', merchantId),
-        supabase.from('crm_broadcast_logs').delete().eq('merchant_id', merchantId),
-        supabase.from('subscriptions').delete().eq('merchant_id', merchantId)
-      ]);
-
-      // 5. Terakhir, hapus entitas merchant itu sendiri
-      const { error } = await supabase.from('merchants').delete().eq('id', merchantId);
-      if (error) throw error;
       
       toast.success('Akun dan seluruh datanya berhasil dihapus permanen');
       setManageModalOpen(false);
