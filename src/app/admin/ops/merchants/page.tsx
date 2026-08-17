@@ -90,15 +90,19 @@ export default function MerchantsPage() {
       const { data: prodList } = await supabase.from('products').select('id').eq('merchant_id', merchantId);
       const { data: trxList } = await supabase.from('transactions').select('id').eq('merchant_id', merchantId);
       
-      // 2. Hapus data yang bergantung pada produk (misal: resep)
-      if (prodList && prodList.length > 0) {
-        const prodIds = prodList.map(p => p.id);
+      const prodIds = prodList?.map(p => p.id) || [];
+      const trxIds = trxList?.map(t => t.id) || [];
+
+      // 2. Hapus SEMUA ketergantungan yang mengikat produk (transaction_items & recipes)
+      if (prodIds.length > 0) {
+        // Hapus recipes
         await supabase.from('recipes').delete().in('product_id', prodIds);
+        // PENTING: Hapus transaction_items yang memegang product_id ini untuk mencegah error foreign key
+        await supabase.from('transaction_items').delete().in('product_id', prodIds);
       }
       
-      // 3. Hapus data yang bergantung pada transaksi (misal: rincian barang transaksi)
-      if (trxList && trxList.length > 0) {
-        const trxIds = trxList.map(t => t.id);
+      // 3. Hapus SEMUA ketergantungan transaksi (untuk berjaga-jaga jika ada sisa item)
+      if (trxIds.length > 0) {
         await supabase.from('transaction_items').delete().in('transaction_id', trxIds);
       }
       
