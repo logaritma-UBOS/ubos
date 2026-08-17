@@ -7,9 +7,18 @@ import { Wallet, Handshake, Copy, MessageCircle, Megaphone, Loader2 } from 'luci
 import { toast } from 'sonner';
 import AIBanner from '@/components/AIBanner';
 
+const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
+  kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
+  percetakan: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200', light: 'bg-indigo-50', hover: 'hover:bg-indigo-600' },
+  ritel: { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50', hover: 'hover:bg-amber-600' },
+  jasa: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200', light: 'bg-sky-50', hover: 'hover:bg-sky-600' },
+  default: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', hover: 'hover:bg-blue-600' },
+};
+
 export default function AffiliatePage() {
   const router = useRouter();
   const params = useParams();
+  const theme = themeColorMap[(params.category as string)?.toLowerCase()] || themeColorMap.default;
   const [loading, setLoading] = useState(true);
   const [merchant, setMerchant] = useState<any>(null);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
@@ -121,24 +130,21 @@ export default function AffiliatePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />
       </div>
     );
   }
 
   return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-white p-6 md:p-10 pb-16 rounded-b-3xl md:rounded-b-[2rem] shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-mesh-glow opacity-30"></div>
-        <div className="relative z-10 max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-6">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
-            <Handshake size={32} className="text-white drop-shadow-md" />
-          </div>
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">Program Afiliasi</h1>
-            <p className="mt-2 text-emerald-50 font-medium">Hasilkan komisi berulang dengan membagikan Logaritma ke rekan pengusaha Anda.</p>
-          </div>
+      {/* Header Bersih */}
+      <div className="max-w-5xl mx-auto px-4 pt-6 md:pt-10 w-full mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <Handshake className={theme.text} size={28} />
+            Program Afiliasi
+          </h1>
+          <p className="text-slate-500 mt-1">Hasilkan komisi berulang dengan membagikan Logaritma ke rekan pengusaha Anda.</p>
         </div>
       </div>
 
@@ -149,31 +155,31 @@ export default function AffiliatePage() {
       <div className="max-w-5xl mx-auto px-4 relative z-20 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card rounded-2xl p-5">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
             <p className="text-xs text-slate-500 font-bold uppercase mb-1">Total Klik Link</p>
             <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_clicks || 0}</p>
           </div>
-          <div className="glass-card rounded-2xl p-5">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
             <p className="text-xs text-slate-500 font-bold uppercase mb-1">Leads Mendaftar</p>
             <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_leads || 0}</p>
           </div>
-          <div className="glass-card rounded-2xl p-5">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
             <p className="text-xs text-slate-500 font-bold uppercase mb-1">Premium Aktif</p>
             <p className="text-2xl font-black text-slate-900">{merchant?.affiliate_converted || 0}</p>
           </div>
-          <div className="bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden transform hover:-translate-y-1 transition-transform">
+          <div className={`${theme.bg} rounded-2xl p-5 shadow-sm text-white relative overflow-hidden transform hover:-translate-y-1 transition-transform`}>
             <Wallet size={64} className="absolute -right-4 -bottom-4 opacity-10" />
-            <p className="text-xs text-blue-100 font-bold uppercase mb-1 relative z-10">Saldo Komisi</p>
+            <p className="text-xs text-white/80 font-bold uppercase mb-1 relative z-10">Saldo Komisi</p>
             <p className="text-2xl font-black relative z-10">Rp {(merchant?.commission_balance || 0).toLocaleString('id-ID')}</p>
           </div>
         </div>
 
         {/* Action Area */}
-        <div className="glass-card rounded-3xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-emerald-500 p-6 flex items-center justify-between relative overflow-hidden">
+        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div className={`${theme.light} border-b ${theme.border} p-6 flex items-center justify-between relative overflow-hidden`}>
             <div className="relative z-10">
-              <div className="text-[10px] font-black uppercase tracking-wider text-blue-100 mb-1 flex items-center gap-2"><Handshake size={14}/> Affiliate Dashboard</div>
-              <h3 className="text-xl font-black text-white leading-tight">Sebarkan & Dapatkan 40%</h3>
+              <div className={`text-[10px] font-black uppercase tracking-wider ${theme.text} mb-1 flex items-center gap-2`}><Handshake size={14}/> Affiliate Dashboard</div>
+              <h3 className="text-xl font-black text-slate-900 leading-tight">Sebarkan & Dapatkan 40%</h3>
             </div>
           </div>
           <div className="p-6 md:p-8 space-y-6">
@@ -201,8 +207,8 @@ export default function AffiliatePage() {
         </div>
 
         {/* Marketing Kit */}
-        <div className="glass-card rounded-3xl p-6 md:p-8">
-          <h3 className="text-lg font-black text-slate-900 mb-2 flex items-center gap-2"><Megaphone size={20} className="text-blue-500" /> Marketing Kit Siap Pakai</h3>
+        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 md:p-8">
+          <h3 className="text-lg font-black text-slate-900 mb-2 flex items-center gap-2"><Megaphone size={20} className={theme.text} /> Marketing Kit Siap Pakai</h3>
           <p className="text-sm text-slate-500 mb-6">Tinggal *copy-paste* teks di bawah ini ke Story WhatsApp, Grup, atau Caption Instagram.</p>
 
           <div className="space-y-4">

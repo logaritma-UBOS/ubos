@@ -7,9 +7,18 @@ import { ShieldCheck, Wallet, Loader2, MessageCircle, Flame, CheckCircle2 } from
 import { toast } from 'sonner';
 import AIBanner from '@/components/AIBanner';
 
+const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
+  kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
+  percetakan: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200', light: 'bg-indigo-50', hover: 'hover:bg-indigo-600' },
+  ritel: { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50', hover: 'hover:bg-amber-600' },
+  jasa: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200', light: 'bg-sky-50', hover: 'hover:bg-sky-600' },
+  default: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', hover: 'hover:bg-blue-600' },
+};
+
 export default function BillingPage() {
   const router = useRouter();
   const params = useParams();
+  const theme = themeColorMap[(params.category as string)?.toLowerCase()] || themeColorMap.default;
   const [loading, setLoading] = useState(true);
   const [merchant, setMerchant] = useState<any>(null);
   const [trialDaysLeft, setTrialDaysLeft] = useState<number>(0);
@@ -90,24 +99,21 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />
       </div>
     );
   }
 
   return (
     <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-emerald-500 text-white p-6 md:p-10 pb-16 rounded-b-3xl md:rounded-b-[2rem] shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-mesh-glow opacity-30"></div>
-        <div className="relative z-10 max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
-            <ShieldCheck size={32} className="text-white drop-shadow-md" />
-          </div>
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">Langganan & Billing</h1>
-            <p className="mt-2 text-emerald-50 font-medium">Kelola status lisensi dan masa aktif aplikasi Anda.</p>
-          </div>
+      {/* Header Bersih */}
+      <div className="max-w-4xl mx-auto px-4 pt-6 md:pt-10 w-full mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <ShieldCheck className={theme.text} size={28} />
+            Langganan & Billing
+          </h1>
+          <p className="text-slate-500 mt-1">Kelola status lisensi dan masa aktif aplikasi Anda.</p>
         </div>
       </div>
 
@@ -116,7 +122,7 @@ export default function BillingPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 relative z-20">
-        <div className="glass-card rounded-3xl p-6 md:p-10 text-center">
+        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 md:p-10 text-center">
           
           <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-slate-200">
             {isExpired ? (
