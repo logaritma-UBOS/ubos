@@ -16,7 +16,14 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+    const apiKeyMap: Record<string, string | undefined> = {
+      'GROWTH': process.env.GEMINI_API_KEY_GROWTH_LEAD,
+      'OPS': process.env.GEMINI_API_KEY_OPS_RETENTION,
+      'FINANCE': process.env.GEMINI_API_KEY_FINANCE_OFFICER,
+      'TECH': process.env.GEMINI_API_KEY_TECH_LEAD
+    };
+
+    const ai = new GoogleGenAI({ apiKey: apiKeyMap[agent_role] || process.env.GEMINI_API_KEY! });
 
     let contextData = '';
     const today = new Date();

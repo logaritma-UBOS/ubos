@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  
+  const waApiKey = process.env.GEMINI_API_KEY_WA_MAS_REZA || process.env.GEMINI_API_KEY!;
+  const ai = new GoogleGenAI({ apiKey: waApiKey });
 
   try {
     // Fonnte webhook can send JSON or Form Data
