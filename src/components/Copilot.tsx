@@ -331,33 +331,30 @@ export default function Copilot({ inline = false, category }: { inline?: boolean
 
       {/* Drawer or Inline Content */}
       {isOpen && (
-        <div className={inline ? "w-full h-full bg-slate-50 flex flex-col rounded-3xl border border-slate-200 overflow-hidden shadow-sm" : "fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end"}>
+        <div className={inline ? "w-full h-full bg-slate-50 flex flex-col" : "fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end"}>
           {/* Overlay to close - only if not inline */}
           {!inline && <div className="absolute inset-0 cursor-pointer" onClick={() => setIsOpen(false)}></div>}
           
           <div className={inline ? "relative w-full h-full flex flex-col" : "relative w-full max-w-md bg-slate-50 h-full max-h-[85vh] md:max-h-screen mt-auto md:mt-0 flex flex-col shadow-2xl rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none animate-in slide-in-from-bottom-full md:slide-in-from-right-full duration-300"}>
-            {/* Header */}
-            <div className={`flex items-center justify-between p-6 bg-slate-900 text-white relative overflow-hidden ${inline ? '' : 'rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none'}`}>
-              {/* Glow Effect Background */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B5BDB]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-              
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 shrink-0 relative group">
-                  <div className="absolute inset-0 bg-emerald-400/20 blur-xl rounded-full group-hover:bg-emerald-400/40 transition-all duration-500"></div>
-                  <Bot size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+            {/* Header for Standalone Mode */}
+            {!inline && (
+              <div className="flex items-center justify-between p-6 bg-slate-900 text-white relative overflow-hidden rounded-t-3xl md:rounded-tl-3xl md:rounded-tr-none">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B5BDB]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 shrink-0 relative group">
+                    <div className="absolute inset-0 bg-emerald-400/20 blur-xl rounded-full group-hover:bg-emerald-400/40 transition-all duration-500"></div>
+                    <Bot size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  </div>
+                  <div>
+                    <h2 className="font-black text-xl tracking-tight text-white drop-shadow-md">AI Logaritma</h2>
+                    <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5">Business Copilot</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-black text-xl tracking-tight text-white drop-shadow-md">AI Logaritma</h2>
-                  <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5">Business Copilot</p>
-                </div>
-              </div>
-              {!inline && (
                 <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition-colors">
                   <X size={18} />
                 </button>
-              )}
-            </div>
-
+              </div>
+            )}
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar bg-slate-50">
               

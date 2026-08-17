@@ -41,7 +41,7 @@ export default function AiCopilotDrawer({ isOpen, onClose, category }: AiCopilot
       <div 
         className={`fixed z-[101] flex flex-col bg-slate-50 transition-transform duration-300 shadow-2xl overflow-hidden
           ${/* Desktop: Slide from right */ ''}
-          md:top-0 md:right-0 md:bottom-0 md:w-[420px] md:rounded-none md:h-full
+          md:top-0 md:right-0 md:left-auto md:bottom-0 md:w-[420px] md:rounded-none md:h-full
           ${/* Mobile: Slide from bottom */ ''}
           bottom-0 left-0 right-0 h-[85vh] rounded-t-3xl md:translate-y-0
           ${isOpen 
