@@ -202,9 +202,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col md:flex-row overflow-hidden font-sans">
+    <div className="h-[100dvh] w-full bg-slate-950 text-slate-200 flex flex-col overflow-hidden font-sans">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50 relative">
+      <div className="md:hidden flex-none flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 z-50">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-md">
             <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
@@ -220,74 +220,76 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
       </div>
 
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />
-      )}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+        )}
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col
-        transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 md:static md:shrink-0
-      `}>
-        {/* Logo */}
-        <div className="p-5 hidden md:flex items-center gap-3 mb-2 border-b border-slate-800">
-          <div className="w-10 h-10 bg-white rounded-xl p-1.5 shadow-lg shadow-white/5 shrink-0">
-            <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <h1 className="font-black text-white text-base leading-tight tracking-tight">LOGARITMA</h1>
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Kantor Pusat</p>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {pillars.map((pillar, index) => (
-            <div key={index}>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 pl-1">
-                {pillar.title}
-              </p>
-              <div className="space-y-1">
-                {pillar.items.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={() => setIsSidebarOpen(false)}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
-                      ${isActive(item.href)
-                        ? activeColorMap[item.color]
-                        : `text-slate-400 ${inactiveHoverMap[item.color]}`
-                      }
-                    `}>
-                    <item.icon size={17} className="shrink-0" />
-                    <span className="flex-1">{item.label}</span>
-                    {isActive(item.href) && <ChevronRight size={13} className="shrink-0 opacity-70" />}
-                  </Link>
-                ))}
-              </div>
+        {/* Sidebar */}
+        <aside className={`
+          absolute inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0 md:shrink-0
+        `}>
+          {/* Logo */}
+          <div className="p-5 hidden md:flex items-center gap-3 mb-2 border-b border-slate-800">
+            <div className="w-10 h-10 bg-white rounded-xl p-1.5 shadow-lg shadow-white/5 shrink-0">
+              <img src="/assets/images/logo-logaritma.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-          ))}
-        </div>
-
-        {/* User Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-          <div className="p-3 bg-slate-800 rounded-xl mb-3 border border-slate-700/50">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Admin Akun</p>
-            <p className="text-xs text-white font-bold truncate">{adminEmail}</p>
+            <div>
+              <h1 className="font-black text-white text-base leading-tight tracking-tight">LOGARITMA</h1>
+              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Kantor Pusat</p>
+            </div>
           </div>
-          <button onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-sm font-bold rounded-xl transition-colors">
-            <LogOut size={16} /> Keluar
-          </button>
-        </div>
-      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-slate-950">
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <GlobalPageGuide />
-          {children}
+          {/* Nav */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+            {pillars.map((pillar, index) => (
+              <div key={index}>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 pl-1">
+                  {pillar.title}
+                </p>
+                <div className="space-y-1">
+                  {pillar.items.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={() => setIsSidebarOpen(false)}
+                      className={`
+                        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all
+                        ${isActive(item.href)
+                          ? activeColorMap[item.color]
+                          : `text-slate-400 ${inactiveHoverMap[item.color]}`
+                        }
+                      `}>
+                      <item.icon size={17} className="shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                      {isActive(item.href) && <ChevronRight size={13} className="shrink-0 opacity-70" />}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* User Footer */}
+          <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+            <div className="p-3 bg-slate-800 rounded-xl mb-3 border border-slate-700/50">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Admin Akun</p>
+              <p className="text-xs text-white font-bold truncate">{adminEmail}</p>
+            </div>
+            <button onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-sm font-bold rounded-xl transition-colors">
+              <LogOut size={16} /> Keluar
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <GlobalPageGuide />
+            {children}
+          </div>
         </div>
       </div>
     </div>
