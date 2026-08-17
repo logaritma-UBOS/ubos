@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingBag, Package, Wallet, Activity, TrendingUp, Target, CreditCard, ShieldCheck, Store, Sparkles, Megaphone, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Package, Wallet, Activity, TrendingUp, Target, CreditCard, ShieldCheck, Store, Sparkles, Megaphone, AlertCircle, ArrowRight, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -113,41 +113,32 @@ export default function UBOSDashboard() {
   const porsiHarian = Math.ceil(harianTarget / 25000); // Asumsi harga rata-rata 25k
 
 return (
-    <div className="pb-24 md:pb-10 bg-slate-50 min-h-screen">
+    <div className="pb-24 md:pb-10 bg-[#F8FAFC] min-h-screen font-sans selection:bg-blue-100 selection:text-blue-900">
       
       {/* Tentukan Target Modal */}
       {showTargetModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
             <button 
               onClick={() => setShowTargetModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-20"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors z-20"
             >
-              <AlertCircle size={20} />
+              <X size={20} />
             </button>
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Target size={120} />
-            </div>
-            <div className="relative z-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
-                <Target size={32} />
+            <div className="relative z-10 text-center space-y-5">
+              <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto ring-4 ring-blue-50/50">
+                <Target size={28} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Tentukan Target Baru</h2>
-                {typeof window !== 'undefined' && localStorage.getItem('targetProfit') ? (
-                  <div className="bg-amber-50 text-amber-800 p-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
-                    Target Anda sebelumnya adalah <strong>{formatIDR(parseInt(localStorage.getItem('targetProfit') || '0'))}</strong>.<br/>Yakin ingin mengubah target ini?
-                  </div>
-                ) : (
-                  <p className="text-slate-500 font-medium text-sm mb-4">Tentukan target profit bersih bulanan Anda.</p>
-                )}
+                <h2 className="text-xl font-bold text-slate-900 mb-1">Target Bulanan</h2>
+                <p className="text-slate-500 font-medium text-sm">Tentukan target profit bersih.</p>
               </div>
               <div className="relative">
                 <CurrencyInput
                   value={targetProfit}
                   onChange={setTargetProfit}
                   icon="Rp"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-2xl text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors text-center"
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xl text-slate-900 focus:outline-none focus:border-blue-500 transition-colors text-center"
                 />
               </div>
               <button 
@@ -157,249 +148,192 @@ return (
                   setShowTargetModal(false);
                   window.dispatchEvent(new Event('storage'));
                 }}
-                className="w-full btn-gradient-primary border-none text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
               >
-                Kunci Target
+                Simpan Target
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
+        {/* Modern Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              Dashboard {params.category ? String(params.category).charAt(0).toUpperCase() + String(params.category).slice(1) : ''}
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">Live</span>
+            </h1>
+            <p className="text-sm text-slate-500 font-medium mt-1">
+              {new Date().toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+             <button 
+              onClick={() => setShowTargetModal(true)}
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm shadow-sm" 
+            >
+              <Target size={16} className="text-blue-600" />
+              Target: {formatIDR(parseInt(targetProfit))}
+            </button>
+          </div>
+        </div>
+
         <AIBanner 
           actionButton={
             <button 
               onClick={() => setShowTargetModal(true)}
-              className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm active:scale-95" 
+              className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm active:scale-95" 
             >
               <Target size={16} />
-              Tentukan Target
+              Tentukan Target Omzet
             </button>
           }
         />
 
-        {/* Onboarding Widget Majoo Style */}
-        {showOnboarding && (
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">
-            {/* Header Green */}
-            <div className="bg-blue-500 p-5 md:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h3 className="text-lg md:text-xl font-bold">Langkah Mudah Buka Outlet</h3>
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <span className="font-bold text-sm">0/3</span>
-                <div className="flex-1 md:w-64 h-3 bg-blue-600/50 rounded-full overflow-hidden">
-                  <div className="w-0 h-full bg-white rounded-full"></div>
-                </div>
-              </div>
-            </div>
+        {/* BENTO BOX GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
+          
+          {/* LEFT COLUMN: Main Stats & POS Tools (Span 8) */}
+          <div className="md:col-span-8 space-y-6">
             
-            {/* Content Cards */}
-            <div className="p-5 md:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 -mt-2">
-              <button 
-                onClick={() => setShowTargetModal(true)}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <Target size={20} className="text-[#4F75FF]" />
-                  <span className="font-medium text-slate-700">Siapkan Produk</span>
+            {/* Top 4 Metric Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-blue-200 transition-colors">
+                <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center mb-3">
+                  <Wallet size={20} />
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
-              </button>
-              
-              <button 
-                onClick={() => router.push(`/ubos/${params.category || 'kuliner'}/${params.slug}/inventory`)}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <Package size={20} className="text-[#4F75FF]" />
-                  <span className="font-medium text-slate-700">Informasi Karyawan</span>
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pendapatan</p>
+                  <p className="text-xl font-bold text-slate-900">{formatIDR(aiState.dailyOmzet)}</p>
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
-              </button>
-
-              <button 
-                onClick={() => router.push('/settings')}
-                className="bg-white p-5 rounded-xl flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.05)] border-l-4 border-[#4F75FF] hover:-translate-y-1 transition-all group mb-6 md:mb-0"
-              >
-                <div className="flex items-center gap-3">
-                  <Store size={20} className="text-[#4F75FF]" />
-                  <span className="font-medium text-slate-700">Lengkapi Data Outlet</span>
-                </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-[#4F75FF]" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Dashboard Penjualan Header & Filter Majoo Style */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-2xl font-medium text-slate-900 flex items-center gap-2">
-                Dashboard Penjualan <AlertCircle size={20} className="text-[#4F75FF]" />
-              </h2>
-              <p className="text-sm text-slate-500 mt-1">Diperbarui {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}, {new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
-            </div>
-            
-            <div className="flex flex-col md:flex-row md:items-center gap-4 mt-2 border-t border-slate-100 pt-4">
-              {/* Segmented Control */}
-              <div className="flex rounded-lg border border-slate-200 w-full md:w-auto overflow-hidden">
-                {['Harian', 'Mingguan', 'Bulan'].map((filter, idx) => (
-                  <button 
-                    key={filter}
-                    onClick={() => setTimeFilter(filter)}
-                    className={`flex-1 md:flex-none px-6 py-2 text-sm font-medium transition-colors ${timeFilter === filter ? 'bg-blue-500 text-white' : 'text-slate-600 bg-white hover:bg-slate-50'} ${idx !== 0 ? 'border-l border-slate-200' : ''}`}
-                  >
-                    {filter}
-                  </button>
-                ))}
               </div>
-              
-              {/* Date Picker Dummy */}
-              <div className="flex items-center justify-between border border-slate-200 rounded-lg bg-white px-4 py-2 text-sm text-slate-700 w-full md:w-64">
-                <span className="cursor-pointer font-bold">&lt;</span>
-                <span>15 Agt 26 - 15 Agt 26</span>
-                <span className="cursor-pointer font-bold">&gt;</span>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-10"><TrendingUp size={48} /></div>
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 relative z-10">
+                  <TrendingUp size={20} />
+                </div>
+                <div className="relative z-10">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Profit Bersih</p>
+                  <p className="text-xl font-bold text-slate-900">{formatIDR(aiState.dailyProfit)}</p>
+                </div>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
+                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-3">
+                  <Activity size={20} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Transaksi</p>
+                  <p className="text-xl font-bold text-slate-900">{aiState.totalTransactions} <span className="text-sm font-medium text-slate-400 normal-case">Nota</span></p>
+                </div>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-rose-200 transition-colors">
+                <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mb-3">
+                  <Package size={20} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stok Kritis</p>
+                  <p className="text-xl font-bold text-slate-900">{aiState.lowStockItems.length} <span className="text-sm font-medium text-slate-400 normal-case">Item</span></p>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* 2. Top Stats Grid - 4 Metric Cards */}
-
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card p-6 rounded-3xl">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
-              <Wallet size={24} />
-            </div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Pendapatan</p>
-            <p className="text-2xl font-black text-slate-900">{formatIDR(aiState.dailyOmzet)}</p>
-          </div>
-          <div className="glass-card p-6 rounded-3xl">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
-              <TrendingUp size={24} />
-            </div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Profit Bersih (Margin Guard)</p>
-            <p className="text-2xl font-black text-slate-900">{formatIDR(aiState.dailyProfit)}</p>
-          </div>
-          <div className="glass-card p-6 rounded-3xl">
-            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
-              <Activity size={24} />
-            </div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Transaksi</p>
-            <p className="text-2xl font-black text-slate-900">{aiState.totalTransactions}</p>
-          </div>
-          <div className="glass-card p-6 rounded-3xl">
-            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
-              <Package size={24} />
-            </div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Stok Kritis</p>
-            <p className="text-2xl font-black text-slate-900">{aiState.lowStockItems.length} Item</p>
-          </div>
-        </div>
-
-        {/* 3. AI Logaritma Copilot Widget */}
-        <div className="mb-6">
-          {merchant?.id && <CopilotWidget merchantId={merchant.id} />}
-        </div>
-
-        {/* 3b. AI Logaritma Copilot (Inline Widget) */}
-        <div>
-          <h2 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-            <Sparkles className="text-emerald-600" size={20} /> Asisten AI Logaritma
-          </h2>
-          <div className="h-[450px]">
-            <Copilot inline={true} />
-          </div>
-        </div>
-
-        {/* 4. Interactive Logaritma Tools */}
-        <div className="grid md:grid-cols-2 gap-6 pt-4">
-          {/* Card Left: Pola Pikir Tarik Mundur Profit */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><Target size={24} /></div>
-              <div>
-                <h2 className="text-xl font-black text-slate-900">Pola Pikir Tarik Mundur Profit</h2>
-                <p className="text-sm text-slate-500 font-medium">Hitung target harian dari impian bulanan</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Profit Bulanan Bersih</label>
-                <div className="relative">
-                  <CurrencyInput
-                    value={targetProfit}
-                    onChange={() => {}}
-                    icon="Rp"
-                    disabled
-                    readOnly
-                    className="w-full pl-12 pr-4 py-4 bg-slate-100 border border-slate-200 rounded-xl font-black text-xl text-slate-500 cursor-not-allowed opacity-80"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                    <ShieldCheck size={18} className="text-slate-400" />
+            {/* Middle Row: Backward Mapping Calc & Budget */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Tarik Mundur Profit */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-700"><Target size={20} /></div>
+                  <h2 className="text-base font-bold text-slate-900">Misi Hari Ini</h2>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <span className="text-sm font-medium text-slate-500">Target Omzet (Estimasi)</span>
+                    <span className="font-bold text-slate-900">{formatIDR(harianTarget)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-slate-500">Volume Terjual</span>
+                    <span className="font-bold text-slate-900">{porsiHarian} Porsi / Item</span>
                   </div>
                 </div>
               </div>
-              
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-5 rounded-2xl border border-indigo-100">
-                <p className="text-sm font-medium text-indigo-800 mb-4">Agar untung {formatIDR(profitVal)}/bulan, target kasir Anda hari ini:</p>
-                <div className="flex justify-between items-center py-3 border-b border-indigo-200/50">
-                  <span className="text-sm font-bold text-indigo-700">Target Omzet Harian</span>
-                  <span className="font-black text-slate-900 text-lg">{formatIDR(harianTarget)}</span>
-                </div>
-                <div className="flex justify-between items-center py-3">
-                  <span className="text-sm font-bold text-indigo-700">Estimasi Terjual</span>
-                  <span className="font-black text-slate-900 text-lg">{porsiHarian} Porsi/hari</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Card Right: Kontrol Batas Belanja Pagi */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><CreditCard size={24} /></div>
-              <div>
-                <h2 className="text-xl font-black text-slate-900">Kontrol Batas Belanja Pagi</h2>
-                <p className="text-sm text-slate-500 font-medium">Amankan modal agar tak gerus profit</p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Batas Budget Belanja Hari Ini</label>
-                <div className="relative">
+              {/* Batas Belanja Pagi */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-slate-50 rounded-lg text-slate-700"><CreditCard size={20} /></div>
+                  <h2 className="text-base font-bold text-slate-900">Kontrol Belanja</h2>
+                </div>
+                
+                <div className="relative mb-4">
                   <CurrencyInput
                     value={budgetBelanja}
                     onChange={setBudgetBelanja}
                     icon="Rp"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-xl text-emerald-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-900 focus:outline-none focus:border-slate-400 transition-colors text-sm"
                   />
                 </div>
+                
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Terpakai</p>
+                  <p className="font-bold text-slate-900 text-sm">Rp 0 <span className="text-slate-400 font-medium">/ {formatIDR(parseInt(budgetBelanja) || 0)}</span></p>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
+                  <div className="bg-blue-500 h-full rounded-full w-[15%]"></div>
+                </div>
               </div>
-              
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl border border-emerald-100">
-                <div className="flex justify-between items-end mb-3">
+            </div>
+
+            {/* Chart Area Dummy (Clean Look) */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+               <div className="flex items-center justify-between mb-6">
+                <h2 className="text-base font-bold text-slate-900">Trend Penjualan</h2>
+                <div className="flex gap-2">
+                  {['7H', '30H'].map((filter) => (
+                    <button key={filter} className={`px-3 py-1 text-xs font-bold rounded-lg border ${filter === '7H' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200'}`}>
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+               </div>
+               <div className="h-48 flex items-end justify-between gap-2 px-2">
+                 {[40, 60, 30, 80, 50, 90, 70].map((h, i) => (
+                    <div key={i} className="w-full bg-blue-50 rounded-t-md relative group hover:bg-blue-100 transition-colors" style={{ height: `${h}%` }}>
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Rp {(h * 12345).toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                 ))}
+               </div>
+               <div className="flex justify-between mt-3 text-xs font-medium text-slate-400 px-2">
+                 <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+               </div>
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: AI Copilot (Span 4) */}
+          <div className="md:col-span-4 h-full">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-inner">
+                    <Sparkles size={16} />
+                  </div>
                   <div>
-                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Terpakai (POS)</p>
-                    <p className="font-black text-emerald-900 text-lg mt-1">Rp 0</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sisa Budget Aman</p>
-                    <p className="font-bold text-emerald-600 text-lg mt-1">{formatIDR(parseInt(budgetBelanja) || 0)}</p>
+                    <h2 className="font-bold text-slate-900 text-sm">AI Copilot</h2>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Logaritma Engine</p>
                   </div>
                 </div>
-                <div className="w-full bg-emerald-200/60 rounded-full h-3 mt-4 overflow-hidden relative">
-                  <div className="bg-emerald-500 h-3 rounded-full relative z-10" style={{ width: '15%' }}></div>
-                </div>
-                <p className="text-xs font-bold text-emerald-700 mt-3 text-center">Anda menggunakan 15% dari budget hari ini.</p>
+              </div>
+              <div className="flex-1 p-0 relative">
+                <Copilot inline={true} category={params.category as string} />
               </div>
             </div>
           </div>
+
         </div>
 
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Bot, X, Sparkles, TrendingUp, AlertTriangle, MessageSquare, ArrowRight, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,9 +15,12 @@ type Insight = {
   actionPayload?: any;
 };
 
-export default function Copilot({ inline = false }: { inline?: boolean }) {
+export default function Copilot({ inline = false, category }: { inline?: boolean, category?: string }) {
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
+  const activeCategory = category || (params.category as string) || 'general';
+
   const [isOpen, setIsOpen] = useState(inline);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
@@ -282,10 +285,11 @@ export default function Copilot({ inline = false }: { inline?: boolean }) {
     setIsTyping(true);
     
     try {
-      const response = await fetch('/api/copilot', {
+      const response = await fetch('/api/ubos/copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          category: activeCategory,
           message: userMsg,
           contextData: { 
             merchantProfile,
