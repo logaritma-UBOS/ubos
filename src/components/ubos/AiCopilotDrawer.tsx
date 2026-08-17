@@ -80,7 +80,7 @@ export default function AiCopilotDrawer({ isOpen, onClose, category }: AiCopilot
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col">
           <Copilot inline={true} category={category} />
         </div>
       </div>
