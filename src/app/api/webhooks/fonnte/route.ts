@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     // 2. Generate jawaban via Gemini dengan Fallback
     const modelsToTry = ['gemini-3.7-flash', 'gemini-3.7-flash'];
     let aiResponseText = '';
+    let lastError: unknown = null;
 
     for (const modelName of modelsToTry) {
       try {
@@ -91,7 +92,8 @@ export async function POST(req: NextRequest) {
         
         aiResponseText = response.text || '';
         if (aiResponseText) break;
-      } catch {
+      } catch (err) {
+        lastError = err;
         console.warn(`[Fonnte Bot] Model ${modelName} attempt failed, retrying next...`);
       }
     }
@@ -99,10 +101,13 @@ export async function POST(req: NextRequest) {
     let answer = aiResponseText;
     
     if (!answer) {
-      answer = 'Maaf, sistem AI kami sedang mengalami kendala (server sibuk). Silakan coba lagi nanti.';
-    } else if (answer.includes('429') || answer.includes('quota') || answer.toLowerCase().includes('exceeded')) {
-       // This shouldn't normally happen in the response text, but just in case
-       answer = 'Mohon maaf, limit AI harian kami sedang habis. Silakan hubungi admin manusia.';
+      const errorMsg = lastError instanceof Error ? lastError.message : String(lastError);
+      
+      if (errorMsg.includes('429') || errorMsg.includes('quota') || errorMsg.toLowerCase().includes('exceeded')) {
+        answer = 'Mohon maaf, layanan otomatis Support Logaritma saat ini sedang sibuk. Tim kami akan segera merespons pesan Anda secara langsung.';
+      } else {
+        answer = 'Maaf, sistem AI kami sedang mengalami kendala teknis sementara. Silakan coba lagi nanti.';
+      }
     }
     
     // 3. Tambahkan footer
