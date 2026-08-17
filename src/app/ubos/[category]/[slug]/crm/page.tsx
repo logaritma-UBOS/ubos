@@ -1,17 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Users, MessageCircle, Send, Plus, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import AIBanner from '@/components/AIBanner';
 
+const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
+  kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
+  percetakan: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200', light: 'bg-indigo-50', hover: 'hover:bg-indigo-600' },
+  ritel: { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50', hover: 'hover:bg-amber-600' },
+  jasa: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200', light: 'bg-sky-50', hover: 'hover:bg-sky-600' },
+  default: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', hover: 'hover:bg-blue-600' },
+};
+
 export default function CRMPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [merchant, setMerchant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const params = useParams();
+  
+  const theme = themeColorMap[(params.category as string)?.toLowerCase()] || themeColorMap.default;
   
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState('');
@@ -32,7 +44,7 @@ export default function CRMPage() {
         setMerchant(merchantData);
         
         // Fetch Customers
-        const { data: customersData } = await supabase.from('customers').select('*').eq('merchant_id', merchantData.id);
+        const { data: customersData } = await supabase.from('customers').select('*').eq('merchant_id', merchantData.id).order('total_visits', { ascending: false });
         setCustomers(customersData || []);
         
         // Fetch Products for Broadcast Template
@@ -73,101 +85,165 @@ export default function CRMPage() {
   };
 
   const handleWABroadcast = () => {
-    let menuList = "berbagai menu andalan kami";
+    let menuList = "berbagai penawaran menarik kami";
     if (products.length > 0) {
       menuList = products.map(p => p.nama_produk).join(', ');
     }
-    const text = `Halo kak! Sore ini ${merchant?.nama_usaha} ada promo spesial nih untuk menu ${menuList}. Yuk mampir sebelum kehabisan. Balas pesan ini untuk info lebih lanjut ya! 🎉`;
+    const text = `Halo kak! Sore ini ${merchant?.nama_usaha} ada promo spesial nih untuk ${menuList}. Yuk mampir sebelum kehabisan. Balas pesan ini untuk info lebih lanjut ya! 🎉`;
     const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
   };
 
+  const getLoyaltyBadge = (visits: number) => {
+    if (visits >= 10) return <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded text-[10px] font-bold border border-amber-200">VIP</span>;
+    if (visits >= 3) return <span className="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">LOYAL</span>;
+    return <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded text-[10px] font-bold border border-slate-200">REGULAR</span>;
+  };
+
+  const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
+        <div className={`animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-${theme.bg.split('-')[1]}-500`}></div>
       </div>
     );
   }
 
   return (
-    <>
-      <header className="bg-primary shadow-sm px-5 py-4 flex justify-between items-center z-20 relative">
+    <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
+      <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">CRM & Profil</h1>
-          <p className="text-white/80 text-xs mt-0.5">WhatsApp Marketing & Kontak</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">CRM & Pelanggan</h1>
+          <p className="text-slate-500 text-sm mt-1.5 font-medium">WhatsApp Marketing & Database Kontak</p>
         </div>
-        <Link href="/settings" className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 border border-white/10 rounded-full backdrop-blur-sm">
-           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        </Link>
+        <div className="flex gap-3">
+          <Link 
+            href={`/ubos/${params.category}/${params.slug}`}
+            className="hidden md:flex p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors text-slate-500 shadow-sm items-center gap-2 font-bold text-sm"
+          >
+             Kembali
+          </Link>
+          <Link href="/settings" className={`h-11 px-5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span className="font-bold text-sm hidden md:inline">Pengaturan</span>
+          </Link>
+        </div>
       </header>
 
-      <div className="px-5 pt-4 max-w-6xl mx-auto w-full relative z-20">
+      <div className="px-5 pt-2 max-w-6xl mx-auto w-full relative z-20">
         <AIBanner />
       </div>
 
-      <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        {/* WA Broadcast Generator */}
-        <div className="bg-surface rounded-3xl p-6 shadow-sm border border-emerald-100 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 transition-transform group-hover:scale-110 duration-500">
-            <MessageCircle size={120} className="text-emerald-500" />
-          </div>
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 shadow-inner border border-emerald-200">
-              <MessageCircle size={24} />
-            </div>
-            <h2 className="text-lg font-bold text-slate-800 mb-1">WA Broadcast Generator</h2>
-            <p className="text-slate-500 text-xs leading-relaxed mb-5 max-w-[85%]">
-              AI Logaritma siap membuatkan draf pesan promosi otomatis untuk pelanggan setia guna membersihkan sisa stok sore hari ini.
-            </p>
-            <button 
-              onClick={handleWABroadcast}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-sm shadow-emerald-500/30 flex items-center justify-center gap-2"
-            >
-              <Send size={16} /> Generate Pesan Promo
-            </button>
-          </div>
-        </div>
-
-        {/* Customers */}
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-sm font-bold text-slate-800">Daftar Pelanggan</h2>
-            <button 
-              onClick={() => setShowAddCustomer(true)}
-              className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1.5 rounded-lg border border-primary/20 flex items-center gap-1 active:scale-95 transition-all"
-            >
-              <UserPlus size={12} /> Tambah
-            </button>
-          </div>
+      <div className="p-5 pt-0 max-w-6xl mx-auto pb-28 md:pb-10 relative z-30 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
           
-          {customers.length === 0 ? (
-            <div className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-200 mt-2">
-              <Users size={32} className="mx-auto text-slate-300 mb-2" />
-              <p className="text-sm font-medium text-slate-500">Belum ada pelanggan</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {customers.map((c) => (
-                <div key={c.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-slate-100 flex justify-between items-center group cursor-pointer hover:border-primary/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-sm border border-primary/20">
-                      {c.nama.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">{c.nama}</h3>
-                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">{c.phone}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Kunjungan</span>
-                    <span className="font-black text-primary text-sm">{c.total_visits}x</span>
-                  </div>
+          {/* Kiri: AI Broadcast Generator */}
+          <div className="w-full lg:w-1/3">
+            <div className={`bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 relative overflow-hidden group`}>
+              <div className="absolute top-0 right-0 p-4 opacity-5 transition-transform group-hover:scale-110 duration-500">
+                <MessageCircle size={140} className={`text-${theme.bg.split('-')[1]}-500`} />
+              </div>
+              <div className="relative z-10">
+                <div className={`w-12 h-12 ${theme.light} ${theme.text} rounded-xl flex items-center justify-center mb-5 shadow-sm border ${theme.border}`}>
+                  <MessageCircle size={24} />
                 </div>
-              ))}
+                <h2 className="text-xl font-black text-slate-900 mb-2">AI Broadcast</h2>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6 font-medium">
+                  Hasilkan pesan promosi WhatsApp cerdas yang disesuaikan dengan pola belanja pelanggan untuk meningkatkan repeat order hari ini.
+                </p>
+                
+                <div className="space-y-3">
+                  <button 
+                    onClick={handleWABroadcast}
+                    className={`w-full ${theme.bg} ${theme.hover} text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-sm shadow-${theme.bg.split('-')[1]}-500/20 flex items-center justify-center gap-2`}
+                  >
+                    <Send size={16} /> Buat Pesan Otomatis
+                  </button>
+                  <button 
+                    onClick={() => toast.info('Fitur kustomisasi template segera hadir')}
+                    className="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all border border-slate-200 active:scale-95"
+                  >
+                    Sesuaikan Template
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Kanan: Customer Table */}
+          <div className="w-full lg:w-2/3">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-white">
+                <h2 className="text-lg font-black text-slate-900">Database Pelanggan</h2>
+                <button 
+                  onClick={() => setShowAddCustomer(true)}
+                  className={`bg-slate-50 text-slate-700 hover:text-${theme.bg.split('-')[1]}-600 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-200 hover:border-${theme.bg.split('-')[1]}-300 flex items-center gap-1.5 active:scale-95 transition-all`}
+                >
+                  <UserPlus size={14} /> Tambah Kontak
+                </button>
+              </div>
+              
+              {customers.length === 0 ? (
+                <div className="p-10 text-center">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 mx-auto text-slate-300 border border-slate-100">
+                    <Users size={32} />
+                  </div>
+                  <p className="text-slate-800 font-bold text-base mb-1">Belum Ada Pelanggan</p>
+                  <p className="text-sm font-medium text-slate-500">Mulai tambahkan pelanggan secara manual atau melalui Smart POS saat checkout.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100">
+                        <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama & Kontak</th>
+                        <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Loyalitas</th>
+                        <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Total Transaksi</th>
+                        <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {customers.map((c) => (
+                        <tr key={c.id} className="hover:bg-slate-50/80 transition-colors group">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 ${theme.light} ${theme.text} rounded-full flex items-center justify-center font-bold text-sm border ${theme.border}`}>
+                                {c.nama.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-slate-800 text-sm group-hover:text-slate-900 transition-colors">{c.nama}</h3>
+                                <p className="text-[11px] text-slate-500 font-mono mt-0.5">{c.phone}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4">
+                            {getLoyaltyBadge(c.total_visits || 0)}
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <span className="font-black text-slate-800 block text-sm">{c.total_visits}x</span>
+                            <span className="text-[10px] text-slate-500 font-medium">{formatIDR(c.total_spent || 0)}</span>
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            <a 
+                              href={`https://wa.me/${c.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-200"
+                              title="Chat WhatsApp"
+                            >
+                              <MessageCircle size={18} />
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -176,35 +252,35 @@ export default function CRMPage() {
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 pb-20">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-300">
             <div className="flex justify-between items-center mb-5">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+              <div className={`w-12 h-12 ${theme.light} ${theme.text} rounded-full flex items-center justify-center border ${theme.border}`}>
                 <UserPlus size={20} />
               </div>
-              <button onClick={() => setShowAddCustomer(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full"><X size={20}/></button>
+              <button onClick={() => setShowAddCustomer(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20}/></button>
             </div>
             
-            <h2 className="text-xl font-bold text-slate-900 mb-1">Tambah Pelanggan Baru</h2>
-            <p className="text-sm text-slate-500 mb-6">Simpan kontak pelanggan untuk CRM.</p>
+            <h2 className="text-xl font-black text-slate-900 mb-1">Tambah Pelanggan Baru</h2>
+            <p className="text-sm text-slate-500 mb-6 font-medium">Simpan kontak pelanggan untuk CRM otomatis.</p>
             
             <form onSubmit={handleAddCustomer} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Pelanggan</label>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Nama Pelanggan</label>
                 <input 
                   type="text" 
                   required
                   value={newCustomerName}
                   onChange={(e) => setNewCustomerName(e.target.value)}
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary transition-all"
+                  className={`w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-${theme.bg.split('-')[1]}-200 focus:border-${theme.bg.split('-')[1]}-500 transition-all font-medium`}
                   placeholder="Misal: Budi Santoso"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">No. WhatsApp</label>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">No. WhatsApp</label>
                 <input 
                   type="tel" 
                   required
                   value={newCustomerPhone}
                   onChange={(e) => setNewCustomerPhone(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary transition-all"
+                  className={`w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-${theme.bg.split('-')[1]}-200 focus:border-${theme.bg.split('-')[1]}-500 transition-all font-medium`}
                   placeholder="0812..."
                 />
               </div>
@@ -212,14 +288,14 @@ export default function CRMPage() {
               <button 
                 type="submit"
                 disabled={savingCustomer}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 h-14"
+                className={`w-full ${theme.bg} ${theme.hover} text-white font-bold py-4 rounded-xl transition-all active:scale-95 disabled:opacity-50 mt-4 h-14 flex items-center justify-center shadow-sm`}
               >
-                {savingCustomer ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div> : 'Simpan Pelanggan'}
+                {savingCustomer ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Simpan Pelanggan'}
               </button>
             </form>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

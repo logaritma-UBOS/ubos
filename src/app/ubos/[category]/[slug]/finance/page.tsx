@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, RefreshCcw, Landmark, ShieldCheck, History, X, CheckCircle, Package } from 'lucide-react';
@@ -8,11 +8,28 @@ import { toast } from 'sonner';
 import Copilot from '@/components/Copilot';
 import AIBanner from '@/components/AIBanner';
 
-export default function FinancePage() {
+const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
+  kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
+  percetakan: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200', light: 'bg-indigo-50', hover: 'hover:bg-indigo-600' },
+  ritel: { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50', hover: 'hover:bg-amber-600' },
+  jasa: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200', light: 'bg-sky-50', hover: 'hover:bg-sky-600' },
+  default: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', hover: 'hover:bg-blue-600' },
+};
+
+export default function FinancePage({ params }: { params: Promise<{ slug: string; category: string }> }) {
+  const resolvedParams = use(params);
+  const { slug, category } = resolvedParams;
   const router = useRouter();
+  
+  const theme = themeColorMap[category?.toLowerCase()] || themeColorMap.default;
+
   const [wallet, setWallet] = useState<any>(null);
   const [merchantId, setMerchantId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [weeklyData, setWeeklyData] = useState<number[]>([]);
+  const [totalPendapatan, setTotalPendapatan] = useState(0);
+  const [totalPengeluaran, setTotalPengeluaran] = useState(0);
   
   // Modals state
   const [showTarikModal, setShowTarikModal] = useState(false);
@@ -26,7 +43,7 @@ export default function FinancePage() {
   const [showInputShiftModal, setShowInputShiftModal] = useState(false);
   const [sisaBahan, setSisaBahan] = useState('');
 
-  const fetchWallet = async () => {
+  const fetchData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -36,6 +53,28 @@ export default function FinancePage() {
         setMerchantId(merchantData.id);
         const { data: walletData } = await supabase.from('wallets').select('*').eq('merchant_id', merchantData.id).single();
         setWallet(walletData || { profit_bersih: 0, kas_bahan_baku: 0, kas_operasional: 0 });
+
+        // Fetch recent transactions
+        const { data: txs } = await supabase.from('transactions').select('*').eq('merchant_id', merchantData.id).order('created_at', { ascending: false }).limit(5);
+        setRecentTransactions(txs || []);
+
+        // Calculate weekly data (dummy simple calc for this example)
+        // In real app, group by day
+        const week = [0,0,0,0,0,0,0];
+        let pendapatan = 0;
+        let pengeluaran = 0;
+        
+        const { data: allTxs } = await supabase.from('transactions').select('*').eq('merchant_id', merchantData.id).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        allTxs?.forEach(tx => {
+           const d = new Date(tx.created_at).getDay();
+           week[d] += tx.total_net || 0;
+           pendapatan += tx.total_net || 0;
+           pengeluaran += (tx.total_gross - tx.total_net) || 0; // rough estimation for dummy
+        });
+        
+        setWeeklyData(week);
+        setTotalPendapatan(pendapatan);
+        setTotalPengeluaran(pengeluaran);
       }
     } catch (err) {
       console.error(err);
@@ -45,7 +84,7 @@ export default function FinancePage() {
   };
 
   useEffect(() => {
-    fetchWallet();
+    fetchData();
   }, []);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -119,8 +158,6 @@ export default function FinancePage() {
       
       // Implementasi Sisa Bahan Baku (Plan Option 1)
       const realHPP = totalHPP - estimasiSisa;
-      // Note: Profit bersih calculations logic could change if realHPP changes, 
-      // but according to the plan we mainly adjust the Kas Bahan Baku wallet.
       
       const logData = {
         merchant_id: merchantId,
@@ -142,7 +179,7 @@ export default function FinancePage() {
       
       setShiftSummary(logData);
       router.refresh();
-      await fetchWallet();
+      await fetchData();
       
     } catch (e) {
       console.error(e);
@@ -161,84 +198,140 @@ export default function FinancePage() {
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
+        <div className={`animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-${theme.bg.split('-')[1]}-500`}></div>
       </div>
     );
   }
 
+  const maxWeekly = Math.max(...weeklyData, 1);
+
   return (
-    <>
-      <header className="bg-primary shadow-sm px-5 py-4 flex justify-between items-center z-20 relative">
+    <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
+      <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Keuangan</h1>
-          <p className="text-white/80 text-xs mt-0.5">Uang otomatis terpisah setiap transaksi.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Laporan Keuangan</h1>
+          <p className="text-slate-500 text-sm mt-1.5 font-medium">Auto-split profit & ringkasan bisnis</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center space-x-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/30 backdrop-blur-sm">
-            <ShieldCheck size={12} className="text-emerald-300" />
-            <span>Auto-Split Aktif</span>
-          </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={initiateCloseShift} 
+            className={`h-11 px-5 ${theme.bg} ${theme.hover} text-white rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95`}
+          >
+            <ArrowDownToLine size={18} />
+            <span className="font-bold text-sm hidden md:inline">Tutup Shift</span>
+          </button>
         </div>
       </header>
 
-      <div className="px-5 pt-4 max-w-6xl mx-auto w-full relative z-20">
+      <div className="px-5 pt-2 max-w-6xl mx-auto w-full relative z-20">
         <AIBanner />
       </div>
 
       <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-28 md:pb-8 relative z-30">
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Main Wallet Card (Profit Owner) */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-xl shadow-slate-900/20 text-white relative overflow-hidden md:col-span-1">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Landmark size={120} />
+        {/* Top: 4 Bento Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+            <div className={`w-10 h-10 ${theme.light} ${theme.text} rounded-xl flex items-center justify-center mb-4 border ${theme.border}`}>
+              <ArrowUpFromLine size={20} />
+            </div>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pendapatan</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(totalPendapatan)}</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-sm border border-slate-800 text-white relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-10">
+              <Landmark size={80} />
+            </div>
+            <div className="w-10 h-10 bg-white/10 text-white rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm border border-white/10">
+              <Landmark size={20} />
+            </div>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider relative z-10">Laba Bersih</p>
+            <p className="text-xl md:text-2xl font-black text-white mt-1 relative z-10">{formatIDR(wallet?.profit_bersih || 0)}</p>
+          </div>
+          
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+             <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mb-4 border border-rose-200">
+              <ArrowDownToLine size={20} />
+            </div>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pengeluaran</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(totalPengeluaran)}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+             <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-blue-200">
+              <Wallet size={20} />
+            </div>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kas Operasional</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(wallet?.kas_operasional || 0)}</p>
+          </div>
+        </div>
+        
+        {/* Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bottom Left: Weekly Chart */}
+          <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col">
+            <h3 className="text-lg font-black text-slate-900 mb-6">Grafik 7 Hari</h3>
+            
+            <div className="flex-1 flex items-end gap-2 sm:gap-3 mt-auto h-48">
+              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day, i) => (
+                <div key={day} className="flex-1 flex flex-col items-center gap-2 group">
+                  <div className="w-full bg-slate-100 rounded-t-lg relative flex-1 flex items-end overflow-hidden">
+                     <div 
+                        className={`w-full ${theme.bg} rounded-t-lg transition-all duration-1000 ease-out group-hover:opacity-80`}
+                        style={{ height: `${(weeklyData[i] / maxWeekly) * 100}%`, minHeight: weeklyData[i] > 0 ? '4px' : '0' }}
+                     />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500">{day}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Right: Recent Transactions */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-lg font-black text-slate-900">Transaksi Terakhir</h3>
+              <button className={`text-xs font-bold ${theme.text} hover:underline`}>Lihat Semua</button>
             </div>
             
-            <div className="relative z-10">
-              <h2 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Profit Bersih (Milik Anda)</h2>
-              <p className="text-4xl font-black tracking-tight mb-6">{formatIDR(wallet?.profit_bersih || 0)}</p>
-              
-              <div className="flex gap-3">
-                <button onClick={() => setShowTarikModal(true)} className="flex-1 bg-white text-slate-900 hover:bg-slate-50 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95 text-sm">
-                  <ArrowUpFromLine size={16} /> Tarik Profit
-                </button>
-                <button className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-2xl flex items-center justify-center transition-colors shrink-0">
-                  <History size={18} />
-                </button>
-              </div>
+            <div className="flex-1 p-0 overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">ID</th>
+                    <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipe</th>
+                    <th className="px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Nominal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentTransactions.length > 0 ? recentTransactions.map(tx => (
+                    <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-slate-500">{tx.id.substring(0,8).toUpperCase()}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase">
+                          Penjualan
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <span className="font-black text-slate-800 text-sm">{formatIDR(tx.total_gross)}</span>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-8 text-center text-sm font-medium text-slate-500">
+                        Belum ada transaksi
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
-
-          {/* Operational Wallets */}
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:col-span-2">
-            {/* Kas Bahan Baku */}
-          <div className="bg-amber-50 rounded-3xl p-5 border border-amber-100 relative overflow-hidden">
-            <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-3">
-              <RefreshCcw size={14} />
-            </div>
-            <h3 className="text-[11px] font-bold text-amber-900/60 uppercase tracking-wider mb-1">Kas Bahan Baku</h3>
-            <p className="text-lg font-black text-amber-900">{formatIDR(wallet?.kas_bahan_baku || 0)}</p>
-            <p className="text-[10px] text-amber-700/80 mt-2 leading-tight">Uang khusus untuk belanja HPP besok.</p>
-          </div>
-
-          {/* Kas Operasional */}
-          <div className="bg-blue-50 rounded-3xl p-5 border border-blue-100 relative overflow-hidden">
-             <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3">
-              <Wallet size={14} />
-            </div>
-            <h3 className="text-[11px] font-bold text-blue-900/60 uppercase tracking-wider mb-1">Kas Operasional</h3>
-            <p className="text-lg font-black text-blue-900">{formatIDR(wallet?.kas_operasional || 0)}</p>
-            <p className="text-[10px] text-blue-700/80 mt-2 leading-tight">Uang untuk bayar sewa, gaji, & listrik.</p>
           </div>
         </div>
-      </div>
 
-        {/* Action Button */}
-        <div className="pt-4">
-          <button onClick={initiateCloseShift} className="w-full py-4 border-2 border-slate-200 border-dashed text-slate-500 rounded-2xl font-bold text-sm hover:bg-slate-50 hover:text-slate-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-            <ArrowDownToLine size={18} /> Tutup Shift Hari Ini
-          </button>
-        </div>
       </div>
 
       {/* Tarik Profit Modal */}
@@ -246,13 +339,13 @@ export default function FinancePage() {
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 pb-20">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-300">
             <div className="flex justify-between items-center mb-4">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+              <div className={`w-12 h-12 ${theme.light} ${theme.text} rounded-full flex items-center justify-center border ${theme.border}`}>
                 <ArrowUpFromLine size={24} />
               </div>
               <button onClick={() => setShowTarikModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full"><X size={20}/></button>
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-1">Tarik Profit Bersih</h2>
-            <p className="text-sm text-slate-500 mb-6">Saldo tersedia: <b>{formatIDR(wallet?.profit_bersih || 0)}</b></p>
+            <p className="text-sm text-slate-500 mb-6 font-medium">Saldo tersedia: <b>{formatIDR(wallet?.profit_bersih || 0)}</b></p>
             
             <form onSubmit={handleTarikProfit} className="space-y-4">
               <div className="relative">
@@ -262,18 +355,18 @@ export default function FinancePage() {
                   required
                   value={tarikAmount}
                   onChange={(e) => setTarikAmount(formatCurrencyInput(e.target.value))}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-lg font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-${theme.bg.split('-')[1]}-200 focus:border-${theme.bg.split('-')[1]}-500 transition-all`}
                   placeholder="0"
                 />
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setTarikAmount(formatCurrencyInput(String(wallet?.profit_bersih || 0)))} className="flex-1 text-xs font-bold text-primary bg-primary/10 py-2 rounded-xl">Tarik Semua</button>
+                <button type="button" onClick={() => setTarikAmount(formatCurrencyInput(String(wallet?.profit_bersih || 0)))} className={`flex-1 text-xs font-bold ${theme.text} ${theme.light} py-2.5 rounded-xl border ${theme.border}`}>Tarik Semua</button>
               </div>
               
               <button 
                 type="submit"
                 disabled={processing || !tarikAmount}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 disabled:opacity-50 mt-4 flex justify-center items-center h-14"
+                className={`w-full ${theme.bg} ${theme.hover} text-white font-bold py-4 rounded-xl transition-all active:scale-95 disabled:opacity-50 mt-4 flex justify-center items-center shadow-sm`}
               >
                 {processing ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Konfirmasi Penarikan'}
               </button>
@@ -286,14 +379,14 @@ export default function FinancePage() {
       {showInputShiftModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 pb-20">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-300">
-            <div className="flex justify-between items-center mb-4">
-              <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center">
+            <div className="flex justify-between items-center mb-5">
+              <div className={`w-12 h-12 ${theme.light} ${theme.text} rounded-full flex items-center justify-center border ${theme.border}`}>
                 <Package size={24} />
               </div>
-              <button onClick={() => setShowInputShiftModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full"><X size={20}/></button>
+              <button onClick={() => setShowInputShiftModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20}/></button>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-1">Tutup Shift</h2>
-            <p className="text-sm text-slate-500 mb-6">Masukkan estimasi sisa bahan baku hari ini agar AI dapat mengoreksi HPP aktual.</p>
+            <h2 className="text-xl font-black text-slate-900 mb-1">Tutup Shift</h2>
+            <p className="text-sm text-slate-500 mb-6 font-medium">Masukkan estimasi sisa bahan baku hari ini agar AI dapat mengoreksi HPP aktual.</p>
             
             <form onSubmit={handleCloseShift} className="space-y-4">
               <div className="relative">
@@ -302,15 +395,15 @@ export default function FinancePage() {
                   type="text" 
                   value={sisaBahan}
                   onChange={(e) => setSisaBahan(formatCurrencyInput(e.target.value))}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-lg font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-${theme.bg.split('-')[1]}-200 focus:border-${theme.bg.split('-')[1]}-500 transition-all`}
                   placeholder="0 (Opsional)"
                 />
               </div>
-              <p className="text-[10px] text-slate-400 leading-tight">Jika ada, nilai ini akan dikembalikan ke Kas Bahan Baku untuk modal esok hari.</p>
+              <p className="text-[11px] text-slate-500 leading-tight font-medium bg-slate-50 p-3 rounded-lg border border-slate-100">Jika ada, nilai ini akan dikembalikan ke Kas Bahan Baku untuk modal esok hari.</p>
               
               <button 
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 mt-4 flex justify-center items-center h-14"
+                className={`w-full ${theme.bg} ${theme.hover} text-white font-bold py-4 rounded-xl transition-all active:scale-95 mt-4 flex justify-center items-center shadow-sm`}
               >
                 Konfirmasi & Tutup Shift
               </button>
@@ -327,29 +420,29 @@ export default function FinancePage() {
               {shiftClosing && !shiftSummary ? (
                 <>
                   <div className="relative mb-6">
-                    <div className="w-16 h-16 border-4 border-slate-100 border-t-primary rounded-full animate-spin"></div>
+                    <div className={`w-16 h-16 border-4 border-slate-100 border-t-${theme.bg.split('-')[1]}-500 rounded-full animate-spin`}></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <ShieldCheck size={24} className="text-primary" />
+                      <ShieldCheck size={24} className={theme.text} />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Menutup Shift...</h3>
-                  <p className="text-xs text-slate-500 text-center">Menghitung total kas dan profit hari ini.</p>
+                  <h3 className="text-lg font-black text-slate-900 mb-1">Menutup Shift...</h3>
+                  <p className="text-sm font-medium text-slate-500 text-center">Menghitung total kas dan profit hari ini.</p>
                 </>
               ) : shiftSummary ? (
                 <div className="w-full">
-                  <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className={`w-16 h-16 ${theme.light} ${theme.text} border ${theme.border} rounded-full flex items-center justify-center mx-auto mb-5`}>
                     <CheckCircle size={32} />
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-1 text-center">Shift Ditutup!</h3>
-                  <p className="text-sm text-slate-500 text-center mb-6">Berikut adalah ringkasan performa hari ini.</p>
+                  <p className="text-sm font-medium text-slate-500 text-center mb-6">Berikut adalah ringkasan performa hari ini.</p>
                   
-                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 mb-6 border border-slate-100">
+                  <div className="bg-slate-50 rounded-2xl p-5 space-y-3 mb-6 border border-slate-100">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-200">
                       <span className="text-xs font-bold text-slate-500">Total Omzet</span>
                       <span className="font-bold text-slate-800">{formatIDR(shiftSummary.total_omzet)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-500">Alokasi HPP (Riil)</span>
+                      <span className="text-xs text-slate-500 font-medium">Alokasi HPP (Riil)</span>
                       <span className="font-medium text-slate-700">{formatIDR(shiftSummary.total_hpp)}</span>
                     </div>
                     {shiftSummary.sisa_bahan_baku > 0 && (
@@ -359,16 +452,16 @@ export default function FinancePage() {
                       </div>
                     )}
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-500">Alokasi Operasional</span>
+                      <span className="text-xs text-slate-500 font-medium">Alokasi Operasional</span>
                       <span className="font-medium text-slate-700">{formatIDR(shiftSummary.total_operasional)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-3 border-t border-slate-200">
-                      <span className="text-xs font-bold text-primary">Net Profit Bersih</span>
-                      <span className="font-black text-primary text-lg">{formatIDR(shiftSummary.total_profit_bersih)}</span>
+                      <span className={`text-xs font-black ${theme.text}`}>Net Profit Bersih</span>
+                      <span className={`font-black ${theme.text} text-lg`}>{formatIDR(shiftSummary.total_profit_bersih)}</span>
                     </div>
                   </div>
                   
-                  <button onClick={() => setShowShiftModal(false)} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95">
+                  <button onClick={() => setShowShiftModal(false)} className={`w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all active:scale-95 shadow-sm`}>
                     Selesai
                   </button>
                 </div>
@@ -379,6 +472,6 @@ export default function FinancePage() {
       )}
       
       <Copilot />
-    </>
+    </div>
   );
 }

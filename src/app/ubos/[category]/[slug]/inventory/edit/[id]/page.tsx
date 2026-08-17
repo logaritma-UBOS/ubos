@@ -7,7 +7,7 @@ import { ArrowLeft, Save, UploadCloud, Plus, Trash2, HelpCircle, ImagePlus } fro
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 
-export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string; category: string; slug: string }> }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
