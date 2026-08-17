@@ -23,9 +23,9 @@ export default function MerchantsPage() {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Whatsapp Modal State
-  const [waModalOpen, setWaModalOpen] = useState(false);
-  const [selectedWaTarget, setSelectedWaTarget] = useState({ name: '', phone: '', status: '', id: '', category: '' });
+  // Manage Modal State
+  const [manageModalOpen, setManageModalOpen] = useState(false);
+  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
 
   useEffect(() => {
     fetchMerchants();
@@ -44,6 +44,50 @@ export default function MerchantsPage() {
       toast.error('Gagal memuat merchants: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (status: string, days: number | 'lifetime') => {
+    if (!selectedMerchant) return;
+    try {
+      const now = new Date();
+      let expiresAt = new Date();
+      if (days === 'lifetime') {
+        expiresAt = new Date('2099-12-31T23:59:59Z');
+      } else {
+        expiresAt.setDate(now.getDate() + days);
+      }
+      
+      const payload = {
+        status: status,
+        subscription_status: status === 'Trial' ? 'inactive' : 'active',
+        trial_expires_at: expiresAt.toISOString()
+      };
+      
+      const { error } = await supabase.from('merchants').update(payload).eq('id', selectedMerchant.id);
+      if (error) throw error;
+      
+      toast.success(`Status ${selectedMerchant.nama_usaha} berhasil diperbarui!`);
+      setManageModalOpen(false);
+      fetchMerchants();
+    } catch(err: any) {
+      toast.error('Gagal memperbarui status: ' + err.message);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!selectedMerchant) return;
+    if (!confirm(`PERINGATAN BAHAYA!\n\nApakah Anda yakin ingin menghapus permanen merchant "${selectedMerchant.nama_usaha}"?\nSemua data transaksi, inventaris, dan pengaturan mereka akan terhapus dan TIDAK DAPAT DIPULIHKAN.`)) return;
+    
+    try {
+      const { error } = await supabase.from('merchants').delete().eq('id', selectedMerchant.id);
+      if (error) throw error;
+      
+      toast.success('Akun berhasil dihapus permanen');
+      setManageModalOpen(false);
+      fetchMerchants();
+    } catch(err: any) {
+      toast.error('Gagal menghapus: ' + err.message);
     }
   };
 
@@ -85,9 +129,9 @@ export default function MerchantsPage() {
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500 animate-pulse">Memuat data dari database...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 animate-pulse">Memuat data dari database...</td></tr>
               ) : merchants.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">Belum ada merchant.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500">Belum ada merchant.</td></tr>
               ) : (
                 merchants.map((merchant) => {
                   const isPremium = merchant.status === 'Premium' || merchant.subscription_status === 'active' || merchant.status === 'PREMIUM_PAID';
@@ -99,6 +143,7 @@ export default function MerchantsPage() {
                   const timeDiff = expiryDate.getTime() - now.getTime();
                   const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
                   const isExpired = daysRemaining < 0;
+                  const isLifetime = expiryDate.getFullYear() > 2050; // Check if it's set to 2099
 
                   return (
                     <tr key={merchant.id} className="hover:bg-slate-800/20 transition-colors">
@@ -126,31 +171,25 @@ export default function MerchantsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-center text-xs">
-                        {isPremium ? (
-                          <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest border border-emerald-500/20">Unlimited / Active</span>
+                        {isLifetime && isPremium ? (
+                          <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest border border-emerald-500/20">Lifetime / Active</span>
                         ) : isExpired ? (
                           <span className="text-red-500 font-bold bg-red-500/10 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest border border-red-500/20">Kadaluwarsa (Expired)</span>
                         ) : (
                           <div className="flex flex-col items-center">
                             <span className="text-slate-300 font-semibold">{expiryDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                            <span className="text-amber-500 font-bold text-[10px] mt-0.5">(Sisa {daysRemaining} Hari)</span>
+                            <span className={`${isPremium ? 'text-emerald-500' : 'text-amber-500'} font-bold text-[10px] mt-0.5`}>(Sisa {daysRemaining} Hari)</span>
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button 
-                          onClick={async () => {
-                            try {
-                              const newStatus = isPremium ? 'Trial' : 'Premium';
-                              await supabase.from('merchants').update({ status: newStatus }).eq('id', merchant.id);
-                              fetchMerchants();
-                              toast.success(`Status diubah menjadi ${newStatus}`);
-                            } catch (error) {
-                              toast.error('Gagal mengubah status');
-                            }
+                          onClick={() => {
+                            setSelectedMerchant(merchant);
+                            setManageModalOpen(true);
                           }}
                           className={`p-2 rounded-lg transition-colors border tooltip ${isPremium ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/20' : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-purple-500/20'}`}
-                          title={isPremium ? "Kembalikan ke Trial" : "Quick Upgrade Premium (Rp49rb)"}
+                          title="Kelola Langganan & Akun"
                         >
                           <Crown size={14} />
                         </button>
@@ -189,6 +228,56 @@ export default function MerchantsPage() {
         merchantId={selectedWaTarget.id}
         kategoriUsaha={selectedWaTarget.category}
       />
+
+      {/* Account Management Modal */}
+      {manageModalOpen && selectedMerchant && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setManageModalOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+              <h2 className="text-lg font-black text-white">Kelola Akun</h2>
+              <button onClick={() => setManageModalOpen(false)} className="p-2 text-slate-400 hover:text-white rounded-full transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Target Merchant</p>
+                <h3 className="font-bold text-white text-lg">{selectedMerchant.nama_usaha}</h3>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button onClick={() => handleUpdateStatus('PREMIUM_PAID', 7)} className="w-full flex items-center justify-between p-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 transition-colors">
+                  <span className="font-bold text-sm">👑 Premium 7 Hari</span>
+                  <span className="text-xs opacity-70">Quick Upgrade</span>
+                </button>
+                <button onClick={() => handleUpdateStatus('PREMIUM_PAID', 30)} className="w-full flex items-center justify-between p-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 transition-colors">
+                  <span className="font-bold text-sm">👑 Premium 30 Hari</span>
+                  <span className="text-xs opacity-70">Standar</span>
+                </button>
+                <button onClick={() => handleUpdateStatus('PREMIUM_PAID', 'lifetime')} className="w-full flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors">
+                  <span className="font-bold text-sm">👑 Premium Lifetime</span>
+                  <span className="text-xs opacity-70">VIP</span>
+                </button>
+              </div>
+
+              <hr className="border-slate-800" />
+
+              <div className="space-y-2">
+                <button onClick={() => handleUpdateStatus('Trial', 7)} className="w-full flex items-center justify-between p-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-colors">
+                  <span className="font-bold text-sm">⏪ Kembali ke Trial</span>
+                  <span className="text-xs opacity-70">Beri 7 Hari</span>
+                </button>
+                <button onClick={handleDeleteAccount} className="w-full flex items-center justify-between p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors mt-4">
+                  <span className="font-bold text-sm">🗑️ Hapus Akun</span>
+                  <span className="text-xs opacity-70">Permanen!</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
