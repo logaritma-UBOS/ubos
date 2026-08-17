@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import AiCopilotDrawer from './AiCopilotDrawer';
 import { useParams } from 'next/navigation';
 
@@ -31,11 +32,14 @@ export default function HeaderAiTrigger() {
       </button>
 
       {/* Slide-over Drawer Portal */}
-      <AiCopilotDrawer 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)} 
-        category={category}
-      />
+      {mounted && createPortal(
+        <AiCopilotDrawer 
+          isOpen={isOpen} 
+          onClose={() => setIsOpen(false)} 
+          category={category}
+        />,
+        document.body
+      )}
     </>
   );
 }
