@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Store, Save, ImagePlus, ScanBarcode, Camera } from 'lucide-react';
 import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 import CurrencyInput from '@/components/CurrencyInput';
 
 export default function InventoryRitelPage() {
@@ -218,19 +219,21 @@ export default function InventoryRitelPage() {
 
   return (
     <>
-      <header className="bg-gradient-to-r from-slate-900 to-slate-800 pb-10 pt-6 md:pt-8 px-5 relative md:rounded-b-[2rem] rounded-b-3xl shadow-xl z-20">
-        <div className="max-w-6xl mx-auto flex justify-between items-center relative z-10">
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-sm">Kalkulator HPP & Stok</h1>
-            <p className="text-slate-300 text-sm mt-1 font-medium">Manajemen produk & biaya produksi</p>
-          </div>
-          <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-            <Package size={24} className="text-white" />
-          </div>
-        </div>
-      </header>
+      
+          {/* Header Inventory - Modern Clean */}
+          <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
+                Inventori Ritel
+                <HeaderAiTrigger />
+              </h1>
+              <p className="text-slate-500 text-sm mt-1.5 flex items-center gap-1.5 font-medium">
+                Manajemen produk & stok
+              </p>
+            </div>
+          </header>
 
-      <div className="p-5 -mt-6 max-w-6xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
+      <div className="p-5 max-w-7xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
         
         {/* Kalkulator / Form Tambah Produk Ritel Card */}
         <div className="glass-card rounded-3xl p-6">

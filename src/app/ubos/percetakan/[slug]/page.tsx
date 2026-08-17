@@ -10,6 +10,7 @@ import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Copilot from '@/components/Copilot';
 import CopilotWidget from '@/components/CopilotWidget';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -167,26 +168,28 @@ return (
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 relative z-20 space-y-6">
         
-        {/* Target Profit Banner */}
-        <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden relative shadow-sm mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-center p-6 md:p-8 gap-4 md:gap-6">
-            <div className="flex flex-row items-center gap-4 w-full md:w-auto text-left">
-              <div className="w-16 h-16 bg-white rounded-2xl flex shrink-0 items-center justify-center shadow-sm border border-slate-200">
-                <Target size={32} className="text-[#4F75FF]" />
-              </div>
-              <div>
-                <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-1 tracking-tight">Capai Target Bulan Ini</h2>
-                <p className="text-slate-600 text-sm font-medium">Tentukan target profit bersih dan biarkan AI kami memberikan rekomendasi harian.</p>
-              </div>
-            </div>
-            <button 
+        
+        {/* Modern Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center flex-wrap gap-2">
+              Dashboard Percetakan
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">Live</span>
+              <HeaderAiTrigger />
+            </h1>
+            <p className="text-sm text-slate-500 font-medium mt-1">
+              {new Date().toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+             <button 
               onClick={() => setShowTargetModal(true)}
-              className="w-full md:w-auto bg-[#4F75FF] text-white px-5 py-2.5 rounded-xl font-bold transition-all hover:bg-blue-600 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 shrink-0" 
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm shadow-sm" 
             >
-              <Target size={20} />
-              TENTUKAN TARGET
+              <Target size={16} className="text-blue-600" />
+              Target: {formatIDR(parseInt(targetProfit || '0'))}
             </button>
           </div>
         </div>
