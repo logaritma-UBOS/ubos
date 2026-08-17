@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Store, Link as LinkIcon, QrCode, ExternalLink, Save, Copy, AlertCircle, Settings, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -142,8 +143,11 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
       <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Toko Online</h1>
-          <p className="text-slate-500 text-sm mt-1.5 font-medium">Pengaturan etalase digital & penerimaan order</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
+            Toko Online
+            <HeaderAiTrigger />
+          </h1>
+          <p className="text-slate-500 text-sm mt-1.5 font-medium">Katalog Etalase & Pengaturan Order</p>
         </div>
         <div className="flex gap-3">
           <Link 

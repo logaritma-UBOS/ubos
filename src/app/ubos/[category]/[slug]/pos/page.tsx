@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Receipt from '@/components/Receipt';
-import AIBanner from '@/components/AIBanner';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 type Channel = 'DINE_IN' | 'GOFOOD' | 'GRABFOOD' | 'SHOPEEFOOD';
 type PaymentMethod = 'TUNAI' | 'QRIS';
@@ -441,7 +441,10 @@ export default function POSPage() {
           {/* Header POS Flow - Modern Clean */}
           <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50">
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Smart POS</h1>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
+                Smart POS
+                <HeaderAiTrigger />
+              </h1>
               <p className="text-slate-500 text-sm mt-1.5 flex items-center gap-1.5 font-medium">
                 Proteksi Margin Aktif <span className={`${theme.text} font-bold bg-white px-2 py-0.5 rounded border ${theme.border}`}>({CHANNEL_COMMISSIONS[channel]*100}% Ter-cover)</span>
               </p>
@@ -450,10 +453,6 @@ export default function POSPage() {
                Kembali ke Dashboard
             </button>
           </header>
-
-          <div className="relative px-4 md:px-5 z-20">
-            <AIBanner />
-          </div>
 
           <div className="p-4 md:p-5 pt-2 space-y-6">
             {/* Channel Selector - Bento Box Style */}

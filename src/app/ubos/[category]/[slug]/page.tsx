@@ -10,7 +10,7 @@ import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Copilot from '@/components/Copilot';
 import CopilotWidget from '@/components/CopilotWidget';
-import AIBanner from '@/components/AIBanner';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 export default function UBOSDashboard() {
   const [merchant, setMerchant] = useState<any>(null);
@@ -162,9 +162,10 @@ return (
         {/* Modern Header Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center flex-wrap gap-2">
               Dashboard {params.category ? String(params.category).charAt(0).toUpperCase() + String(params.category).slice(1) : ''}
               <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">Live</span>
+              <HeaderAiTrigger />
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-1">
               {new Date().toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})}
@@ -181,23 +182,11 @@ return (
           </div>
         </div>
 
-        <AIBanner 
-          actionButton={
-            <button 
-              onClick={() => setShowTargetModal(true)}
-              className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm active:scale-95" 
-            >
-              <Target size={16} />
-              Tentukan Target Omzet
-            </button>
-          }
-        />
-
         {/* BENTO BOX GRID */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
           
-          {/* LEFT COLUMN: Main Stats & POS Tools (Span 8) */}
-          <div className="md:col-span-8 space-y-6">
+          {/* Main Stats & POS Tools (Full Width) */}
+          <div className="md:col-span-12 space-y-6">
             
             {/* Top 4 Metric Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -314,25 +303,7 @@ return (
 
           </div>
 
-          {/* RIGHT COLUMN: AI Copilot (Span 4) */}
-          <div className="md:col-span-4 h-full">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col overflow-hidden">
-              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-inner">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-slate-900 text-sm">AI Copilot</h2>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Logaritma Engine</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex-1 p-0 relative">
-                <Copilot inline={true} category={params.category as string} />
-              </div>
-            </div>
-          </div>
+
 
         </div>
 

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import { Wallet, Handshake, Copy, MessageCircle, Megaphone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import AIBanner from '@/components/AIBanner';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -140,16 +140,13 @@ export default function AffiliatePage() {
       {/* Header Bersih */}
       <div className="max-w-5xl mx-auto px-4 pt-6 md:pt-10 w-full mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center flex-wrap gap-3">
             <Handshake className={theme.text} size={28} />
             Program Afiliasi
+            <HeaderAiTrigger />
           </h1>
           <p className="text-slate-500 mt-1">Hasilkan komisi berulang dengan membagikan Logaritma ke rekan pengusaha Anda.</p>
         </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 pt-4 w-full">
-        <AIBanner />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 relative z-20 space-y-6">

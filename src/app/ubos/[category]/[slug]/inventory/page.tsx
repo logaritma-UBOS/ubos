@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import DummyDataInjector from '@/components/DummyDataInjector';
 import { toast } from 'sonner';
-import AIBanner from '@/components/AIBanner';
+import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -133,7 +133,10 @@ export default function InventoryPage() {
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
       <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Kalkulator HPP & Stok</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
+            Kalkulator HPP & Stok
+            <HeaderAiTrigger />
+          </h1>
           <p className="text-slate-500 text-sm mt-1.5 font-medium">Manajemen produk & biaya produksi</p>
         </div>
         <div className="flex gap-3">
@@ -152,10 +155,6 @@ export default function InventoryPage() {
           </Link>
         </div>
       </header>
-
-      <div className="px-5 pt-2 max-w-6xl mx-auto w-full">
-        <AIBanner />
-      </div>
 
       <div className="p-5 pt-0 max-w-6xl mx-auto space-y-6 relative z-30 animate-in fade-in duration-500">
         {/* ONBOARDING BANNER STEP 2 */}
