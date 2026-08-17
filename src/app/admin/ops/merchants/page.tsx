@@ -23,6 +23,10 @@ export default function MerchantsPage() {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Whatsapp Modal State
+  const [waModalOpen, setWaModalOpen] = useState(false);
+  const [selectedWaTarget, setSelectedWaTarget] = useState({ name: '', phone: '', status: '', id: '', category: '' });
+
   // Manage Modal State
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
