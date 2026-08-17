@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const fonnteToken = process.env.FONNTE_API_TOKEN;
+    const fonnteToken = process.env.FONNTE_API_TOKEN || 'rw47gsoTHcy86wGbxAtW';
     if (!fonnteToken || fonnteToken === 'FONNTE_TOKEN_PLACEHOLDER') {
       console.warn('Fonnte token is missing or placeholder. Simulating successful send for dev mode.');
       // Simulate API call delay
