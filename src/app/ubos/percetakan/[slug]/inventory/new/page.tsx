@@ -41,9 +41,7 @@ export default function InventoryPercetakanPage() {
     }
   };
 
-  useEffect(() => {
-    router.push(`/ubos/${params.category || 'percetakan'}/${params.slug}/inventory`);
-  }, []);
+  
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 

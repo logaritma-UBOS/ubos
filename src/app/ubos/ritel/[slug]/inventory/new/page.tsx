@@ -43,9 +43,7 @@ export default function InventoryRitelPage() {
     }
   };
 
-  useEffect(() => {
-    router.push(`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`);
-  }, []);
+  
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 

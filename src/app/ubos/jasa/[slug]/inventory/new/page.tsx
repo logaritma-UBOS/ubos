@@ -42,9 +42,7 @@ export default function InventoryJasaPage() {
     }
   };
 
-  useEffect(() => {
-    router.push(`/ubos/${params.category || 'jasa'}/${params.slug}/inventory`);
-  }, []);
+  
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
