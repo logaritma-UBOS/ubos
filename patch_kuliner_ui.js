@@ -1,165 +1,12 @@
-'use client';
+const fs = require('fs');
 
-import { useMemo, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
-import { ArrowLeft, UploadCloud, Plus, Trash2, ImagePlus, Save } from 'lucide-react';
-import { toast } from 'sonner';
-import CurrencyInput from '@/components/CurrencyInput';
+const file = 'src/app/ubos/[category]/[slug]/inventory/new/page.tsx';
+let code = fs.readFileSync(file, 'utf8');
 
-export default function NewProductPage() {
-  const router = useRouter();
-  const params = useParams();
-  const [loading, setLoading] = useState(false);
-  
-  // Product state
-  const [namaProduk, setNamaProduk] = useState('');
-  const [hargaJual, setHargaJual] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isAvailable, setIsAvailable] = useState<boolean>(true);
+const returnStartIndex = code.indexOf('return (');
+const codeBeforeReturn = code.substring(0, returnStartIndex);
 
-  // Recipe state
-  const [hppMode, setHppMode] = useState<'cepat' | 'detail'>('cepat');
-  const [totalBiayaBelanja, setTotalBiayaBelanja] = useState('');
-  const [estimasiPorsi, setEstimasiPorsi] = useState('');
-  const [biayaKemasan, setBiayaKemasan] = useState('');
-
-  const [recipes, setRecipes] = useState<any[]>([
-    { nama_bahan: '', gramatur_dibutuhkan: '', satuan: 'gram', harga_per_satuan: '' }
-  ]);
-
-  const handleAddRecipe = () => {
-    setRecipes([...recipes, { nama_bahan: '', gramatur_dibutuhkan: '', satuan: 'gram', harga_per_satuan: '' }]);
-  };
-
-  const handleRemoveRecipe = (index: number) => {
-    setRecipes(recipes.filter((_, i) => i !== index));
-  };
-
-  const handleRecipeChange = (index: number, field: string, value: string) => {
-    const newRecipes = [...recipes];
-    newRecipes[index][field] = value;
-    setRecipes(newRecipes);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const totalHPP = useMemo(() => {
-    if (hppMode === 'cepat') {
-      const belanja = parseFloat(totalBiayaBelanja.replace(/\D/g, '')) || 0;
-      const porsi = parseFloat(estimasiPorsi.replace(/\D/g, '')) || 1;
-      const kemasan = parseFloat(biayaKemasan.replace(/\D/g, '')) || 0;
-      return (belanja / (porsi || 1)) + kemasan;
-    }
-    
-    return recipes.reduce((sum, r) => {
-      const qty = parseFloat(r.gramatur_dibutuhkan.replace(/\D/g, '')) || 0;
-      const price = parseFloat(r.harga_per_satuan.replace(/\D/g, '')) || 0;
-      return sum + (qty * price);
-    }, 0);
-  }, [hppMode, totalBiayaBelanja, estimasiPorsi, biayaKemasan, recipes]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!namaProduk || !hargaJual) return;
-    
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not logged in');
-      
-      const { data: merchantData } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-      if (!merchantData) throw new Error('Merchant not found');
-
-      // 1. Upload image to Cloudinary if exists
-      let photo_url = '';
-      if (imageFile) {
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-        
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        if (uploadPreset) formData.append('upload_preset', uploadPreset);
-        
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.secure_url) {
-          photo_url = data.secure_url;
-        }
-      }
-
-      // 2. Insert Product
-      const hpp = totalHPP;
-      const harga = parseFloat(hargaJual.replace(/\D/g, '')) || 0;
-      
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .insert([{
-          merchant_id: merchantData.id,
-          nama_produk: namaProduk,
-          hpp_dasar: hpp,
-          harga_jual: harga,
-          photo_url: photo_url || null,
-          is_available: isAvailable
-        }])
-        .select()
-        .single();
-        
-      if (productError) throw productError;
-
-      // 3. Insert Recipes
-      let recipeInserts: any[] = [];
-      if (hppMode === 'cepat') {
-        recipeInserts = [{
-          product_id: productData.id,
-          nama_bahan: 'Bahan & Kemasan (Estimasi)',
-          gramatur_dibutuhkan: 1,
-          satuan: 'porsi',
-          harga_per_satuan: totalHPP
-        }];
-      } else {
-        const validRecipes = recipes.filter(r => r.nama_bahan && r.gramatur_dibutuhkan && r.harga_per_satuan);
-        if (validRecipes.length > 0) {
-          recipeInserts = validRecipes.map(r => ({
-            product_id: productData.id,
-            nama_bahan: r.nama_bahan,
-            gramatur_dibutuhkan: parseFloat(r.gramatur_dibutuhkan.replace(/\D/g, '')),
-            satuan: r.satuan,
-            harga_per_satuan: parseFloat(r.harga_per_satuan.replace(/\D/g, ''))
-          }));
-        }
-      }
-      
-      if (recipeInserts.length > 0 && productData) {
-        const { error: recipeError } = await supabase.from('recipes').insert(recipeInserts);
-        if (recipeError) throw recipeError;
-      }
-      
-      
-      toast.success('Produk berhasil ditambahkan!');
-      router.push(`/ubos/${params.category}/${params.slug}/inventory`);
-      
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal menyimpan produk.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-
-  return (
+const newRenderCode = `return (
     <>
       <header className="mb-6 flex items-center justify-between">
         <div>
@@ -192,7 +39,7 @@ export default function NewProductPage() {
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Foto Produk</label>
                   <div className="relative h-full min-h-[160px]">
                     <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                    <div className={`w-full h-full min-h-[160px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${imagePreview ? 'border-primary/50 bg-primary/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}>
+                    <div className={\`w-full h-full min-h-[160px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors \${imagePreview ? 'border-primary/50 bg-primary/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}\`}>
                       {imagePreview ? (
                         <img src={imagePreview} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -247,16 +94,16 @@ export default function NewProductPage() {
                   <button 
                     type="button"
                     onClick={() => setIsAvailable(!isAvailable)}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${isAvailable ? 'bg-primary' : 'bg-slate-300'}`}
+                    className={\`relative inline-flex h-8 w-14 items-center rounded-full transition-colors \${isAvailable ? 'bg-primary' : 'bg-slate-300'}\`}
                   >
-                    <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${isAvailable ? 'translate-x-7' : 'translate-x-1'}`} />
+                    <span className={\`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform \${isAvailable ? 'translate-x-7' : 'translate-x-1'}\`} />
                   </button>
                 </div>
               </div>
 
               <div className="flex p-1 bg-slate-100 rounded-xl max-w-[400px] mb-4">
-                <button type="button" onClick={() => setHppMode('cepat')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${hppMode === 'cepat' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>Mode Cepat</button>
-                <button type="button" onClick={() => setHppMode('detail')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${hppMode === 'detail' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>Mode Detail</button>
+                <button type="button" onClick={() => setHppMode('cepat')} className={\`flex-1 py-2 text-xs font-bold rounded-lg transition-all \${hppMode === 'cepat' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}\`}>Mode Cepat</button>
+                <button type="button" onClick={() => setHppMode('detail')} className={\`flex-1 py-2 text-xs font-bold rounded-lg transition-all \${hppMode === 'detail' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}\`}>Mode Detail</button>
               </div>
 
               {hppMode === 'cepat' ? (
@@ -344,7 +191,6 @@ export default function NewProductPage() {
             <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           ) : (
             <>
-              <Save size={18} />
               <span>Simpan Produk</span>
             </>
           )}
@@ -353,3 +199,7 @@ export default function NewProductPage() {
     </>
   );
 }
+`;
+
+fs.writeFileSync(file, codeBeforeReturn + newRenderCode);
+console.log('Patched kuliner UI');
