@@ -11,7 +11,6 @@ import CurrencyInput from '@/components/CurrencyInput';
 
 export default function InventoryPercetakanPage() {
   
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
   const searchParams = useSearchParams();
@@ -136,14 +135,6 @@ export default function InventoryPercetakanPage() {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
-      </div>
-    );
-  }
 
   const totalHPP = calculateTotalHPP();
 
