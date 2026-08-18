@@ -70,41 +70,75 @@ export default function RegisterPage() {
         throw new Error(result?.error || 'Gagal mendaftar. Silakan coba lagi.');
       }
 
-      if (!result.isNew) {
+      // Check if they already have an active session
+      const { data: { session } } = await supabase.auth.getSession();
+      let user = session?.user;
+
+      if (!result.isNew && !user) {
         toast.info('Nomor WhatsApp ini sudah terdaftar. Silakan login.');
         router.push('/auth/login');
         return;
       }
 
-      // 2. Insert user to Supabase Auth
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: dummyEmail,
-        password: password,
-      });
+      if (!user) {
+        // 2. Insert user to Supabase Auth
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: dummyEmail,
+          password: password,
+        });
 
-      if (signUpError) {
-        throw new Error('Gagal mendaftarkan akun: ' + signUpError.message);
+        if (signUpError) {
+          if (signUpError.message.toLowerCase().includes('already registered')) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: dummyEmail,
+              password: password,
+            });
+            if (signInError) {
+              throw new Error('Nomor WA sudah terdaftar, tetapi password salah. Silakan masuk lewat halaman Login.');
+            }
+            user = signInData?.user;
+          } else {
+            throw new Error('Gagal mendaftarkan akun: ' + signUpError.message);
+          }
+        } else {
+          user = data?.user;
+        }
       }
 
-      if (data?.user) {
-        // 3. Create merchant profile
-        const insertData = {
-          user_id: data.user.id,
-          nama_usaha: merchantName,
-          whatsapp: cleanWA,
-          kategori_usaha: categoryParam,
-          status: 'Trial',
-          created_at: new Date().toISOString()
-        };
+      if (user) {
+        // Check if merchant profile already exists
+        const { data: existingMerchant } = await supabase
+          .from('merchants')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        const { error: insertError } = await supabase.from('merchants').insert([insertData]);
-        
-        if (insertError) {
-          console.error("Gagal membuat profil merchant:", insertError);
+        let finalCategory = selectedCategory;
+        let finalMerchantName = merchantName;
+
+        if (!existingMerchant) {
+          // 3. Create merchant profile
+          const insertData = {
+            user_id: user.id,
+            nama_usaha: merchantName,
+            whatsapp: cleanWA,
+            kategori_usaha: selectedCategory,
+            status: 'Trial',
+            created_at: new Date().toISOString()
+          };
+
+          const { error: insertError } = await supabase.from('merchants').insert([insertData]);
+          
+          if (insertError) {
+            console.error("Gagal membuat profil merchant:", insertError);
+          }
+        } else {
+          finalCategory = existingMerchant.kategori_usaha || selectedCategory;
+          finalMerchantName = existingMerchant.nama_usaha || merchantName;
         }
 
-        const category = categoryParam.toLowerCase().split(' ')[0];
-        const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const category = finalCategory.toLowerCase().split(' ')[0] || 'kuliner';
+        const slug = finalMerchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || 'merchant';
         
         toast.success('Pendaftaran berhasil! Mengalihkan ke Dashboard...');
         setTimeout(() => {
