@@ -41,81 +41,11 @@ export default function InventoryPercetakanPage() {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (merchantData) {
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', merchantData.id)
-          .order('nama_produk', { ascending: true });
-        
-        setProducts(productsData || []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     router.push(`/ubos/${params.category || 'percetakan'}/${params.slug}/inventory`);
   }, []);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-
-  const filteredProducts = products.filter(p => 
-    p.nama_produk.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const confirmDelete = async () => {
-    if (!itemToDelete) return;
-    setLoading(true);
-    try {
-      await supabase.from('products').delete().eq('id', itemToDelete.id);
-      await router.push(`/ubos/${params.category || 'percetakan'}/${params.slug}/inventory`);
-      setItemToDelete(null);
-      toast.success(`Produk ${itemToDelete.name} berhasil dihapus.`);
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal menghapus produk');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleAvailability = async (id: string, currentStatus: boolean) => {
-    try {
-      const newStatus = !currentStatus;
-      setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: newStatus } : p));
-      
-      const { error } = await supabase
-        .from('products')
-        .update({ is_available: newStatus })
-        .eq('id', id);
-        
-      if (error) throw error;
-      toast.success(newStatus ? 'Produk Tersedia' : 'Produk Habis');
-    } catch (e) {
-      console.error(e);
-      router.push(`/ubos/${params.category || 'percetakan'}/${params.slug}/inventory`);
-      toast.error('Gagal mengubah status ketersediaan');
-    }
-  };
-
-  const handleDeleteClick = (id: string, name: string) => {
-    setItemToDelete({ id, name });
-  };
 
   const calculateTotalHPP = () => {
     const bahan = parseFloat(bahanBakuCost.replace(/\D/g, '')) || 0;
