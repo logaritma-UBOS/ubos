@@ -165,14 +165,27 @@ export default function EditPercetakanProductPage({ params }: { params: Promise<
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-slate-50 relative z-50 animate-in slide-in-from-right-full duration-300">
-      <header className="fixed top-0 z-40 h-[80px] bg-primary shadow-md max-w-md md:max-w-none mx-auto md:mx-0 left-0 md:left-64 right-0 px-5 py-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors">
-          <ArrowLeft size={20} />
+      
+      {/* Header Inventory - Modern Clean */}
+      <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
+            Edit Produk
+          </h1>
+          <p className="text-slate-500 text-sm mt-1.5 flex items-center gap-1.5 font-medium">
+            Ubah detail kalkulator HPP
+          </p>
+        </div>
+        <button 
+          onClick={() => router.back()}
+          className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm shadow-sm"
+        >
+          <ArrowLeft size={16} />
+          Kembali
         </button>
-        <h1 className="font-bold text-lg text-white">Edit Produk Percetakan</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-28 pt-24">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-28">
         <form id="productForm" onSubmit={handleSubmit} className="space-y-6">
           <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center gap-3 mb-6">

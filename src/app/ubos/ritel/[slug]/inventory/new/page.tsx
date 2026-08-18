@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
-import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Store, Save, ImagePlus, ScanBarcode, Camera } from 'lucide-react';
+import { ArrowLeft,  Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight, Store, Save, ImagePlus, ScanBarcode, Camera  } from 'lucide-react';
 import CameraScanner from '@/components/CameraScanner';
 import { toast } from 'sonner';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 import CurrencyInput from '@/components/CurrencyInput';
 
-export default function InventoryJasaPage() {
-  const [products, setProducts] = useState<any[]>([]);
+export default function InventoryRitelPage() {
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -20,7 +20,7 @@ export default function InventoryJasaPage() {
   const params = useParams();
 
   // Search State
-  const [searchQuery, setSearchQuery] = useState('');
+  
 
   // Modal State
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
@@ -31,6 +31,7 @@ export default function InventoryJasaPage() {
   const [namaProduk, setNamaProduk] = useState('');
   const [hargaBeli, setHargaBeli] = useState('');
   const [hargaJual, setHargaJual] = useState('');
+  const [stock, setStock] = useState('10');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -70,7 +71,7 @@ export default function InventoryJasaPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    router.push(`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`);
   }, []);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -85,7 +86,7 @@ export default function InventoryJasaPage() {
     setLoading(true);
     try {
       await supabase.from('products').delete().eq('id', itemToDelete.id);
-      await fetchProducts();
+      await router.push(`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`);
       setItemToDelete(null);
       toast.success(`Produk ${itemToDelete.name} berhasil dihapus.`);
     } catch (err) {
@@ -110,7 +111,7 @@ export default function InventoryJasaPage() {
       toast.success(newStatus ? 'Produk Tersedia' : 'Produk Habis');
     } catch (e) {
       console.error(e);
-      fetchProducts();
+      router.push(`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`);
       toast.error('Gagal mengubah status ketersediaan');
     }
   };
@@ -135,6 +136,7 @@ export default function InventoryJasaPage() {
 
       const beli = parseFloat(hargaBeli.replace(/\D/g, '')) || 0;
       const jual = parseFloat(hargaJual.replace(/\D/g, '')) || 0;
+      const stokInt = parseInt(stock) || 0;
 
       // Upload image to Cloudinary if a new file is selected
       let photo_url = null;
@@ -175,18 +177,29 @@ export default function InventoryJasaPage() {
         
       if (productError) throw productError;
 
-      toast.success('Layanan jasa berhasil ditambahkan!');
+      // Insert initial stock if any
+      if (stokInt > 0 && productData) {
+        await supabase.from('inventory_logs').insert([{
+          merchant_id: merchantData.id,
+          product_id: productData.id,
+          stok_tersisa: stokInt,
+          catatan: 'Stok Awal (Input Manual)'
+        }]);
+      }
+
+      toast.success('Produk ritel berhasil ditambahkan!');
       
       // Reset Form
       setSku('');
       setNamaProduk('');
       setHargaBeli('');
       setHargaJual('');
+      setStock('10');
       setImageFile(null);
       setImagePreview(null);
       
       // Refresh Data
-      fetchProducts();
+      router.push(`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`);
       
     } catch (err) {
       console.error(err);
@@ -208,16 +221,25 @@ export default function InventoryJasaPage() {
     <>
       
           {/* Header Inventory - Modern Clean */}
+          
+          {/* Header Inventory - Modern Clean */}
           <header className="px-5 py-6 md:py-8 flex justify-between items-center z-10 relative bg-slate-50">
             <div>
               <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-3">
-                Inventori Jasa
+                Tambah Produk Baru
                 <HeaderAiTrigger />
               </h1>
               <p className="text-slate-500 text-sm mt-1.5 flex items-center gap-1.5 font-medium">
-                Manajemen produk & stok
+                Tambah item kalkulator HPP baru
               </p>
             </div>
+            <Link 
+              href={`/ubos/${params.category || 'ritel'}/${params.slug}/inventory`}
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm shadow-sm"
+            >
+              <ArrowLeft size={16} />
+              Kembali
+            </Link>
           </header>
 
       <div className="p-5 max-w-7xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
@@ -229,8 +251,8 @@ export default function InventoryJasaPage() {
               <Package size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-800">Tambah Layanan Baru</h2>
-              <p className="text-xs text-slate-500">Input Kode Layanan, Modal Dasar (Opsional) vs Harga Jual.</p>
+              <h2 className="text-lg font-black text-slate-800">Tambah Produk & Stok Baru</h2>
+              <p className="text-xs text-slate-500">Input SKU, Harga Kulakan vs Harga Jual.</p>
             </div>
           </div>
 
@@ -253,7 +275,7 @@ export default function InventoryJasaPage() {
                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 text-slate-300">
                       <ImagePlus size={24} />
                     </div>
-                    <span className="text-[13px] font-bold text-slate-600 mb-1 leading-tight">Unggah Foto / Ikon Layanan</span>
+                    <span className="text-[13px] font-bold text-slate-600 mb-1 leading-tight">Unggah Foto Produk</span>
                     <span className="text-[10px] text-slate-400">PNG, JPG (Maks 5MB)</span>
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                   </label>
@@ -263,7 +285,7 @@ export default function InventoryJasaPage() {
               <div className="md:col-span-2 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Kode Layanan / Barcode</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">SKU / Barcode</label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -274,7 +296,7 @@ export default function InventoryJasaPage() {
                         <Camera size={20} />
                       </button>
                       <div className="relative flex-1">
-                        <input type="text" value={sku} onChange={e => setSku(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-mono min-w-0" placeholder="Scan / Ketik Kode..." />
+                        <input type="text" value={sku} onChange={e => setSku(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-mono min-w-0" placeholder="Scan / Ketik SKU..." />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                           <ScanBarcode size={18} />
                         </div>
@@ -282,19 +304,23 @@ export default function InventoryJasaPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Layanan / Paket</label>
-                    <input type="text" value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Contoh: Cuci Kiloan Ekspres" />
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Produk</label>
+                    <input type="text" value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Contoh: Indomie Goreng" />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">HPP / Biaya Modal (Opsional)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Harga Beli / Kulakan</label>
                     <CurrencyInput value={hargaBeli} onChange={setHargaBeli} className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="2500" icon="Rp" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Harga Layanan Eceran</label>
-                    <CurrencyInput value={hargaJual} onChange={setHargaJual} className="w-full pl-10 pr-3 py-3 bg-primary/5 border border-primary/20 text-primary rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" placeholder="6000" icon="Rp" />
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Harga Jual Eceran</label>
+                    <CurrencyInput value={hargaJual} onChange={setHargaJual} className="w-full pl-10 pr-3 py-3 bg-primary/5 border border-primary/20 text-primary rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" placeholder="3000" icon="Rp" />
+                  </div>
+                  <div>
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Stok Awal (Qty)</label>
+                     <input type="number" value={stock} onChange={e => setStock(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm font-bold text-slate-800" placeholder="10" />
                   </div>
                 </div>
               </div>
@@ -311,7 +337,7 @@ export default function InventoryJasaPage() {
                 ) : (
                   <>
                     <Save size={18} />
-                    <span>Simpan Layanan</span>
+                    <span>Simpan ke Inventori</span>
                   </>
                 )}
               </button>
@@ -322,7 +348,7 @@ export default function InventoryJasaPage() {
         {/* Product List Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-slate-800">Daftar Layanan</h2>
+            <h2 className="text-base font-bold text-slate-800">Daftar Barang & Stok</h2>
             <div className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
               <Package size={14} />
               {products.length} SKU
@@ -337,7 +363,7 @@ export default function InventoryJasaPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari berdasarkan nama atau kode layanan..."
+              placeholder="Cari berdasarkan nama atau SKU barcode..."
               className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
             />
           </div>
@@ -348,7 +374,7 @@ export default function InventoryJasaPage() {
                 <Store size={32} />
               </div>
               <p className="text-slate-800 font-bold text-base mb-1">Belum ada barang</p>
-              <p className="text-slate-500 text-sm leading-relaxed max-w-[250px]">Gunakan form di atas untuk menambahkan layanan jasa atau paket Anda.</p>
+              <p className="text-slate-500 text-sm leading-relaxed max-w-[250px]">Gunakan form di atas untuk menambahkan barang jualan ritel Anda.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
@@ -395,7 +421,7 @@ export default function InventoryJasaPage() {
                   </div>
                   
                   <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/ubos/jasa/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
+                    <Link href={`/ubos/ritel/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
                     <button onClick={() => handleDeleteClick(product.id, product.nama_produk)} className="flex-1 font-bold text-[11px] text-slate-500 hover:text-red-500 transition-colors py-2 bg-slate-50 hover:bg-red-50 rounded-lg flex items-center justify-center gap-1.5"><Trash2 size={14} /> Hapus</button>
                   </div>
                 </div>
@@ -417,26 +443,6 @@ export default function InventoryJasaPage() {
         />
       )}
 
-      {/* Custom Delete Modal */}
-      {itemToDelete && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
-              <Trash2 size={32} />
-            </div>
-            <h3 className="text-xl font-black text-slate-900 mb-2 text-center">Hapus Produk?</h3>
-            <p className="text-sm text-slate-500 text-center mb-6">Produk <strong className="text-slate-800">{itemToDelete.name}</strong> akan dihapus permanen.</p>
-            <div className="w-full space-y-3">
-              <button onClick={confirmDelete} className="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all active:scale-95">
-                Ya, Hapus
-              </button>
-              <button onClick={() => setItemToDelete(null)} className="w-full py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95">
-                Batal
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      </>
   );
 }
