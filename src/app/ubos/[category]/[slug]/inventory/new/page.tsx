@@ -161,7 +161,7 @@ export default function NewProductPage() {
 
   return (
     <>
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-6 flex items-center justify-between px-5 pt-5 md:pt-8 max-w-7xl mx-auto">
         <div>
           <button onClick={() => router.back()} className="flex items-center text-slate-500 hover:text-primary transition-colors text-sm font-bold mb-2">
             <ArrowLeft size={16} className="mr-1" />
