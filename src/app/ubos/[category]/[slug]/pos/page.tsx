@@ -21,11 +21,11 @@ const themeColorMap: Record<string, { bg: string, text: string, border: string, 
   default: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', hover: 'hover:bg-blue-600' },
 };
 
-const CHANNEL_COMMISSIONS: Record<string, number> = {
-  'Dine In': 0,
-  'ShopeeFood': 0.20,
-  'GrabFood': 0.20,
-  'GoFood': 0.20,
+const CHANNEL_COMMISSIONS: Record<Channel, number> = {
+  'DINE_IN': 0,
+  'SHOPEEFOOD': 0.50,
+  'GRABFOOD': 0.45,
+  'GOFOOD': 0.35,
 };
 
 export default function POSPage() {
@@ -138,7 +138,7 @@ export default function POSPage() {
     }
 
     const commission = CHANNEL_COMMISSIONS[channel];
-    const price = basePrice / (1 - commission);
+    const price = basePrice / (1 - (commission || 0));
     return Math.ceil(price / 100) * 100; // Round to nearest 100
   };
 
@@ -467,7 +467,7 @@ export default function POSPage() {
                       isSelected ? `${theme.bg} text-white shadow-md` : 'text-slate-500 hover:bg-slate-50'
                     }`}
                   >
-                    {c.replace('_', ' ')}
+                    {c === 'DINE_IN' ? 'Dine In' : c === 'GOFOOD' ? 'GoFood' : c === 'GRABFOOD' ? 'GrabFood' : c === 'SHOPEEFOOD' ? 'ShopeeFood' : c.replace('_', ' ')}
                   </button>
                 );
               })}

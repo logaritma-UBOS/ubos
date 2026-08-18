@@ -163,7 +163,7 @@ export default function InventoryPercetakanPage() {
             </Link>
           </header>
 
-      <div className="p-5 max-w-7xl mx-auto space-y-6 pb-28 md:pb-10 relative z-30 animate-in fade-in duration-500">
+      <div className="p-5 max-w-7xl mx-auto space-y-6 pb-32 relative z-30 animate-in fade-in duration-500">
         
         {/* Kalkulator HPP Card */}
         <div className="glass-card rounded-3xl p-6">
@@ -239,29 +239,28 @@ export default function InventoryPercetakanPage() {
               </div>
             </div>
             
-            <div className="pt-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="w-full md:w-auto">
-              </div>
-              
-              <button 
-                onClick={handleSaveProduct} 
-                disabled={saving || !namaProduk}
-                className="w-full md:w-auto bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm shadow-primary/20"
-              >
-                {saving ? (
-                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    <span>Hitung HPP & Simpan</span>
-                  </>
-                )}
-              </button>
-            </div>
+            
           </div>
         </div>
 
               </div>
+    
+      <div className="fixed bottom-0 z-50 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-w-7xl mx-auto flex justify-end">
+        <button 
+          onClick={handleSaveProduct} 
+          disabled={saving || !namaProduk}
+          className="w-full md:w-auto md:min-w-[200px] bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-6 rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2 shadow-sm shadow-primary/20"
+        >
+          {saving ? (
+            <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          ) : (
+             <>
+               <Save size={18} />
+               <span>Simpan Produk</span>
+             </>
+          )}
+        </button>
+      </div>
     </>
   );
 }

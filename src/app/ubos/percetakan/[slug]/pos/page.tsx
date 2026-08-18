@@ -153,7 +153,7 @@ export default function POSPercetakanPage() {
     }
 
     const commission = CHANNEL_COMMISSIONS[channel];
-    const price = basePrice / (1 - commission);
+    const price = basePrice / (1 - (commission || 0));
     return Math.ceil(price / 100) * 100; // Round to nearest 100
   };
 
