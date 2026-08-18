@@ -23,7 +23,7 @@ export default function InventoryRitelPage() {
   
 
   // Modal State
-  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  
   const [showScanner, setShowScanner] = useState(false);
 
   // Form State (Tambah Produk Ritel)
@@ -345,104 +345,7 @@ export default function InventoryRitelPage() {
           </div>
         </div>
 
-        {/* Product List Section */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-slate-800">Daftar Barang & Stok</h2>
-            <div className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
-              <Package size={14} />
-              {products.length} SKU
-            </div>
-          </div>
-          
-          <div className="relative mb-4">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              <Search size={18} />
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari berdasarkan nama atau SKU barcode..."
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-            />
-          </div>
-          
-          {filteredProducts.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center flex flex-col items-center">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300 shadow-inner border border-slate-100">
-                <Store size={32} />
               </div>
-              <p className="text-slate-800 font-bold text-base mb-1">Belum ada barang</p>
-              <p className="text-slate-500 text-sm leading-relaxed max-w-[250px]">Gunakan form di atas untuk menambahkan barang jualan ritel Anda.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-              {filteredProducts.map((product) => {
-                const isAvailable = product.is_available ?? true;
-                // Asumsi dummy alert "Stok Tipis" untuk mockup jika data stok kurang dari batas
-                // Jika tidak ada stok, kita mockup acak atau rely on is_available
-                const isLowStock = !isAvailable; // simplified low stock UI
-                return (
-                <div key={product.id} className={`bg-white rounded-2xl p-3 shadow-sm border ${isLowStock ? 'border-red-200' : 'border-slate-100'} flex flex-col h-full relative overflow-hidden group max-w-xs mx-auto w-full ${!isAvailable ? 'grayscale opacity-75' : ''}`}>
-                  <div className="absolute top-2 left-2 z-10 flex gap-1 flex-col">
-                    <button 
-                      type="button"
-                      onClick={() => toggleAvailability(product.id, isAvailable)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shadow-sm ${isAvailable ? 'bg-primary' : 'bg-slate-300'}`}
-                    >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAvailable ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
-                    {!isAvailable && (
-                      <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded animate-pulse w-fit">STOK HABIS</span>
-                    )}
-                  </div>
-                  
-                  <div className="aspect-[4/3] w-full bg-slate-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden border border-slate-100 relative">
-                    {product.photo_url ? (
-                      <img src={product.photo_url} alt={product.nama_produk} className="w-full h-full object-cover" />
-                    ) : (
-                      <Store size={32} className="text-slate-300" />
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col">
-                    <h3 className="font-bold text-slate-800 text-[13px] line-clamp-2 leading-tight">{product.nama_produk}</h3>
-                    {product.sku && <p className="text-[10px] text-slate-400 font-mono mt-0.5 tracking-wider">{product.sku}</p>}
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Kulakan</span>
-                        <span className="font-bold text-slate-700">{formatIDR(product.hpp_dasar)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Jual</span>
-                        <span className="font-bold text-primary">{formatIDR(product.harga_jual)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/ubos/ritel/${params.slug as string}/inventory/edit/${product.id}`} className="flex-1 text-center font-bold text-[11px] text-slate-500 hover:text-primary transition-colors py-2 bg-slate-50 hover:bg-primary/10 rounded-lg flex items-center justify-center gap-1.5"><Edit size={14} /> Edit</Link>
-                    <button onClick={() => handleDeleteClick(product.id, product.nama_produk)} className="flex-1 font-bold text-[11px] text-slate-500 hover:text-red-500 transition-colors py-2 bg-slate-50 hover:bg-red-50 rounded-lg flex items-center justify-center gap-1.5"><Trash2 size={14} /> Hapus</button>
-                  </div>
-                </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {showScanner && (
-        <CameraScanner
-          onClose={() => setShowScanner(false)}
-          onScan={(decodedText) => {
-            setSku(decodedText.trim());
-            setShowScanner(false);
-            toast.success('Barcode berhasil di-scan');
-          }}
-        />
-      )}
-
-      </>
+    </>
   );
 }
