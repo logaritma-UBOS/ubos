@@ -74,7 +74,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false);
-      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/admin') && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
       } else if (session && pathname?.startsWith('/auth')) {
         if (fetchedMerchant) {
@@ -126,7 +126,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary-dark');
       }
       
-      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && pathname !== '/admin' && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/admin') && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
         router.push('/');
       } else if (newSession && pathname?.startsWith('/auth')) {
         // Since we are inside the callback, we should fetch merchant again if needed, or rely on state.
