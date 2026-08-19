@@ -195,7 +195,7 @@ export default function LoginPage() {
           <p className="text-sm text-slate-600">
             Belum punya akun?{' '}
             <Link href="/auth/daftar" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
-              Dftar Sekarang
+              Daftar Sekarang
             </Link>
           </p>
         </div>

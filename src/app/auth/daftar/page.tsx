@@ -45,7 +45,6 @@ export default function RegisterPage() {
       const dummyEmail = `${cleanWA}@logaritma.id`;
       const categoryParam = selectedCategory;
       
-      // 1. Panggil API untuk insert ke leads & kirim WA Fonnte
       const res = await fetch('/api/leads/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,9 +69,8 @@ export default function RegisterPage() {
         throw new Error(result?.error || 'Gagal mendaftar. Silakan coba lagi.');
       }
 
-      // Check if they already have an active session
       const { data: { session } } = await supabase.auth.getSession();
-      let user = session?.user;
+      let user: any = session?.user || null;
 
       if (!result.isNew && !user) {
         toast.info('Nomor WhatsApp ini sudah terdaftar. Silakan login.');
@@ -81,7 +79,6 @@ export default function RegisterPage() {
       }
 
       if (!user) {
-        // 2. Insert user to Supabase Auth
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: dummyEmail,
           password: password,
@@ -106,7 +103,6 @@ export default function RegisterPage() {
       }
 
       if (user) {
-        // Check if merchant profile already exists
         const { data: existingMerchant } = await supabase
           .from('merchants')
           .select('*')
@@ -117,7 +113,6 @@ export default function RegisterPage() {
         let finalMerchantName = merchantName;
 
         if (!existingMerchant) {
-          // 3. Create merchant profile
           const insertData = {
             user_id: user.id,
             nama_usaha: merchantName,
@@ -280,16 +275,16 @@ export default function RegisterPage() {
             )}
           </button>
         </div>
-
-        <div className="text-center pt-4 border-t border-slate-100 mt-6">
-          <p className="text-sm text-slate-600">
-            Sudah punya akun?{' '}
-            <Link href="/auth/login" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
-              Masuk
-            </Link>
-          </p>
-        </div>
       </form>
+
+      <div className="text-center pt-4 border-t border-slate-100 mt-6">
+        <p className="text-sm text-slate-600">
+          Sudah punya akun?{' '}
+          <Link href="/auth/login" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
+            Masuk
+          </Link>
+        </p>
+      </div>
     </AuthLayout>
   );
 }
