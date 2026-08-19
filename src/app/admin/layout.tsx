@@ -28,6 +28,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const checkAuth = async () => {
     setLoading(true);
     try {
+      // Check local bypass first
+      if (typeof window !== 'undefined' && sessionStorage.getItem('logaritma_admin_auth') === 'true') {
+        setIsAdmin(true);
+        setAdminEmail('logaritma.tim@gmail.com');
+        setLoading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsAdmin(false); setLoading(false); return; }
       const { data: profile } = await supabase
@@ -62,6 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     try {
       // Hardcode bypass since Supabase might not have this credential
       if (email === 'logaritma.tim@gmail.com' && password === 'adminlog2026') {
+        sessionStorage.setItem('logaritma_admin_auth', 'true');
         setIsAdmin(true);
         setAdminEmail(email);
         setIsLoggingIn(false);
@@ -78,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('logaritma_admin_auth');
     await supabase.auth.signOut();
     setIsAdmin(false);
     setEmail('');
