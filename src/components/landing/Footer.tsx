@@ -3,16 +3,41 @@
 import React, { useState } from 'react';
 import { ArrowRight, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
 
-export default function Footer({ onOpenEnrollment }) {
-  const [newsletterEmail, setNewsletterEmail] = useState('');
+export default function Footer({ onOpenEnrollment }: { onOpenEnrollment?: () => void }) {
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e: any) => {
     e.preventDefault();
-    if (newsletterEmail) {
-      setSubscribed(true);
-      setTimeout(() => setSubscribed(false), 3000);
-      setNewsletterEmail('');
+    if (!phoneNumber) return;
+
+    try {
+      const response = await fetch('/api/leads/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          no_wa: phoneNumber,
+          password: 'ubos-buletin-123',
+          nama_usaha: 'Subscriber Buletin',
+          kategori: 'Buletin Website',
+          funnel_destination: 'Footer Homepage'
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubscribed(true);
+        setTimeout(() => setSubscribed(false), 3000);
+        setPhoneNumber('');
+      } else {
+        alert(result.error || "Gagal mendaftar, silakan coba lagi.");
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+      alert("Terjadi kesalahan sistem saat menghubungi server.");
     }
   };
 
@@ -35,21 +60,6 @@ export default function Footer({ onOpenEnrollment }) {
             <p className="text-slate-400 leading-relaxed font-normal max-w-sm">
               Platform Kasir POS, Anti Dead-Stock, & Margin Guard UMKM terdepan di Indonesia. Membantu pemilik bisnis menghitung HPP asli, mengunci margin keuntungan, dan menghentikan kebocoran modal.
             </p>
-
-            <div className="flex items-center gap-3 pt-2">
-              <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 transition-colors">
-                <span className="font-bold">in</span>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-emerald-500 transition-colors">
-                <span className="font-bold">ig</span>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-500 transition-colors">
-                <span className="font-bold">x</span>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-rose-500 transition-colors">
-                <span className="font-bold">yt</span>
-              </a>
-            </div>
           </div>
 
           {/* Col 2: Quick Links */}
@@ -68,11 +78,10 @@ export default function Footer({ onOpenEnrollment }) {
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider">Sektor UMKM</h4>
             <ul className="space-y-2.5">
-              <li><a href="#programs" className="hover:text-blue-400 transition-colors">Toko Kelontong & Ritel</a></li>
-              <li><a href="#programs" className="hover:text-blue-400 transition-colors">FnB, Cafe & Resto</a></li>
+              <li><a href="#programs" className="hover:text-blue-400 transition-colors">Retail</a></li>
+              <li><a href="#programs" className="hover:text-blue-400 transition-colors">Kuliner, Cafe & Resto</a></li>
               <li><a href="#programs" className="hover:text-blue-400 transition-colors">Percetakan & Digital Print</a></li>
               <li><a href="#programs" className="hover:text-blue-400 transition-colors">Laundry & Service Center</a></li>
-              <li><a href="#programs" className="hover:text-blue-400 transition-colors">Grosir Multi-Cabang</a></li>
             </ul>
           </div>
 
@@ -85,16 +94,15 @@ export default function Footer({ onOpenEnrollment }) {
 
             <form onSubmit={handleSubscribe} className="space-y-2">
               <input
-                type="email"
-                required
-                placeholder="Email aktif usahamu..."
-                value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
+                type="text"
+                placeholder="Masukkan nomor telepon..."
+                value={phoneNumber}
+                onChange={(e: any) => setPhoneNumber(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-xs"
               />
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <span>{subscribed ? '✓ Subscribed!' : 'Langganan Tips Gratis'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -112,7 +120,7 @@ export default function Footer({ onOpenEnrollment }) {
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-slate-300">Kebijakan Privasi</a>
             <a href="#" className="hover:text-slate-300">Syarat & Ketentuan Service</a>
-            <a href="#" className="hover:text-slate-300">Garansi Uji Coba 14 Hari</a>
+            <a href="#" className="hover:text-slate-300">Garansi Uji Coba 7 Hari</a>
           </div>
         </div>
 

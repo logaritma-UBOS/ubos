@@ -77,8 +77,9 @@ export async function POST(req: NextRequest) {
     const insertPayload = {
       nama_usaha,
       no_wa,
+      whatsapp: no_wa,
       kategori,
-      status: 'New Lead',
+      status: 'New',
       password_session: password,
       funnel_destination,
       referred_by: referredBy

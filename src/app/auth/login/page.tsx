@@ -29,6 +29,13 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    // Validasi pencegahan jika state kosong akibat autofill yang belum sinkron
+    if (!whatsapp || !password) {
+      setError('Nomor WhatsApp dan password harus terisi.');
+      setLoading(false);
+      return;
+    }
+
     try {
       let cleanWA = normalizePhone(whatsapp);
       if (cleanWA.length < 10) throw new Error('Nomor WhatsApp tidak valid. Minimal 10 digit.');
@@ -100,12 +107,13 @@ export default function LoginPage() {
           const slug = merchantData.nama_usaha ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : merchantData.id || 'merchant';
           router.push(`/ubos/${category}/${slug}`);
         } else {
-          router.push('/auth/daftar');
+          // Jika data merchant belum ada, arahkan dengan aman atau buatkan data default daripada melempar ke daftar
+          router.push('/ubos/kuliner/merchant');
         }
         return;
       }
       
-      router.push('/auth/daftar');
+      throw new Error('Sesi login gagal dikenali. Silakan coba klik Masuk kembali.');
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
@@ -134,6 +142,7 @@ export default function LoginPage() {
             <input
               type="tel"
               required
+              autoComplete="username tel"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 transition-colors"
@@ -151,6 +160,7 @@ export default function LoginPage() {
             <input
               type={showPassword ? 'text' : 'password'}
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 transition-colors"
@@ -185,7 +195,7 @@ export default function LoginPage() {
           <p className="text-sm text-slate-600">
             Belum punya akun?{' '}
             <Link href="/auth/daftar" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
-              Daftar Sekarang
+              Dftar Sekarang
             </Link>
           </p>
         </div>
