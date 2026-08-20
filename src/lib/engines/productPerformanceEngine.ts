@@ -1,4 +1,4 @@
-import { calculateGrossProfit, calculateMargin } from "./calculationEngine"
+import { calculateGrossProfit, calculateMargin } from "./mathEngine"
 
 export type ProductPerformanceMetric = {
   productId: string
