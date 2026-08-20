@@ -22,9 +22,8 @@ export default function SalesTimeClient() {
           return
         }
 
-        if (res.currentSales && res.previousSales && res.timezone) {
-          const calculated = calculateSalesTimeAnalysis(res.timezone, res.currentSales, res.previousSales)
-          setResult(calculated)
+        if (res.result) {
+          setResult(res.result)
         }
       } catch (e: any) {
         setError(e.message)

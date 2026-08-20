@@ -23,10 +23,9 @@ export default function PerformaProdukClient() {
           return
         }
 
-        if (res.currentSales && res.previousSales) {
-          const calculated = calculateProductPerformance(res.currentSales, res.previousSales, res.activeDays || 1)
-          setMetrics(calculated)
-          setContext(generateRecommendationContext(calculated))
+        if (res.result) {
+          setMetrics(res.result)
+          setContext(generateRecommendationContext(res.result))
         }
       } catch (e: any) {
         setError(e.message)

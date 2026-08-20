@@ -23,10 +23,9 @@ export async function fetchBusinessInsightsData() {
     const aovData = await fetchAOVMarginData("30_DAYS")
     if (aovData.error) return { error: aovData.error }
 
-    const { currentSales, previousSales, activeDays, timezone } = aovData
+    const { aovResult, timezone, currentSalesCount, previousSalesCount } = aovData
     
-    // We re-run the engine calculation server-side strictly for insight processing
-    const aovResult = calculateAOVMarginAnalysis(currentSales as any, previousSales as any, activeDays as number)
+    if (!aovResult) return { error: "Failed to calculate AOV logic" }
     
     // Evaluate extra signals based on the result
     const hasHighRevenueLowMarginProduct = aovResult.productMix.some(p => 
@@ -35,18 +34,16 @@ export async function fetchBusinessInsightsData() {
 
     // For peak hour, we mimic a lightweight version to check if current hour is low margin
     let isPeakHourLowMargin = false
-    if ((currentSales as any).length > 0 && timezone) {
+    if ((currentSalesCount as number) > 0 && timezone) {
        const now = getBusinessTime(timezone as string, new Date())
        const currentHour = now.getHours()
-       // Lightweight mock logic - in full version we'd merge with salesTimeEngine output exactly,
-       // but pattern detection only cares about boolean signals. 
-       // We'll consider it false for now unless we do a full time array.
+       // Lightweight mock logic
     }
 
     // Pattern Detection
     const patterns = detectPatterns({
       revenue: { current: aovResult.totalOmzet, previous: aovResult.totalOmzet - (aovResult.totalOmzet * (aovResult.aovChangePercentage / 100)) }, // Fallback calculation 
-      transaction: { current: currentSales?.length || 0, previous: previousSales?.length || 0 },
+      transaction: { current: currentSalesCount as number, previous: previousSalesCount as number },
       aov: { current: aovResult.currentAOV, previous: aovResult.previousAOV },
       margin: { current: aovResult.currentMargin, previous: aovResult.previousMargin },
       hasHighRevenueLowMarginProduct,

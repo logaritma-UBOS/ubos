@@ -56,5 +56,8 @@ export async function fetchProductPerformanceData(period: PeriodFilter) {
   if (period === "7_DAYS") activeDays = 7
   if (period === "30_DAYS") activeDays = 30
 
-  return { success: true, currentSales, previousSales, activeDays, timezone: tz }
+  const { calculateProductPerformance } = await import("@/lib/engines/productPerformanceEngine")
+  const result = calculateProductPerformance(currentSales as any, previousSales as any, activeDays)
+
+  return { success: true, result, timezone: tz }
 }

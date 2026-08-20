@@ -22,13 +22,8 @@ export default function AOVMarginClient() {
           return
         }
 
-        if (res.currentSales && res.previousSales && res.activeDays) {
-          // The engine aggregates everything server-side logic in a headless way.
-          // Because Server Actions can't pass complex maps back and forth efficiently,
-          // the standard pattern here is feeding the raw secure query output to the engine locally in the client layer
-          // just to produce the output object, but absolutely NO separate Math.max/reduce logic is written directly here.
-          const calculated = calculateAOVMarginAnalysis(res.currentSales as any, res.previousSales as any, res.activeDays)
-          setResult(calculated)
+        if (res.aovResult) {
+          setResult(res.aovResult)
         }
       } catch (e: any) {
         setError(e.message)

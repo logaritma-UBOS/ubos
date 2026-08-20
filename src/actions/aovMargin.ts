@@ -68,5 +68,15 @@ export async function fetchAOVMarginData(period: AOVMarginPeriodFilter) {
     select: selectQuery
   })
 
-  return { success: true, currentSales, previousSales, activeDays, timezone: tz }
+  const { calculateAOVMarginAnalysis } = await import("@/lib/engines/aovMarginEngine")
+  const aovResult = calculateAOVMarginAnalysis(currentSales as any, previousSales as any, activeDays)
+
+  return { 
+    success: true, 
+    aovResult, 
+    activeDays, 
+    timezone: tz,
+    currentSalesCount: currentSales.length,
+    previousSalesCount: previousSales.length
+  }
 }

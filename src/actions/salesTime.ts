@@ -49,5 +49,8 @@ export async function fetchSalesTimeData(period: SalesTimePeriodFilter) {
     select: { createdAt: true, totalAmount: true }
   })
 
-  return { success: true, currentSales, previousSales, timezone: tz }
+  const { calculateSalesTimeAnalysis } = await import("@/lib/engines/salesTimeEngine")
+  const result = calculateSalesTimeAnalysis(tz, currentSales as any, previousSales as any)
+
+  return { success: true, result }
 }
