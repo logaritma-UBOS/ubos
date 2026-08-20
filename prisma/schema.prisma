@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// 1. Core, Auth & Settings
+model User {
+  id            String     @id @default(uuid())
+  name          String
+  email         String     @unique
+  phone         String?
+  passwordHash  String
+  role          String     @default("OWNER")
+  createdAt     DateTime   @default(now())
+  businesses    Business[]
+}
+
+model Business {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  name           String
+  businessType   String
+  operatingDays  Int       @default(7)
+  status         String    @default("ACTIVE")
+  createdAt      DateTime  @default(now())
+  
+  settings       BusinessSetting?
+  auditLogs      AuditLog[]
+  categories     ProductCategory[]
+  products       Product[]
+  ingredients    Ingredient[]
+  recipes        Recipe[]
+  stockMovements StockMovement[]
+  sales          Sale[]
+  saleItems      SaleItem[]
+  expenses       Expense[]
+  incomes        Income[]
+  customers      Customer[]
+  goals          Goal[]
+  metrics        BusinessMetricSnapshot[]
+  recommendations Recommendation[]
+  syncQueues     SyncQueue[]
+  pilotEvents    PilotEvent[]
+  pilotErrors    PilotError[]
+  pilotFeedbacks PilotFeedback[]
+}
+
+model BusinessSetting {
+  id           String   @id @default(uuid())
+  businessId   String   @unique
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  baseCurrency String   @default("IDR")
+  timezone     String   @default("Asia/Jakarta")
+  taxRate      Float    @default(0)
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId      String?
+  action      String
+  resource    String
+  detailsJson String?
+  createdAt   DateTime @default(now())
+}
+
+// 2. Catalog, Recipe & Stock (Barang & Produk)
+model ProductCategory {
+  id         String    @id @default(uuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  products   Product[]
+}
+
+model Product {
+  id              String           @id @default(uuid())
+  businessId      String
+  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId      String?
+  category        ProductCategory? @relation(fields: [categoryId], references: [id])
+  name            String
+  imageUrl        String?
+  sellPrice       Float
+  calculatedHpp   Float            @default(0)
+  calculatedMargin Float           @default(0)
+  isActive        Boolean          @default(true)
+  recipes         Recipe[]
+  saleItems       SaleItem[]
+}
+
+model Ingredient {
+  id             String          @id @default(uuid())
+  businessId     String
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  unit           String
+  costPerUnit    Float
+  currentStock   Float           @default(0)
+  minStock       Float           @default(0)
+  recipes        Recipe[]
+  stockMovements StockMovement[]
+}
+
+model Recipe {
+  id             String     @id @default(uuid())
+  businessId     String
+  business       Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredientId   String
+  ingredient     Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  quantityNeeded Float
+}
+
+model StockMovement {
+  id           String     @id @default(uuid())
+  businessId   String
+  business     Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  type         String     // IN, OUT, WASTE, SALE
+  quantity     Float
+  referenceId  String?
+  date         DateTime   @default(now())
+}
+
+// 3. Sales & Transactions (Jualan)
+model Sale {
+  id                  String     @id @default(uuid())
+  businessId          String
+  business            Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  clientTransactionId String     @unique
+  receiptNumber       String?
+  totalAmount         Float
+  discount            Float      @default(0)
+  paymentMethod       String     // CASH, QR, TRANSFER
+  syncStatus          String     @default("SYNCED") // LOCAL, PENDING, SYNCED, FAILED
+  createdAt           DateTime   @default(now())
+  syncedAt            DateTime?
+  saleItems           SaleItem[]
+}
+
+model SaleItem {
+  id          String   @id @default(uuid())
+  saleId      String
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  priceAtSale Float
+  hppAtSale   Float
+}
+
+// 4. Finance (Keuangan Dasar)
+model Expense {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category    String
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+}
+
+model Income {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  source      String
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+}
+
+// 5. Customers (Pelanggan)
+model Customer {
+  id                String   @id @default(uuid())
+  businessId        String
+  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name              String
+  phone             String?
+  totalPurchases    Int      @default(0)
+  lastPurchaseDate  DateTime?
+  category          String?  // BARU, AKTIF, LAMA
+}
+
+// 6. Logaritma & Goals (Mesin Rekomendasi & Metrik)
+model Goal {
+  id                String   @id @default(uuid())
+  businessId        String
+  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  targetOmzet       Float
+  targetProfit      Float?
+  targetTransaction Int?
+  period            String   // MONTHLY, WEEKLY
+}
+
+model BusinessMetricSnapshot {
+  id                      String   @id @default(uuid())
+  businessId              String
+  business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  date                    DateTime @default(now())
+  omzetAktual             Float    @default(0)
+  aovAktual               Float    @default(0)
+  transactionCountAktual  Int      @default(0)
+  hppTotal                Float    @default(0)
+}
+
+model Recommendation {
+  id             String   @id @default(uuid())
+  businessId     String
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  metricType     String   // OMZET, TRANSAKSI, AOV
+  currentValue   Float
+  targetValue    Float
+  gap            Float
+  dataConfidence String   // LOW, MEDIUM, HIGH
+  causeText      String
+  actionText     String
+  priorityScore  Int
+  status         String   @default("TODO") // TODO, DONE, IGNORED
+}
+
+// 7. Sync & Queue (Sistem Offline)
+model SyncQueue {
+  id                  String   @id @default(uuid())
+  businessId          String
+  business            Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  clientTransactionId String   @unique
+  payloadJson         String
+  status              String   @default("PENDING")
+  retryCount          Int      @default(0)
+  lastAttempt         DateTime?
+}
+// 8. Pilot Instrumentation
+model PilotEvent {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  eventName  String
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([eventName])
+  @@index([createdAt])
+}
+
+model PilotError {
+  id         String   @id @default(uuid())
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  errorType  String
+  message    String
+  stackTrace String?
+  path       String?
+  createdAt  DateTime @default(now())
+}
+
+model PilotFeedback {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category   String
+  content    String
+  createdAt  DateTime @default(now())
+}
