@@ -1,4 +1,4 @@
-import { calculateAOV } from "./calculationEngine"
+// Removed calculationEngine import to avoid Prisma leak to Client Components
 import { getBusinessTime } from "./timeEngine"
 
 type SaleData = {
@@ -63,7 +63,7 @@ export function calculateSalesTimeAnalysis(
       hour: i,
       transactionCount: data.count,
       omzet: data.omzet,
-      aov: calculateAOV(data.omzet, data.count)
+      aov: data.count === 0 ? 0 : Math.round(data.omzet / data.count)
     })
   }
 
