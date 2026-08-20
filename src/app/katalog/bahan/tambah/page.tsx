@@ -23,7 +23,7 @@ export default function TambahBahanPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Harga Beli</label>
-            <input name="costPerUnit" type="number" required placeholder="Rp" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+            <input name="costPerUnit" type="number" step="any" required placeholder="Rp" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Per Satuan</label>
@@ -33,7 +33,7 @@ export default function TambahBahanPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Stok Saat Ini (Opsional)</label>
-          <input name="currentStock" type="number" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+          <input name="currentStock" type="number" step="any" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
         </div>
 
         <button disabled={pending} type="submit" className="w-full bg-green-600 text-white font-bold py-3 rounded-md mt-6 disabled:opacity-50">

@@ -23,7 +23,7 @@ export default function EditProductClient({ product }: { product: any }) {
         
         <div>
           <label className="block text-sm font-medium text-gray-700">Harga Jual</label>
-          <input name="sellPrice" type="number" defaultValue={product.sellPrice} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+          <input name="sellPrice" type="number" step="any" defaultValue={product.sellPrice} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
         </div>
 
         <button disabled={pending} type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-6 disabled:opacity-50">

@@ -24,7 +24,7 @@ export default function EditIngredientClient({ ingredient }: { ingredient: any }
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Harga Beli</label>
-            <input name="costPerUnit" type="number" defaultValue={ingredient.costPerUnit} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+            <input name="costPerUnit" type="number" step="any" defaultValue={ingredient.costPerUnit} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Per Satuan</label>
@@ -34,7 +34,7 @@ export default function EditIngredientClient({ ingredient }: { ingredient: any }
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Stok Saat Ini</label>
-          <input name="currentStock" type="number" defaultValue={ingredient.currentStock} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+          <input name="currentStock" type="number" step="any" defaultValue={ingredient.currentStock} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
         </div>
 
         <button disabled={pending} type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-6 disabled:opacity-50">
