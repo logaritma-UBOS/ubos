@@ -11,7 +11,7 @@ export default async function KasirPage() {
   const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
   if (!business) redirect("/")
 
-  const products = await prisma.product.findMany({ where: { businessId: business.id } })
+  const products = await prisma.product.findMany({ where: { businessId: business.id, isActive: true } })
 
   return <KasirClient products={products} />
 }

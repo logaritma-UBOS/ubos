@@ -68,10 +68,10 @@ export default function RiwayatClient() {
   const metrics = calculateHistoryMetrics(sales)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-md mx-auto">
-      <div className="bg-blue-700 text-white p-4 pb-6 shrink-0 rounded-b-3xl">
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto">
+      <div className="bg-blue-700 text-white p-4 pb-6 shrink-0 rounded-b-3xl md:rounded-b-[48px] shadow-sm">
         <Link href="/" className="text-white text-sm font-semibold mb-4 inline-block">← Beranda</Link>
-        <h1 className="text-xl font-bold">Riwayat Transaksi</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Riwayat Transaksi</h1>
       </div>
       
       <div className="p-4 -mt-6">

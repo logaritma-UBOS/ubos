@@ -3,7 +3,7 @@ import crypto from "crypto";
 export async function uploadImage(file: File): Promise<{ secure_url: string; public_id: string } | null> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET_UBOS;
 
   if (!cloudName || !apiKey || !apiSecret) {
     console.warn("Cloudinary environment variables missing. Skipping upload.");
@@ -40,7 +40,7 @@ export async function uploadImage(file: File): Promise<{ secure_url: string; pub
 export async function destroyImage(publicId: string) {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET_UBOS;
 
   if (!cloudName || !apiKey || !apiSecret) return;
 

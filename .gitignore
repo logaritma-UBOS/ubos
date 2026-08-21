@@ -46,3 +46,5 @@ baseline.sql
 pushToTurso.mjs 
 auth 
 auth-wal 
+.vercel
+.env*

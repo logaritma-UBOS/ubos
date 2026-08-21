@@ -2,33 +2,36 @@ import { calculateOmzet, calculateTransactionCount, calculateAOV, calculateDaily
 import { assessDataConfidence } from "./dataConfidence"
 import { generateRecommendations } from "./recommendationEngine"
 import { prisma } from "@/lib/prisma"
+import { getStartOfDayUTC } from "./timeEngine"
 
 export async function runLogaritmaEngine(businessId: string) {
-  // 1. Dapatkan periode (Hari ini)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  
-  const endOfDay = new Date()
-  endOfDay.setHours(23, 59, 59, 999)
+  // 1. Dapatkan business dan timezone-nya terlebih dahulu
+  const business = await prisma.business.findUnique({ 
+    where: { id: businessId }, 
+    include: { goals: true, settings: true } 
+  })
+  if (!business) throw new Error("Business not found")
 
-  // 2. Eksekusi semua Query secara Paralel (Menghilangkan Waterfall)
+  const tz = business.settings?.timezone || "Asia/Jakarta"
+  
+  // 2. Dapatkan periode (Hari ini) berdasarkan Timezone yang benar
+  const today = getStartOfDayUTC(tz)
+  const endOfDay = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1)
+
+  // 3. Eksekusi Query metrik secara Paralel
   const [
-    business,
     actualOmzet,
     actualTransactions,
     firstSale,
     totalSalesCount,
     ingredients
   ] = await Promise.all([
-    prisma.business.findUnique({ where: { id: businessId }, include: { goals: true } }),
     calculateOmzet(businessId, today, endOfDay),
     calculateTransactionCount(businessId, today, endOfDay),
     prisma.sale.findFirst({ where: { businessId }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
     prisma.sale.count({ where: { businessId } }),
     prisma.ingredient.findMany({ where: { businessId }, select: { name: true, currentStock: true } })
   ])
-  
-  if (!business) throw new Error("Business not found")
   
   const targetOmzetBulanan = business.goals[0]?.targetOmzet || 0
   const targetOmzetHarian = calculateDailyTarget(targetOmzetBulanan, business.operatingDays > 0 ? (business.operatingDays * 4) : 30) // MVP simplify

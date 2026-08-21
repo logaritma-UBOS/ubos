@@ -106,7 +106,7 @@ export default function KasirClient({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md md:max-w-3xl lg:max-w-5xl mx-auto relative">
       {/* Header */}
       <div className="bg-primary-700 text-white p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
         <h1 className="text-lg font-bold">Kasir POS</h1>
@@ -116,7 +116,7 @@ export default function KasirClient({ products }: { products: Product[] }) {
       </div>
 
       {/* Product Grid */}
-      <div className="flex-1 p-4 overflow-y-auto pb-52">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto pb-52">
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <IconCatalog className="w-12 h-12 text-gray-300 mb-3" />
@@ -124,24 +124,24 @@ export default function KasirClient({ products }: { products: Product[] }) {
             <Link href="/katalog" className="text-primary-600 font-bold text-sm mt-2">Tambah Produk →</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {products.map(prod => {
               const inCart = cart.find(c => c.id === prod.id)
               return (
                 <button
                   key={prod.id}
                   onClick={() => addToCart(prod)}
-                  className={`bg-white p-3.5 rounded-xl shadow-sm border text-left transition-all min-h-[72px] ${
+                  className={`bg-white p-3.5 md:p-4 rounded-xl shadow-sm border text-left transition-all min-h-[72px] md:min-h-[88px] flex flex-col justify-between ${
                     inCart
                       ? "border-primary-400 ring-1 ring-primary-400 bg-primary-50"
                       : "border-gray-100 hover:border-primary-300 active:bg-primary-50"
                   }`}
                 >
-                  <p className="font-bold text-gray-900 leading-tight text-sm mb-1.5">{prod.name}</p>
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-semibold text-primary-700">Rp {prod.sellPrice.toLocaleString("id-ID")}</p>
+                  <p className="font-bold text-gray-900 leading-tight text-sm md:text-base mb-1.5 md:mb-2">{prod.name}</p>
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-sm md:text-base font-semibold text-primary-700">Rp {prod.sellPrice.toLocaleString("id-ID")}</p>
                     {inCart && (
-                      <span className="bg-primary-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{inCart.quantity}</span>
+                      <span className="bg-primary-700 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full">{inCart.quantity}</span>
                     )}
                   </div>
                 </button>
@@ -151,41 +151,41 @@ export default function KasirClient({ products }: { products: Product[] }) {
         )}
       </div>
 
-      {/* Cart & Checkout — Floating Bottom Sheet */}
-      <div className="fixed bottom-[56px] left-0 right-0 max-w-md mx-auto px-4 z-10">
+      {/* Cart & Checkout Floating Bottom Sheet */}
+      <div className="fixed bottom-[56px] md:bottom-[72px] left-0 right-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-6 z-10 left-1/2 -translate-x-1/2">
         <div className="bg-white rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.12)] border border-gray-200">
 
           {/* Cart Detail (Expandable) */}
           {showCartDetail && cart.length > 0 && (
-            <div className="px-4 pt-3 pb-2 border-b border-gray-100 max-h-48 overflow-y-auto">
-              <div className="space-y-2">
+            <div className="px-4 md:px-6 pt-3 pb-2 border-b border-gray-100 max-h-48 md:max-h-72 overflow-y-auto">
+              <div className="space-y-2 md:space-y-3">
                 {cart.map(item => (
-                  <div key={item.id} className="flex items-center gap-2">
-                    <p className="flex-1 text-xs font-medium text-gray-800 leading-tight">{item.name}</p>
-                    <p className="text-xs text-gray-500 shrink-0">Rp {(item.sellPrice * item.quantity).toLocaleString("id-ID")}</p>
+                  <div key={item.id} className="flex items-center gap-2 md:gap-4">
+                    <p className="flex-1 text-xs md:text-sm font-medium text-gray-800 leading-tight">{item.name}</p>
+                    <p className="text-xs md:text-sm font-bold text-gray-500 shrink-0 w-20 text-right">Rp {(item.sellPrice * item.quantity).toLocaleString("id-ID")}</p>
                     {/* Quantity Controls */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1 md:gap-2 shrink-0">
                       <button
                         onClick={() => decreaseQuantity(item.id)}
-                        className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
                         aria-label="Kurangi"
                       >
-                        <IconMinus className="w-3.5 h-3.5 text-gray-700" />
+                        <IconMinus className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
                       </button>
-                      <span className="w-6 text-center text-xs font-bold text-gray-900">{item.quantity}</span>
+                      <span className="w-6 md:w-8 text-center text-xs md:text-sm font-bold text-gray-900">{item.quantity}</span>
                       <button
                         onClick={() => addToCart(item)}
-                        className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center hover:bg-primary-200 transition-colors"
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary-100 flex items-center justify-center hover:bg-primary-200 transition-colors"
                         aria-label="Tambah"
                       >
-                        <IconPlus className="w-3.5 h-3.5 text-primary-700" />
+                        <IconPlus className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-700" />
                       </button>
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        className="w-7 h-7 rounded-full bg-danger-50 flex items-center justify-center hover:bg-danger-100 transition-colors ml-1"
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-danger-50 flex items-center justify-center hover:bg-danger-100 transition-colors ml-1 md:ml-2"
                         aria-label="Hapus"
                       >
-                        <IconTrash className="w-3.5 h-3.5 text-danger-600" />
+                        <IconTrash className="w-3.5 h-3.5 md:w-4 md:h-4 text-danger-600" />
                       </button>
                     </div>
                   </div>
@@ -195,22 +195,22 @@ export default function KasirClient({ products }: { products: Product[] }) {
           )}
 
           {/* Cart Summary Row */}
-          <div className="flex items-center gap-3 p-3">
+          <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4">
             <button
               onClick={() => setShowCartDetail(v => !v)}
-              className="flex items-center gap-2 flex-1 min-h-[44px] text-left"
+              className="flex items-center gap-2 md:gap-4 flex-1 min-h-[44px] md:min-h-[56px] text-left hover:bg-gray-50 p-2 md:px-4 rounded-xl transition-colors"
               disabled={cart.length === 0}
             >
-              <div className="bg-primary-100 rounded-lg w-9 h-9 flex items-center justify-center shrink-0">
-                <IconCash className="w-5 h-5 text-primary-700" />
+              <div className="bg-primary-100 rounded-lg w-9 h-9 md:w-12 md:h-12 flex items-center justify-center shrink-0">
+                <IconCash className="w-5 h-5 md:w-6 md:h-6 text-primary-700" />
               </div>
               <div>
                 {cart.length === 0 ? (
-                  <p className="text-sm text-gray-400 font-medium">Belum ada item</p>
+                  <p className="text-sm md:text-base text-gray-400 font-medium">Belum ada item</p>
                 ) : (
                   <>
-                    <p className="text-xs text-gray-500 font-medium">{totalItems} item dipilih</p>
-                    <p className="text-base font-bold text-gray-900">Rp {total.toLocaleString("id-ID")}</p>
+                    <p className="text-xs md:text-sm text-gray-500 font-medium">{totalItems} item dipilih</p>
+                    <p className="text-base md:text-lg font-bold text-gray-900">Rp {total.toLocaleString("id-ID")}</p>
                   </>
                 )}
               </div>
@@ -219,7 +219,7 @@ export default function KasirClient({ products }: { products: Product[] }) {
               onClick={handleCheckout}
               disabled={cart.length === 0 || isProcessing}
               variant="primary"
-              className="shrink-0 shadow-md"
+              className="shrink-0 shadow-md py-2 px-6 md:py-3 md:px-8 md:text-lg"
             >
               {isProcessing ? "Memproses..." : "Bayar"}
             </Button>
@@ -228,18 +228,18 @@ export default function KasirClient({ products }: { products: Product[] }) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around py-2 z-20 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
-        <Link href="/" className="flex flex-col items-center text-gray-400 min-w-[56px] py-1 hover:text-gray-700 transition-colors">
-          <IconHome className="w-6 h-6" />
-          <span className="text-[10px] font-semibold mt-0.5">Beranda</span>
+      <div className="fixed bottom-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto bg-white border-t border-gray-100 flex justify-around py-2 md:py-3 z-20 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] left-1/2 -translate-x-1/2">
+        <Link href="/" className="flex flex-col items-center text-gray-400 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
+          <IconHome className="w-6 h-6 md:w-7 md:h-7" />
+          <span className="text-[10px] md:text-xs font-semibold mt-1">Beranda</span>
         </Link>
-        <Link href="/katalog" className="flex flex-col items-center text-gray-400 min-w-[56px] py-1 hover:text-gray-700 transition-colors">
-          <IconCatalog className="w-6 h-6" />
-          <span className="text-[10px] font-semibold mt-0.5">Katalog</span>
+        <Link href="/katalog" className="flex flex-col items-center text-gray-400 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
+          <IconCatalog className="w-6 h-6 md:w-7 md:h-7" />
+          <span className="text-[10px] md:text-xs font-semibold mt-1">Katalog</span>
         </Link>
-        <Link href="/kasir" className="flex flex-col items-center text-primary-700 min-w-[56px] py-1">
-          <IconCash className="w-6 h-6" />
-          <span className="text-[10px] font-bold mt-0.5">Kasir</span>
+        <Link href="/kasir" className="flex flex-col items-center text-primary-700 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
+          <IconCash className="w-6 h-6 md:w-7 md:h-7" />
+          <span className="text-[10px] md:text-xs font-bold mt-1">Kasir</span>
         </Link>
       </div>
     </div>

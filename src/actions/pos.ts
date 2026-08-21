@@ -50,14 +50,47 @@ export async function checkoutSale(cart: CartItem[], totalAmount: number, client
       }
     })
 
-    // 2. Data Chain: Kurangi Stok Bahan Baku Berdasarkan Resep
+    // 2. Data Chain: Kurangi Stok Berdasarkan Perilaku Item (BOM vs RETAIL)
     for (const item of cart) {
-      const recipes = await tx.recipe.findMany({ where: { productId: item.productId } })
-      for (const r of recipes) {
-        const qtyToReduce = r.quantityNeeded * item.quantity
-        await tx.ingredient.update({
-          where: { id: r.ingredientId },
-          data: { currentStock: { decrement: qtyToReduce } }
+      const p = productMap[item.productId];
+      
+      // Jika BOM (F&B / Hybrid): Kurangi stok bahan baku (ingredient)
+      if (p.hasBOM) {
+        const recipes = await tx.recipe.findMany({ where: { productId: item.productId } })
+        for (const r of recipes) {
+          const qtyToReduce = r.quantityNeeded * item.quantity
+          
+          // Kurangi saldo tabel Ingredient
+          await tx.ingredient.update({
+            where: { id: r.ingredientId },
+            data: { currentStock: { decrement: qtyToReduce } }
+          })
+          
+          // Catat di StockMovement untuk Ingredient
+          await tx.stockMovement.create({
+            data: {
+              businessId: business.id,
+              ingredientId: r.ingredientId,
+              type: "OUT",
+              quantity: -qtyToReduce,
+              referenceType: "SALE",
+              referenceId: clientTransactionId
+            }
+          })
+        }
+      } 
+      
+      // Jika RETAIL: Kurangi stok produk jadi itu sendiri via StockMovement
+      if (!p.hasBOM && p.trackInventory) {
+        await tx.stockMovement.create({
+          data: {
+            businessId: business.id,
+            productId: p.id,
+            type: "OUT",
+            quantity: -item.quantity,
+            referenceType: "SALE",
+            referenceId: clientTransactionId
+          }
         })
       }
     }
