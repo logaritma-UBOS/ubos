@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { updateProductHpp } from "@/lib/engines/hppEngine"
 import { redirect } from "next/navigation"
 import { trackEvent, logError } from "@/actions/analytics"
+import { uploadImage, destroyImage } from "@/lib/cloudinary"
 
 async function getBusinessId() {
   const session = await auth()
@@ -69,7 +70,74 @@ export async function addProduct(prevState: any, formData: FormData) {
     const name = formData.get("name") as string
     const sellPrice = parseFloat(formData.get("sellPrice") as string) || 0
     if (!name || sellPrice <= 0) return { error: "Nama dan Harga Jual wajib diisi" }
-    await prisma.product.create({ data: { businessId, name, sellPrice } })
+    
+    // Process image
+    const image = formData.get("image") as File | null
+    let imageUrl = null
+    let imagePublicId = null
+    
+    if (image && image.size > 0) {
+      if (image.size > 5 * 1024 * 1024) return { error: "Ukuran foto maksimal 5MB" }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type)) {
+        return { error: "Format foto harus JPG, PNG, atau WebP" }
+      }
+      
+      const uploaded = await uploadImage(image)
+      if (uploaded) {
+        imageUrl = uploaded.secure_url
+        imagePublicId = uploaded.public_id
+      }
+    }
+    
+    const itemType = formData.get("itemType") as string
+    let hasBOM = false
+    let trackInventory = false
+    let isPurchasable = false
+    let purchaseCost = 0
+    let initialStock = 0
+
+    if (itemType === "BOM") {
+      hasBOM = true
+    } else if (itemType === "RETAIL") {
+      trackInventory = true
+      isPurchasable = true
+      purchaseCost = parseFloat(formData.get("purchaseCost") as string) || 0
+      initialStock = parseFloat(formData.get("initialStock") as string) || 0
+    }
+
+    const calculatedHpp = itemType === "RETAIL" ? purchaseCost : 0
+    const calculatedMargin = sellPrice > 0 ? ((sellPrice - calculatedHpp) / sellPrice) * 100 : 0
+
+    await prisma.$transaction(async (tx) => {
+      const p = await tx.product.create({
+        data: {
+          businessId,
+          name,
+          sellPrice,
+          hasBOM,
+          trackInventory,
+          isPurchasable,
+          purchaseCost,
+          calculatedHpp,
+          calculatedMargin,
+          imageUrl,
+          imagePublicId,
+        }
+      })
+
+      if (itemType === "RETAIL" && initialStock > 0) {
+        await tx.stockMovement.create({
+          data: {
+            businessId,
+            productId: p.id,
+            type: "IN",
+            quantity: initialStock,
+            referenceType: "ADJUSTMENT"
+          }
+        })
+      }
+    })
+
     trackEvent(businessId, "product_created", { name }).catch(()=>{})
   } catch (e: any) {
     logError("CATALOG_ERROR", e.message, undefined, e.stack, "/katalog/produk/tambah").catch(()=>{})
@@ -91,8 +159,40 @@ export async function editProduct(prevState: any, formData: FormData) {
     const existing = await prisma.product.findFirst({ where: { id, businessId } })
     if (!existing) return { error: "Unauthorized" }
 
-    await prisma.product.update({ where: { id }, data: { name, sellPrice } })
-    await updateProductHpp(id)
+    const isRetail = !existing.hasBOM && existing.trackInventory;
+    const updateData: any = { name, sellPrice };
+
+    if (isRetail) {
+      const newCost = parseFloat(formData.get("purchaseCost") as string) || 0;
+      updateData.purchaseCost = newCost;
+      updateData.calculatedHpp = newCost;
+      updateData.calculatedMargin = sellPrice > 0 ? ((sellPrice - newCost) / sellPrice) * 100 : 0;
+    }
+
+    // Process image
+    const image = formData.get("image") as File | null
+    if (image && image.size > 0) {
+      if (image.size > 5 * 1024 * 1024) return { error: "Ukuran foto maksimal 5MB" }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type)) {
+        return { error: "Format foto harus JPG, PNG, atau WebP" }
+      }
+      
+      const uploaded = await uploadImage(image)
+      if (uploaded) {
+        updateData.imageUrl = uploaded.secure_url
+        updateData.imagePublicId = uploaded.public_id
+        
+        if (existing.imagePublicId) {
+          await destroyImage(existing.imagePublicId)
+        }
+      }
+    }
+
+    await prisma.product.update({ where: { id }, data: updateData })
+    
+    if (existing.hasBOM) {
+      await updateProductHpp(id)
+    }
   } catch (e: any) {
     return { error: e.message }
   }

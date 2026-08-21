@@ -86,12 +86,22 @@ model Product {
   category        ProductCategory? @relation(fields: [categoryId], references: [id])
   name            String
   imageUrl        String?
+  imagePublicId   String?
   sellPrice       Float
   calculatedHpp   Float            @default(0)
   calculatedMargin Float           @default(0)
   isActive        Boolean          @default(true)
+  
+  // Phase 1: Unified Item Behavior Flags
+  isSellable      Boolean          @default(true)
+  isPurchasable   Boolean          @default(false)
+  trackInventory  Boolean          @default(false)
+  hasBOM          Boolean          @default(false)
+  purchaseCost    Float            @default(0) // Phase 3
+
   recipes         Recipe[]
   saleItems       SaleItem[]
+  stockMovements  StockMovement[]
 }
 
 model Ingredient {
@@ -103,6 +113,13 @@ model Ingredient {
   costPerUnit    Float
   currentStock   Float           @default(0)
   minStock       Float           @default(0)
+  
+  // Phase 1: Unified Item Behavior Flags
+  isSellable      Boolean          @default(false)
+  isPurchasable   Boolean          @default(true)
+  trackInventory  Boolean          @default(true)
+  hasBOM          Boolean          @default(false)
+
   recipes        Recipe[]
   stockMovements StockMovement[]
 }
@@ -118,16 +135,20 @@ model Recipe {
   quantityNeeded Float
 }
 
+// 2. Inventory (Gudang)
 model StockMovement {
-  id           String     @id @default(uuid())
+  id           String      @id @default(uuid())
   businessId   String
-  business     Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  ingredientId String
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
-  type         String     // IN, OUT, WASTE, SALE
+  business     Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  ingredientId String?
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product?    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type         String      // IN, OUT, WASTE, SALE
   quantity     Float
   referenceId  String?
-  date         DateTime   @default(now())
+  referenceType String?    // SALE, PURCHASE, ADJUSTMENT
+  date         DateTime    @default(now())
 }
 
 // 3. Sales & Transactions (Jualan)

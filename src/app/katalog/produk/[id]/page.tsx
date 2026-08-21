@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import Image from "next/image"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
-import { addRecipeItem } from "@/actions/catalog"
+import { addRecipeItem, deleteRecipeItemSecure } from "@/actions/catalog"
 import { updateProductHpp } from "@/lib/engines/hppEngine"
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,87 +16,215 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   
   const product = await prisma.product.findUnique({
     where: { id: id },
-    include: { recipes: { include: { ingredient: true } } }
+    include: { 
+      recipes: { include: { ingredient: true } },
+      business: true
+    }
   })
   
-  if (!product) redirect("/katalog")
+  if (!product || product.business.userId !== session.user.id) redirect("/katalog")
 
   const ingredients = await prisma.ingredient.findMany({ where: { businessId: product.businessId } })
+  const profit = Math.max(0, product.sellPrice - product.calculatedHpp)
+
+  // Aggregate stock for retail
+  let currentStock = 0
+  if (!product.hasBOM && product.trackInventory) {
+    const stockMovements = await prisma.stockMovement.aggregate({
+      _sum: { quantity: true },
+      where: { productId: product.id }
+    })
+    currentStock = stockMovements._sum.quantity || 0
+  }
+
+  const isFnB = product.business.businessType === 'F_AND_B'
+  const bomTitle = isFnB ? "Rincian Resep (Penentu HPP)" : "Material / Komponen Tambahan"
+  const addBomLabel = isFnB ? "Tambah Bahan Baku" : "Tambah Komponen"
+  const emptyBomMsg = isFnB 
+    ? "Tambahkan bahan ke resep di bawah ini agar UBOS bisa menghitung Modal/HPP otomatis." 
+    : "Tambahkan komponen material di bawah ini agar HPP otomatis terhitung."
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 max-w-md mx-auto">
-      <div className="bg-white p-4 border-b flex justify-between items-center">
-        <Link href="/katalog" className="text-sm font-semibold text-gray-600">← Kembali</Link>
-        <h1 className="font-bold text-gray-900">Detail Produk</h1>
-        <div className="w-16"></div>
+    <div className="min-h-screen bg-gray-50 pb-20 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto">
+      <div className="bg-white p-4 border-b flex justify-between items-center sticky top-0 z-10 shadow-sm">
+        <Link href="/katalog" className="text-sm font-semibold text-gray-600 hover:text-gray-900">&larr; Kembali</Link>
+        <h1 className="font-bold text-gray-900 truncate px-2">{product.name}</h1>
+        <Link href={`/katalog/produk/${product.id}/edit`} className="text-emerald-600 text-sm font-bold hover:underline">Edit</Link>
       </div>
       
-      <div className="p-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
-          <div className="flex justify-between mt-4">
-            <div>
-              <p className="text-xs text-gray-500">Harga Jual</p>
-              <p className="text-lg font-bold text-green-700">Rp {product.sellPrice}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">HPP / Modal</p>
-              <p className="text-lg font-bold text-orange-600">Rp {product.calculatedHpp}</p>
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+
+        {/* Photo Section */}
+        {product.imageUrl && (
+          <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex justify-center mb-6">
+            <div className="relative w-full aspect-square max-h-[300px] md:max-h-[400px] rounded-xl overflow-hidden">
+              <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-600">Keuntungan kotor: <span className="font-bold text-gray-900">Rp {product.sellPrice - product.calculatedHpp}</span></p>
-            <p className="text-sm text-gray-600">Margin: <span className="font-bold text-green-600">{product.calculatedMargin.toFixed(0)}%</span></p>
+        )}
+        
+        {/* Alur Kalkulasi Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
+          <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-100">
+            <h2 className="font-bold text-emerald-900 text-sm">Alur Keuntungan Otomatis</h2>
+          </div>
+          
+          <div className="p-4 space-y-4">
+            
+            {/* 1. HPP */}
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-semibold text-gray-700">
+                  {product.hasBOM ? "1. Total HPP (Modal)" : (!product.hasBOM && !product.trackInventory ? "Biaya Modal Dasar" : "1. Harga Beli / Modal")}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {product.hasBOM ? (isFnB ? "Dari total biaya resep" : "Dari total biaya material") : (!product.hasBOM && !product.trackInventory ? "Layanan Jasa (HPP Rp0)" : "Sesuai HPP input")}
+                </p>
+              </div>
+              <p className="font-bold text-orange-600">Rp {product.calculatedHpp.toLocaleString('id-ID')}</p>
+            </div>
+            
+            {/* 2. Harga Jual */}
+            <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+              <div>
+                <p className="text-sm font-semibold text-gray-700">2. Harga Jual</p>
+                <p className="text-xs text-gray-500">Yang dibayar pelanggan</p>
+              </div>
+              <p className="font-bold text-emerald-700">Rp {product.sellPrice.toLocaleString('id-ID')}</p>
+            </div>
+            
+            {/* 3. Margin */}
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
+              <div>
+                <p className="text-sm font-bold text-gray-900">Keuntungan Kotor</p>
+                <p className="text-xs text-emerald-600 font-semibold">Margin: {product.calculatedMargin.toFixed(0)}%</p>
+              </div>
+              <p className="text-xl font-black text-gray-900">Rp {profit.toLocaleString('id-ID')}</p>
+            </div>
+            
           </div>
         </div>
 
-        <h3 className="font-bold text-gray-900 mb-3">Resep & Bahan (HPP)</h3>
-        <div className="space-y-2 mb-6">
-          {product.recipes.map(recipe => (
-            <div key={recipe.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
-              <div>
-                <p className="font-bold text-gray-900">{recipe.ingredient.name}</p>
-                <p className="text-xs text-gray-500">{recipe.quantityNeeded} {recipe.ingredient.unit} x Rp {recipe.ingredient.costPerUnit}</p>
+        {/* Kondisi Jual Langsung (RETAIL) */}
+        {!product.hasBOM && product.trackInventory && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h2 className="font-bold text-gray-900 text-sm">Informasi Ritel & Persediaan</h2>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">Stok Saat Ini</p>
+                  <p className="text-xs text-gray-500">Otomatis terpotong saat penjualan</p>
+                </div>
+                <p className="font-bold text-2xl text-emerald-700">{currentStock}</p>
               </div>
-              <div className="text-right flex flex-col items-end gap-1">
-                <p className="font-semibold text-gray-900">Rp {recipe.quantityNeeded * recipe.ingredient.costPerUnit}</p>
-                <form action={async () => {
+
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Edit Harga Beli / Modal</p>
+                <form action={async (formData) => {
                   "use server"
-                  try {
-                    await prisma.recipe.delete({ where: { id: recipe.id } })
-                    await updateProductHpp(product.id)
-                  } catch (e) {
-                    console.log("Already deleted or error", e)
+                  if (product.hasBOM || !product.trackInventory) {
+                    throw new Error("Unauthorized update. Only RETAIL can update purchaseCost inline.");
                   }
+                  const newCost = parseFloat(formData.get("purchaseCost") as string) || 0
+                  const newMargin = product.sellPrice > 0 ? ((product.sellPrice - newCost) / product.sellPrice) * 100 : 0
+                  await prisma.product.update({ 
+                    where: { id: product.id }, 
+                    data: { purchaseCost: newCost, calculatedHpp: newCost, calculatedMargin: newMargin } 
+                  })
                   revalidatePath(`/katalog/produk/${product.id}`)
-                }}>
-                  <button type="submit" className="text-red-500 text-xs font-bold p-1">Hapus</button>
+                }} className="flex gap-2">
+                  <input type="number" name="purchaseCost" defaultValue={product.purchaseCost} step="any" required className="w-full border border-gray-300 p-2 rounded-lg text-sm bg-gray-50" />
+                  <button type="submit" className="bg-emerald-600 text-white font-bold px-4 rounded-lg text-sm shadow-sm">Simpan</button>
                 </form>
               </div>
             </div>
-          ))}
-          {product.recipes.length === 0 && <p className="text-sm text-gray-500 italic">Belum ada resep. Tambahkan bahan untuk menghitung HPP otomatis.</p>}
-        </div>
+          </div>
+        )}
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-          <h4 className="font-bold text-gray-900 mb-3 text-sm">Tambah Bahan ke Resep</h4>
-          <form action={async (formData) => {
-            "use server"
-            await addRecipeItem(formData)
-          }} className="space-y-3">
-            <input type="hidden" name="productId" value={product.id} />
-            <select name="ingredientId" className="w-full border border-gray-300 p-2 rounded text-gray-900 text-sm">
-              <option value="">-- Pilih Bahan Baku --</option>
-              {ingredients.map(ing => (
-                <option key={ing.id} value={ing.id}>{ing.name} (Rp {ing.costPerUnit}/{ing.unit})</option>
+        {/* Kondisi Jasa Murni (SERVICE) */}
+        {!product.hasBOM && !product.trackInventory && (
+           <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-center">
+             <p className="text-sm text-blue-800 font-semibold mb-1">Item Layanan / Jasa</p>
+             <p className="text-xs text-blue-600">Item ini tidak memerlukan resep ataupun pemotongan stok fisik.</p>
+           </div>
+        )}
+
+        {/* Resep & Bahan (BOM / HYBRID) */}
+        {product.hasBOM && (
+          <div>
+            <h3 className="font-bold text-gray-900 mb-3 text-sm px-1">{bomTitle}</h3>
+            
+            <div className="space-y-3 mb-6">
+              {product.recipes.map(recipe => (
+                <div key={recipe.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="p-3 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-gray-900">{recipe.ingredient.name}</p>
+                      <p className="text-xs text-gray-500">Pakai: {recipe.quantityNeeded} {recipe.ingredient.unit}</p>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <p className="font-bold text-orange-600">Rp {Math.round(recipe.quantityNeeded * recipe.ingredient.costPerUnit).toLocaleString('id-ID')}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Matematika Detail Accordion */}
+                  <details className="group border-t border-gray-100 bg-gray-50">
+                    <summary className="text-xs font-medium text-gray-500 cursor-pointer list-none flex justify-between items-center p-2 px-3">
+                      <span>Lihat detail matematika</span>
+                      <span className="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 flex justify-between items-center">
+                      <p className="text-xs text-gray-500">
+                        Harga: Rp {recipe.ingredient.costPerUnit.toLocaleString('id-ID')} / {recipe.ingredient.unit}
+                        <br/>
+                        Kalkulasi: {recipe.quantityNeeded} x Rp {recipe.ingredient.costPerUnit.toLocaleString('id-ID')}
+                      </p>
+                      <form action={async () => {
+                        "use server"
+                        try {
+                          await deleteRecipeItemSecure(recipe.id, product.id)
+                        } catch (e) {
+                          console.log("Already deleted or error", e)
+                        }
+                      }}>
+                        <button type="submit" className="text-red-500 text-xs font-bold p-1 bg-red-50 rounded">Hapus</button>
+                      </form>
+                    </div>
+                  </details>
+                </div>
               ))}
-            </select>
-            <div className="flex gap-2">
-              <input type="number" name="quantityNeeded" step="0.01" placeholder="Jumlah dipakai" className="w-full border border-gray-300 p-2 rounded text-gray-900 text-sm" />
-              <button type="submit" className="bg-green-600 text-white font-bold px-4 rounded text-sm whitespace-nowrap">Tambah</button>
+              
+              {product.recipes.length === 0 && (
+                <div className="bg-orange-50 border border-orange-100 p-4 rounded-lg text-center">
+                  <p className="text-sm text-orange-800 font-semibold mb-1">HPP belum terhitung!</p>
+                  <p className="text-xs text-orange-600">{emptyBomMsg}</p>
+                </div>
+              )}
             </div>
-          </form>
-        </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <h4 className="font-bold text-gray-900 mb-3 text-sm">{addBomLabel}</h4>
+              <form action={async (formData) => {
+                "use server"
+                await addRecipeItem(formData)
+              }} className="space-y-3">
+                <input type="hidden" name="productId" value={product.id} />
+                <select name="ingredientId" className="w-full border border-gray-300 p-2.5 rounded-lg text-gray-900 text-sm bg-gray-50">
+                  <option value="">-- Pilih {isFnB ? "Bahan Baku" : "Material"} --</option>
+                  {ingredients.map(ing => (
+                    <option key={ing.id} value={ing.id}>{ing.name}</option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  <input type="number" name="quantityNeeded" step="any" placeholder="Kuantitas?" className="w-full border border-gray-300 p-2.5 rounded-lg text-gray-900 text-sm bg-gray-50" />
+                  <button type="submit" className="bg-emerald-600 text-white font-bold px-5 rounded-lg text-sm whitespace-nowrap shadow-sm">Tambah</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
