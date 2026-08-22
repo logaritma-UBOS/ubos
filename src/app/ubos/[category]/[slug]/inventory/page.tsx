@@ -189,35 +189,35 @@ export default function InventoryPage() {
           </div>
         )}
 
-        {/* 3 Bento Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center gap-4">
-            <div className={`${theme.light} ${theme.text} p-3.5 rounded-xl border ${theme.border}`}>
-              <Package size={24} />
+        {/* 3 Metric Cards (Sejajar 3 Kolom di Mobile & Desktop) */}
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mt-2">
+          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+            <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${theme.light} ${theme.text} flex items-center justify-center shrink-0`}>
+              <Package className="w-4 h-4 md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Produk</p>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">{products.length}</p>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center gap-4">
-            <div className={`p-3.5 rounded-xl border ${habisCount > 0 ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-              <AlertCircle size={24} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Stok Habis</p>
-              <p className="text-2xl font-black text-slate-900 mt-0.5">{habisCount}</p>
+              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Produk</span>
+              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{products.length}</h2>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center gap-4">
-            <div className="bg-amber-50 text-amber-600 p-3.5 rounded-xl border border-amber-200">
-              <CheckCircle2 size={24} />
+          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+            <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${habisCount > 0 ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-400'} flex items-center justify-center shrink-0`}>
+              <AlertCircle className="w-4 h-4 md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nilai Aset HPP</p>
-              <p className="text-xl md:text-2xl font-black text-slate-900 mt-0.5">{formatIDR(totalAset)}</p>
+              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Stok Habis</span>
+              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{habisCount}</h2>
+            </div>
+          </div>
+
+          <div className="bg-white p-3 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
+            <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4 md:w-6 md:h-6" />
+            </div>
+            <div>
+              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Nilai Aset HPP</span>
+              <h2 className="text-xs md:text-2xl font-black text-slate-900 leading-tight truncate">{formatIDR(totalAset)}</h2>
             </div>
           </div>
         </div>
@@ -343,6 +343,7 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
       {/* Onboarding Success Modal */}
       {showOnboardingSuccess && (
         <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">

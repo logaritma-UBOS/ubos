@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { ShoppingBag, Package, Wallet, Activity, TrendingUp, Target, CreditCard, ShieldCheck, Store, Sparkles, Megaphone, AlertCircle, ArrowRight, X, ClipboardList, Calendar } from 'lucide-react';
+import { ShoppingBag, Package, Wallet, Activity, TrendingUp, Target, CreditCard, ShieldCheck, Store, Sparkles, Megaphone, AlertCircle, ArrowRight, X, ClipboardList, Calendar, Printer, FileText, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -33,16 +33,7 @@ export default function UBOSDashboard() {
   const category = (params.category as string) || 'kuliner';
   const slug = (params.slug as string) || '';
   const basePath = `/ubos/${category}/${slug}`;
-
-  // Tentukan nama satuan berdasarkan kategori
-  const getUnitName = (cat: string) => {
-    const c = cat.toLowerCase();
-    if (c === 'percetakan') return 'm²';
-    if (c === 'ritel') return 'Pcs';
-    if (c === 'jasa') return 'Order';
-    return 'Porsi'; // Default Kuliner
-  };
-  const unitName = getUnitName(category);
+  const isPercetakan = category.toLowerCase() === 'percetakan';
 
   useEffect(() => {
     let isMounted = true;
@@ -95,7 +86,6 @@ export default function UBOSDashboard() {
           if (savedEnd) setEndDate(savedEnd);
           if (savedBudget) setBudgetBelanja(savedBudget);
 
-          // Cek apakah masa siklus sudah berakhir
           const now = new Date();
           const targetEnd = savedEnd ? new Date(savedEnd) : new Date();
           if (savedEnd && now > targetEnd) {
@@ -182,18 +172,11 @@ export default function UBOSDashboard() {
   const profitVal = parseInt(targetProfit) || 0;
   const omzetTarget = profitVal > 0 ? profitVal / 0.4 : 0; 
   const harianTarget = omzetTarget > 0 ? omzetTarget / 30 : 0;
-  const targetVolumeHarian = harianTarget > 0 ? Math.ceil(harianTarget / 25000) : 0; 
-
-  // Ambil volume riil dari AI Engine / Transaksi
-  const currentVolume = aiState.totalTransactions || 0;
-  const volumeProgressPercent = targetVolumeHarian > 0 
-    ? Math.min(100, Math.round((currentVolume / targetVolumeHarian) * 100)) 
-    : 0;
 
   const budgetNum = parseInt(budgetBelanja) || 1;
   const progressPercent = Math.min(Math.round((totalTerpakai / budgetNum) * 100), 100);
+  const dailyProgressPercent = harianTarget > 0 ? Math.min(Math.round((aiState.dailyOmzet / harianTarget) * 100), 100) : 0;
 
-  // Hitung sisa hari siklus target
   const calculateDaysLeft = () => {
     if (!endDate) return 0;
     const end = new Date(endDate);
@@ -328,6 +311,45 @@ export default function UBOSDashboard() {
           </div>
         </div>
 
+        {/* KHUSUS PERCETAKAN: Target Jasa Cetak & ATK Harian di Bagian Atas */}
+        {isPercetakan && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Printer size={18} className="text-[#00C0A3]" />
+                  <span className="font-black text-sm text-slate-800">Target Jasa Cetak Harian</span>
+                </div>
+                <span className="font-black text-lg text-emerald-600">{formatIDR(Math.round(harianTarget * 0.7))}</span>
+              </div>
+              <div className="text-xs text-slate-400 font-bold flex justify-between">
+                <span>Pencapaian: {formatIDR(aiState.dailyOmzet)}</span>
+                <span className="text-slate-600">/ {formatIDR(Math.round(harianTarget * 0.7))}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="bg-[#00C0A3] h-full rounded-full transition-all duration-500" style={{ width: `${dailyProgressPercent}%` }}></div>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} className="text-amber-500" />
+                  <span className="font-black text-sm text-slate-800">Target ATK Harian</span>
+                </div>
+                <span className="font-black text-lg text-amber-600">{formatIDR(Math.round(harianTarget * 0.3))}</span>
+              </div>
+              <div className="text-xs text-slate-400 font-bold flex justify-between">
+                <span>Pencapaian: Rp 0</span>
+                <span className="text-slate-600">/ {formatIDR(Math.round(harianTarget * 0.3))}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="bg-amber-500 h-full rounded-full" style={{ width: '0%' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* BENTO BOX GRID */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
           
@@ -335,15 +357,24 @@ export default function UBOSDashboard() {
             
             {/* Top 4 Metric Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              
+              {/* Kartu Pendapatan (DENGAN PROGRESS BAR) */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-blue-200 transition-colors">
-                <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center mb-3">
-                  <Wallet size={20} />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
+                    <Wallet size={20} />
+                  </div>
+                  <span className="text-[10px] font-black text-blue-600">{dailyProgressPercent}%</span>
                 </div>
                 <div>
                   <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pendapatan</p>
                   <p className="text-xl font-bold text-slate-900">{formatIDR(aiState.dailyOmzet)}</p>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                    <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${dailyProgressPercent}%` }}></div>
+                  </div>
                 </div>
               </div>
+
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-10"><TrendingUp size={48} /></div>
                 <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 relative z-10">
@@ -354,6 +385,7 @@ export default function UBOSDashboard() {
                   <p className="text-xl font-bold text-slate-900">{formatIDR(aiState.dailyProfit)}</p>
                 </div>
               </div>
+
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
                 <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-3">
                   <Activity size={20} />
@@ -363,6 +395,7 @@ export default function UBOSDashboard() {
                   <p className="text-xl font-bold text-slate-900">{aiState.totalTransactions} <span className="text-sm font-medium text-slate-400 normal-case">Nota</span></p>
                 </div>
               </div>
+
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-rose-200 transition-colors">
                 <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mb-3">
                   <Package size={20} />
@@ -374,11 +407,11 @@ export default function UBOSDashboard() {
               </div>
             </div>
 
-            {/* Middle Row: Misi Hari Ini (Dengan Sub-Progress Volume), Kontrol Belanja, Performa Produk, & Riwayat Transaksi */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Middle Row: Misi Hari Ini, Kontrol Belanja, & Riwayat Transaksi */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               
-              {/* Misi Hari Ini (Volume Terjual dijadikan Sub-Progress Bar) */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              {/* Misi Hari Ini */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -394,37 +427,19 @@ export default function UBOSDashboard() {
                       </button>
                     )}
                   </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-                    {/* Target Omzet */}
-                    <div className="flex justify-between items-center pb-2.5 border-b border-slate-200/80">
-                      <span className="text-xs font-medium text-slate-500">Target Omzet</span>
-                      <span className="font-bold text-slate-900 text-sm">{profitVal === 0 ? 'Rp 0' : formatIDR(harianTarget)}</span>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-500">Target Omzet Harian</span>
+                      <span className="font-black text-slate-900">{profitVal === 0 ? 'Rp 0' : formatIDR(harianTarget)}</span>
                     </div>
-
-                    {/* Sub-Progress Volume Terjual */}
-                    <div className="space-y-1.5 pt-0.5">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Volume Terjual</span>
-                        <span className="font-black text-slate-900 text-xs">
-                          {currentVolume} <span className="text-slate-400 font-medium">/ {targetVolumeHarian} {unitName}</span>
-                        </span>
-                      </div>
-
-                      {/* Visual Sub-Progress Bar */}
-                      <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
-                        <div 
-                          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${volumeProgressPercent}%` }}
-                        ></div>
-                      </div>
-
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold pt-0.5">
-                        <span>Progres {unitName}</span>
-                        <span className="text-emerald-600 font-black">{volumeProgressPercent}%</span>
-                      </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-400">Pencapaian Hari Ini</span>
+                      <span className="font-bold text-emerald-600">{formatIDR(aiState.dailyOmzet)} ({dailyProgressPercent}%)</span>
                     </div>
                   </div>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${dailyProgressPercent}%` }}></div>
                 </div>
               </div>
 
@@ -458,26 +473,6 @@ export default function UBOSDashboard() {
                 </div>
               </div>
 
-              {/* PERFORMA PRODUK */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><TrendingUp size={20} /></div>
-                    <h2 className="text-base font-bold text-slate-900">Performa Produk</h2>
-                  </div>
-                  <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                    Analisis produk terlaris dan margin keuntungan kotor terbesar secara historis.
-                  </p>
-                </div>
-                <Link 
-                  href={`${basePath}/performa-produk`}
-                  className="w-full py-3 bg-[#4F75FF] hover:bg-blue-600 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <span>Lihat Performa Produk</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-
               {/* Riwayat Transaksi */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div>
@@ -500,10 +495,9 @@ export default function UBOSDashboard() {
 
             </div>
 
-            {/* PENGGANTI GRAFIK: PANEL SIKLUS TARGET & EVALUASI LOGARITMA */}
+            {/* PANEL SIKLUS TARGET & EVALUASI LOGARITMA */}
             <div className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
               
-              {/* Header: Judul & Tombol Aksi */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0"><Target size={22} /></div>
@@ -531,7 +525,6 @@ export default function UBOSDashboard() {
                 </div>
               </div>
 
-              {/* Progress Utama Profit */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-500">Pencapaian Profit ({formatIDR(profitVal)})</span>
@@ -542,7 +535,6 @@ export default function UBOSDashboard() {
                 </div>
               </div>
 
-              {/* Grid Akumulasi Periode Ini */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Total Pendapatan (Omzet)</p>
@@ -558,7 +550,6 @@ export default function UBOSDashboard() {
                 </div>
               </div>
 
-              {/* Evaluasi Back-Mapping Metode Logaritma */}
               <div className="bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-white p-4 rounded-xl border border-blue-100/80 flex items-start gap-3 shadow-2xs">
                 <div className="p-2 bg-blue-600 text-white rounded-lg shrink-0 mt-0.5 shadow-sm">
                   <Sparkles size={16} />

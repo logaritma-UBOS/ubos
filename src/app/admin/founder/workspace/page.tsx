@@ -114,13 +114,25 @@ export default function FounderWorkspacePage() {
     }
   };
 
+  // Fungsi Hapus Lead / Prospek
+  const handleDeleteLead = async (id: string) => {
+    if (!confirm('Apakah kamu yakin ingin menghapus data prospek ini?')) return;
+    try {
+      const { error } = await supabase.from('leads').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Data prospek berhasil dihapus');
+      fetchLeads();
+    } catch (error: any) {
+      toast.error('Gagal menghapus prospek: ' + error.message);
+    }
+  };
+
   const handleInputLead = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leadName || !leadPhone) return toast.error('Nama & WA wajib diisi');
     
     setIsSubmittingLead(true);
     try {
-      // Insert to leads table for attribution
       const { data, error } = await supabase.from('leads').insert([{
         name: leadName,
         whatsapp: leadPhone,
@@ -136,7 +148,6 @@ export default function FounderWorkspacePage() {
       setLeadPhone('');
       fetchLeads();
       
-      // Trigger WA Modal
       setWaTarget({ name: leadName, phone: leadPhone });
       setWaModalOpen(true);
       
@@ -159,10 +170,8 @@ export default function FounderWorkspacePage() {
         const text = event.target?.result as string;
         if (!text) return;
 
-        // Simple CSV parser (assuming format: NamaUsaha,WhatsApp)
         const rows = text.split('\n').filter(row => row.trim().length > 0);
         
-        // Skip header if it exists, but let's just assume we check the first column
         let startIndex = 0;
         if (rows[0].toLowerCase().includes('nama') || rows[0].toLowerCase().includes('whatsapp')) {
           startIndex = 1;
@@ -201,7 +210,6 @@ export default function FounderWorkspacePage() {
         toast.error('Gagal mengimport CSV: ' + error.message);
       } finally {
         setIsSubmittingLead(false);
-        // Reset file input
         e.target.value = '';
       }
     };
@@ -213,7 +221,6 @@ export default function FounderWorkspacePage() {
 
     reader.readAsText(file);
   };
-
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -313,7 +320,6 @@ export default function FounderWorkspacePage() {
               <StickyNote size={18} className="text-amber-400" /> Papan Catatan Internal
             </h2>
             
-            {/* Add Note Form */}
             <form onSubmit={handleAddNote} className="flex gap-3 mb-6">
               <input 
                 type="text" 
@@ -339,7 +345,6 @@ export default function FounderWorkspacePage() {
               </button>
             </form>
 
-            {/* Notes Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {loadingNotes ? (
                 <div className="col-span-full text-center py-8 text-slate-500">Memuat catatan...</div>
@@ -439,16 +444,25 @@ export default function FounderWorkspacePage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button 
-                        onClick={() => {
-                          setWaTarget({ name: lead.name, phone: lead.whatsapp });
-                          setWaModalOpen(true);
-                        }}
-                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg transition-colors inline-flex items-center"
-                        title="Chat WA via Fonnte"
-                      >
-                        <Send size={14} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button 
+                          onClick={() => {
+                            setWaTarget({ name: lead.name, phone: lead.whatsapp });
+                            setWaModalOpen(true);
+                          }}
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg transition-colors inline-flex items-center"
+                          title="Chat WA via Fonnte"
+                        >
+                          <Send size={14} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteLead(lead.id)}
+                          className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 rounded-lg transition-colors inline-flex items-center"
+                          title="Hapus Prospek"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -81,6 +81,7 @@ export default function POSPage() {
             .select('*')
             .eq('merchant_id', merchantData.id);
           
+          console.log("DATA PRODUK DI POS:", productsData);
           setProducts(productsData || []);
         }
         const step = localStorage.getItem('onboarding_step');
@@ -94,7 +95,7 @@ export default function POSPage() {
       }
     };
     fetchData();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (!merchant?.id) return;
@@ -139,7 +140,7 @@ export default function POSPage() {
 
     const commission = CHANNEL_COMMISSIONS[channel];
     const price = basePrice / (1 - (commission || 0));
-    return Math.ceil(price / 100) * 100; // Round to nearest 100
+    return Math.ceil(price / 100) * 100;
   };
 
   const updateCart = (productId: string, delta: number) => {
@@ -200,7 +201,6 @@ export default function POSPage() {
     if (!isCashValid) return;
     setCheckingOut(true);
     try {
-      // 1. Insert Transaction
       const komisi = cartTotal.total * CHANNEL_COMMISSIONS[channel];
       const net = cartTotal.total - komisi;
       
@@ -216,7 +216,6 @@ export default function POSPage() {
       
       if (trxError) throw trxError;
       
-      // 2. Insert Items
       const itemsToInsert = Object.entries(cart).map(([id, q]) => {
         const qty = Number(q) || 0;
         const prod = products.find(p => p.id === id);
@@ -232,11 +231,10 @@ export default function POSPage() {
       const { error: itemsError } = await supabase.from('transaction_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
       
-      // 3. Update Wallet Auto-Split
       const totalHPP = itemsToInsert.reduce((sum, item) => sum + (item.hpp_satuan * item.qty), 0);
       const profit = net - totalHPP;
-      const kasOperasional = profit * 0.2; // 20% alokasi
-      const profitBersih = profit * 0.8; // 80% profit owner
+      const kasOperasional = profit * 0.2;
+      const profitBersih = profit * 0.8;
       
       const { data: wallet } = await supabase.from('wallets').select('*').eq('merchant_id', merchant.id).maybeSingle();
       if (wallet) {
@@ -256,7 +254,6 @@ export default function POSPage() {
          if (walletInsertErr) console.error("Error inserting wallet:", walletInsertErr);
       }
       
-      // 4. CRM Sync (Customer Record)
       if (customerWA && customerName) {
         const { data: existingCustomer } = await supabase
           .from('customers')
@@ -269,7 +266,7 @@ export default function POSPage() {
           await supabase.from('customers').update({
             total_visits: (existingCustomer.total_visits || 0) + 1,
             total_spent: (existingCustomer.total_spent || 0) + cartTotal.total,
-            nama: customerName // Update name in case it changed
+            nama: customerName
           }).eq('id', existingCustomer.id);
         } else {
           await supabase.from('customers').insert([{
@@ -282,7 +279,6 @@ export default function POSPage() {
         }
       }
       
-      // Reset & Show Success
       setLastTrxId(trxData.id);
       setShowCheckout(false);
       setShowSuccess(true);
@@ -308,10 +304,26 @@ export default function POSPage() {
     router.refresh();
   };
   
-  const filteredProducts = useMemo(() => {
+ const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.nama_produk.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = activeCategory === 'Semua' || p.kategori === activeCategory;
+      
+      // Ambil kategori produk, jika masih 'Makanan' default atau kosong, deteksi otomatis dari nama produk
+      let productCat = (p.kategori || '').trim().toLowerCase();
+      
+      const name = p.nama_produk.toLowerCase();
+      if (name.includes('kopi') || name.includes('es') || name.includes('anggur') || name.includes('jus') || name.includes('teh') || name.includes('drink')) {
+        productCat = 'minuman';
+      } else if (name.includes('croffle') || name.includes('snack') || name.includes('roti') || name.includes('keripik')) {
+        productCat = 'snack';
+      } else if (productCat === '' || productCat === 'makanan' && (name.includes('nasi') || name.includes('ayam') || name.includes('mie') || name.includes('goreng') || name.includes('ubian'))) {
+        productCat = 'makanan';
+      } else if (!productCat) {
+        productCat = 'lainnya';
+      }
+
+      const currentCat = activeCategory.trim().toLowerCase();
+      const matchesCategory = activeCategory === 'Semua' || productCat === currentCat;
       return matchesSearch && matchesCategory;
     });
   }, [products, searchQuery, activeCategory]);

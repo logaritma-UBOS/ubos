@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store, Handshake, ShieldCheck, Lock, ChevronDown, MessageSquare, Star, Search, X, ClipboardList, Megaphone, Smartphone, HelpCircle, Briefcase, Lightbulb } from 'lucide-react';
+import { Home, ShoppingBag, Package, Wallet, Users, LogOut, Settings, Store, Handshake, ShieldCheck, Lock, ChevronDown, MessageSquare, Search, X, Megaphone, Brush, Printer, Lightbulb } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import MerchantTicketModal from '@/components/merchant/MerchantTicketModal';
 
@@ -14,13 +14,12 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
   const [showOutletModal, setShowOutletModal] = useState(false);
   const [outletTab, setOutletTab] = useState<'Semua' | 'Laporan' | 'Produk'>('Semua');
   const [outletSearch, setOutletSearch] = useState('');
-  const [selectedOutlet, setSelectedOutlet] = useState<string>('merchant'); // 'all' or 'merchant'
+  const [selectedOutlet, setSelectedOutlet] = useState<string>('merchant');
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -36,23 +35,31 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const categoryRaw = merchant?.kategori_usaha || merchant?.kategori || 'kuliner';
-  const categorySafe = categoryRaw === 'undefined' ? 'kuliner' : categoryRaw;
-  const category = encodeURIComponent(categorySafe.toLowerCase().split(' ')[0] || 'kuliner');
-  const slug = merchant?.nama_usaha ? (merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) : '';
+  // --- PERBAIKAN LOGIKA KATEGORI & BASEPATH SINKRON ---
+  const pathParts = pathname.split('/');
+  // pathParts = ['', 'ubos', 'percetakan', 'baim-printing', 'inventory']
+  const urlCategory = (pathParts[2] && pathParts[2] !== 'undefined') ? pathParts[2].toLowerCase() : '';
+  const urlSlug = pathParts[3] || '';
+
+  const merchantDbCat = (merchant?.kategori_usaha || merchant?.kategori || '').toLowerCase().trim();
+  const rawSlug = merchant?.nama_usaha 
+    ? merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') 
+    : '';
+
+  // Prioritaskan kategori dari URL, jika kosong baru pakai database merchant
+  const category = urlCategory || merchantDbCat || 'percetakan';
+  const slug = urlSlug || rawSlug;
+
   const merchantName = merchant?.nama_usaha || 'Outlet Baru';
   
   let basePath = '';
   let isJasa = false;
-  const basePathMatch = pathname.match(/^\/ubos\/([^\/]+)\/([^\/]+)/);
-  if (basePathMatch) {
-    const currentCategory = basePathMatch[1] === 'undefined' ? category : basePathMatch[1];
-    const currentSlug = basePathMatch[2];
-    basePath = `/ubos/${currentCategory}/${currentSlug}`;
-    if (currentCategory === 'jasa') isJasa = true;
-  } else if (slug) {
+
+  if (category && slug) {
     basePath = `/ubos/${category}/${slug}`;
-    if (category === 'jasa' || categoryRaw.toLowerCase().includes('laundry') || categoryRaw.toLowerCase().includes('jasa')) isJasa = true;
+    if (category === 'jasa' || category.includes('laundry')) {
+      isJasa = true;
+    }
   } else {
     basePath = '/member';
   }
@@ -88,18 +95,11 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
     { name: 'Billing', href: `${basePath}/billing`, icon: ShieldCheck },
   ];
 
-  // Menu Grid untuk Mobile
-  const mobileGridItems = [
-    { name: 'Penjualan', href: `${basePath}/pos`, active: pathname.includes('/pos') },
-    { name: 'Order Online', href: `${basePath}/online-orders`, active: pathname.includes('/online-orders') },
-    { name: 'Inventori', href: `${basePath}/inventory`, active: pathname.includes('/inventory') },
-    { name: 'Pelanggan', href: `${basePath}/crm`, active: pathname.includes('/crm') },
-    { name: 'Keuangan', href: `${basePath}/finance`, active: pathname.includes('/finance') },
-    { name: 'Promosi', href: `${basePath}/promotions`, active: pathname.includes('/promotions') },
-    { name: 'Pengaturan', href: `/settings`, active: pathname.includes('/settings') },
-    { name: 'Bantuan', href: `/member/services`, active: false },
-    { name: 'Layanan', href: `/member/services`, active: false },
-    { name: 'Inspirasi', href: `${basePath}/blog`, active: pathname.includes('/blog') },
+  const serviceItems = [
+    { name: 'Jasa Meta Ads', href: `${basePath}/services?type=meta-ads`, icon: Megaphone },
+    { name: 'Branding & Desain', href: `${basePath}/services?type=branding`, icon: Brush },
+    { name: 'Produk Pendukung Kasir', href: `${basePath}/services?type=hardware`, icon: Printer },
+    { name: 'Inspirasi Bisnis', href: `${basePath}/blog`, icon: Lightbulb },
   ];
 
   const handleLogout = async () => {
@@ -109,10 +109,9 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
 
   return (
     <>
-    <aside className="w-full md:w-64 h-full flex flex-col bg-gradient-to-b from-[#3B5BDB] via-[#4F75FF] to-emerald-500 shadow-xl z-50 text-white relative md:pt-16 max-w-sm mx-auto md:max-w-none md:mx-0">
+    <aside className="w-full md:w-64 h-full flex flex-col bg-[#05b99e] shadow-xl z-50 text-white relative md:pt-16 max-w-sm mx-auto md:max-w-none md:mx-0">
       <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
       
-      {/* Mobile close button mimicking Majoo top right inside sidebar */}
       <div className="absolute top-4 right-4 z-[60] md:hidden">
          <button onClick={onClose} className="w-8 h-8 rounded-full border border-white flex items-center justify-center text-white hover:bg-white/10 active:scale-95 transition-all">
            <X size={18} />
@@ -120,7 +119,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        {/* Store Selector (Mimicking Majoo) */}
+        {/* Store Selector */}
         <div className="p-4 border-b border-white/10 relative">
           <div 
             ref={triggerRef}
@@ -141,7 +140,6 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             <ChevronDown size={16} className={`text-white transition-transform ${showOutletModal ? 'rotate-180' : ''} shrink-0`} />
           </div>
 
-          {/* Popup Daftar Outlet */}
           {showOutletModal && (
             <div ref={modalRef} className="absolute top-full left-4 mt-2 w-[calc(100%-2rem)] md:w-72 bg-white rounded-xl shadow-2xl z-[100] animate-in slide-in-from-top-2 border border-slate-100 text-slate-800 p-4">
                <div className="flex items-center justify-between mb-4">
@@ -197,41 +195,6 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
         </div>
 
         <nav className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar py-2">
-          
-          {/* Mobile Only: PILIH MENU Grid */}
-          <div className="md:hidden px-4 mb-4 mt-2">
-            <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-3">PILIH MENU</p>
-            <div className="grid grid-cols-3 gap-2">
-               {mobileGridItems.map(item => (
-                 <Link 
-                   key={item.name} 
-                   href={item.href}
-                   onClick={onClose}
-                   className={`flex flex-col items-center justify-center text-center py-2.5 px-1 rounded-xl transition-all ${
-                     item.active ? 'bg-white/20 shadow-sm border border-white/30 text-white' : 'bg-white/5 border border-white/5 text-blue-50 hover:bg-white/10'
-                   }`}
-                 >
-                   <span className={`text-[10px] leading-tight font-bold ${item.active ? '' : 'opacity-90'}`}>
-                     {item.name}
-                   </span>
-                 </Link>
-               ))}
-            </div>
-          </div>
-
-          <div className="md:hidden border-t border-white/10 my-4 mx-4"></div>
-
-          {/* Menu Favorit Example */}
-          <div className="mb-2">
-            <div className="flex items-center justify-between px-5 py-2 text-blue-100/80 hover:text-white cursor-pointer group transition-colors">
-              <div className="flex items-center gap-3">
-                <Star size={20} />
-                <span className="font-medium text-sm">Menu Favorit</span>
-              </div>
-              <ChevronDown size={16} className="opacity-50 group-hover:opacity-100" />
-            </div>
-          </div>
-
           <div>
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -298,25 +261,39 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
               );
             })}
           </div>
-          
-          {/* Akun Profile Collapse Example mimicking Majoo */}
-          <div className="md:hidden mt-2">
-             <div className="flex items-center justify-between px-5 py-3 text-white cursor-pointer bg-white/5 border-t border-white/10 mt-2">
-                <div className="flex items-center gap-3">
-                  <Users size={20} />
-                  <span className="font-bold text-sm">Akun Profile</span>
-                </div>
-                <ChevronDown size={16} className="rotate-180" />
-             </div>
-             <div className="bg-white/5 pb-3">
-                <Link href="/settings" onClick={onClose} className="block px-12 py-2 text-sm text-blue-100 hover:text-white hover:font-bold">Informasi Akun</Link>
-                <Link href="/settings" onClick={onClose} className="block px-12 py-2 text-sm text-blue-100 hover:text-white hover:font-bold">Informasi Bisnis</Link>
-             </div>
+
+          {/* Servis & Menu Lainnya */}
+          <div className="my-2 border-t border-white/10"></div>
+          <div className="px-5 py-1">
+            <p className="text-[10px] uppercase font-bold text-blue-100 tracking-wider mb-1">Servis & Lainnya</p>
+          </div>
+          <div>
+            {serviceItems.map((item) => {
+              const isActive = pathname.includes(item.href.split('?')[0]);
+              const Icon = item.icon;
+              return (
+                <Link 
+                  key={item.name} 
+                  href={item.href}
+                  onClick={onClose}
+                  className={`flex items-center justify-between px-5 py-2.5 transition-colors duration-200 ${
+                    isActive 
+                      ? 'bg-white/10 border-l-4 border-white text-white font-bold' 
+                      : 'text-white/70 hover:bg-white/20 hover:text-white font-medium border-l-4 border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className="text-xs">{item.name}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </nav>
 
         {/* Footer Support & Settings */}
-        <div className="p-4 bg-black/10 border-t border-white/10 hidden md:block">
+        <div className="p-4 bg-black/10 border-t border-white/10">
           <Link 
             href="/settings"
             onClick={onClose}
@@ -333,31 +310,12 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
             <span className="font-medium text-sm">Logout</span>
           </button>
 
-          {/* Mimicking Majoo mCare Button */}
           <button 
             onClick={() => setIsTicketModalOpen(true)}
             className="w-full bg-white text-[#4F75FF] font-bold py-2 rounded-full flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg"
           >
             <MessageSquare size={18} />
             <span className="text-sm">Chat 24 Jam</span>
-          </button>
-        </div>
-        
-        {/* Mobile footer for logout only since settings is in grid */}
-        <div className="p-4 bg-black/10 border-t border-white/10 md:hidden">
-          <button 
-            onClick={() => setIsTicketModalOpen(true)}
-            className="w-full bg-white text-[#4F75FF] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg mb-3"
-          >
-            <MessageSquare size={18} />
-            <span className="text-sm">Chat 24 Jam</span>
-          </button>
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 transition-colors"
-          >
-            <LogOut size={16} />
-            <span className="font-medium text-sm">Keluar dari Sistem</span>
           </button>
         </div>
       </div>

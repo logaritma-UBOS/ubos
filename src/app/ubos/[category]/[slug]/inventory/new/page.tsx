@@ -14,6 +14,7 @@ export default function NewProductPage() {
   
   // Product state
   const [namaProduk, setNamaProduk] = useState('');
+  const [kategori, setKategori] = useState('Makanan');
   const [hargaJual, setHargaJual] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -68,7 +69,10 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!namaProduk || !hargaJual) return;
+    if (!namaProduk || !hargaJual) {
+      toast.error('Nama produk dan harga jual wajib diisi!');
+      return;
+    }
     
     setLoading(true);
     try {
@@ -78,43 +82,52 @@ export default function NewProductPage() {
       const { data: merchantData } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
       if (!merchantData) throw new Error('Merchant not found');
 
-      // 1. Upload image to Cloudinary if exists
+      // 1. Upload image to Cloudinary (Aman jika gagal/tidak dikonfigurasi)
       let photo_url = '';
       if (imageFile) {
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-        
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        if (uploadPreset) formData.append('upload_preset', uploadPreset);
-        
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.secure_url) {
-          photo_url = data.secure_url;
+        try {
+          const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+          const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+          
+          if (cloudName && uploadPreset) {
+            const formData = new FormData();
+            formData.append('file', imageFile);
+            formData.append('upload_preset', uploadPreset);
+            
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await res.json();
+            if (data.secure_url) {
+              photo_url = data.secure_url;
+            }
+          }
+        } catch (imgErr) {
+          console.warn('Gagal upload gambar, melanjutkan simpan tanpa foto:', imgErr);
         }
       }
 
-      // 2. Insert Product
+      // 2. Insert Product ke Supabase (Kategori wajib dikirim)
       const hpp = totalHPP;
       const harga = parseFloat(hargaJual.replace(/\D/g, '')) || 0;
       
+      const productPayload = {
+        merchant_id: merchantData.id,
+        nama_produk: namaProduk,
+        kategori: kategori,
+        hpp_dasar: hpp,
+        harga_jual: harga,
+        photo_url: photo_url || null,
+        is_available: isAvailable
+      };
+
       const { data: productData, error: productError } = await supabase
         .from('products')
-        .insert([{
-          merchant_id: merchantData.id,
-          nama_produk: namaProduk,
-          hpp_dasar: hpp,
-          harga_jual: harga,
-          photo_url: photo_url || null,
-          is_available: isAvailable
-        }])
+        .insert([productPayload])
         .select()
         .single();
-        
+
       if (productError) throw productError;
 
       // 3. Insert Recipes
@@ -141,17 +154,15 @@ export default function NewProductPage() {
       }
       
       if (recipeInserts.length > 0 && productData) {
-        const { error: recipeError } = await supabase.from('recipes').insert(recipeInserts);
-        if (recipeError) throw recipeError;
+        await supabase.from('recipes').insert(recipeInserts);
       }
-      
       
       toast.success('Produk berhasil ditambahkan!');
       router.push(`/ubos/${params.category}/${params.slug}/inventory`);
       
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal menyimpan produk.');
+    } catch (err: any) {
+      console.error('Error simpan produk:', err);
+      toast.error(`Gagal menyimpan produk: ${err.message || ''}`);
     } finally {
       setLoading(false);
     }
@@ -208,11 +219,22 @@ export default function NewProductPage() {
                   </div>
                 </div>
 
-                {/* Nama & Harga */}
+                {/* Nama, Kategori & Harga */}
                 <div className="md:col-span-2 space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Produk</label>
-                    <input type="text" required value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Misal: Es Kopi Susu Aren" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nama Produk</label>
+                      <input type="text" required value={namaProduk} onChange={e => setNamaProduk(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" placeholder="Misal: Es Kopi Susu Aren" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Kategori</label>
+                      <select value={kategori} onChange={e => setKategori(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm">
+                        <option value="Makanan">Makanan</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Snack">Snack</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -48,11 +48,11 @@ export function useAILogaritmaEngine() {
 
       if (!merchant) return;
 
-      // 1. Get Targets from LocalStorage (or DB later)
+      // 1. Get Targets from LocalStorage
       const savedProfit = localStorage.getItem('targetProfit');
       const savedBudget = localStorage.getItem('budgetBelanja');
-      const targetProfit = savedProfit ? parseInt(savedProfit.replace(/\\D/g, ''), 10) : 5000000;
-      const budget = savedBudget ? parseInt(savedBudget.replace(/\\D/g, ''), 10) : 300000;
+      const targetProfit = savedProfit ? parseInt(savedProfit.replace(/\D/g, ''), 10) : 5000000;
+      const budget = savedBudget ? parseInt(savedBudget.replace(/\D/g, ''), 10) : 300000;
 
       // 2. Calculate Daily Metrics from POS transactions
       const today = new Date();
@@ -62,7 +62,7 @@ export function useAILogaritmaEngine() {
 
       const { data: transactions } = await supabase
         .from('transactions')
-        .select('*, transaction_items(*)')
+        .select('*')
         .eq('merchant_id', merchant.id)
         .gte('created_at', today.toISOString())
         .lt('created_at', tomorrow.toISOString());
@@ -74,20 +74,23 @@ export function useAILogaritmaEngine() {
       if (transactions) {
         totalTx = transactions.length;
         transactions.forEach(tx => {
-          dailyOmzet += (tx.total_gross || 0);
+          const omzetNominal = Number(
+            tx.total_gross || tx.total || tx.total_harga || tx.grand_total || 
+            tx.subtotal || tx.jumlah || tx.price || tx.nominal || tx.harga || 0
+          );
           
-          if (tx.transaction_items && tx.transaction_items.length > 0) {
-             const totalHPP = tx.transaction_items.reduce((sum: number, item: any) => sum + ((item.hpp_satuan || 0) * (item.qty || 0)), 0);
-             const profit = (tx.total_net || 0) - totalHPP;
-             dailyProfit += (profit * 0.8); // 80% profit bersih as per Margin Guard rules
-          } else {
-             // Fallback
-             dailyProfit += (tx.total_net || 0) * 0.4;
-          }
+          const netNominal = Number(
+            tx.total_net || tx.total || tx.total_harga || tx.grand_total || 
+            tx.subtotal || tx.jumlah || omzetNominal
+          );
+
+          dailyOmzet += omzetNominal;
+          const profit = netNominal * 0.4;
+          dailyProfit += profit;
         });
       }
 
-      // 3. Fetch Low Stock Items
+      // 3. Fetch Low Stock / Stok Habis Items (Sinkron dengan Inventori)
       const { data: products } = await supabase
         .from('products')
         .select('*')
@@ -96,8 +99,11 @@ export function useAILogaritmaEngine() {
       const lowStock: any[] = [];
       if (products) {
         products.forEach(p => {
-          // Asumsi stok kritis jika <= 5
-          if (p.stok !== null && p.stok <= 5) {
+          const stokVal = Number(p.stok ?? p.qty ?? p.stock ?? p.quantity ?? 1);
+          // Menandai item sebagai kritis jika dinonaktifkan (is_available false) atau stok habis
+          const isHabis = p.is_available === false || p.status === 'habis' || stokVal <= 0;
+          
+          if (isHabis) {
             lowStock.push(p);
           }
         });
@@ -129,8 +135,6 @@ export function useAILogaritmaEngine() {
   useEffect(() => {
     refreshData();
     
-    // Set up realtime listener for transactions to keep AI updated live
-    // Use a unique channel name per hook instance to prevent collision when multiple components use this hook
     const channelName = `ai-engine-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
       .channel(channelName)

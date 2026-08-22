@@ -290,19 +290,6 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-
-            <div className="mb-6">
-              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
-                <MonitorSmartphone size={18} /> Langganan
-              </button>
-              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
-                <MonitorSmartphone size={18} /> Kitchen Display
-              </button>
-              <button className="w-full flex items-center gap-2 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">
-                <Store size={18} /> Outlet
-              </button>
-            </div>
-
             <div className="pt-4 border-t border-slate-100">
               <button onClick={() => setShowLogoutModal(true)} className="w-full flex items-center gap-2 px-3 py-2.5 text-rose-500 hover:bg-rose-50 rounded-lg text-sm font-bold transition-colors">
                 <LogOut size={18} /> Keluar dari Akun
