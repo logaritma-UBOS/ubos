@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronRight, Target, Briefcase, TrendingUp, Wrench, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Target, Briefcase, TrendingUp, Wrench, CheckCircle2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { getRecommendations, normalizeProfile, getSolutionColorClasses } from '@/lib/solutions/engine';
 
 export default function BackwardMappingPage() {
   const [step, setStep] = useState(1);
@@ -350,20 +351,21 @@ export default function BackwardMappingPage() {
             {/* STEP 5: HASIL (PETA SINGKAT & REKOMENDASI) */}
             {step === 5 && (() => {
               const profLower = profesi.toLowerCase();
-              const normalizedProfesi = getNormalizedProfesi(profesi === 'Lainnya' ? profesiManual : profesi);
+              const resolvedProfesi = profesi === 'Lainnya' ? profesiManual : profesi;
+              const normalizedProfesi = normalizeProfile(resolvedProfesi);
               const combinedTujuanTarget = `${tujuan} ${target}`.toLowerCase();
-              
-              const isCoway = combinedTujuanTarget.includes('coway') || combinedTujuanTarget.includes('agen coway') || combinedTujuanTarget.includes('health planner') || profLower.includes('coway') || profLower.includes('health planner');
-              
-              let isUbos = false;
-              if (normalizedProfesi === 'CREATOR') {
-                isUbos = false;
-              } else if (['RETAIL/UMKM', 'JASA', 'F&B'].includes(normalizedProfesi)) {
-                const combined = `${combinedTujuanTarget} ${normalizedProfesi}`.toLowerCase();
-                isUbos = combined.includes('bisnis') || combined.includes('jual') || combined.includes('toko') || combined.includes('sales') || combined.includes('omset') || combined.includes('klien') || combined.includes('usaha') || combined.includes('karyawan') || combined.includes('freelance') || combined.includes('jasa') || combined.includes('retail') || combined.includes('umkm') || combined.includes('f&b');
-              } else {
-                isUbos = false;
-              }
+
+              // ── New engine-based recommendations ────────────────────────
+              const recommendations = getRecommendations({
+                profesi: resolvedProfesi,
+                tujuan,
+                target,
+                caraMencapai,
+              });
+
+              // Legacy flags kept ONLY for target breakdown logic below
+              const isUbos = recommendations.some(s => s.id === 'ubos');
+              const isCoway = recommendations.some(s => s.id === 'coway');
 
               return (
               <motion.div 
@@ -552,31 +554,47 @@ export default function BackwardMappingPage() {
                           </div>
                           
                           <div className="mb-8 pb-8 border-b border-slate-100">
-                            <h3 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Arah yang Disarankan</h3>
+                            <h3 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                              <Sparkles size={14} /> Solusi yang Direkomendasikan
+                            </h3>
                             
-                            {(!isUbos && !isCoway) ? (
+                            {recommendations.length === 0 ? (
                               <div className="bg-slate-50 border border-slate-200 p-5 sm:p-6 rounded-2xl text-slate-700 text-sm sm:text-base font-medium leading-relaxed shadow-sm">
                                 {arahSaran}
                               </div>
                             ) : (
-                              <div className="space-y-4">
-                                {isUbos && (
-                                  <div className="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
-                                    <div>
-                                      <h4 className="font-black text-blue-900 text-lg mb-1">UBOS</h4>
-                                      <p className="text-blue-700/80 text-sm">Unified Business Operating System. Platform lengkap pengelola operasional bisnis untuk menutup gap target Anda.</p>
+                              <div className="space-y-3">
+                                {recommendations.map((sol) => {
+                                  const colors = getSolutionColorClasses(sol.color);
+                                  return (
+                                    <div key={sol.id} className={`${colors.bg} ${colors.border} border p-4 sm:p-5 rounded-2xl`}>
+                                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <h4 className={`font-black text-base ${colors.text}`}>{sol.name}</h4>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors.badge}`}>
+                                              {sol.price}
+                                            </span>
+                                          </div>
+                                          <p className="text-slate-600 text-sm leading-relaxed">{sol.description}</p>
+                                          <div className="mt-2 flex flex-wrap gap-1">
+                                            {sol.problems.slice(0, 2).map((p, i) => (
+                                              <span key={i} className="text-[11px] text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg">
+                                                {p}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <a
+                                          href={sol.destinationUrl}
+                                          className={`shrink-0 text-sm font-bold px-4 py-2 rounded-xl transition-all active:scale-95 ${colors.button}`}
+                                        >
+                                          {sol.cta}
+                                        </a>
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                                
-                                {isCoway && (
-                                  <div className="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
-                                    <div>
-                                      <h4 className="font-black text-blue-900 text-lg mb-1">Coway</h4>
-                                      <p className="text-blue-700/80 text-sm">Platform khusus untuk Health Planner Coway memetakan prospek dan melipatgandakan closing rate.</p>
-                                    </div>
-                                  </div>
-                                )}
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -666,25 +684,24 @@ export default function BackwardMappingPage() {
                       </div>
                       <h2 className="text-xl sm:text-2xl font-black text-emerald-900 mb-2">Peta Berhasil Disimpan!</h2>
                       
-                      {isUbos ? (
+                      {recommendations.length > 0 ? (
                         <>
-                          <p className="text-emerald-700 font-medium mb-6">Tingkatkan operasional bisnis Anda sekarang juga.</p>
+                          <p className="text-emerald-700 font-medium mb-4">
+                            Berdasarkan peta Anda, ini solusi yang paling relevan untuk membantu mencapai target.
+                          </p>
                           <div className="flex flex-col gap-3">
-                            <a href="https://ubos.logaritma.id" className="w-full block bg-blue-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all text-center">
-                              Mulai dengan UBOS
-                            </a>
-                            <Link href="/" className="w-full block bg-white border border-emerald-200 text-emerald-700 font-bold py-3 px-6 rounded-xl shadow-sm hover:bg-emerald-100 active:scale-95 transition-all text-center">
-                              Kembali ke Halaman Utama
-                            </Link>
-                          </div>
-                        </>
-                      ) : isCoway ? (
-                        <>
-                          <p className="text-emerald-700 font-medium mb-6">Tingkatkan produktivitas penjualan dan kelola prospek Anda dengan sistem khusus agen Coway.</p>
-                          <div className="flex flex-col gap-3">
-                            <a href="https://coway.logaritma.id" className="w-full block bg-blue-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all text-center">
-                              Masuk ke Sistem Coway Logaritma
-                            </a>
+                            {recommendations.map((sol) => {
+                              const colors = getSolutionColorClasses(sol.color);
+                              return (
+                                <a
+                                  key={sol.id}
+                                  href={sol.destinationUrl}
+                                  className={`w-full block font-bold py-3 px-6 rounded-xl shadow-md active:scale-95 transition-all text-center ${colors.button}`}
+                                >
+                                  {sol.cta}
+                                </a>
+                              );
+                            })}
                             <Link href="/" className="w-full block bg-white border border-emerald-200 text-emerald-700 font-bold py-3 px-6 rounded-xl shadow-sm hover:bg-emerald-100 active:scale-95 transition-all text-center">
                               Kembali ke Halaman Utama
                             </Link>
