@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
-import TopBar from './TopBar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [merchant, setMerchant] = useState<any>(null);
-  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -60,30 +58,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
           pingActivity(session.user.id);
-          
-          let expiresDate = new Date();
-          if (merchantData.trial_expires_at) {
-            expiresDate = new Date(merchantData.trial_expires_at);
-          } else if (merchantData.created_at) {
-            expiresDate = new Date(merchantData.created_at);
-            expiresDate.setDate(expiresDate.getDate() + 7);
-          }
-          const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-          setTrialDaysLeft(diff);
         }
       }
 
       setLoading(false);
-      if (!session && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/admin') && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
-      } else if (session && pathname?.startsWith('/auth')) {
-        if (fetchedMerchant) {
-          const catRaw = fetchedMerchant.kategori_usaha || 'kuliner';
-          const category = encodeURIComponent(catRaw.toLowerCase().split(' ')[0] || 'kuliner');
-          const slug = fetchedMerchant.nama_usaha ? fetchedMerchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : fetchedMerchant.id || 'merchant';
-          router.push(`/ubos/${category}/${slug}`);
-        } else if (pathname !== '/auth/daftar') {
-          router.push('/auth/daftar');
+      } else if (session && (pathname === '/auth' || pathname === '/')) {
+        router.push('/member');
+      } else if (session && fetchedMerchant) {
+        let expiresDate = new Date();
+        if (fetchedMerchant.trial_expires_at) {
+          expiresDate = new Date(fetchedMerchant.trial_expires_at);
+        } else if (fetchedMerchant.created_at) {
+          expiresDate = new Date(fetchedMerchant.created_at);
+          expiresDate.setDate(expiresDate.getDate() + 7);
+        }
+        const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+        if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
+          router.push('/member?expired=true');
         }
       }
     };
@@ -118,33 +111,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             expiresDate.setDate(expiresDate.getDate() + 7);
           }
           const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-          setTrialDaysLeft(diff);
+          if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
+            router.push('/member?expired=true');
+          }
         }
       } else {
         // Reset to default
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      
-      if (!newSession && !pathname?.startsWith('/auth') && pathname !== '/' && !pathname?.startsWith('/admin') && !pathname?.startsWith('/investor') && !pathname?.startsWith('/store')) {
+      if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
-      } else if (newSession && pathname?.startsWith('/auth')) {
-        // Since we are inside the callback, we should fetch merchant again if needed, or rely on state.
-        // But to be safe, we just use the fetched merchantData locally if newSession exists.
-        if (newSession && pathname?.startsWith('/auth')) {
-          const fetchAndRedirect = async () => {
-            const { data: merchantData } = await supabase.from('merchants').select('*').eq('user_id', newSession.user.id).maybeSingle();
-            if (merchantData) {
-              const catRaw = merchantData.kategori_usaha || 'kuliner';
-              const category = encodeURIComponent(catRaw.toLowerCase().split(' ')[0] || 'kuliner');
-              const slug = merchantData.nama_usaha ? merchantData.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : merchantData.id || 'merchant';
-              router.push(`/ubos/${category}/${slug}`);
-            } else if (pathname !== '/auth/daftar') {
-              router.push('/auth/daftar');
-            }
-          };
-          fetchAndRedirect();
-        }
+      } else if (newSession && (pathname === '/auth' || pathname === '/')) {
+        router.push('/member');
       }
     });
 
@@ -163,72 +142,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const isLandingPage = pathname === '/';
-  const isAuthPage = pathname?.startsWith('/auth');
-  const isAdminPage = pathname?.startsWith('/admin');
-  const isInvestorPage = pathname?.startsWith('/investor');
-  const isStorefrontPage = pathname?.startsWith('/store');
-  const isLoginPage = false;
-  const isRegisterPage = false;
-  const isSubPage = pathname?.includes('/new') || pathname?.includes('/edit') || pathname?.includes('/settings');
-  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isInvestorPage || isStorefrontPage;
+  const isBackwardMappingPage = pathname.startsWith('/backward-mapping');
+  const isAuthPage = pathname === '/auth';
+  const isAdminPage = pathname.startsWith('/admin');
+  const isInvestorPage = pathname.startsWith('/investor');
+  const isMemberArea = pathname.startsWith('/member');
+  const isSubPage = pathname.includes('/new') || pathname.includes('/edit') || pathname.includes('/settings');
+  const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isBackwardMappingPage || isMemberArea || isInvestorPage;
+  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isBackwardMappingPage || isMemberArea || isInvestorPage;
 
-  if (isAdminPage) {
-    return <>{children}</>;
-  }
-
-  if (isLandingPage || isInvestorPage || isAuthPage || isStorefrontPage) {
+  if (isLandingPage || isBackwardMappingPage || isInvestorPage || isAuthPage || isMemberArea) {
     return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
   }
 
-  const isBillingPage = pathname?.includes('/billing');
-  const showWarningBanner = trialDaysLeft !== null && trialDaysLeft <= 14 && trialDaysLeft > 0 && !isBillingPage && merchant?.status !== 'Premium';
-
   return (
-    <div className="w-full h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
+    <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
       
-      {!hideSidebar && <TopBar merchant={merchant} onOpenSidebar={() => setIsSidebarOpen(true)} />}
+      {!hideSidebar && <Sidebar merchant={merchant} />}
       
-      {/* Mobile Sidebar Overlay */}
-      {!hideSidebar && isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/50 z-[70] md:hidden backdrop-blur-sm"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {!hideSidebar && (
-        <div className={`fixed inset-y-0 left-0 z-[80] md:z-50 transform md:transform-none transition-transform duration-300 md:relative md:flex ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-          <Sidebar merchant={merchant} onClose={() => setIsSidebarOpen(false)} />
-        </div>
-      )}
-      
-      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full flex flex-col pt-16 ${!hideSidebar ? 'md:pl-0' : ''} ${showWarningBanner ? 'pb-40 md:pb-28' : 'pb-6'}`}>
-        <div className="flex-1">
-          {children}
-        </div>
-        
-        {/* Sticky Warning Banner */}
-        {showWarningBanner && (
-          <div className="fixed bottom-0 left-0 md:left-64 right-0 z-[60] bg-white text-slate-800 px-4 py-4 md:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center justify-center gap-4 md:gap-6 animate-in slide-in-from-bottom-2 border-t border-slate-200">
-            <div className="flex flex-col text-center md:text-left gap-1 max-w-3xl">
-              <span className="font-bold text-sm text-slate-900">Masa Aktif akun trial tersisa {trialDaysLeft} hari Segera beli langganan sebelum masa trial berakhir untuk mendapatkan diskon berlangganan hingga 35%</span>
-            </div>
-            <button 
-              onClick={() => {
-                const categoryRaw = merchant?.kategori_usaha || 'kuliner';
-                const category = encodeURIComponent(categoryRaw.toLowerCase().split(' ')[0] || 'kuliner');
-                const slug = merchant?.nama_usaha ? merchant.nama_usaha.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
-                router.push(`/ubos/${category}/${slug}/billing`);
-              }}
-              className="w-full md:w-auto bg-[#e12530] text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-md whitespace-nowrap hover:bg-rose-700 transition-colors active:scale-95 shrink-0"
-            >
-              Perpanjang
-            </button>
-          </div>
-        )}
+      <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
+        {children}
       </main>
       
-      {/* Bottom Nav removed completely as per Majoo UI design preference */}
+      {!hideBottomNav && (
+        <div className="md:hidden">
+          <BottomNav merchant={merchant} />
+        </div>
+      )}
     </div>
   );
 }
