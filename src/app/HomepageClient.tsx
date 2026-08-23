@@ -118,7 +118,7 @@ export default function LandingPage() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 text-red-600 font-bold text-[10px] sm:text-xs tracking-[0.1em] uppercase border border-red-100 mb-8"
+          className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-red-50 text-red-600 font-bold text-[8.5px] min-[375px]:text-[9.5px] sm:text-xs tracking-wider sm:tracking-[0.1em] uppercase border border-red-100 mb-8 max-w-full text-center text-balance"
         >
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
           Khusus untuk Anda yang sedang mengejar target
