@@ -353,7 +353,7 @@ export default function BackwardMappingPage() {
               const normalizedProfesi = getNormalizedProfesi(profesi === 'Lainnya' ? profesiManual : profesi);
               const combinedTujuanTarget = `${tujuan} ${target}`.toLowerCase();
               
-              const isCoway = combinedTujuanTarget.includes('air') || combinedTujuanTarget.includes('minum') || combinedTujuanTarget.includes('sehat') || combinedTujuanTarget.includes('coway') || combinedTujuanTarget.includes('filter');
+              const isCoway = combinedTujuanTarget.includes('coway') || combinedTujuanTarget.includes('agen coway') || combinedTujuanTarget.includes('health planner') || profLower.includes('coway') || profLower.includes('health planner');
               
               let isUbos = false;
               if (normalizedProfesi === 'CREATOR') {
@@ -427,9 +427,9 @@ export default function BackwardMappingPage() {
                       if (isUbos && !isCoway) {
                         kebutuhanUtama = "Digitalisasi operasional & manajemen skala bisnis";
                       } else if (!isUbos && isCoway) {
-                        kebutuhanUtama = "Penyediaan fasilitas kesehatan premium (Air/Udara)";
+                        kebutuhanUtama = "Sistem & Strategi Pemasaran Produk Coway";
                       } else if (isUbos && isCoway) {
-                        kebutuhanUtama = "Manajemen bisnis sekaligus penyediaan fasilitas kesehatan";
+                        kebutuhanUtama = "Manajemen prospek dan penjualan produk Coway yang terstruktur";
                       } else {
                         // Tidak ada UBOS dan Coway
                         if (normalizedProfesi === 'CREATOR') {
@@ -541,7 +541,7 @@ export default function BackwardMappingPage() {
                       }
 
                       if (isCoway && !isUbos) {
-                         langkah3 = "Tingkatkan produktivitas dengan memastikan kualitas lingkungan kerja sehat menggunakan fasilitas seperti Coway.";
+                         langkah3 = "Gunakan tools digital khusus untuk mengelola prospek, memantau funnel penjualan, dan meningkatkan closing rate penjualan Coway.";
                       }
 
                       return (
@@ -573,7 +573,7 @@ export default function BackwardMappingPage() {
                                   <div className="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
                                     <div>
                                       <h4 className="font-black text-blue-900 text-lg mb-1">Coway</h4>
-                                      <p className="text-blue-700/80 text-sm">Sistem penyedia fasilitas filter air dan udara premium untuk mendukung target dan produktivitas Anda.</p>
+                                      <p className="text-blue-700/80 text-sm">Platform khusus untuk Health Planner Coway memetakan prospek dan melipatgandakan closing rate.</p>
                                     </div>
                                   </div>
                                 )}
@@ -680,10 +680,10 @@ export default function BackwardMappingPage() {
                         </>
                       ) : isCoway ? (
                         <>
-                          <p className="text-emerald-700 font-medium mb-6">Tingkatkan produktivitas Anda dengan kualitas lingkungan yang lebih sehat.</p>
+                          <p className="text-emerald-700 font-medium mb-6">Tingkatkan produktivitas penjualan dan kelola prospek Anda dengan sistem khusus agen Coway.</p>
                           <div className="flex flex-col gap-3">
                             <a href="https://coway.logaritma.id" className="w-full block bg-blue-600 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all text-center">
-                              Lihat Solusi Coway
+                              Masuk ke Sistem Coway Logaritma
                             </a>
                             <Link href="/" className="w-full block bg-white border border-emerald-200 text-emerald-700 font-bold py-3 px-6 rounded-xl shadow-sm hover:bg-emerald-100 active:scale-95 transition-all text-center">
                               Kembali ke Halaman Utama
