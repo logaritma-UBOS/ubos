@@ -64,7 +64,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       setLoading(false);
       if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
-      } else if (session && (pathname === '/auth' || pathname === '/')) {
+      } else if (session && (pathname === '/auth')) {
         router.push('/member');
       } else if (session && fetchedMerchant) {
         let expiresDate = new Date();
@@ -122,7 +122,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
       if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
         router.push('/');
-      } else if (newSession && (pathname === '/auth' || pathname === '/')) {
+      } else if (newSession && (pathname === '/auth')) {
         router.push('/member');
       }
     });
