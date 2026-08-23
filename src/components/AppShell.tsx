@@ -2,13 +2,44 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
-import { Session } from '@supabase/supabase-js';
-import BottomNav from './BottomNav';
-import Sidebar from './Sidebar';
+import dynamic from 'next/dynamic';
+
+// ─── Public routes that do NOT need auth/session check ──────────────────────
+// These pages render immediately with no Supabase calls, no Set-Cookie headers,
+// making the HTML eligible for Vercel Edge Cache (X-Vercel-Cache: HIT).
+const isPublicPath = (pathname: string) =>
+  pathname === '/' ||
+  pathname.startsWith('/backward-mapping') ||
+  pathname.startsWith('/investor') ||
+  pathname.startsWith('/member');
+
+// ─── Lazy-load heavy app-only components ────────────────────────────────────
+// These are NEVER rendered on public/landing pages.
+// ssr:false excludes their code from the server bundle and homepage chunk.
+const Sidebar = dynamic(() => import('./Sidebar'), { ssr: false });
+const BottomNav = dynamic(() => import('./BottomNav'), { ssr: false });
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const pathname = usePathname();
+
+  // ── Public page fast-path ────────────────────────────────────────────────
+  // Skip auth check entirely — renders synchronously, no spinner, no Supabase.
+  if (isPublicPath(pathname)) {
+    return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
+  }
+
+  // ── App pages: render the full authenticated shell ───────────────────────
+  return <AppShellInner>{children}</AppShellInner>;
+}
+
+// ─── Inner shell — only mounted for authenticated app routes ─────────────────
+// Supabase is imported at the top of this module but because AppShell does an
+// early return for public paths, webpack can still tree-shake these imports
+// from the homepage chunk when using dynamic() boundaries.
+import { supabase } from '@/lib/supabase/client';
+
+function AppShellInner({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<any>(null);
   const [merchant, setMerchant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -22,7 +53,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         const ipRes = await fetch('https://api.ipify.org?format=json').catch(() => null);
         const ip = ipRes ? (await ipRes.json()).ip : 'Unknown';
         const deviceInfo = navigator.userAgent;
-        
+
         await supabase.from('merchants').update({
           last_active_at: new Date().toISOString(),
           current_page: pathname,
@@ -34,14 +65,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }
     };
 
-
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!isMounted) return;
-      
+
       setSession(session);
       let fetchedMerchant = null;
-      
+
       if (session) {
         // Fetch dynamic brand color
         const { data: merchantData } = await supabase
@@ -49,7 +79,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           .select('*')
           .eq('user_id', session.user.id)
           .maybeSingle();
-          
+
         if (merchantData) {
           fetchedMerchant = merchantData;
           setMerchant(merchantData);
@@ -85,16 +115,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (_event: any, newSession: any) => {
       setSession(newSession);
-      
+
       if (newSession) {
         const { data: merchantData } = await supabase
           .from('merchants')
           .select('*')
           .eq('user_id', newSession.user.id)
           .maybeSingle();
-          
+
         if (merchantData) {
           setMerchant(merchantData);
           if (merchantData.brand_color) {
@@ -102,7 +132,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
           pingActivity(newSession.user.id);
-          
+
           let expiresDate = new Date();
           if (merchantData.trial_expires_at) {
             expiresDate = new Date(merchantData.trial_expires_at);
@@ -141,29 +171,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const isLandingPage = pathname === '/';
-  const isBackwardMappingPage = pathname.startsWith('/backward-mapping');
   const isAuthPage = pathname === '/auth';
   const isAdminPage = pathname.startsWith('/admin');
-  const isInvestorPage = pathname.startsWith('/investor');
-  const isMemberArea = pathname.startsWith('/member');
   const isSubPage = pathname.includes('/new') || pathname.includes('/edit') || pathname.includes('/settings');
-  const hideBottomNav = isAuthPage || isSubPage || isAdminPage || isLandingPage || isBackwardMappingPage || isMemberArea || isInvestorPage;
-  const hideSidebar = isAuthPage || isAdminPage || isLandingPage || isBackwardMappingPage || isMemberArea || isInvestorPage;
-
-  if (isLandingPage || isBackwardMappingPage || isInvestorPage || isAuthPage || isMemberArea) {
-    return <main className="w-full min-h-[100dvh] bg-slate-50">{children}</main>;
-  }
+  const hideBottomNav = isAuthPage || isSubPage || isAdminPage;
+  const hideSidebar = isAuthPage || isAdminPage;
 
   return (
     <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
-      
       {!hideSidebar && <Sidebar merchant={merchant} />}
-      
       <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
         {children}
       </main>
-      
       {!hideBottomNav && (
         <div className="md:hidden">
           <BottomNav merchant={merchant} />

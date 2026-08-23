@@ -3,7 +3,8 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'sonner';
 import AppShell from "@/components/AppShell";
-import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+// PwaInstallPromptLazy wraps the component in a Client Component so ssr:false is valid
+import PwaInstallPromptLazy from "@/components/PwaInstallPromptLazy";
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -59,7 +60,7 @@ export default function RootLayout({
         <AppShell>
           {children}
         </AppShell>
-        <PwaInstallPrompt />
+        <PwaInstallPromptLazy />
         <Toaster 
           position="top-center" 
           toastOptions={{
