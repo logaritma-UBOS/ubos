@@ -10,43 +10,54 @@ export interface AIState {
   dailyOmzet: number;
   dailyProfit: number;
   totalTransactions: number;
+  totalTerpakai: number;
   
   // Computed
   remainingMorningBudget: number;
   isOverBudget: boolean;
   lowStockItems: any[];
   peakHoursTrend: any;
+  hasProducts: boolean;
+  products: any[];
   
   // Loading
   isLoading: boolean;
 }
 
-export function useAILogaritmaEngine() {
+export function useAILogaritmaEngine(merchantId?: string) {
   const [state, setState] = useState<AIState>({
     targetProfitMonthly: 5000000,
     budgetBelanjaDaily: 300000,
     dailyOmzet: 0,
     dailyProfit: 0,
     totalTransactions: 0,
+    totalTerpakai: 0,
     remainingMorningBudget: 300000,
     isOverBudget: false,
     lowStockItems: [],
     peakHoursTrend: null,
+    hasProducts: true,
+    products: [],
     isLoading: true,
   });
 
   const refreshData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      let activeMerchantId = merchantId;
+      
+      if (!activeMerchantId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const { data: merchant } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+        const { data: merchant } = await supabase
+          .from('merchants')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
 
-      if (!merchant) return;
+        if (!merchant) return;
+        activeMerchantId = merchant.id;
+      }
 
       // 1. Get Targets from LocalStorage
       const savedProfit = localStorage.getItem('targetProfit');
@@ -60,12 +71,22 @@ export function useAILogaritmaEngine() {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('merchant_id', merchant.id)
-        .gte('created_at', today.toISOString())
-        .lt('created_at', tomorrow.toISOString());
+      // Parallelize queries
+      const [transactionsRes, productsRes] = await Promise.all([
+        supabase
+          .from('transactions')
+          .select('*')
+          .eq('merchant_id', activeMerchantId)
+          .gte('created_at', today.toISOString())
+          .lt('created_at', tomorrow.toISOString()),
+        supabase
+          .from('products')
+          .select('*')
+          .eq('merchant_id', activeMerchantId)
+      ]);
+
+      const transactions = transactionsRes.data;
+      const products = productsRes.data;
 
       let dailyOmzet = 0;
       let dailyProfit = 0;
@@ -90,22 +111,24 @@ export function useAILogaritmaEngine() {
         });
       }
 
-      // 3. Fetch Low Stock / Stok Habis Items (Sinkron dengan Inventori)
-      const { data: products } = await supabase
-        .from('products')
-        .select('*')
-        .eq('merchant_id', merchant.id);
-
       const lowStock: any[] = [];
+      let totalTerpakai = 0;
       if (products) {
         products.forEach(p => {
           const stokVal = Number(p.stok ?? p.qty ?? p.stock ?? p.quantity ?? 1);
-          // Menandai item sebagai kritis jika dinonaktifkan (is_available false) atau stok habis
           const isHabis = p.is_available === false || p.status === 'habis' || stokVal <= 0;
           
           if (isHabis) {
             lowStock.push(p);
           }
+          
+          // Calculate totalTerpakai
+          const modal = Number(
+            p.hpp_dasar || p.hpp || p.modal || p.harga_modal || 
+            p.harga_beli || p.modal_satuan || p.capital || 0
+          );
+          const subtotal = p.total_belanja ? Number(p.total_belanja) : (modal * stokVal);
+          totalTerpakai += subtotal;
         });
       }
 
@@ -119,10 +142,13 @@ export function useAILogaritmaEngine() {
         dailyOmzet,
         dailyProfit,
         totalTransactions: totalTx,
+        totalTerpakai,
         remainingMorningBudget: remainingBudget,
         isOverBudget: remainingBudget < 0,
         lowStockItems: lowStock,
         peakHoursTrend: null,
+        hasProducts: !!(products && products.length > 0),
+        products: products || [],
         isLoading: false
       });
 
@@ -135,13 +161,18 @@ export function useAILogaritmaEngine() {
   useEffect(() => {
     refreshData();
     
-    const channelName = `ai-engine-${Math.random().toString(36).substring(7)}`;
+    // Only subscribe if we have a merchant ID, else we wait for it
+    if (!merchantId) return;
+
+    const channelName = `ai-engine-${merchantId}-${Math.random().toString(36).substring(7)}`;
+    const filter = `merchant_id=eq.${merchantId}`;
+    
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter }, () => {
         refreshData();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter }, () => {
         refreshData();
       })
       .subscribe();
@@ -149,7 +180,7 @@ export function useAILogaritmaEngine() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [merchantId]);
 
   return { aiState: state, refreshData };
 }

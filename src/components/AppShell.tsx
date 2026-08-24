@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -45,25 +45,21 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const ipRef = useRef<string>('Unknown');
+
+  // 1. Initialization Effect
   useEffect(() => {
     let isMounted = true;
 
-    const pingActivity = async (userId: string) => {
-      try {
-        const ipRes = await fetch('https://api.ipify.org?format=json').catch(() => null);
-        const ip = ipRes ? (await ipRes.json()).ip : 'Unknown';
-        const deviceInfo = navigator.userAgent;
-
-        await supabase.from('merchants').update({
-          last_active_at: new Date().toISOString(),
-          current_page: pathname,
-          ip_address: ip,
-          device_info: deviceInfo
-        }).eq('user_id', userId);
-      } catch (err) {
-        // Silently fail for tracking ping
-      }
-    };
+    // Fetch IP once
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted && data.ip) {
+          ipRef.current = data.ip;
+        }
+      })
+      .catch(() => {});
 
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -87,14 +83,15 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary', merchantData.brand_color);
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
-          pingActivity(session.user.id);
         }
       }
 
       setLoading(false);
-      if (!session && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      
+      const currentPath = window.location.pathname;
+      if (!session && currentPath !== '/auth' && currentPath !== '/' && !currentPath.startsWith('/backward-mapping') && !currentPath.startsWith('/member') && currentPath !== '/admin' && !currentPath.startsWith('/investor')) {
         router.push('/');
-      } else if (session && (pathname === '/auth')) {
+      } else if (session && (currentPath === '/auth')) {
         router.push('/member');
       } else if (session && fetchedMerchant) {
         let expiresDate = new Date();
@@ -105,7 +102,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           expiresDate.setDate(expiresDate.getDate() + 7);
         }
         const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
+        if (diff <= 0 && (currentPath.startsWith('/ubos') || currentPath.startsWith('/pos'))) {
           router.push('/member?expired=true');
         }
       }
@@ -131,7 +128,6 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             document.documentElement.style.setProperty('--primary', merchantData.brand_color);
             document.documentElement.style.setProperty('--primary-dark', `color-mix(in srgb, ${merchantData.brand_color} 80%, black)`);
           }
-          pingActivity(newSession.user.id);
 
           let expiresDate = new Date();
           if (merchantData.trial_expires_at) {
@@ -141,7 +137,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             expiresDate.setDate(expiresDate.getDate() + 7);
           }
           const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-          if (diff <= 0 && (pathname.startsWith('/ubos') || pathname.startsWith('/pos'))) {
+          const currentPath = window.location.pathname;
+          if (diff <= 0 && (currentPath.startsWith('/ubos') || currentPath.startsWith('/pos'))) {
             router.push('/member?expired=true');
           }
         }
@@ -150,9 +147,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--primary-dark');
       }
-      if (!newSession && pathname !== '/auth' && pathname !== '/' && !pathname.startsWith('/backward-mapping') && !pathname.startsWith('/member') && pathname !== '/admin' && !pathname.startsWith('/investor')) {
+      
+      const currentPath = window.location.pathname;
+      if (!newSession && currentPath !== '/auth' && currentPath !== '/' && !currentPath.startsWith('/backward-mapping') && !currentPath.startsWith('/member') && currentPath !== '/admin' && !currentPath.startsWith('/investor')) {
         router.push('/');
-      } else if (newSession && (pathname === '/auth')) {
+      } else if (newSession && (currentPath === '/auth')) {
         router.push('/member');
       }
     });
@@ -161,7 +160,19 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [pathname, router]);
+  }, [router]);
+
+  // 2. Navigation Tracking Effect
+  useEffect(() => {
+    if (session?.user?.id) {
+      supabase.from('merchants').update({
+        last_active_at: new Date().toISOString(),
+        current_page: pathname,
+        ip_address: ipRef.current,
+        device_info: navigator.userAgent
+      }).eq('user_id', session.user.id).then();
+    }
+  }, [pathname, session]);
 
   if (loading) {
     return (

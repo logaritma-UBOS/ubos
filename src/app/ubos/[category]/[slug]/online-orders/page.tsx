@@ -5,27 +5,25 @@ import { supabase } from '@/lib/supabase/client';
 import { ShoppingCart, CheckCircle, Clock, Search, XCircle, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 export default function OnlineOrdersPage() {
   const params = useParams();
   const basePath = params ? `/ubos/${params.category}/${params.slug}` : '';
+  const { merchant } = useMerchant();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: m } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-        if (!m) return;
+        if (!merchant) return;
 
         // Fallback to empty array if table doesn't exist yet
         const { data: onlineOrders, error } = await supabase
           .from('online_orders')
           .select('*')
-          .eq('merchant_id', m.id)
+          .eq('merchant_id', merchant.id)
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -39,7 +37,7 @@ export default function OnlineOrdersPage() {
     };
 
     fetchData();
-  }, []);
+  }, [merchant]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
 

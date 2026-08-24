@@ -6,6 +6,7 @@ import { Store, Link as LinkIcon, QrCode, ExternalLink, Save, Copy, AlertCircle,
 import { toast } from 'sonner';
 import Link from 'next/link';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -21,8 +22,7 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
   
   const theme = themeColorMap[category?.toLowerCase()] || themeColorMap.default;
 
-  const [merchant, setMerchant] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { merchant } = useMerchant();
   
   const [isStoreEnabled, setIsStoreEnabled] = useState(true);
   const [storeWaNumber, setStoreWaNumber] = useState('');
@@ -36,40 +36,18 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
   const [address, setAddress] = useState('');
   const [gmapsLink, setGmapsLink] = useState('');
 
+  // Sync state with context initially
   useEffect(() => {
-    const fetchMerchant = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from('merchants')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) throw error;
-        
-        if (data) {
-          setMerchant(data);
-          // If the columns don't exist in Supabase, these will be undefined, so we fallback
-          setIsStoreEnabled(data.online_store_enabled !== false);
-          setStoreWaNumber(data.store_wa_number || data.whatsapp || '');
-          setBannerUrl(data.banner_url || '');
-          setSlogan(data.slogan || '');
-          setDeskripsiToko(data.deskripsi_toko || '');
-          setAddress(data.address || data.alamat || '');
-          setGmapsLink(data.gmaps_link || data.address_link || '');
-        }
-      } catch (err) {
-        console.error('Error fetching merchant:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchMerchant();
-  }, []);
+    if (merchant) {
+      setIsStoreEnabled(merchant.online_store_enabled !== false);
+      setStoreWaNumber(merchant.store_wa_number || merchant.whatsapp || '');
+      setBannerUrl(merchant.banner_url || '');
+      setSlogan(merchant.slogan || '');
+      setDeskripsiToko(merchant.deskripsi_toko || '');
+      setAddress(merchant.address || merchant.alamat || '');
+      setGmapsLink(merchant.gmaps_link || merchant.address_link || '');
+    }
+  }, [merchant]);
 
   const handleSave = async () => {
     if (!merchant) return;
@@ -124,7 +102,7 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
     }
   };
 
-  if (loading) {
+  if (!merchant) {
     return (
       <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
         <div className={`animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-${theme.bg.split('-')[1]}-500`}></div>

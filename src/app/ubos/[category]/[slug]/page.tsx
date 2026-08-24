@@ -8,25 +8,22 @@ import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
-import Copilot from '@/components/Copilot';
-import CopilotWidget from '@/components/CopilotWidget';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 export default function UBOSDashboard() {
-  const [merchant, setMerchant] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { merchant } = useMerchant();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const params = useParams();
   
-  const { aiState } = useAILogaritmaEngine();
+  const { aiState } = useAILogaritmaEngine(merchant?.id);
 
   // States untuk Siklus Target & Kontrol Belanja
   const [targetProfit, setTargetProfit] = useState<string>('0');
   const [budgetBelanja, setBudgetBelanja] = useState<string>('0');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [totalTerpakai, setTotalTerpakai] = useState<number>(0);
   const [showTargetModal, setShowTargetModal] = useState(false);
 
   // Derive basePath from params
@@ -44,138 +41,45 @@ export default function UBOSDashboard() {
   };
   const unitName = getUnitName(category);
 
+  // Periksa Onboarding setelah AI State selesai dimuat
   useEffect(() => {
-    let isMounted = true;
-    const fetchMerchant = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    if (!aiState.isLoading && !aiState.hasProducts) {
+      setShowOnboarding(true);
+    }
+  }, [aiState.isLoading, aiState.hasProducts]);
 
-      if (user) {
-        const { data } = await supabase.from('merchants').select('*').eq('user_id', user.id).single();
-        if (isMounted) setMerchant(data);
-        
-        if (data && params.slug) {
-          const expectedSlug = (data.nama_usaha || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-          if (expectedSlug !== params.slug) {
-            router.push(`/ubos/${params.category || 'kuliner'}/${expectedSlug}`);
-            return;
-          }
-        }
+  useEffect(() => {
+    // Ambil Data Siklus Target dari LocalStorage
+    const slugKey = params.slug || 'default';
+    const savedTarget = localStorage.getItem(`targetProfit_${slugKey}`);
+    const savedStart = localStorage.getItem(`startDate_${slugKey}`);
+    const savedEnd = localStorage.getItem(`endDate_${slugKey}`);
+    const savedBudget = localStorage.getItem(`budgetBelanja_${slugKey}`) || localStorage.getItem('budgetBelanja');
 
-        if (data) {
-          const { data: products } = await supabase.from('products').select('*').eq('merchant_id', data.id);
-          
-          if (!products || products.length === 0) {
-            setShowOnboarding(true);
-            if (isMounted) setTotalTerpakai(0);
-          } else {
-            const sumBelanja = products.reduce((acc, item) => {
-              const modal = Number(
-                item.hpp_dasar || item.hpp || item.modal || item.harga_modal || 
-                item.harga_beli || item.modal_satuan || item.capital || 0
-              );
-              const qty = Number(item.stok || item.qty || item.stock || item.quantity || 1);
-              const subtotal = item.total_belanja ? Number(item.total_belanja) : (modal * qty);
-              return acc + subtotal;
-            }, 0);
+    if (savedTarget && parseInt(savedTarget) > 0) {
+      setTargetProfit(savedTarget);
+      if (savedStart) setStartDate(savedStart);
+      if (savedEnd) setEndDate(savedEnd);
+      if (savedBudget) setBudgetBelanja(savedBudget);
 
-            if (isMounted) setTotalTerpakai(sumBelanja);
-          }
-        }
-
-        // Ambil Data Siklus Target dari LocalStorage
-        const slugKey = params.slug || 'default';
-        const savedTarget = localStorage.getItem(`targetProfit_${slugKey}`);
-        const savedStart = localStorage.getItem(`startDate_${slugKey}`);
-        const savedEnd = localStorage.getItem(`endDate_${slugKey}`);
-        const savedBudget = localStorage.getItem(`budgetBelanja_${slugKey}`) || localStorage.getItem('budgetBelanja');
-
-        if (savedTarget && parseInt(savedTarget) > 0 && isMounted) {
-          setTargetProfit(savedTarget);
-          if (savedStart) setStartDate(savedStart);
-          if (savedEnd) setEndDate(savedEnd);
-          if (savedBudget) setBudgetBelanja(savedBudget);
-
-          // Cek apakah masa siklus sudah berakhir
-          const now = new Date();
-          const targetEnd = savedEnd ? new Date(savedEnd) : new Date();
-          if (savedEnd && now > targetEnd) {
-            toast.info('Masa siklus target Anda telah berakhir. Silakan buat target siklus baru.');
-            setShowTargetModal(true);
-          }
-        } else if (isMounted) {
-          setTargetProfit('0');
-          const today = new Date().toISOString().split('T')[0];
-          const nextMonth = new Date();
-          nextMonth.setDate(nextMonth.getDate() + 30);
-          setStartDate(today);
-          setEndDate(nextMonth.toISOString().split('T')[0]);
-          setShowTargetModal(true);
-        }
-
-        if (isMounted) setLoading(false);
-        return;
+      // Cek apakah masa siklus sudah berakhir
+      const now = new Date();
+      const targetEnd = savedEnd ? new Date(savedEnd) : new Date();
+      if (savedEnd && now > targetEnd) {
+        toast.info('Masa siklus target Anda telah berakhir. Silakan buat target siklus baru.');
+        setShowTargetModal(true);
       }
-
-      try {
-        const waSession = localStorage.getItem('wa_member_session');
-        if (waSession) {
-          const session = JSON.parse(waSession);
-          const phone = (session.no_wa || '').replace(/\D/g, '');
-
-          if (phone) {
-            const res = await fetch(`/api/check-phone?phone=${encodeURIComponent(phone)}`);
-            const result = await res.json();
-
-            if (result.found) {
-              const merchantData = {
-                nama_usaha: result.nama_usaha || session.nama_usaha || '',
-                kategori_usaha: result.kategori_usaha || session.kategori || 'Kuliner & F&B',
-                whatsapp: phone,
-                ...session,
-              };
-              if (isMounted) setMerchant(merchantData);
-
-              const slugKey = params.slug || 'default';
-              const savedTarget = localStorage.getItem(`targetProfit_${slugKey}`);
-              const savedStart = localStorage.getItem(`startDate_${slugKey}`);
-              const savedEnd = localStorage.getItem(`endDate_${slugKey}`);
-              const savedBudget = localStorage.getItem(`budgetBelanja_${slugKey}`) || localStorage.getItem('budgetBelanja');
-
-              if (savedTarget && parseInt(savedTarget) > 0 && isMounted) {
-                setTargetProfit(savedTarget);
-                if (savedStart) setStartDate(savedStart);
-                if (savedEnd) setEndDate(savedEnd);
-                if (savedBudget) setBudgetBelanja(savedBudget);
-              } else if (isMounted) {
-                setTargetProfit('0');
-                const today = new Date().toISOString().split('T')[0];
-                const nextMonth = new Date();
-                nextMonth.setDate(nextMonth.getDate() + 30);
-                setStartDate(today);
-                setEndDate(nextMonth.toISOString().split('T')[0]);
-                setShowTargetModal(true);
-              }
-
-              if (isMounted) setLoading(false);
-              return;
-            }
-          }
-        }
-      } catch (_) {}
-
-      if (isMounted) {
-        toast.error(`Silakan login dengan Nomor WhatsApp untuk mengakses modul ${params.slug || 'Usaha'}.`);
-        router.push('/member/login');
-      }
-    };
-    fetchMerchant();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [router, params]);
-
-  if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse flex flex-col items-center justify-center min-h-[50vh]"><Store size={48} className="mb-4 text-blue-200" /><p>Memuat Dashboard...</p></div>;
+    } else {
+      // Belum pernah set target sama sekali
+      setTargetProfit('0');
+      const today = new Date().toISOString().split('T')[0];
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      setStartDate(today);
+      setEndDate(nextMonth.toISOString().split('T')[0]);
+      setShowTargetModal(true);
+    }
+  }, [params.slug]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
@@ -191,7 +95,7 @@ export default function UBOSDashboard() {
     : 0;
 
   const budgetNum = parseInt(budgetBelanja) || 1;
-  const progressPercent = Math.min(Math.round((totalTerpakai / budgetNum) * 100), 100);
+  const progressPercent = Math.min(Math.round((aiState.totalTerpakai / budgetNum) * 100), 100);
 
   // Hitung sisa hari siklus target
   const calculateDaysLeft = () => {
@@ -450,7 +354,7 @@ export default function UBOSDashboard() {
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-400 uppercase tracking-wider">Terpakai</span>
-                    <span className="font-bold text-slate-900">{formatIDR(totalTerpakai)}</span>
+                    <span className="font-bold text-slate-900">{formatIDR(aiState.totalTerpakai)}</span>
                   </div>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2 mt-4 overflow-hidden">
@@ -554,7 +458,7 @@ export default function UBOSDashboard() {
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Modal Belanja Terpakai</p>
-                  <p className="text-sm md:text-base font-black text-rose-600">{formatIDR(totalTerpakai)}</p>
+                  <p className="text-sm md:text-base font-black text-rose-600">{formatIDR(aiState.totalTerpakai)}</p>
                 </div>
               </div>
 

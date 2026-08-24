@@ -10,6 +10,8 @@ import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
 import Receipt from '@/components/Receipt';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
 
+import { useMerchant } from '@/contexts/MerchantContext';
+
 type Channel = 'DINE_IN' | 'GOFOOD' | 'GRABFOOD' | 'SHOPEEFOOD';
 type PaymentMethod = 'TUNAI' | 'QRIS';
 
@@ -29,11 +31,11 @@ const CHANNEL_COMMISSIONS: Record<Channel, number> = {
 };
 
 export default function POSPage() {
+  const { merchant } = useMerchant();
   const router = useRouter();
   const params = useParams();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [merchant, setMerchant] = useState<any>(null);
   const [channel, setChannel] = useState<Channel>('DINE_IN');
   const [cart, setCart] = useState<Record<string, number | string>>({});
   
@@ -52,7 +54,7 @@ export default function POSPage() {
   const [customerName, setCustomerName] = useState<string>('');
   const [customerWA, setCustomerWA] = useState<string>('');
   
-  const { aiState } = useAILogaritmaEngine();
+  const { aiState } = useAILogaritmaEngine(merchant?.id);
   
   // Success States
   const [showSuccess, setShowSuccess] = useState(false);
@@ -65,25 +67,15 @@ export default function POSPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!merchant) return;
         
-        const { data: merchantData } = await supabase
-          .from('merchants')
+        const { data: productsData } = await supabase
+          .from('products')
           .select('*')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (merchantData) {
-          setMerchant(merchantData);
-          const { data: productsData } = await supabase
-            .from('products')
-            .select('*')
-            .eq('merchant_id', merchantData.id);
-          
-          console.log("DATA PRODUK DI POS:", productsData);
-          setProducts(productsData || []);
-        }
+          .eq('merchant_id', merchant.id);
+        
+        setProducts(productsData || []);
+        
         const step = localStorage.getItem('onboarding_step');
         if (step === 'step4_crm_info') {
           setIsOnboarding(true);
@@ -95,7 +87,7 @@ export default function POSPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [merchant]);
 
   useEffect(() => {
     if (!merchant?.id) return;

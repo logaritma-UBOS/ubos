@@ -8,6 +8,7 @@ import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRi
 import DummyDataInjector from '@/components/DummyDataInjector';
 import { toast } from 'sonner';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -18,6 +19,7 @@ const themeColorMap: Record<string, { bg: string, text: string, border: string, 
 };
 
 export default function InventoryPage() {
+  const { merchant } = useMerchant();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -44,24 +46,15 @@ export default function InventoryPage() {
 
   const fetchProducts = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!merchant) return;
+        
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*')
+        .eq('merchant_id', merchant.id)
+        .order('nama_produk', { ascending: true });
       
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (merchantData) {
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', merchantData.id)
-          .order('nama_produk', { ascending: true });
-        
-        setProducts(productsData || []);
-      }
+      setProducts(productsData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -71,7 +64,7 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [merchant]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 

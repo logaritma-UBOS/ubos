@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Megaphone, Plus, X, Tag, Percent, Calendar, Clock, CheckCircle, Trash2, Edit3, Gift, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 interface Promo {
   id: string;
@@ -18,7 +19,7 @@ interface Promo {
 }
 
 export default function PromotionsPage() {
-  const [merchant, setMerchant] = useState<any>(null);
+  const { merchant } = useMerchant();
   const [promos, setPromos] = useState<Promo[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -38,17 +39,12 @@ export default function PromotionsPage() {
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: m } = await supabase.from('merchants').select('id, nama_usaha').eq('user_id', user.id).single();
-      if (!m) return;
-      setMerchant(m);
+      if (!merchant) return;
 
       const { data: promoData } = await supabase
         .from('promotions')
         .select('*')
-        .eq('merchant_id', m.id)
+        .eq('merchant_id', merchant.id)
         .order('created_at', { ascending: false });
       setPromos(promoData || []);
     } catch (err) {
@@ -58,7 +54,7 @@ export default function PromotionsPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [merchant]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

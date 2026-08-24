@@ -7,7 +7,7 @@
  * array Solution yang cocok, diurutkan dari yang paling relevan.
  */
 
-import { SOLUTION_CATALOG, Solution } from './catalog';
+import { SOLUTION_CATALOG, Solution, RevenueType } from './catalog';
 
 export interface RecommendationInput {
   profesi: string;           // Raw profesi dari user
@@ -88,8 +88,8 @@ export function getRecommendations(input: RecommendationInput): Solution[] {
   for (const solution of SOLUTION_CATALOG) {
     if (!solution.active) continue;
 
-    // Check exclude list
-    if (solution.excludeProfile?.some(ep => normalizedProfile.startsWith(ep))) {
+    // Check exclude list — exact match only (startsWith would false-match 'F&B' against 'F')
+    if (solution.excludeProfile?.includes(normalizedProfile)) {
       continue;
     }
 

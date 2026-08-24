@@ -7,6 +7,7 @@ import { Users, MessageCircle, Send, Plus, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -17,9 +18,9 @@ const themeColorMap: Record<string, { bg: string, text: string, border: string, 
 };
 
 export default function CRMPage() {
+  const { merchant } = useMerchant();
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [merchant, setMerchant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
   
@@ -32,25 +33,19 @@ export default function CRMPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [merchant]);
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!merchant) return;
       
-      const { data: merchantData } = await supabase.from('merchants').select('*').eq('user_id', user.id).single();
-      if (merchantData) {
-        setMerchant(merchantData);
-        
-        // Fetch Customers
-        const { data: customersData } = await supabase.from('customers').select('*').eq('merchant_id', merchantData.id).order('total_visits', { ascending: false });
-        setCustomers(customersData || []);
-        
-        // Fetch Products for Broadcast Template
-        const { data: productsData } = await supabase.from('products').select('nama_produk').eq('merchant_id', merchantData.id).limit(3);
-        setProducts(productsData || []);
-      }
+      const [customersRes, productsRes] = await Promise.all([
+        supabase.from('customers').select('*').eq('merchant_id', merchant.id).order('total_visits', { ascending: false }),
+        supabase.from('products').select('nama_produk').eq('merchant_id', merchant.id).limit(3)
+      ]);
+      
+      setCustomers(customersRes.data || []);
+      setProducts(productsRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {

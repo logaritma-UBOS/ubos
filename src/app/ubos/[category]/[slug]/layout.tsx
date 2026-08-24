@@ -5,11 +5,13 @@ import { supabase } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Store } from 'lucide-react';
+import { MerchantContext } from '@/contexts/MerchantContext';
 
 export default function MerchantLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
   const [authorized, setAuthorized] = useState(false);
+  const [merchantDataState, setMerchantDataState] = useState<any>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -24,7 +26,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
 
       const { data: merchantData } = await supabase
         .from('merchants')
-        .select('nama_usaha, kategori_usaha, expired_at, created_at, trial_expires_at, status')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -75,7 +77,10 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
         }
       }
 
-      if (isMounted) setAuthorized(true);
+      if (isMounted) {
+        setMerchantDataState(merchantData);
+        setAuthorized(true);
+      }
     };
 
     checkAuth();
@@ -91,5 +96,5 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
     );
   }
 
-  return <>{children}</>;
+  return <MerchantContext.Provider value={{ merchant: merchantDataState }}>{children}</MerchantContext.Provider>;
 }

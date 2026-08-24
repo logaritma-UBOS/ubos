@@ -6,10 +6,12 @@ import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, UploadCloud, Plus, Trash2, ImagePlus, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 export default function NewProductPage() {
   const router = useRouter();
   const params = useParams();
+  const { merchant } = useMerchant();
   const [loading, setLoading] = useState(false);
   
   // Product state
@@ -73,15 +75,13 @@ export default function NewProductPage() {
       toast.error('Nama produk dan harga jual wajib diisi!');
       return;
     }
+    if (!merchant) {
+      toast.error('Sesi merchant tidak valid');
+      return;
+    }
     
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not logged in');
-      
-      const { data: merchantData } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-      if (!merchantData) throw new Error('Merchant not found');
-
       // 1. Upload image to Cloudinary (Aman jika gagal/tidak dikonfigurasi)
       let photo_url = '';
       if (imageFile) {
@@ -113,7 +113,7 @@ export default function NewProductPage() {
       const harga = parseFloat(hargaJual.replace(/\D/g, '')) || 0;
       
       const productPayload = {
-        merchant_id: merchantData.id,
+        merchant_id: merchant.id,
         nama_produk: namaProduk,
         kategori: kategori,
         hpp_dasar: hpp,

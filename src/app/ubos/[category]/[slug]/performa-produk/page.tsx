@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useParams, useRouter } from 'next/navigation';
 import { Flame, DollarSign, ArrowLeft } from 'lucide-react';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 export default function PerformaProdukPage() {
   const params = useParams();
   const router = useRouter();
+  const { merchant } = useMerchant();
   const [timeFilter, setTimeFilter] = useState('7H');
   const [productsSummary, setProductsSummary] = useState<any[]>([]);
   const [topLaku, setTopLaku] = useState<string>('Memuat data...');
@@ -21,23 +23,16 @@ export default function PerformaProdukPage() {
   useEffect(() => {
     const fetchPerforma = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!merchant) return;
 
-        const { data: m } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-        if (!m) return;
+        // Parallelize products + transactions queries
+        const [prodsRes, txsRes] = await Promise.all([
+          supabase.from('products').select('*').eq('merchant_id', merchant.id),
+          supabase.from('transactions').select('id, created_at').eq('merchant_id', merchant.id)
+        ]);
 
-        // 1. Ambil data master produk
-        const { data: prods } = await supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', m.id);
-
-        // 2. Ambil data transaksi milik merchant ini
-        const { data: txs } = await supabase
-          .from('transactions')
-          .select('id, created_at')
-          .eq('merchant_id', m.id);
+        const prods = prodsRes.data;
+        const txs = txsRes.data;
 
         if (!prods || prods.length === 0) {
           setLoading(false);
@@ -116,7 +111,7 @@ export default function PerformaProdukPage() {
     };
 
     fetchPerforma();
-  }, [timeFilter]);
+  }, [merchant, timeFilter]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
 

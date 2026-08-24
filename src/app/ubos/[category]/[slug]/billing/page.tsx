@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ShieldCheck, Wallet, Loader2, MessageCircle, Flame, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -19,52 +20,26 @@ export default function BillingPage() {
   const router = useRouter();
   const params = useParams();
   const theme = themeColorMap[(params.category as string)?.toLowerCase()] || themeColorMap.default;
-  const [loading, setLoading] = useState(true);
-  const [merchant, setMerchant] = useState<any>(null);
-  const [trialDaysLeft, setTrialDaysLeft] = useState<number>(0);
-  const [isExpired, setIsExpired] = useState(false);
+  const { merchant } = useMerchant();
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (merchantData && isMounted) {
-        setMerchant(merchantData);
-        
-        let expiresDate = new Date();
-        const merchantStatus = merchantData.status || 'Trial';
-        
-        if (merchantStatus === 'Premium' && merchantData.expired_at) {
-          expiresDate = new Date(merchantData.expired_at);
-        } else if (merchantData.trial_expires_at) {
-          expiresDate = new Date(merchantData.trial_expires_at);
-        } else if (merchantData.created_at) {
-          expiresDate = new Date(merchantData.created_at);
-          expiresDate.setDate(expiresDate.getDate() + 7);
-        }
-        
-        const now = new Date();
-        const diff = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        setTrialDaysLeft(diff > 0 ? diff : 0);
-        setIsExpired(diff <= 0);
-      }
-      if (isMounted) setLoading(false);
-    };
-    fetchData();
-    return () => { isMounted = false; };
-  }, [router]);
+  // Compute trial/expiry from merchant context data (no extra DB query needed)
+  const trialDaysLeft = (() => {
+    if (!merchant) return 0;
+    let expiresDate = new Date();
+    const merchantStatus = merchant.status || 'Trial';
+    if (merchantStatus === 'Premium' && merchant.expired_at) {
+      expiresDate = new Date(merchant.expired_at);
+    } else if (merchant.trial_expires_at) {
+      expiresDate = new Date(merchant.trial_expires_at);
+    } else if (merchant.created_at) {
+      expiresDate = new Date(merchant.created_at);
+      expiresDate.setDate(expiresDate.getDate() + 7);
+    }
+    const diff = Math.ceil((expiresDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  })();
+  const isExpired = merchant ? trialDaysLeft <= 0 : false;
 
   const handlePayWithMayar = async () => {
     setIsCreatingPayment(true);
@@ -96,7 +71,7 @@ export default function BillingPage() {
     }
   };
 
-  if (loading) {
+  if (!merchant) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />

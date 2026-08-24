@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { ClipboardList, Search, Calendar, FileText, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 export default function TransactionsPage() {
+  const { merchant } = useMerchant();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,29 +18,16 @@ export default function TransactionsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!merchant) return;
 
-        const { data: m } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-        if (!m) return;
+        // Parallelize products + transactions queries
+        const [prodsRes, txsRes] = await Promise.all([
+          supabase.from('products').select('id, nama_produk').eq('merchant_id', merchant.id),
+          supabase.from('transactions').select('*').eq('merchant_id', merchant.id).order('created_at', { ascending: false }).limit(50)
+        ]);
 
-        // 1. Ambil data master produk untuk referensi nama
-        const { data: prods } = await supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', m.id);
-
-        // 2. Ambil data transaksi
-        const { data: txs, error } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('merchant_id', m.id)
-          .order('created_at', { ascending: false })
-          .limit(50);
-          
-        if (error) {
-          console.error('Supabase Error:', error.message);
-        }
+        const prods = prodsRes.data;
+        const txs = txsRes.data;
 
         if (txs && txs.length > 0) {
           const txIds = txs.map(t => t.id);
@@ -76,7 +65,7 @@ export default function TransactionsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [merchant]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
 

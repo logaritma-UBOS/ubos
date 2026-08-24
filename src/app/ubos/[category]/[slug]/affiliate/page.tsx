@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Wallet, Handshake, Copy, MessageCircle, Megaphone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -19,35 +20,10 @@ export default function AffiliatePage() {
   const router = useRouter();
   const params = useParams();
   const theme = themeColorMap[(params.category as string)?.toLowerCase()] || themeColorMap.default;
-  const [loading, setLoading] = useState(true);
-  const [merchant, setMerchant] = useState<any>(null);
+  const { merchant } = useMerchant();
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutForm, setPayoutForm] = useState({ bank_name: 'BCA', account_number: '', account_name: '', amount: '' });
   const [isSubmittingPayout, setIsSubmittingPayout] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (merchantData && isMounted) {
-        setMerchant(merchantData);
-      }
-      if (isMounted) setLoading(false);
-    };
-    fetchData();
-    return () => { isMounted = false; };
-  }, [router]);
 
   const generateSlug = (text: string) => {
     return text
@@ -118,8 +94,6 @@ export default function AffiliatePage() {
       toast.success('Pengajuan berhasil! Dana sedang diproses.', { id: loadingToast });
       setShowPayoutModal(false);
       setPayoutForm({ bank_name: 'BCA', account_number: '', account_name: '', amount: '' });
-      
-      setMerchant((prev: any) => prev ? { ...prev, commission_balance: (prev.commission_balance || 0) - Number(amount) } : prev);
     } catch (err: any) {
       toast.error('Gagal mengajukan penarikan: ' + err.message, { id: loadingToast });
     } finally {
@@ -127,7 +101,7 @@ export default function AffiliatePage() {
     }
   };
 
-  if (loading) {
+  if (!merchant) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />

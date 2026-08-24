@@ -7,6 +7,7 @@ import { Wallet, ArrowDownToLine, ArrowUpFromLine, Landmark, ShieldCheck, X, Che
 import { toast } from 'sonner';
 import Copilot from '@/components/Copilot';
 import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
   kuliner: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
@@ -17,6 +18,7 @@ const themeColorMap: Record<string, { bg: string, text: string, border: string, 
 };
 
 export default function FinancePage({ params }: { params: Promise<{ slug: string; category: string }> }) {
+  const { merchant } = useMerchant();
   const resolvedParams = use(params);
   const { slug, category } = resolvedParams;
   const router = useRouter();
@@ -43,27 +45,27 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!merchant) return;
       
-      const { data: merchantData } = await supabase.from('merchants').select('id').eq('user_id', user.id).single();
-      if (merchantData) {
-        setMerchantId(merchantData.id);
-        const { data: walletData } = await supabase.from('wallets').select('*').eq('merchant_id', merchantData.id).single();
-        setWallet(walletData || { profit_bersih: 0, kas_bahan_baku: 0, kas_operasional: 0 });
+      setMerchantId(merchant.id);
+      
+      const [walletRes, txsRes] = await Promise.all([
+        supabase.from('wallets').select('*').eq('merchant_id', merchant.id).single(),
+        supabase.from('transactions').select('*').eq('merchant_id', merchant.id).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      ]);
 
-        let pendapatan = 0;
-        let pengeluaran = 0;
-        
-        const { data: allTxs } = await supabase.from('transactions').select('*').eq('merchant_id', merchantData.id).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-        allTxs?.forEach(tx => {
-           pendapatan += tx.total_net || 0;
-           pengeluaran += (tx.total_gross - tx.total_net) || 0;
-        });
-        
-        setTotalPendapatan(pendapatan);
-        setTotalPengeluaran(pengeluaran);
-      }
+      setWallet(walletRes.data || { profit_bersih: 0, kas_bahan_baku: 0, kas_operasional: 0 });
+
+      let pendapatan = 0;
+      let pengeluaran = 0;
+      
+      txsRes.data?.forEach(tx => {
+         pendapatan += tx.total_net || 0;
+         pengeluaran += (tx.total_gross - tx.total_net) || 0;
+      });
+      
+      setTotalPendapatan(pendapatan);
+      setTotalPengeluaran(pengeluaran);
     } catch (err) {
       console.error(err);
     } finally {
@@ -73,7 +75,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [merchant]);
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
