@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -114,13 +116,7 @@ export default function InventoryPage() {
   const totalAset = products.reduce((sum, p) => sum + (p.hpp_dasar || 0), 0);
   const habisCount = products.filter(p => p.is_available === false).length;
 
-  if (loading) {
-    return (
-      <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className={`animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-${theme.bg.split('-')[1]}-500`}></div>
-      </div>
-    );
-  }
+  if (loading) { return <UBOSLoading fullScreen={false} show={true} />; }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">

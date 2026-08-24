@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -97,13 +99,7 @@ export default function CRMPage() {
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
-  if (loading) {
-    return (
-      <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className={`animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-${theme.bg.split('-')[1]}-500`}></div>
-      </div>
-    );
-  }
+  if (loading) { return <UBOSLoading fullScreen={false} show={true} />; }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">

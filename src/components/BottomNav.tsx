@@ -80,8 +80,8 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors relative ${
-                isActive ? 'text-white' : 'text-slate-400 hover:text-slate-600'
+              className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90 relative ${
+                isActive ? 'text-white' : 'text-slate-400 hover:text-slate-600 active:bg-slate-50/50 rounded-xl'
               }`}
             >
               <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'btn-gradient-primary shadow-md shadow-emerald-500/30 scale-110 -translate-y-2' : ''}`}>

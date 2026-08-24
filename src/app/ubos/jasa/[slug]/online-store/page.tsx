@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Store, Link as LinkIcon, QrCode, ExternalLink, Save, Copy, AlertCircle, Settings, Image as ImageIcon } from 'lucide-react';
@@ -114,9 +116,7 @@ export default function OnlineStoreSettings({ params }: { params: Promise<{ slug
 
   if (loading) {
     return (
-      <div className="p-6 md:p-8 max-w-4xl mx-auto flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 

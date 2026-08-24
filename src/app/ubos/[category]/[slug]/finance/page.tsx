@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -183,9 +185,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
 
   if (loading) {
     return (
-      <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-[#00C0A3]"></div>
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 

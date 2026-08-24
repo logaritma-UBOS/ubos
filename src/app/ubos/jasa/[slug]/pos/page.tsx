@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -455,9 +457,7 @@ export default function POSJasaPage() {
 
   if (loading) {
     return (
-      <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 

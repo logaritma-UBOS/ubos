@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import UBOSLoading from './UBOSLoading';
 
 // ─── Public routes that do NOT need auth/session check ──────────────────────
 // These pages render immediately with no Supabase calls, no Set-Cookie headers,
@@ -29,7 +30,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // ── App pages: render the full authenticated shell ───────────────────────
-  return <AppShellInner>{children}</AppShellInner>;
+  // Suspense boundary is required because AppShellInner uses useSearchParams()
+  return (
+    <Suspense fallback={<UBOSLoading fullScreen={false} show={true} />}>
+      <AppShellInner>{children}</AppShellInner>
+    </Suspense>
+  );
 }
 
 // ─── Inner shell — only mounted for authenticated app routes ─────────────────
@@ -174,11 +180,33 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, session]);
 
+  // 3. Navigation UI Feedback
+  const [isNavigating, setIsNavigating] = useState(false);
+  const searchParams = useSearchParams();
+
+  // Clear navigating state when route changes finish
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as Element).closest('a');
+      if (target && target.href) {
+        const url = new URL(target.href);
+        // Only trigger loader for internal paths that are different
+        if (url.origin === window.location.origin && url.pathname !== pathname) {
+          setIsNavigating(true);
+        }
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [pathname]);
+
   if (loading) {
     return (
-      <div className="mx-auto max-w-md flex-1 flex flex-col items-center justify-center min-h-[100dvh] bg-background">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-primary"></div>
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 
@@ -190,6 +218,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="w-full min-h-[100dvh] bg-slate-50 flex mx-auto max-w-md md:max-w-none md:mx-0 relative shadow-2xl md:shadow-none overflow-hidden">
+      <UBOSLoading fullScreen={true} show={isNavigating} delayMs={150} />
+      
       {!hideSidebar && <Sidebar merchant={merchant} />}
       <main className={`flex-1 overflow-y-auto hide-scrollbar relative w-full ${!hideSidebar ? 'md:pl-64' : ''} ${!hideBottomNav ? 'pb-28 md:pb-0' : ''}`}>
         {children}

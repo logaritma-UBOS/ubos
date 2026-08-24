@@ -1,4 +1,5 @@
 'use client';
+import UBOSLoading from '@/components/UBOSLoading';
 
 import { useEffect, useState, FormEvent } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -103,9 +104,7 @@ export default function AffiliatePage() {
 
   if (!merchant) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 

@@ -1,5 +1,7 @@
 'use client';
 
+import UBOSLoading from '@/components/UBOSLoading';
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
@@ -73,9 +75,7 @@ export default function BillingPage() {
 
   if (!merchant) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className={`w-8 h-8 animate-spin ${theme.text}`} />
-      </div>
+      <UBOSLoading fullScreen={false} show={true} />
     );
   }
 

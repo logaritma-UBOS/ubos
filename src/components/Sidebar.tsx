@@ -221,7 +221,7 @@ export default function Sidebar({ merchant, onClose }: { merchant?: any, onClose
                   key={item.href} 
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center justify-between px-5 py-3 transition-colors duration-200 ${
+                  className={`flex items-center justify-between px-5 py-3 transition-all duration-200 active:scale-95 active:bg-white/30 ${
                     isActive 
                       ? 'bg-white/10 border-l-4 border-white text-white font-bold' 
                       : 'text-white/80 hover:bg-white/20 font-medium border-l-4 border-transparent'
