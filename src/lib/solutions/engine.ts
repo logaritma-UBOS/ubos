@@ -97,9 +97,10 @@ export function getRecommendations(input: RecommendationInput): Solution[] {
     const matchedKeywords: string[] = [];
     const matchedProblems: string[] = [];
 
-    // 1. Profile match (+3 per match)
+    // 1. Profile match (Context only, no automatic points to avoid blanket recommendations)
+    // Profesi bukan penentu produk.
     if (solution.targetProfile.includes(normalizedProfile)) {
-      score += 3;
+      // score += 0;
     }
 
     // 2. Trigger keyword match (+2 per keyword found)
@@ -117,22 +118,21 @@ export function getRecommendations(input: RecommendationInput): Solution[] {
       }
     }
 
-    // 4. Only include solutions with at least some relevance
-    if (score >= 3) {
+    // 4. Only include solutions with at least some relevance (gap detected)
+    if (score >= 2) { // lowered from 3 to 2 because we removed +3 profile score
       scored.push({ solution, score, matchedProblems, matchedKeywords });
     }
   }
 
-  // Sort by score descending, cap at 3 recommendations
+  // Sort by score descending, cap at 1 recommendation (rekomendasi utama)
   const sorted = scored
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
+    .slice(0, 1)
     .map(s => s.solution);
 
-  // Fallback: if nothing matched, recommend Konsultasi
+  // Jangan menebak produk jika belum cukup data
   if (sorted.length === 0) {
-    const konsultasi = SOLUTION_CATALOG.find(s => s.id === 'konsultasi');
-    return konsultasi ? [konsultasi] : [];
+    return [];
   }
 
   return sorted;
