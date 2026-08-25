@@ -51,6 +51,7 @@ export function useAILogaritmaEngine(merchantId?: string) {
   const refreshData = async () => {
     try {
       let activeMerchantId = merchantId;
+      let activeMerchant = null;
       
       if (!activeMerchantId) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -58,17 +59,32 @@ export function useAILogaritmaEngine(merchantId?: string) {
 
         const { data: merchant } = await supabase
           .from('merchants')
-          .select('id')
+          .select('id, kategori_usaha, created_at')
           .eq('user_id', user.id)
           .single();
 
         if (!merchant) return;
         activeMerchantId = merchant.id;
+        activeMerchant = merchant;
+      } else {
+        const { data: merchant } = await supabase
+          .from('merchants')
+          .select('id, kategori_usaha, created_at')
+          .eq('id', activeMerchantId)
+          .single();
+        activeMerchant = merchant;
       }
 
-      // 1. Get Targets from LocalStorage (browser-only — stays in hook)
+      // 1. Get Targets and Action from LocalStorage (browser-only — stays in hook)
       const targetProfit = parseTargetValue(localStorage.getItem('targetProfit'), 5000000);
       const budget = parseTargetValue(localStorage.getItem('budgetBelanja'), 300000);
+      let lastActionRecord = undefined;
+      try {
+        const rawAction = localStorage.getItem('lastActionRecord');
+        if (rawAction) lastActionRecord = JSON.parse(rawAction);
+      } catch (e) {
+        // ignore JSON parse error
+      }
 
       // 2. Fetch raw data from Supabase (IO — stays in hook)
       const today = new Date();
@@ -92,11 +108,13 @@ export function useAILogaritmaEngine(merchantId?: string) {
       const transactions: RawTransaction[] = transactionsRes.data || [];
       const products: RawProduct[] = productsRes.data || [];
 
-      // 3. Delegate ALL calculation to the pure core engine (platform-agnostic)
+      const umurAkunHari = activeMerchant?.created_at ? Math.max(1, Math.floor((new Date().getTime() - new Date(activeMerchant.created_at).getTime()) / (1000 * 3600 * 24))) : 30;
       const coreState = buildLogaritmaState(
         { targetProfitMonthly: targetProfit, budgetBelanjaDaily: budget },
         transactions,
-        products
+        products,
+        { kategoriUsaha: activeMerchant?.kategori_usaha || 'Retail', umurAkunHari },
+        lastActionRecord
       );
 
       // 4. Map core state back to AIState (same shape as before — no UI changes needed)

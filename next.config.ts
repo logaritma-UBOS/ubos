@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
@@ -9,9 +9,6 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   // Fix Turbopack error when using webpack plugins (like next-pwa)
   turbopack: {}

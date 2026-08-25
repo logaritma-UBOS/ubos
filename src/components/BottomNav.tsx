@@ -72,6 +72,7 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
     orange: { bg: 'bg-gradient-to-r from-orange-500 to-amber-600 shadow-orange-500/30', icon: Package, label: coreAction?.label || 'Amankan Stok', href: coreAction?.href || basePath },
     blue: { bg: 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30', icon: ShoppingCart, label: coreAction?.label || 'Kejar Jualan', href: coreAction?.href || basePath },
     emerald: { bg: 'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/30', icon: Sparkles, label: coreAction?.label || 'Aksi Logaritma', href: coreAction?.href || basePath },
+    purple: { bg: 'bg-gradient-to-r from-purple-500 to-fuchsia-600 shadow-purple-500/30', icon: Users, label: coreAction?.label || 'Pelanggan', href: coreAction?.href || basePath },
   };
   
   const resolvedColor = coreAction?.color || 'emerald';

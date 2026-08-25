@@ -1,25 +1,11 @@
-﻿/**
- * UBOS Core - Recommendation Engine
- *
- * PURE BUSINESS LOGIC - NO REACT, NO DOM, NO NEXT.JS, NO BROWSER APIS
- * Safe to import from: Web (Next.js), Android (React Native/Expo), PC (Tauri)
- *
- * Engine ini menentukan rekomendasi tindakan bisnis berdasarkan:
- * - Profil usaha merchant
- * - Gap antara target dan actual
- * - Kondisi stok dan keuangan
- *
- * Berbeda dengan Logaritma Engine (yang menentukan navigation action),
- * Recommendation Engine menghasilkan saran strategis yang lebih kaya.
- */
-
-// --- Types ---
+﻿export type DataConfidence = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface BusinessProfile {
-  kategoriUsaha: string;   // Tipe bisnis: kuliner, ritel, jasa, percetakan, dll
-  statusLangganan: string; // Trial, Premium, Expired
+  kategoriUsaha: string;
+  statusLangganan: string;
   jumlahProduk: number;
   jumlahPelanggan: number;
+  umurAkunHari: number;
 }
 
 export interface BusinessMetrics {
@@ -31,6 +17,7 @@ export interface BusinessMetrics {
   isOverBudget: boolean;
   totalTerpakai: number;
   budgetBelanjaDaily: number;
+  totalTransaksiHistori: number;
 }
 
 export type RecommendationPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -38,30 +25,27 @@ export type RecommendationPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export interface BusinessRecommendation {
   id: string;
   priority: RecommendationPriority;
-  kategori: 'PENJUALAN' | 'STOK' | 'KEUANGAN' | 'PELANGGAN' | 'PRODUK' | 'STRATEGI';
+  kategori: 'PENJUALAN' | 'STOK' | 'KEUANGAN' | 'PELANGGAN' | 'PRODUK' | 'STRATEGI' | 'OPERASIONAL';
   judul: string;
   deskripsi: string;
-  tindakan: string;       // Label CTA
-  href: string;           // Target route
-  icon: string;           // Icon name untuk UI layer (lucide icon name)
+  tindakan: string;
+  href: string;
+  icon: string;
+  confidence: DataConfidence;
 }
 
-// --- Scoring Constants ---
-const PROFIT_GAP_THRESHOLD_CRITICAL = 0.3;  // < 30% target = CRITICAL
-const PROFIT_GAP_THRESHOLD_HIGH = 0.6;      // < 60% target = HIGH
+const PROFIT_GAP_THRESHOLD_CRITICAL = 0.3;
+const PROFIT_GAP_THRESHOLD_HIGH = 0.6;
 
-// --- Pure Recommendation Functions ---
+export function evaluateDataConfidence(profile: BusinessProfile, metrics: BusinessMetrics): DataConfidence {
+  // Hanya gunakan totalTransaksiHistori aktual
+  if (metrics.totalTransaksiHistori < 10 || profile.umurAkunHari < 3) return 'LOW';
+  if (metrics.totalTransaksiHistori < 50 || profile.umurAkunHari < 7) return 'MEDIUM';
+  return 'HIGH';
+}
 
-/**
- * Analisis gap penjualan vs target
- */
-export function analyzeSalesGap(
-  dailyProfit: number,
-  targetProfitHarian: number
-): { severity: RecommendationPriority; percentAchieved: number; gap: number } {
-  const percentAchieved = targetProfitHarian > 0
-    ? (dailyProfit / targetProfitHarian) * 100
-    : 100;
+export function analyzeSalesGap(dailyProfit: number, targetProfitHarian: number): { severity: RecommendationPriority; percentAchieved: number; gap: number } {
+  const percentAchieved = targetProfitHarian > 0 ? (dailyProfit / targetProfitHarian) * 100 : 100;
   const gap = Math.max(0, targetProfitHarian - dailyProfit);
 
   let severity: RecommendationPriority = 'LOW';
@@ -72,103 +56,144 @@ export function analyzeSalesGap(
   return { severity, percentAchieved, gap };
 }
 
-/**
- * Hasilkan rekomendasi berdasarkan kondisi bisnis saat ini
- * Urutan output = urutan prioritas (index 0 = paling kritis)
- */
 export function generateRecommendations(
   profile: BusinessProfile,
   metrics: BusinessMetrics,
   basePath: string
 ): BusinessRecommendation[] {
   const recommendations: BusinessRecommendation[] = [];
+  const confidence = evaluateDataConfidence(profile, metrics);
   const salesGap = analyzeSalesGap(metrics.dailyProfit, metrics.targetProfitHarian);
-
-  // 1. Anggaran meledak - CRITICAL
+  const isFnB = profile.kategoriUsaha.toLowerCase().includes('f&b') || profile.kategoriUsaha.toLowerCase().includes('kuliner');
+  const isJasa = profile.kategoriUsaha.toLowerCase().includes('jasa');
+  
+  // 1. GAP: Over Budget -> Cause: Pengeluaran tinggi -> Action: Cek Keuangan / Kurangi Kulakan -> Feature: /finance
   if (metrics.isOverBudget) {
     recommendations.push({
       id: 'over_budget',
       priority: 'CRITICAL',
       kategori: 'KEUANGAN',
-      judul: 'Anggaran Hari Ini Melebihi Batas',
-      deskripsi: `Pengeluaran sudah melebihi anggaran harian Rp ${metrics.budgetBelanjaDaily.toLocaleString('id-ID')}.`,
-      tindakan: 'Cek Keuangan',
-      href: `${basePath}/finance`,
+      judul: 'Kontrol Anggaran Harian',
+      deskripsi: isFnB 
+        ? 'Pengeluaran belanja bahan baku melebihi modal harian. Kurangi kulakan atau naikkan harga jual.'
+        : 'Pengeluaran operasional melebihi anggaran. Cek arus kas sekarang.',
+      tindakan: 'Buka Keuangan',
+      href: '/finance',
       icon: 'AlertTriangle',
+      confidence
     });
   }
 
-  // 2. Stok habis - HIGH/CRITICAL tergantung jumlah
-  if (metrics.stokHabisCount > 0) {
+  // 2. GAP: Stok Habis -> Cause: Lupa restok -> Action: Kelola Inventaris -> Feature: /inventory
+  if (metrics.stokHabisCount > 0 && !isJasa) {
     recommendations.push({
       id: 'low_stock',
       priority: metrics.stokHabisCount >= 3 ? 'CRITICAL' : 'HIGH',
       kategori: 'STOK',
-      judul: `${metrics.stokHabisCount} Produk Kehabisan Stok`,
-      deskripsi: 'Produk habis akan menghentikan penjualan. Segera restok atau nonaktifkan sementara.',
-      tindakan: 'Kelola Stok',
-      href: `${basePath}/inventory`,
+      judul: metrics.stokHabisCount + ' Produk/Bahan Habis',
+      deskripsi: isFnB 
+        ? 'Bahan baku utama habis dapat menghentikan pesanan. Segera restok.' 
+        : 'Produk kosong akan mengecewakan pelanggan. Segera kulakan.',
+      tindakan: 'Kelola Inventaris',
+      href: '/inventory',
       icon: 'Package',
+      confidence
     });
   }
 
-  // 3. Penjualan jauh dari target
+  // 3. GAP: Profit Rendah
   if (salesGap.severity === 'CRITICAL' || salesGap.severity === 'HIGH') {
-    recommendations.push({
-      id: 'sales_gap',
-      priority: salesGap.severity,
-      kategori: 'PENJUALAN',
-      judul: `Penjualan Baru ${Math.round(salesGap.percentAchieved)}% dari Target`,
-      deskripsi: `Masih kurang sekitar Rp ${Math.round(salesGap.gap).toLocaleString('id-ID')} untuk mencapai target hari ini.`,
-      tindakan: 'Buka Kasir',
-      href: `${basePath}/pos`,
-      icon: 'ShoppingCart',
-    });
+    // Cause Analysis
+    
+    // Cause A: Omzet ada tapi Profit rendah -> Margin terlalu tipis / HPP salah
+    if (metrics.dailyOmzet > 0 && (metrics.dailyProfit / metrics.dailyOmzet) < 0.1) {
+      recommendations.push({
+        id: 'low_margin',
+        priority: salesGap.severity,
+        kategori: 'KEUANGAN',
+        judul: 'Margin Profit Terlalu Tipis',
+        deskripsi: 'Omzet tercapai tapi profit kecil. Cek kembali perhitungan Harga Pokok (HPP) Anda.',
+        tindakan: 'Cek Performa Produk',
+        href: '/performa-produk', // Backward map to pricing/performance
+        icon: 'TrendingDown',
+        confidence
+      });
+    } 
+    // Cause B: Transaksi harian sangat rendah -> Promosi / Marketing
+    else if (metrics.totalTransaksiHari < 5) {
+      if (confidence === 'LOW') {
+        recommendations.push({
+          id: 'sales_gap_low',
+          priority: 'HIGH',
+          kategori: 'PENJUALAN',
+          judul: 'Mulai Transaksi Pertama',
+          deskripsi: 'Catat transaksi sebanyak mungkin agar Logaritma bisa menganalisa pola penjualan Anda.',
+          tindakan: 'Buka Kasir',
+          href: '/pos',
+          icon: 'ShoppingCart',
+          confidence
+        });
+      } else {
+        recommendations.push({
+          id: 'low_traffic',
+          priority: salesGap.severity,
+          kategori: 'PENJUALAN',
+          judul: 'Transaksi Sepi Hari Ini',
+          deskripsi: 'Pelanggan sepi. Coba jalankan promo kilat ke database pelanggan Anda.',
+          tindakan: 'Broadcast Promo',
+          href: '/crm',
+          icon: 'MessageCircle',
+          confidence
+        });
+      }
+    } 
+    // Cause C: Pelanggan loyal kurang -> CRM
+    else if (profile.jumlahPelanggan < 20) {
+      recommendations.push({
+        id: 'low_retention',
+        priority: 'HIGH',
+        kategori: 'PELANGGAN',
+        judul: 'Kumpulkan Data Pelanggan',
+        deskripsi: 'Transaksi cukup, namun sedikit yang terekam sebagai pelanggan tetap. Tawarkan membership.',
+        tindakan: 'Kelola Pelanggan',
+        href: '/crm',
+        icon: 'Users',
+        confidence
+      });
+    }
+    // Default cause: Just need to sell more
+    else {
+      recommendations.push({
+        id: 'push_sales',
+        priority: 'MEDIUM',
+        kategori: 'PENJUALAN',
+        judul: 'Kejar Target Harian',
+        deskripsi: 'Masih kurang sedikit untuk mencapai target profit harian. Maksimalkan kasir!',
+        tindakan: 'Buka Kasir',
+        href: '/pos',
+        icon: 'Zap',
+        confidence
+      });
+    }
   }
 
-  // 4. Tidak ada produk terdaftar
+  // 4. GAP: Katalog kosong
   if (profile.jumlahProduk === 0) {
     recommendations.push({
       id: 'no_products',
       priority: 'HIGH',
       kategori: 'PRODUK',
-      judul: 'Belum Ada Produk Terdaftar',
-      deskripsi: 'Tambahkan produk agar bisa mulai berjualan melalui Kasir POS.',
-      tindakan: 'Tambah Produk',
-      href: `${basePath}/inventory/new`,
+      judul: isJasa ? 'Belum Ada Layanan/Jasa' : 'Belum Ada Katalog Produk',
+      deskripsi: isJasa 
+        ? 'Tambahkan daftar layanan Anda agar bisa dipilih saat kasir.' 
+        : 'Katalog kosong. Tambahkan produk atau bahan baku pertama Anda.',
+      tindakan: isJasa ? 'Tambah Layanan' : 'Tambah Produk',
+      href: '/inventory/new',
       icon: 'Plus',
+      confidence
     });
   }
 
-  // 5. Tidak ada transaksi hari ini
-  if (metrics.totalTransaksiHari === 0 && profile.jumlahProduk > 0) {
-    recommendations.push({
-      id: 'no_sales_today',
-      priority: 'MEDIUM',
-      kategori: 'PENJUALAN',
-      judul: 'Belum Ada Transaksi Hari Ini',
-      deskripsi: 'Mulai hari dengan membuka sesi kasir dan melayani pelanggan pertama.',
-      tindakan: 'Mulai Jualan',
-      href: `${basePath}/pos`,
-      icon: 'Zap',
-    });
-  }
-
-  // 6. Pelanggan sedikit - sarankan CRM
-  if (profile.jumlahPelanggan < 10 && profile.jumlahProduk > 0) {
-    recommendations.push({
-      id: 'grow_customers',
-      priority: 'MEDIUM',
-      kategori: 'PELANGGAN',
-      judul: 'Bangun Database Pelanggan',
-      deskripsi: 'Catat pelanggan setia untuk meningkatkan repeat order dan loyalitas.',
-      tindakan: 'Kelola Pelanggan',
-      href: `${basePath}/crm`,
-      icon: 'Users',
-    });
-  }
-
-  // Sort: CRITICAL first, then HIGH, MEDIUM, LOW
   const priorityOrder: Record<RecommendationPriority, number> = {
     CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3,
   };
@@ -178,11 +203,6 @@ export function generateRecommendations(
   );
 }
 
-/**
- * Ambil rekomendasi paling kritis (untuk CTA tunggal di navbar/header)
- */
-export function getPrimaryAction(
-  recommendations: BusinessRecommendation[]
-): BusinessRecommendation | null {
+export function getPrimaryAction(recommendations: BusinessRecommendation[]): BusinessRecommendation | null {
   return recommendations.length > 0 ? recommendations[0] : null;
 }

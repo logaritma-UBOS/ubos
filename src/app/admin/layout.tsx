@@ -100,6 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: 'RUANG FOUNDER',
       items: [
         { href: '/admin', label: 'Ringkasan Bisnis', icon: LayoutDashboard, color: 'blue' },
+        { href: '/admin/founder/logaritma', label: 'Monitor Logaritma AI', icon: Activity, color: 'blue' },
         { href: '/admin/founder/workspace', label: 'Ruang Kerja Founder', icon: Users, color: 'blue' },
         { href: '/admin/founder/treasury', label: 'Kas & Bagi Hasil', icon: DollarSign, color: 'blue' }
       ]
