@@ -1,1 +1,0 @@
-const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch({headless: true}); const page = await browser.newPage(); await page.goto('https://ubos-a43h.vercel.app', {waitUntil: 'networkidle0'}); const text = await page.evaluate(() => document.body.innerText); console.log(text.substring(0, 1000)); await browser.close(); })();
