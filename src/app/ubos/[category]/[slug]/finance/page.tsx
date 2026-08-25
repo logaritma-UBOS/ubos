@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, Landmark, ShieldCheck, X, CheckCircle, Package, Sparkles, TrendingUp, ShieldAlert, PieChart } from 'lucide-react';
 import { toast } from 'sonner';
-import Copilot from '@/components/Copilot';
-import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import dynamic from 'next/dynamic';
+const Copilot = dynamic(() => import('@/components/Copilot'), { ssr: false });
+const HeaderAiTrigger = dynamic(() => import('@/components/ubos/HeaderAiTrigger'), { ssr: false });
 import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
@@ -243,13 +244,13 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
           <div className="mt-6 pt-6 border-t border-slate-700/80 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700 flex flex-col justify-center">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rekomendasi Modal Kulakan (HPP)</span>
-              <span className="text-xl font-black text-white mt-1">{formatIDR(recommendedModalKulakan)}</span>
+              <span className="text-xl font-black text-white mt-1">{loading ? '...' : formatIDR(recommendedModalKulakan)}</span>
               <span className="text-[10px] text-emerald-400 mt-0.5">Batas aman alokasi stok untuk cegah dead-stock</span>
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700 flex flex-col justify-center">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Proyeksi Bersih (Net Profit)</span>
-              <span className="text-xl font-black text-[#00C0A3] mt-1">{formatIDR(estimatedNetProfit)}</span>
+              <span className="text-xl font-black text-[#00C0A3] mt-1">{loading ? '...' : formatIDR(estimatedNetProfit)}</span>
               <span className="text-[10px] text-slate-400 mt-0.5">Estimasi bersih setelah dipotong operasional</span>
             </div>
           </div>
@@ -262,7 +263,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
               <ArrowUpFromLine size={20} />
             </div>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pendapatan</p>
-            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(totalPendapatan)}</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{loading ? '...' : formatIDR(totalPendapatan)}</p>
           </div>
           
           <div className="bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-800 text-white relative overflow-hidden">
@@ -273,7 +274,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
               <Landmark size={20} />
             </div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider relative z-10">Laba Bersih (Riil)</p>
-            <p className="text-xl md:text-2xl font-black text-[#00C0A3] mt-1 relative z-10">{formatIDR(wallet?.profit_bersih || 0)}</p>
+            <p className="text-xl md:text-2xl font-black text-[#00C0A3] mt-1 relative z-10">{loading ? "..." : formatIDR(wallet?.profit_bersih || 0)}</p>
           </div>
           
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
@@ -281,7 +282,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
               <ArrowDownToLine size={20} />
             </div>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pengeluaran</p>
-            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(totalPengeluaran)}</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{loading ? '...' : formatIDR(totalPengeluaran)}</p>
           </div>
 
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
@@ -289,7 +290,7 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
               <Wallet size={20} />
             </div>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kas Operasional</p>
-            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{formatIDR(wallet?.kas_operasional || 0)}</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 mt-1">{loading ? "..." : formatIDR(wallet?.kas_operasional || 0)}</p>
           </div>
         </div>
 
@@ -318,14 +319,14 @@ export default function FinancePage({ params }: { params: Promise<{ slug: string
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
             <div className="flex justify-between items-center text-sm">
               <span className="font-bold text-slate-600">Alokasi Kas Bahan Baku</span>
-              <span className="font-black text-slate-900">{formatIDR(wallet?.kas_bahan_baku || 0)}</span>
+              <span className="font-black text-slate-900">{loading ? "..." : formatIDR(wallet?.kas_bahan_baku || 0)}</span>
             </div>
             <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
               <div className="h-full bg-[#00C0A3] rounded-full" style={{ width: '65%' }}></div>
             </div>
             <div className="flex justify-between items-center text-sm pt-2">
               <span className="font-bold text-slate-600">Alokasi Kas Operasional</span>
-              <span className="font-black text-slate-900">{formatIDR(wallet?.kas_operasional || 0)}</span>
+              <span className="font-black text-slate-900">{loading ? "..." : formatIDR(wallet?.kas_operasional || 0)}</span>
             </div>
             <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
               <div className="h-full bg-slate-900 rounded-full" style={{ width: '35%' }}></div>

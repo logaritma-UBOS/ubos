@@ -8,7 +8,8 @@ import { supabase } from '@/lib/supabase/client';
 import { Users, MessageCircle, Send, Plus, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import dynamic from 'next/dynamic';
+const HeaderAiTrigger = dynamic(() => import('@/components/ubos/HeaderAiTrigger'), { ssr: false });
 import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
@@ -99,7 +100,7 @@ export default function CRMPage() {
 
   const formatIDR = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
-  if (loading) { return <UBOSLoading fullScreen={false} show={true} />; }
+
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
@@ -174,7 +175,7 @@ export default function CRMPage() {
                 </button>
               </div>
               
-              {customers.length === 0 ? (
+              {loading ? (<div className="p-10 text-center text-slate-500 font-bold text-sm animate-pulse">Memuat data pelanggan...</div>) : customers.length === 0 ? (
                 <div className="p-10 text-center">
                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 mx-auto text-slate-300 border border-slate-100">
                     <Users size={32} />

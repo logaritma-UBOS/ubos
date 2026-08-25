@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ShoppingCart, Package, Wallet, Settings, Store, Lock, Users, Sparkles, Activity, Menu, X, ClipboardList, LogOut } from 'lucide-react';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
+import { determineLogaritmaAction, buildLogaritmaState } from '@/core/logaritma';
 import { supabase } from '@/lib/supabase/client';
 
 export default function BottomNav({ merchant }: { merchant?: any }) {
@@ -45,42 +46,40 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
     isExpired = diff <= 0;
   }
 
-  const { state: aiState } = useAILogaritmaEngine(merchant?.id);
+  const { aiState } = useAILogaritmaEngine(merchant?.id);
 
-  // LOGARITMA CONTEXTUAL CTA
-  let actionLabel = "Performa";
-  let ActionIcon = Activity;
-  let actionHref = `${basePath}`;
-  let actionColor = "text-emerald-600";
-  let actionBg = "btn-gradient-primary shadow-emerald-500/30";
+  // LOGARITMA DECISION ENGINE — delegated to src/core (platform-agnostic)
+  const coreAction = useMemo(() => {
+    if (!aiState || aiState.isLoading) return null;
+    const coreState = buildLogaritmaState(
+      { targetProfitMonthly: aiState.targetProfitMonthly, budgetBelanjaDaily: aiState.budgetBelanjaDaily },
+      [],  // raw tx already computed inside aiState
+      aiState.lowStockItems || []
+    );
+    // Inject precomputed metrics so engine can decide without re-fetching
+    const patchedState = {
+      ...coreState,
+      daily: { dailyOmzet: aiState.dailyOmzet, dailyProfit: aiState.dailyProfit, totalTransactions: aiState.totalTransactions },
+      isOverBudget: aiState.isOverBudget,
+      stock: { totalTerpakai: aiState.totalTerpakai, lowStockItems: aiState.lowStockItems || [] },
+    };
+    return determineLogaritmaAction(patchedState, basePath);
+  }, [aiState, basePath]);
 
-  if (!aiState?.isLoading) {
-    if (aiState?.isOverBudget) {
-      actionLabel = "Cek Keuangan";
-      ActionIcon = Wallet;
-      actionHref = `${basePath}/finance`;
-      actionColor = "text-white";
-      actionBg = "bg-gradient-to-r from-red-500 to-rose-600 shadow-red-500/30";
-    } else if (aiState?.lowStockItems?.length > 0) {
-      actionLabel = "Amankan Stok";
-      ActionIcon = Package;
-      actionHref = `${basePath}/inventory`;
-      actionColor = "text-white";
-      actionBg = "bg-gradient-to-r from-orange-500 to-amber-600 shadow-orange-500/30";
-    } else if (aiState?.dailyProfit < (aiState?.targetProfitMonthly / 30) * 0.5) {
-      actionLabel = "Kejar Jualan";
-      ActionIcon = ShoppingCart;
-      actionHref = `${basePath}/pos`;
-      actionColor = "text-white";
-      actionBg = "bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30";
-    } else {
-      actionLabel = "Aksi Logaritma";
-      ActionIcon = Sparkles;
-      actionHref = `${basePath}`;
-      actionColor = "text-white";
-      actionBg = "bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/30";
-    }
-  }
+  // Map core action color → Tailwind gradient (UI layer responsibility)
+  const actionColorMap: Record<string, { bg: string; icon: React.ElementType; label: string; href: string }> = {
+    red: { bg: 'bg-gradient-to-r from-red-500 to-rose-600 shadow-red-500/30', icon: Wallet, label: coreAction?.label || 'Cek Keuangan', href: coreAction?.href || basePath },
+    orange: { bg: 'bg-gradient-to-r from-orange-500 to-amber-600 shadow-orange-500/30', icon: Package, label: coreAction?.label || 'Amankan Stok', href: coreAction?.href || basePath },
+    blue: { bg: 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30', icon: ShoppingCart, label: coreAction?.label || 'Kejar Jualan', href: coreAction?.href || basePath },
+    emerald: { bg: 'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/30', icon: Sparkles, label: coreAction?.label || 'Aksi Logaritma', href: coreAction?.href || basePath },
+  };
+  
+  const resolvedColor = coreAction?.color || 'emerald';
+  const actionMeta = actionColorMap[resolvedColor] || actionColorMap.emerald;
+  const ActionIcon = coreAction ? actionMeta.icon : Activity;
+  const actionLabel = coreAction ? actionMeta.label : 'Performa';
+  const actionHref = coreAction ? actionMeta.href : basePath;
+  const actionBg = coreAction ? actionMeta.bg : 'btn-gradient-primary shadow-emerald-500/30';
 
   const mainNavItems = [
     { name: 'Beranda', href: `${basePath}`, icon: Home, locked: false },
@@ -115,6 +114,7 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
                 <Link 
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={() => setShowMoreMenu(false)}
                   className="flex flex-col items-center gap-2 active:scale-95 transition-all"
                 >
@@ -165,6 +165,7 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
                 <Link 
                   key={item.name} 
                   href={item.href}
+                  prefetch={true}
                   className="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90 relative z-10"
                 >
                   <div className={`p-3 rounded-2xl transition-all duration-300 ${actionBg} shadow-lg scale-110 -translate-y-4 border-2 border-white`}>

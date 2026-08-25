@@ -1,28 +1,29 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 
-const categories = ['percetakan', 'ritel', 'jasa'];
+const files = [
+  'src/app/ubos/[category]/[slug]/finance/page.tsx',
+  'src/app/ubos/[category]/[slug]/crm/page.tsx',
+  'src/app/ubos/[category]/[slug]/inventory/page.tsx',
+  'src/app/ubos/[category]/[slug]/transactions/page.tsx'
+];
 
-for (const cat of categories) {
-  const file = `src/app/ubos/${cat}/[slug]/inventory/new/page.tsx`;
-  if (!fs.existsSync(file)) continue;
-  
-  let code = fs.readFileSync(file, 'utf8');
-
-  // Remove the loading state declaration
-  code = code.replace(/const \[loading, setLoading\] = useState\(true\);\s*/g, '');
-
-  // Remove the loading spinner block
-  // It looks like:
-  // if (loading) {
-  //   return (
-  //     <div className="p-4 flex items-center justify-center h-full min-h-[50vh]">
-  //       <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-primary"></div>
-  //     </div>
-  //   );
-  // }
-  const regex = /if \(loading\) \{[\s\S]*?return \([\s\S]*?<div className="animate-spin[\s\S]*?<\/div>[\s\S]*?<\/div>\s*\);\s*\}\s*/g;
-  code = code.replace(regex, '');
-
-  fs.writeFileSync(file, code);
-  console.log(`Removed loading state from ${file}`);
+for (const f of files) {
+  if (fs.existsSync(f)) {
+    let content = fs.readFileSync(f, 'utf8');
+    
+    // Remove early return
+    content = content.replace(/  if \(loading\) \{\n    return \(\n      <UBOSLoading fullScreen=\{false\} show=\{true\} \/>\n    \);\n  \}/g, '');
+    content = content.replace(/  if \(loading\) \{ return <UBOSLoading fullScreen=\{false\} show=\{true\} \/>; \}/g, '');
+    content = content.replace(/  if \(loading\) return <UBOSLoading fullScreen=\{false\} show=\{true\} \/>;/g, '');
+    
+    // Fallback UI adjustments if wallet/products are null
+    if (f.includes('finance')) {
+      content = content.replace(/formatIDR\(wallet\?.profit_bersih/g, 'loading ? "..." : formatIDR(wallet?.profit_bersih');
+      content = content.replace(/formatIDR\(wallet\?.kas_operasional/g, 'loading ? "..." : formatIDR(wallet?.kas_operasional');
+      content = content.replace(/formatIDR\(wallet\?.kas_bahan_baku/g, 'loading ? "..." : formatIDR(wallet?.kas_bahan_baku');
+    }
+    
+    fs.writeFileSync(f, content);
+    console.log('Removed loading block from ' + f.split('/').pop());
+  }
 }

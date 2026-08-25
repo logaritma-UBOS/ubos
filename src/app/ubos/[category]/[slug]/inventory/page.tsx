@@ -9,7 +9,8 @@ import { supabase } from '@/lib/supabase/client';
 import { Plus, Package, Edit, Trash2, Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import DummyDataInjector from '@/components/DummyDataInjector';
 import { toast } from 'sonner';
-import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import dynamic from 'next/dynamic';
+const HeaderAiTrigger = dynamic(() => import('@/components/ubos/HeaderAiTrigger'), { ssr: false });
 import { useMerchant } from '@/contexts/MerchantContext';
 
 const themeColorMap: Record<string, { bg: string, text: string, border: string, light: string, hover: string }> = {
@@ -116,7 +117,7 @@ export default function InventoryPage() {
   const totalAset = products.reduce((sum, p) => sum + (p.hpp_dasar || 0), 0);
   const habisCount = products.filter(p => p.is_available === false).length;
 
-  if (loading) { return <UBOSLoading fullScreen={false} show={true} />; }
+
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-28 md:pb-10">
@@ -186,7 +187,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Produk</span>
-              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{products.length}</h2>
+              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{loading ? '...' : products.length}</h2>
             </div>
           </div>
 
@@ -196,7 +197,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Stok Habis</span>
-              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{habisCount}</h2>
+              <h2 className="text-base md:text-2xl font-black text-slate-900 leading-tight">{loading ? '...' : habisCount}</h2>
             </div>
           </div>
 
@@ -206,7 +207,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider block">Nilai Aset HPP</span>
-              <h2 className="text-xs md:text-2xl font-black text-slate-900 leading-tight truncate">{formatIDR(totalAset)}</h2>
+              <h2 className="text-xs md:text-2xl font-black text-slate-900 leading-tight truncate">{loading ? '...' : formatIDR(totalAset)}</h2>
             </div>
           </div>
         </div>
@@ -228,7 +229,7 @@ export default function InventoryPage() {
             />
           </div>
           
-          {filteredProducts.length === 0 ? (
+          {loading ? (<div className="bg-white rounded-3xl p-10 shadow-sm border border-slate-200/80 text-center text-slate-500 font-bold text-sm animate-pulse">Memuat data inventaris...</div>) : filteredProducts.length === 0 ? (
             <div className="bg-white rounded-3xl p-10 shadow-sm border border-slate-200/80 text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300 shadow-inner border border-slate-100">
                 <Package size={32} />

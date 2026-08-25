@@ -9,8 +9,10 @@ import { ShoppingCart, Store, Plus, Minus, CreditCard, ExternalLink, CheckCircle
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
 import { useAILogaritmaEngine } from '@/hooks/useAILogaritmaEngine';
-import Receipt from '@/components/Receipt';
-import HeaderAiTrigger from '@/components/ubos/HeaderAiTrigger';
+import dynamic from 'next/dynamic';
+
+const Receipt = dynamic(() => import('@/components/Receipt'), { ssr: false });
+const HeaderAiTrigger = dynamic(() => import('@/components/ubos/HeaderAiTrigger'), { ssr: false });
 
 import { useMerchant } from '@/contexts/MerchantContext';
 
@@ -36,8 +38,7 @@ export default function POSPage() {
   const { merchant } = useMerchant();
   const router = useRouter();
   const params = useParams();
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  
   const [channel, setChannel] = useState<Channel>('DINE_IN');
   const [cart, setCart] = useState<Record<string, number | string>>({});
   
@@ -57,6 +58,8 @@ export default function POSPage() {
   const [customerWA, setCustomerWA] = useState<string>('');
   
   const { aiState } = useAILogaritmaEngine(merchant?.id);
+  const products = aiState.products || [];
+  const loading = aiState.isLoading;
   
   // Success States
   const [showSuccess, setShowSuccess] = useState(false);
@@ -67,29 +70,11 @@ export default function POSPage() {
   const [showCRMInfo, setShowCRMInfo] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!merchant) return;
-        
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', merchant.id);
-        
-        setProducts(productsData || []);
-        
-        const step = localStorage.getItem('onboarding_step');
-        if (step === 'step4_crm_info') {
-          setIsOnboarding(true);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [merchant]);
+    const step = localStorage.getItem('onboarding_step');
+    if (step === 'step4_crm_info') {
+      setIsOnboarding(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!merchant?.id) return;
@@ -222,56 +207,63 @@ export default function POSPage() {
         };
       }).filter(item => item.qty > 0);
       
-      const { error: itemsError } = await supabase.from('transaction_items').insert(itemsToInsert);
-      if (itemsError) throw itemsError;
-      
       const totalHPP = itemsToInsert.reduce((sum, item) => sum + (item.hpp_satuan * item.qty), 0);
       const profit = net - totalHPP;
       const kasOperasional = profit * 0.2;
       const profitBersih = profit * 0.8;
       
-      const { data: wallet } = await supabase.from('wallets').select('*').eq('merchant_id', merchant.id).maybeSingle();
-      if (wallet) {
-         const { error: walletErr } = await supabase.from('wallets').update({
-           kas_bahan_baku: (wallet.kas_bahan_baku || 0) + totalHPP,
-           kas_operasional: (wallet.kas_operasional || 0) + kasOperasional,
-           profit_bersih: (wallet.profit_bersih || 0) + profitBersih
-         }).eq('id', wallet.id);
-         if (walletErr) console.error("Error updating wallet:", walletErr);
-      } else {
-         const { error: walletInsertErr } = await supabase.from('wallets').insert([{
-           merchant_id: merchant.id,
-           kas_bahan_baku: totalHPP,
-           kas_operasional: kasOperasional,
-           profit_bersih: profitBersih
-         }]);
-         if (walletInsertErr) console.error("Error inserting wallet:", walletInsertErr);
+      const promises: Promise<any>[] = [];
+      
+      // 1. Insert transaction items
+      promises.push(supabase.from('transaction_items').insert(itemsToInsert));
+      
+      // 2. Update wallet
+      promises.push((async () => {
+        const { data: wallet } = await supabase.from('wallets').select('*').eq('merchant_id', merchant.id).maybeSingle();
+        if (wallet) {
+           await supabase.from('wallets').update({
+             kas_bahan_baku: (wallet.kas_bahan_baku || 0) + totalHPP,
+             kas_operasional: (wallet.kas_operasional || 0) + kasOperasional,
+             profit_bersih: (wallet.profit_bersih || 0) + profitBersih
+           }).eq('id', wallet.id);
+        } else {
+           await supabase.from('wallets').insert([{
+             merchant_id: merchant.id,
+             kas_bahan_baku: totalHPP,
+             kas_operasional: kasOperasional,
+             profit_bersih: profitBersih
+           }]);
+        }
+      })());
+      
+      // 3. Update customer CRM
+      if (customerWA && customerName) {
+        promises.push((async () => {
+          const { data: existingCustomer } = await supabase
+            .from('customers')
+            .select('*')
+            .eq('merchant_id', merchant.id)
+            .eq('phone', customerWA)
+            .maybeSingle();
+          if (existingCustomer) {
+            await supabase.from('customers').update({
+              total_visits: (existingCustomer.total_visits || 0) + 1,
+              total_spent: (existingCustomer.total_spent || 0) + cartTotal.total,
+              nama: customerName
+            }).eq('id', existingCustomer.id);
+          } else {
+            await supabase.from('customers').insert([{
+              merchant_id: merchant.id,
+              nama: customerName,
+              phone: customerWA,
+              total_visits: 1,
+              total_spent: cartTotal.total
+            }]);
+          }
+        })());
       }
       
-      if (customerWA && customerName) {
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('*')
-          .eq('merchant_id', merchant.id)
-          .eq('phone', customerWA)
-          .maybeSingle();
-
-        if (existingCustomer) {
-          await supabase.from('customers').update({
-            total_visits: (existingCustomer.total_visits || 0) + 1,
-            total_spent: (existingCustomer.total_spent || 0) + cartTotal.total,
-            nama: customerName
-          }).eq('id', existingCustomer.id);
-        } else {
-          await supabase.from('customers').insert([{
-            merchant_id: merchant.id,
-            nama: customerName,
-            phone: customerWA,
-            total_visits: 1,
-            total_spent: cartTotal.total
-          }]);
-        }
-      }
+      await Promise.all(promises);
       
       setLastTrxId(trxData.id);
       setShowCheckout(false);
@@ -505,7 +497,7 @@ export default function POSPage() {
 
             {/* Product Grid - Modern Cards */}
             <div>
-              {filteredProducts.length === 0 ? (
+              {loading ? (<div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200/80 text-center text-slate-500 font-bold text-sm animate-pulse mt-4">Memuat produk POS...</div>) : filteredProducts.length === 0 ? (
                 <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200/80 text-center flex flex-col items-center mt-4">
                   <Store size={32} className="text-slate-300 mb-3" />
                   <p className="text-slate-600 font-bold text-sm">Produk tidak ditemukan</p>

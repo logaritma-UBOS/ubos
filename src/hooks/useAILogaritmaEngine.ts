@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import {
+  buildLogaritmaState,
+  parseTargetValue,
+  type RawTransaction,
+  type RawProduct,
+} from '@/core/logaritma';
 
+// ─── AIState — API public tetap identik agar semua halaman existing tidak perlu diubah ─
 export interface AIState {
   // Config
   targetProfitMonthly: number;
@@ -59,19 +66,16 @@ export function useAILogaritmaEngine(merchantId?: string) {
         activeMerchantId = merchant.id;
       }
 
-      // 1. Get Targets from LocalStorage
-      const savedProfit = localStorage.getItem('targetProfit');
-      const savedBudget = localStorage.getItem('budgetBelanja');
-      const targetProfit = savedProfit ? parseInt(savedProfit.replace(/\D/g, ''), 10) : 5000000;
-      const budget = savedBudget ? parseInt(savedBudget.replace(/\D/g, ''), 10) : 300000;
+      // 1. Get Targets from LocalStorage (browser-only — stays in hook)
+      const targetProfit = parseTargetValue(localStorage.getItem('targetProfit'), 5000000);
+      const budget = parseTargetValue(localStorage.getItem('budgetBelanja'), 300000);
 
-      // 2. Calculate Daily Metrics from POS transactions
+      // 2. Fetch raw data from Supabase (IO — stays in hook)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      // Parallelize queries
       const [transactionsRes, productsRes] = await Promise.all([
         supabase
           .from('transactions')
@@ -85,71 +89,31 @@ export function useAILogaritmaEngine(merchantId?: string) {
           .eq('merchant_id', activeMerchantId)
       ]);
 
-      const transactions = transactionsRes.data;
-      const products = productsRes.data;
+      const transactions: RawTransaction[] = transactionsRes.data || [];
+      const products: RawProduct[] = productsRes.data || [];
 
-      let dailyOmzet = 0;
-      let dailyProfit = 0;
-      let totalTx = 0;
+      // 3. Delegate ALL calculation to the pure core engine (platform-agnostic)
+      const coreState = buildLogaritmaState(
+        { targetProfitMonthly: targetProfit, budgetBelanjaDaily: budget },
+        transactions,
+        products
+      );
 
-      if (transactions) {
-        totalTx = transactions.length;
-        transactions.forEach(tx => {
-          const omzetNominal = Number(
-            tx.total_gross || tx.total || tx.total_harga || tx.grand_total || 
-            tx.subtotal || tx.jumlah || tx.price || tx.nominal || tx.harga || 0
-          );
-          
-          const netNominal = Number(
-            tx.total_net || tx.total || tx.total_harga || tx.grand_total || 
-            tx.subtotal || tx.jumlah || omzetNominal
-          );
-
-          dailyOmzet += omzetNominal;
-          const profit = netNominal * 0.4;
-          dailyProfit += profit;
-        });
-      }
-
-      const lowStock: any[] = [];
-      let totalTerpakai = 0;
-      if (products) {
-        products.forEach(p => {
-          const stokVal = Number(p.stok ?? p.qty ?? p.stock ?? p.quantity ?? 1);
-          const isHabis = p.is_available === false || p.status === 'habis' || stokVal <= 0;
-          
-          if (isHabis) {
-            lowStock.push(p);
-          }
-          
-          // Calculate totalTerpakai
-          const modal = Number(
-            p.hpp_dasar || p.hpp || p.modal || p.harga_modal || 
-            p.harga_beli || p.modal_satuan || p.capital || 0
-          );
-          const subtotal = p.total_belanja ? Number(p.total_belanja) : (modal * stokVal);
-          totalTerpakai += subtotal;
-        });
-      }
-
-      // 4. Hitung Sisa Budget
-      const estimatedExpenses = dailyOmzet - dailyProfit;
-      const remainingBudget = budget - estimatedExpenses;
-
+      // 4. Map core state back to AIState (same shape as before — no UI changes needed)
       setState({
-        targetProfitMonthly: targetProfit,
-        budgetBelanjaDaily: budget,
-        dailyOmzet,
-        dailyProfit,
-        totalTransactions: totalTx,
-        totalTerpakai,
-        remainingMorningBudget: remainingBudget,
-        isOverBudget: remainingBudget < 0,
-        lowStockItems: lowStock,
+        targetProfitMonthly: coreState.config.targetProfitMonthly,
+        budgetBelanjaDaily: coreState.config.budgetBelanjaDaily,
+        dailyOmzet: coreState.daily.dailyOmzet,
+        dailyProfit: coreState.daily.dailyProfit,
+        totalTransactions: coreState.daily.totalTransactions,
+        totalTerpakai: coreState.stock.totalTerpakai,
+        remainingMorningBudget: coreState.remainingMorningBudget,
+        isOverBudget: coreState.isOverBudget,
+        lowStockItems: coreState.stock.lowStockItems,
         peakHoursTrend: null,
-        hasProducts: !!(products && products.length > 0),
-        products: products || [],
-        isLoading: false
+        hasProducts: coreState.hasProducts,
+        products,
+        isLoading: false,
       });
 
     } catch (error) {
