@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
       if (!result.isNew && !user) {
         toast.info('Nomor WhatsApp ini sudah terdaftar. Silakan login.');
-        router.push('/auth/login');
+        router.push('/login');
         return;
       }
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
           router.push(`/ubos/${encodeURIComponent(category)}/${slug}`);
         }, 1500);
       } else {
-        router.push('/auth/login');
+        router.push('/login');
       }
 
     } catch (err: any) {
@@ -280,7 +280,7 @@ export default function RegisterPage() {
       <div className="text-center pt-4 border-t border-slate-100 mt-6">
         <p className="text-sm text-slate-600">
           Sudah punya akun?{' '}
-          <Link href="/auth/login" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
+          <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
             Masuk
           </Link>
         </p>

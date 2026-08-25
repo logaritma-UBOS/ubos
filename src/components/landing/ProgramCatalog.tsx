@@ -225,7 +225,7 @@ export default function ProgramCatalog({ onOpenCurriculum, onOpenEnrollment }) {
 
                 <div className="space-y-2">
                   <button
-                    onClick={() => window.location.href = '/auth/daftar'}
+                    onClick={() => window.location.href = '/register'}
                     className="btn-gradient-primary w-full text-xs font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md"
                   >
                     <span>Coba Gratis 7 Hari</span>

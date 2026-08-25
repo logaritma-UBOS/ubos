@@ -240,7 +240,7 @@ export default function HppCalculatorModal({ isOpen, onClose }: HppCalculatorMod
                   Mau kalkulasi resep otomatis, potong stok bahan baku, dan pantau laba kasir secara lengkap?
                 </p>
                 <button
-                  onClick={() => router.push('/auth/daftar')}
+                  onClick={() => router.push('/register')}
                   className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group"
                 >
                   <span>Aktifkan Fitur Lengkap di UBOS (Gratis 7 Hari)</span>

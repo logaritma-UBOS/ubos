@@ -70,7 +70,7 @@ export default function Navbar({ onOpenEnrollment, onOpenCalculator }: NavbarPro
           {/* Action CTAs */}
           <div className="hidden md:flex items-center gap-3">
             <Link 
-              href="/auth/login"
+              href="/login"
               className="text-xs font-semibold px-4 py-2.5 text-slate-300 hover:text-emerald-400 transition-colors"
             >
               Masuk
@@ -83,7 +83,7 @@ export default function Navbar({ onOpenEnrollment, onOpenCalculator }: NavbarPro
               <span>Hitung HPP</span>
             </button>
             <button 
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => window.location.href = '/register'}
               className="btn-gradient-primary text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2"
             >
               <span>Coba Gratis</span>
@@ -122,7 +122,7 @@ export default function Navbar({ onOpenEnrollment, onOpenCalculator }: NavbarPro
 
           <div className="pt-3 border-t border-slate-800 flex flex-col gap-2.5">
             <a
-              href="/auth/login"
+              href="/login"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center text-xs font-semibold py-3 text-slate-300 border border-slate-800 rounded-xl bg-slate-900/50 hover:bg-slate-800/80"
             >
@@ -140,7 +140,7 @@ export default function Navbar({ onOpenEnrollment, onOpenCalculator }: NavbarPro
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                window.location.href = '/auth/daftar';
+                window.location.href = '/register';
               }}
               className="w-full btn-gradient-primary text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2"
             >

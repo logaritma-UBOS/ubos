@@ -29,17 +29,17 @@ export default function LandingPageUBOS() {
 
           {/* Desktop CTA buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/auth/login" className="text-slate-700 font-semibold text-sm px-4 py-2 rounded-full hover:bg-slate-50 transition-colors">
+            <Link href="/login" className="text-slate-700 font-semibold text-sm px-4 py-2 rounded-full hover:bg-slate-50 transition-colors">
               Masuk
             </Link>
-            <Link href="/auth/daftar" className="bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-emerald-600/20 hover:shadow-lg">
+            <Link href="/register" className="bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-emerald-600/20 hover:shadow-lg">
               Mulai Gratis
             </Link>
           </div>
 
           {/* Mobile: Masuk button + Hamburger */}
           <div className="md:hidden flex items-center gap-2">
-            <Link href="/auth/login" className="text-emerald-700 font-bold text-sm px-4 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors">
+            <Link href="/login" className="text-emerald-700 font-bold text-sm px-4 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors">
               Masuk
             </Link>
             <button
@@ -65,7 +65,7 @@ export default function LandingPageUBOS() {
             <a href="#cara-kerja" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 font-semibold text-base py-2.5 px-3 rounded-xl hover:bg-slate-50 block">Cara Kerja</a>
             <a href="#solusi" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 font-semibold text-base py-2.5 px-3 rounded-xl hover:bg-slate-50 block">Solusi</a>
             <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/auth/daftar" className="w-full flex items-center justify-center bg-emerald-600 text-white px-4 py-3.5 rounded-2xl font-bold text-base hover:bg-emerald-700 transition-colors">
+              <Link href="/register" className="w-full flex items-center justify-center bg-emerald-600 text-white px-4 py-3.5 rounded-2xl font-bold text-base hover:bg-emerald-700 transition-colors">
                 Mulai Gratis
               </Link>
             </div>
@@ -87,11 +87,11 @@ export default function LandingPageUBOS() {
           Ubah data penjualan, stok, dan pengeluaran menjadi keputusan nyata. UBOS tidak hanya mencatat, tapi memberi tahu apa yang harus Anda lakukan hari ini.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-          <Link href="/auth/daftar" className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-3.5 rounded-full font-bold text-base hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2">
+          <Link href="/register" className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-3.5 rounded-full font-bold text-base hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2">
             Mulai Gratis 
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </Link>
-          <Link href="/auth/login" className="w-full sm:w-auto text-slate-700 bg-white border-2 border-slate-200 px-8 py-3.5 rounded-full font-bold text-base hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center">
+          <Link href="/login" className="w-full sm:w-auto text-slate-700 bg-white border-2 border-slate-200 px-8 py-3.5 rounded-full font-bold text-base hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center">
             Masuk ke Aplikasi
           </Link>
         </div>
@@ -176,7 +176,7 @@ export default function LandingPageUBOS() {
       <section className="py-16 sm:py-24 bg-slate-50 border-t border-slate-100">
         <div className="max-w-4xl mx-auto px-5 sm:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-6">Mulai kelola usaha dengan lebih terarah.</h2>
-          <Link href="/auth/daftar" className="inline-flex items-center gap-2 bg-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/25">
+          <Link href="/register" className="inline-flex items-center gap-2 bg-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/25">
             Mulai Gratis Sekarang 
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </Link>

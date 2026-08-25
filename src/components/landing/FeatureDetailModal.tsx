@@ -167,7 +167,7 @@ export default function FeatureDetailModal({ feature, isOpen, onClose }: Feature
               {/* Footer CTA */}
               <div className="bg-slate-50 p-5 border-t border-slate-100 shrink-0">
                 <button
-                  onClick={() => router.push('/auth/daftar')}
+                  onClick={() => router.push('/register')}
                   className="w-full px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 group"
                 >
                   <span>Coba Fitur Ini Sekarang (Gratis 7 Hari)</span>

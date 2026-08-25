@@ -162,7 +162,7 @@ export default function StudentSuccess({ onOpenEnrollment }) {
                   <CheckCircle2 className="w-3.5 h-3.5" /> Verified Active Merchant
                 </span>
                 <button
-                  onClick={() => window.location.href = '/auth/daftar'}
+                  onClick={() => window.location.href = '/register'}
                   className="font-bold text-blue-600 hover:underline"
                 >
                   Daftar Sekarang →

@@ -48,7 +48,7 @@ export default function Hero({ onOpenEnrollment, onOpenCurriculum, onOpenCalcula
           {/* Dual CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => window.location.href = '/auth/daftar'}
+              onClick={() => window.location.href = '/register'}
               className="btn-gradient-primary w-full sm:w-auto text-sm font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 group"
             >
               <span>Mulai Transformasi Bisnis</span>
