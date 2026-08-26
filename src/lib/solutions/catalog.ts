@@ -194,9 +194,9 @@ export const SOLUTION_CATALOG: Solution[] = [
       {
         id: 'ubos-monthly',
         label: 'Bulanan',
-        description: 'Akses penuh semua fitur, bayar bulanan tanpa komitmen jangka panjang.',
-        price: 'Rp 49.000/bln',
-        priceAmount: 49000,
+        description: 'Akses penuh semua fitur, mulai gratis tanpa batas waktu.',
+        price: 'Mulai dari Gratis',
+        priceAmount: 0,
         currency: 'IDR',
         billingType: 'subscription',
         revenueType: 'subscription',
@@ -224,7 +224,7 @@ export const SOLUTION_CATALOG: Solution[] = [
     ],
 
     // Backward compat — mengacu ke offer lifetime (highlighted)
-    price: 'Rp 49.000/bln atau Rp 249.000 lifetime',
+    price: 'Mulai dari Gratis',
     destinationUrl: 'https://ubos.logaritma.id',
     cta: 'Mulai dengan UBOS',
     color: 'blue',
