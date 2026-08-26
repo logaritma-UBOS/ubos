@@ -57,22 +57,22 @@ export default function HeroSection() {
           className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 relative z-20 px-4 sm:px-0"
         >
           <a
-            href="/onboarding"
+            href="https://www.logaritma.id/backward-mapping"
             className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
           >
             <span>Mulai Pemetaan Target</span>
             <ArrowRight className="w-4 h-4" />
           </a>
 
-          <button
-            type="button"
+          <a
+            href="#video-panduan"
             className="w-full sm:w-auto px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-white hover:bg-slate-50 active:scale-95 border border-slate-200 text-slate-700 font-bold text-sm sm:text-base shadow-xs transition-all flex items-center justify-center gap-2"
           >
             <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
               <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />
             </div>
             <span className="whitespace-nowrap">Lihat Cara Kerja Logaritma</span>
-          </button>
+          </a>
         </motion.div>
       </div>
 
