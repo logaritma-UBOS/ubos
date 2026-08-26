@@ -5,20 +5,20 @@ import { Check, ArrowRight, Play, Target } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#fafbfc] pt-12 pb-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex flex-col justify-between">
+    <section className="relative overflow-hidden bg-[#fafbfc] pt-28 pb-16 sm:pt-32 sm:pb-24 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex flex-col justify-between">
       {/* Background Soft Glow */}
-      <div className="absolute top-1/4 left-10 w-72 h-72 bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 -left-10 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 -right-10 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto w-full text-center relative z-10 my-auto">
+      <div className="max-w-6xl mx-auto w-full text-center relative z-10 my-auto mt-4 sm:mt-auto">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-wide uppercase mb-6"
+          className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-[10px] sm:text-xs font-bold tracking-wide uppercase mb-6 max-w-full text-center"
         >
-          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          Khusus untuk Anda yang sedang mengejar target
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+          <span className="truncate whitespace-normal leading-tight">Khusus untuk Anda yang sedang mengejar target</span>
         </motion.div>
 
         {/* Headline */}
@@ -26,7 +26,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15] max-w-4xl mx-auto"
+          className="text-[2rem] leading-[1.1] sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight max-w-4xl mx-auto px-1 sm:px-0"
         >
           Punya Target Besar, Tapi Bingung{" "}
           <span className="text-blue-600 inline-block relative">
@@ -40,7 +40,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
+          className="mt-5 sm:mt-6 text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0"
         >
           Berhentilah menebak-nebak. Pendekatan{" "}
           <strong className="text-slate-900 underline decoration-blue-500 decoration-2 underline-offset-4">
@@ -54,11 +54,11 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-20"
+          className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 relative z-20 px-4 sm:px-0"
         >
           <a
             href="/onboarding"
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
           >
             <span>Mulai Pemetaan Target</span>
             <ArrowRight className="w-4 h-4" />
@@ -66,12 +66,12 @@ export default function HeroSection() {
 
           <button
             type="button"
-            className="w-full sm:w-auto px-7 py-4 rounded-full bg-white hover:bg-slate-50 active:scale-95 border border-slate-200 text-slate-700 font-bold text-sm sm:text-base shadow-xs transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-white hover:bg-slate-50 active:scale-95 border border-slate-200 text-slate-700 font-bold text-sm sm:text-base shadow-xs transition-all flex items-center justify-center gap-2"
           >
-            <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center">
-              <Play className="w-3 h-3 fill-current ml-0.5" />
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
+              <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current ml-0.5" />
             </div>
-            <span>Lihat Cara Kerja Logaritma</span>
+            <span className="whitespace-nowrap">Lihat Cara Kerja Logaritma</span>
           </button>
         </motion.div>
       </div>
