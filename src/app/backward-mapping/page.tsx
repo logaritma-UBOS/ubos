@@ -341,12 +341,22 @@ export default function BackwardMappingPage() {
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <div className="flex-1 w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 text-center">
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kondisi Saat Ini</div>
-                    <div className="text-xl sm:text-2xl font-black text-slate-700">{currentValue ? (targetType === 'REVENUE' ? formatCurrency(parseFloat(currentValue)) : formatNumber(parseFloat(currentValue))) : 'Belum ada data'}</div>
+                    <div className="text-xl sm:text-2xl font-black text-slate-700">
+                      {currentValue 
+                        ? (targetType === 'REVENUE' 
+                            ? formatCurrency(parseFloat(currentValue.replace(/[^0-9]/g, '')) || 0) 
+                            : formatNumber(parseFloat(currentValue.replace(/[^0-9]/g, '')) || 0)) 
+                        : 'Belum ada data'}
+                    </div>
                   </div>
                   <div className="text-slate-300 font-bold hidden sm:block">VS</div>
                   <div className="flex-1 w-full p-5 bg-blue-50 rounded-2xl border border-blue-100 text-center">
                     <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-2">Target States</div>
-                    <div className="text-xl sm:text-2xl font-black text-blue-700">{targetType === 'REVENUE' ? formatCurrency(parseFloat(targetValue)) : formatNumber(parseFloat(targetValue))}</div>
+                    <div className="text-xl sm:text-2xl font-black text-blue-700">
+                      {targetType === 'REVENUE' 
+                        ? formatCurrency(parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0) 
+                        : formatNumber(parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0)}
+                    </div>
                   </div>
                 </div>
 
