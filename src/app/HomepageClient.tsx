@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Target, Cog, ListTodo, Wrench, Menu, X, CheckCircle2, ArrowDown, Map as MapIcon } from 'lucide-react';
+import HeroSection from '@/components/HeroSection';
 
 export default function LandingPage() {
   const [showPlaceholder, setShowPlaceholder] = useState(false);
@@ -114,52 +115,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="pt-32 sm:pt-40 pb-20 sm:pb-28 px-4 sm:px-6 max-w-5xl mx-auto text-center relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-red-50 text-red-600 font-bold text-[8.5px] min-[375px]:text-[9.5px] sm:text-xs tracking-wider sm:tracking-[0.1em] uppercase border border-red-100 mb-8 max-w-full text-center text-balance"
-        >
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-          Khusus untuk Anda yang sedang mengejar target
-        </motion.div>
-        
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.1 }} 
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight text-slate-900 mb-6"
-        >
-          Punya Target Besar, Tapi Bingung <span className="text-blue-600">Langkah Nyata</span> Untuk Mencapainya?
-        </motion.h1>
-        
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.2 }} 
-          className="text-lg sm:text-xl md:text-2xl text-slate-600 font-medium max-w-3xl mx-auto leading-relaxed mb-10"
-        >
-          Berhentilah menebak-nebak. Pendekatan <span className="font-bold text-slate-900 border-b-2 border-blue-600">Backward Mapping</span> Logaritma akan membedah target akhir Anda menjadi langkah-langkah harian yang pasti dan terukur.
-        </motion.p>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.3 }} 
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-        >
-          <button onClick={handleCTA} className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 sm:py-5 rounded-full font-black text-lg sm:text-xl hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1 transition-all">
-            Mulai Pemetaan Target
-          </button>
-          
-          <a 
-            href="#video-panduan" 
-            className="w-full sm:w-auto bg-white text-slate-800 border-2 border-slate-200 px-8 py-4 sm:py-5 rounded-full font-bold text-lg hover:border-slate-300 hover:bg-slate-50 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
-          >
-            <Play size={24} className="fill-slate-800 text-slate-800" /> Lihat Cara Kerja Logaritma
-          </a>
-        </motion.div>
-      </section>
+      <HeroSection />
 
       {/* SECTION MASALAH */}
       <section id="masalah" className="py-24 bg-slate-50 border-t border-slate-200 px-4 sm:px-6 relative overflow-hidden">
