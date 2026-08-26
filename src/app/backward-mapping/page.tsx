@@ -45,6 +45,20 @@ export default function BackwardMappingPage() {
     'F&B', 'Fotocopy', 'Percetakan', 'Retail', 'Jasa', 'Lainnya'
   ];
 
+  const handleNumberInput = (val: string, setter: (v: string) => void) => {
+    const numericValue = val.replace(/\D/g, '');
+    if (!numericValue) {
+      setter('');
+      return;
+    }
+    if (targetType === 'REVENUE') {
+      const formatted = parseInt(numericValue, 10).toLocaleString('id-ID');
+      setter(formatted);
+    } else {
+      setter(numericValue);
+    }
+  };
+
   const handleNextStep1 = () => { 
     if (profession === 'UMKM' && !businessType) return;
     if (profession) setStep(2); 
@@ -106,7 +120,8 @@ export default function BackwardMappingPage() {
 
   // Compile input for Recommendation Engine
   const compileRecommendationInput = () => {
-    const tValStr = targetType === 'REVENUE' ? formatCurrency(parseFloat(targetValue) || 0) : targetValue;
+    const numericVal = parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0;
+    const tValStr = targetType === 'REVENUE' ? formatCurrency(numericVal) : targetValue;
     const cPlan = actionPlan.map(a => a.action).join(', ');
     return {
       profesi: profession === 'UMKM' ? `UMKM ${businessType}` : profession,
@@ -201,7 +216,19 @@ export default function BackwardMappingPage() {
                   <label className="block text-sm font-bold text-slate-700 mb-2">Fokus Target</label>
                   <select 
                     value={targetType} 
-                    onChange={(e) => setTargetType(e.target.value as TargetType)}
+                    onChange={(e) => {
+                      const newType = e.target.value as TargetType;
+                      setTargetType(newType);
+                      // Reformat existing values
+                      if (targetValue) {
+                        const numeric = targetValue.replace(/\D/g, '');
+                        setTargetValue(newType === 'REVENUE' ? parseInt(numeric, 10).toLocaleString('id-ID') : numeric);
+                      }
+                      if (currentValue) {
+                        const numeric = currentValue.replace(/\D/g, '');
+                        setCurrentValue(newType === 'REVENUE' ? parseInt(numeric, 10).toLocaleString('id-ID') : numeric);
+                      }
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   >
                     <option value="REVENUE">Omzet / Pendapatan</option>
@@ -217,8 +244,8 @@ export default function BackwardMappingPage() {
                     <input 
                       type="text" 
                       value={targetValue} 
-                      onChange={(e) => setTargetValue(e.target.value)}
-                      placeholder={targetType === 'REVENUE' ? "Contoh: 30000000" : "Contoh: 100"}
+                      onChange={(e) => handleNumberInput(e.target.value, setTargetValue)}
+                      placeholder={targetType === 'REVENUE' ? "Contoh: 30.000.000" : "Contoh: 100"}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
@@ -243,8 +270,8 @@ export default function BackwardMappingPage() {
                   <input 
                     type="text" 
                     value={currentValue} 
-                    onChange={(e) => setCurrentValue(e.target.value)}
-                    placeholder="Contoh: 5000000 (Kosongkan jika baru mulai)"
+                    onChange={(e) => handleNumberInput(e.target.value, setCurrentValue)}
+                    placeholder={targetType === 'REVENUE' ? "Contoh: 5.000.000 (Kosongkan jika baru mulai)" : "Contoh: 10 (Kosongkan jika baru mulai)"}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
