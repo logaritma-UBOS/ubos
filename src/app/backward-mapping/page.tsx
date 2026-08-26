@@ -559,8 +559,12 @@ export default function BackwardMappingPage() {
                             </h3>
                             
                             {recommendations.length === 0 ? (
-                              <div className="bg-slate-50 border border-slate-200 p-5 sm:p-6 rounded-2xl text-slate-700 text-sm sm:text-base font-medium leading-relaxed shadow-sm">
-                                {arahSaran}
+                              <div className="bg-amber-50 border border-amber-200 p-5 sm:p-6 rounded-2xl text-amber-800 text-sm sm:text-base font-medium leading-relaxed shadow-sm flex flex-col gap-3">
+                                <p className="font-bold">⚠️ Belum cukup data untuk menentukan kebutuhan spesifik produk.</p>
+                                <p>{arahSaran}</p>
+                                <p className="text-xs mt-2 text-amber-700/80">
+                                  Sistem membutuhkan input lebih detail terkait kendala operasional (contoh: masalah stok, keuangan, pencarian prospek, atau kebutuhan promosi berbayar) agar dapat memberikan rekomendasi yang akurat.
+                                </p>
                               </div>
                             ) : (
                               <div className="space-y-3">
