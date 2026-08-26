@@ -48,7 +48,7 @@ export function buildMapping(target: TargetData, profesi: string, businessType: 
   
   // Format original target
   const isRev = target.type === 'REVENUE';
-  const valStr = isRev ? formatCurrency(target.value) : `${formatNumber(target.value)} ${target.unit}`;
+  const valStr = isRev ? formatCurrency(target.value) : `${formatNumber(target.value)}`;
   const periodStr = target.period === 'MONTHLY' ? '/bulan' : target.period === 'DAILY' ? '/hari' : target.period === 'YEARLY' ? '/tahun' : '/minggu';
   
   steps.push({ label: 'Target Utama', value: `${valStr}${periodStr}` });
@@ -60,7 +60,7 @@ export function buildMapping(target: TargetData, profesi: string, businessType: 
   if (target.period === 'WEEKLY') dailyValue = target.value / 7;
 
   if (target.period !== 'DAILY') {
-    const dailyStr = isRev ? formatCurrency(dailyValue) : `${formatNumber(Math.ceil(dailyValue))} ${target.unit}`;
+    const dailyStr = isRev ? formatCurrency(dailyValue) : `${formatNumber(Math.ceil(dailyValue))}`;
     steps.push({ label: 'Target Harian', value: `${dailyStr}/hari` });
   }
 
@@ -93,7 +93,7 @@ export function buildMapping(target: TargetData, profesi: string, businessType: 
 export function analyzeNeeds(target: TargetData): NeedData {
   const gapValue = Math.max(0, target.value - target.currentValue);
   const isRev = target.type === 'REVENUE';
-  const valStr = isRev ? formatCurrency(gapValue) : `${formatNumber(gapValue)} ${target.unit}`;
+  const valStr = isRev ? formatCurrency(gapValue) : `${formatNumber(gapValue)}`;
   const periodStr = target.period === 'MONTHLY' ? '/bulan' : target.period === 'DAILY' ? '/hari' : target.period === 'YEARLY' ? '/tahun' : '/minggu';
 
   let confidence: 'LOW' | 'MEDIUM' | 'HIGH' = 'HIGH';
