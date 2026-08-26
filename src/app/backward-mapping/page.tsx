@@ -21,10 +21,11 @@ export default function BackwardMappingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const PROFESSIONS = [
-    'Pemilik Usaha', 'Pedagang', 'Pemilik Warung', 'Pemilik Toko', 
-    'Reseller', 'Freelancer', 'Penyedia Jasa', 'Content Creator', 
-    'YouTuber', 'TikToker', 'Influencer', 'Blogger', 
-    'Karyawan', 'Profesional', 'Pelajar/Mahasiswa', 'Lainnya'
+    'UMKM', 
+    'Jasa', 
+    'Marketing / Agen Coway', 
+    'Konten Kreator', 
+    'Lainnya'
   ];
 
   const getNormalizedProfesi = (profesiName) => {

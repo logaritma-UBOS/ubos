@@ -186,7 +186,7 @@ export const SOLUTION_CATALOG: Solution[] = [
     triggerKeywords: [
       'bisnis', 'toko', 'usaha', 'omset', 'omzet',
       'stok', 'inventory', 'pos', 'kasir', 'keuangan', 'laporan',
-      'pelanggan', 'klien', 'retail', 'umkm', 'f&b', 'warung',
+      'pelanggan', 'klien', 'retail', 'umkm', 'f&b', 'warung', 'jasa',
     ],
     excludeProfile: ['CREATOR', 'PELAJAR', 'KARYAWAN'],
 

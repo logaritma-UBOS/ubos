@@ -97,10 +97,10 @@ export function getRecommendations(input: RecommendationInput): Solution[] {
     const matchedKeywords: string[] = [];
     const matchedProblems: string[] = [];
 
-    // 1. Profile match (Context only, no automatic points to avoid blanket recommendations)
-    // Profesi bukan penentu produk.
+    // 1. Profile match (+2 per match)
+    // Profesi sekarang menentukan bobot utama sesuai instruksi (UMKM/Jasa -> UBOS, Agen -> Coway)
     if (solution.targetProfile.includes(normalizedProfile)) {
-      // score += 0;
+      score += 2;
     }
 
     // 2. Trigger keyword match (+2 per keyword found)
