@@ -5,12 +5,12 @@ import { Check, ArrowRight, Play, Target } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#fafbfc] pt-28 pb-16 sm:pt-32 sm:pb-24 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex flex-col justify-between">
+    <section className="relative overflow-hidden bg-[#fafbfc] pt-24 pb-16 sm:pt-32 sm:pb-24 px-4 sm:px-6 lg:px-8 min-h-[85vh] sm:min-h-[90vh] flex flex-col justify-center">
       {/* Background Soft Glow */}
       <div className="absolute top-1/4 -left-10 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 -right-10 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto w-full text-center relative z-10 my-auto mt-4 sm:mt-auto">
+      <div className="max-w-6xl mx-auto w-full text-center relative z-10 my-auto">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
