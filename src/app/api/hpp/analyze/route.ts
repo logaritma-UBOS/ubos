@@ -7,10 +7,11 @@ const RATE_LIMIT_MAX = 10; // Max 10 analysis per IP
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 
 const getAiClient = () => {
-  if (!process.env.GEMINI_API_KEY) {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key_Logaritma_Home;
+  if (!apiKey) {
     throw new Error('GEMINI_API_KEY is missing');
   }
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  return new GoogleGenerativeAI(apiKey);
 };
 
 export async function POST(req: Request) {
