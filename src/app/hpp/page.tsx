@@ -684,7 +684,7 @@ function HPPContent() {
                           <h4 className="font-bold text-xl mb-6">Mulai dari sini: audit harga & pemakaian {largestComponent.ingredientName.toLowerCase()}.</h4>
                           
                           <a 
-                            href={from === 'mapping' ? 'https://ubos.logaritma.id/action-plan' : 'https://ubos.logaritma.id/audit'}
+                            href="https://ubos.logaritma.id" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-block w-full bg-white hover:bg-gray-50 text-blue-700 font-black py-4 px-4 rounded-xl shadow transition-all tracking-wide"
