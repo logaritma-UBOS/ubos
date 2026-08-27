@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 // 1. SIMPLE IN-MEMORY CACHE
 const productCache = new Map();
 
 // Initialize Gemini SDK
-// It will automatically pick up process.env.GEMINI_API_KEY, but we add a fallback just in case
+// It will automatically pick up process.env.GEMINI_API_KEY
 const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key_Logaritma_Home;
-const ai = new GoogleGenerativeAI(apiKey || "");
+const ai = new GoogleGenAI(apiKey ? { apiKey } : {});
 
 export async function POST(req: Request) {
   try {
@@ -91,19 +91,18 @@ ATURAN PENTING:
       ];
     }
 
-    const model = ai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: contentParts,
+      config: {
         responseMimeType: 'application/json',
       }
     });
-    const response = await model.generateContent(contentParts);
-    const text = response.response.text();
 
     let generatedDraft;
     try {
       // Remove any possible markdown wrapping if AI still output it
-      let rawText = text || '';
+      let rawText = response.text || '';
       rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
       generatedDraft = JSON.parse(rawText);
     } catch (parseError) {
