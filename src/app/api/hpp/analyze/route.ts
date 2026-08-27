@@ -10,7 +10,7 @@ const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 
 const getAiClient = () => {
   // Hanya berjalan di sisi server, tidak akan bocor ke client.
-  const apiKey = process.env.Gemini_API_Key_Logaritma_Home || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key_Logaritma_Home;
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is missing');
   }
