@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, TrendingUp, ShieldAlert, CheckCircle2, Settings, ArrowDown, ChevronRight, Zap, Briefcase } from 'lucide-react';
+import { Target, TrendingUp, ShieldAlert, CheckCircle2, Settings, ArrowDown, ChevronRight, Zap, Briefcase, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { getRecommendations, getSolutionColorClasses } from '@/lib/solutions/engine';
-import { TargetData, TargetType, TargetPeriod, MappingStep, NeedData, ActionPlan, buildMapping, analyzeNeeds, generateActionPlan, formatCurrency, formatNumber } from '@/lib/solutions/mappingBuilder';
+import { TargetData, TargetType, TargetPeriod, MappingResult, runLogaritmaEngine, formatCurrency, formatNumber } from '@/lib/solutions/mappingBuilder';
 
 export default function BackwardMappingPage() {
   // Inputs
@@ -15,14 +15,15 @@ export default function BackwardMappingPage() {
   const [targetValue, setTargetValue] = useState<string>('');
   const [targetPeriod, setTargetPeriod] = useState<TargetPeriod>('MONTHLY');
   const [currentValue, setCurrentValue] = useState<string>('');
+  const [mainProblem, setMainProblem] = useState<string>('Tidak tahu masalahnya');
 
   // Analysis State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
-  const [mapping, setMapping] = useState<MappingStep[]>([]);
-  const [needs, setNeeds] = useState<NeedData | null>(null);
-  const [actionPlan, setActionPlan] = useState<ActionPlan[]>([]);
+  const [result, setResult] = useState<MappingResult | null>(null);
   
+  // UI State
+  const [showActionPlan, setShowActionPlan] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const PROFESSIONS = [
@@ -36,6 +37,16 @@ export default function BackwardMappingPage() {
 
   const BUSINESS_TYPES = [
     'F&B', 'Fotocopy', 'Percetakan', 'Retail', 'Jasa', 'Lainnya'
+  ];
+
+  const PROBLEMS = [
+    'HPP terlalu tinggi',
+    'Penjualan kurang',
+    'Pelanggan tidak repeat',
+    'Operasional tidak efisien',
+    'Profit kecil',
+    'Tidak tahu masalahnya',
+    'Lainnya'
   ];
 
   // Number input formatter
@@ -57,6 +68,7 @@ export default function BackwardMappingPage() {
     if (!targetValue) return;
     
     setIsAnalyzing(true);
+    setShowActionPlan(false);
     
     // Simulate slight delay for "AI thinking" effect
     setTimeout(() => {
@@ -68,16 +80,12 @@ export default function BackwardMappingPage() {
         value: tVal,
         currentValue: cVal,
         unit: 'IDR',
-        period: targetPeriod
+        period: targetPeriod,
+        mainProblem
       };
 
-      const newMapping = buildMapping(targetData, profession, businessType);
-      const newNeeds = analyzeNeeds(targetData);
-      const newActionPlan = generateActionPlan(targetData, newNeeds, profession);
-
-      setMapping(newMapping);
-      setNeeds(newNeeds);
-      setActionPlan(newActionPlan);
+      const engineResult = runLogaritmaEngine(targetData, profession, businessType);
+      setResult(engineResult);
       
       setIsAnalyzing(false);
       setHasAnalyzed(true);
@@ -93,16 +101,34 @@ export default function BackwardMappingPage() {
   const compileRecommendationInput = () => {
     const numericVal = parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0;
     const tValStr = targetType === 'REVENUE' ? formatCurrency(numericVal) : targetValue;
-    const cPlan = actionPlan.map(a => a.action).join(', ');
     return {
       profesi: profession === 'UMKM' ? `UMKM ${businessType}` : profession,
       tujuan: targetType,
       target: `${tValStr} ${targetPeriod}`,
-      caraMencapai: cPlan
+      caraMencapai: result?.actionPlan.map(a => a.title).join(', ') || ''
     };
   };
 
-  const recommendations = hasAnalyzed ? getRecommendations(compileRecommendationInput()) : [];
+  const recommendations = hasAnalyzed && result ? getRecommendations(compileRecommendationInput()) : [];
+  
+  // Ambil URL spesifik tool prioritas dan berikan context URL params
+  let priorityToolUrl = '#';
+  let priorityToolCta = 'Gunakan Sekarang';
+  let priorityToolColorClass = 'bg-blue-600 text-white hover:bg-blue-700';
+
+  if (result) {
+    if (result.priority.toolKey === 'hpp_ai') {
+      priorityToolUrl = `/hpp?from=mapping&prof=${encodeURIComponent(profession)}&gap=${result.gapValue}`;
+      priorityToolCta = 'Hitung HPP dengan AI →';
+    } else {
+      const rec = recommendations.find(r => r.triggerKeywords.includes(result.priority.toolKey)) || recommendations[0];
+      if (rec) {
+        priorityToolUrl = rec.destinationUrl;
+        priorityToolCta = `Gunakan ${rec.name} →`;
+        priorityToolColorClass = getSolutionColorClasses(rec.color).button;
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#fafbfc] font-sans text-slate-900 overflow-x-hidden flex flex-col">
@@ -200,18 +226,31 @@ export default function BackwardMappingPage() {
             </div>
 
             {/* Q3: Kondisi Saat Ini */}
-            <div className="relative z-10">
-              <label className="block text-lg font-black text-slate-800 mb-1">Kondisi Anda sekarang?</label>
-              <p className="text-sm text-slate-500 mb-3 font-medium">Masukkan pencapaian rata-rata Anda saat ini untuk metrik yang sama.</p>
-              <div className="relative w-full">
-                {targetType === 'REVENUE' && <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">Rp</span>}
-                <input 
-                  type="text" 
-                  value={currentValue} 
-                  onChange={(e) => handleNumberInput(e.target.value, setCurrentValue)}
-                  placeholder={targetType === 'REVENUE' ? "Misal: 50.000.000 (Kosongkan jika dari nol)" : "Misal: 100 (Kosongkan jika dari nol)"}
-                  className={`w-full bg-slate-50 border border-slate-200 rounded-xl py-4 font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${targetType === 'REVENUE' ? 'pl-10 pr-4' : 'px-4'}`}
-                />
+            <div className="relative z-10 space-y-4">
+              <div>
+                <label className="block text-lg font-black text-slate-800 mb-1">Kondisi Anda sekarang?</label>
+                <p className="text-sm text-slate-500 mb-3 font-medium">Masukkan pencapaian Anda saat ini.</p>
+                <div className="relative w-full">
+                  {targetType === 'REVENUE' && <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">Rp</span>}
+                  <input 
+                    type="text" 
+                    value={currentValue} 
+                    onChange={(e) => handleNumberInput(e.target.value, setCurrentValue)}
+                    placeholder={targetType === 'REVENUE' ? "Misal: 50.000.000 (Kosongkan jika dari nol)" : "Misal: 100 (Kosongkan jika dari nol)"}
+                    className={`w-full bg-slate-50 border border-slate-200 rounded-xl py-4 font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${targetType === 'REVENUE' ? 'pl-10 pr-4' : 'px-4'}`}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Yang paling terasa saat ini:</label>
+                <select 
+                  value={mainProblem} 
+                  onChange={(e) => setMainProblem(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                >
+                  {PROBLEMS.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
               </div>
             </div>
 
@@ -236,33 +275,36 @@ export default function BackwardMappingPage() {
           </div>
         </div>
 
-        {/* RESULTS SECTION */}
+        {/* RESULTS SECTION - PROGRESSIVE DISCLOSURE */}
         <AnimatePresence>
-          {hasAnalyzed && needs && (
+          {hasAnalyzed && result && (
             <motion.div 
               ref={resultsRef}
               initial={{ opacity: 0, y: 50 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="w-full max-w-4xl mx-auto pb-24"
+              className="w-full max-w-3xl mx-auto pb-24"
             >
               
-              {/* 1. SUMMARY BOX */}
-              <div className="bg-slate-900 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden mb-12">
+              {/* BAGIAN 1: AHA MOMENT - SUMMARY */}
+              <div className="bg-slate-900 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden mb-12 ring-4 ring-slate-800/50">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 relative z-10 divide-y sm:divide-y-0 sm:divide-x divide-slate-700">
-                  <div className="text-center px-4">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Target Anda</div>
-                    <div className="text-2xl sm:text-3xl font-black text-white">
+                <div className="grid grid-cols-1 gap-6 relative z-10">
+                  <div className="flex justify-between items-center border-b border-slate-700/50 pb-4">
+                    <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Target Anda</div>
+                    <div className="text-xl sm:text-2xl font-black text-white">
                       {targetType === 'REVENUE' 
                         ? formatCurrency(parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0) 
                         : formatNumber(parseFloat(targetValue.replace(/[^0-9]/g, '')) || 0)}
+                      <span className="text-sm font-medium text-slate-400 ml-1">
+                        /{targetPeriod === 'MONTHLY' ? 'bulan' : targetPeriod === 'DAILY' ? 'hari' : targetPeriod === 'WEEKLY' ? 'minggu' : 'tahun'}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-center px-4 pt-6 sm:pt-0">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kondisi Saat Ini</div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-300">
+                  <div className="flex justify-between items-center border-b border-slate-700/50 pb-4">
+                    <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Saat Ini</div>
+                    <div className="text-xl sm:text-2xl font-black text-slate-300">
                       {currentValue 
                         ? (targetType === 'REVENUE' 
                             ? formatCurrency(parseFloat(currentValue.replace(/[^0-9]/g, '')) || 0) 
@@ -270,105 +312,121 @@ export default function BackwardMappingPage() {
                         : '0'}
                     </div>
                   </div>
-                  <div className="text-center px-4 pt-6 sm:pt-0">
-                    <div className="text-xs font-bold text-red-400 uppercase tracking-widest mb-2">GAP</div>
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="text-sm font-black text-red-400 uppercase tracking-widest bg-red-400/10 px-3 py-1 rounded-full border border-red-400/20">GAP</div>
                     <div className="text-2xl sm:text-3xl font-black text-red-400">
                       {targetType === 'REVENUE' 
-                        ? formatCurrency(needs.gapValue) 
-                        : formatNumber(needs.gapValue)}
+                        ? formatCurrency(result.gapValue) 
+                        : formatNumber(result.gapValue)}
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* ARROW DOWN */}
-              <div className="flex justify-center mb-12">
-                <ArrowDown className="text-slate-300 w-8 h-8" />
+              <div className="flex justify-center mb-10">
+                <ArrowDown className="text-slate-300 w-8 h-8 animate-bounce" />
               </div>
 
-              {/* 2. PEMETAAN LOGARITMA */}
+              {/* BAGIAN 2: 3 FAKTOR UTAMA */}
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2 flex items-center justify-center gap-3">
-                  <Target className="text-blue-600" /> Pemetaan Logaritma
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">
+                  Menurut Metode Logaritma...
                 </h2>
-                <p className="text-slate-600 font-medium">Pemecahan target menjadi elemen yang bisa dikontrol harian.</p>
+                <p className="text-slate-600 font-medium text-lg">Ada 3 hal yang paling perlu diperhatikan:</p>
               </div>
 
               <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl mb-12">
-                <div className="flex flex-col relative">
-                  <div className="absolute top-8 bottom-8 left-[23px] sm:left-[39px] w-1 bg-slate-100 rounded-full z-0"></div>
-                  
-                  {mapping.map((m, i) => (
-                    <div key={i} className="relative z-10 flex gap-4 sm:gap-6 items-start mb-8 last:mb-0">
-                      <div className="w-12 h-12 sm:w-20 sm:h-20 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex flex-col items-center justify-center font-black text-lg sm:text-2xl ring-4 ring-white">
+                <div className="space-y-4">
+                  {result.factors.map((factor, i) => (
+                    <div key={i} className="flex gap-4 items-center">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center font-black text-lg shrink-0">
                         {i + 1}
                       </div>
-                      <div className="pt-1 sm:pt-3">
-                        <div className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">{m.label}</div>
-                        <div className="text-xl sm:text-3xl font-black text-slate-900">{m.value}</div>
-                        {m.subLabel && <div className="mt-2 text-sm font-medium text-slate-600 bg-slate-100 inline-block px-3 py-1 rounded-lg">{m.subLabel}</div>}
+                      <div className="text-xl sm:text-2xl font-black text-slate-800">
+                        {factor}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* ARROW DOWN */}
-              <div className="flex justify-center mb-12">
-                <ArrowDown className="text-slate-300 w-8 h-8" />
-              </div>
-
-              {/* 3. PRIORITAS / REKOMENDASI SISTEM */}
+              {/* BAGIAN 3: PRIORITAS (CTA BESAR) */}
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-black text-emerald-900 mb-2 flex items-center justify-center gap-3">
-                  <Zap className="text-emerald-500 fill-emerald-500" /> Prioritas & Sistem
+                <h2 className="text-xl sm:text-2xl font-black text-red-600 mb-2 flex items-center justify-center gap-2">
+                  <Zap className="fill-red-600" /> MULAI DARI SINI
                 </h2>
-                <p className="text-slate-600 font-medium">Alat yang paling dibutuhkan untuk mengeksekusi rencana ini.</p>
               </div>
 
-              {recommendations.length > 0 && (
-                <div className="grid grid-cols-1 gap-6 mb-16">
-                  {recommendations.map((sol, index) => {
-                    const colors = getSolutionColorClasses(sol.color);
-                    return (
-                      <div key={sol.id} className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-2xl relative overflow-hidden ring-1 ring-black/5">
-                        {index === 0 && <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 font-bold text-xs px-4 py-1.5 rounded-full shadow-sm">Prioritas #1</div>}
-                        
-                        <div className="flex flex-col lg:flex-row justify-between gap-8 items-center lg:items-start">
-                          <div className="flex-1 text-center lg:text-left">
-                            <h3 className={`text-3xl font-black mb-3 ${colors.text}`}>{sol.name}</h3>
-                            <p className="text-slate-600 font-medium text-lg mb-6 leading-relaxed">{sol.description}</p>
-                            <span className={`inline-block text-sm font-bold px-4 py-2 rounded-full ${colors.badge}`}>{sol.price}</span>
+              <div className="bg-blue-50 rounded-3xl p-6 sm:p-10 border border-blue-200 shadow-2xl mb-12 ring-4 ring-blue-500/10">
+                <h3 className="text-2xl sm:text-3xl font-black text-blue-900 mb-4">{result.priority.title}</h3>
+                <p className="text-blue-800 font-medium text-lg mb-8 leading-relaxed">
+                  {result.priority.description}
+                </p>
+                <a 
+                  href={priorityToolUrl}
+                  className={`block w-full text-center font-black text-xl py-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all ${priorityToolColorClass}`}
+                >
+                  {priorityToolCta}
+                </a>
+              </div>
+
+              {/* BAGIAN 4: ACTION PLAN (PROGRESSIVE DISCLOSURE) */}
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mb-12 overflow-hidden">
+                <button 
+                  onClick={() => setShowActionPlan(!showActionPlan)}
+                  className="w-full flex items-center justify-between p-6 sm:p-8 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="text-slate-400" size={24} />
+                    <span className="text-lg font-bold text-slate-700">Lihat detail Action Plan</span>
+                  </div>
+                  <ChevronDown className={`text-slate-400 transition-transform ${showActionPlan ? 'rotate-180' : ''}`} />
+                </button>
+                
+                <AnimatePresence>
+                  {showActionPlan && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="border-t border-slate-100 bg-slate-50"
+                    >
+                      <div className="p-6 sm:p-8 space-y-4">
+                        <h4 className="font-black text-slate-800 mb-4">Action Plan Anda:</h4>
+                        {result.actionPlan.map((plan, i) => (
+                          <div key={i} className="flex gap-4 items-start">
+                            <div className="w-8 h-8 rounded-lg bg-white text-slate-600 flex items-center justify-center font-bold shrink-0 border border-slate-200 shadow-sm">{i + 1}</div>
+                            <div className="pt-1">
+                              <div className="font-bold text-slate-900">{plan.title}</div>
+                              <div className="text-sm font-medium text-slate-500 mt-1">{plan.description}</div>
+                            </div>
                           </div>
-                          <div className="shrink-0 w-full lg:w-auto">
-                            <a href={sol.destinationUrl} className={`w-full lg:w-auto font-black text-lg py-5 px-10 rounded-2xl shadow-xl active:scale-95 transition-all text-center flex items-center justify-center gap-2 ${colors.button}`}>
-                              Gunakan Sekarang <ChevronRight size={22} />
-                            </a>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    );
-                  })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* BAGIAN 5: SISTEM REKOMENDASI TAMBAHAN */}
+              {recommendations.length > 0 && recommendations.filter(r => r.triggerKeywords.includes(result.priority.toolKey) === false).length > 0 && (
+                <div className="mt-16">
+                  <h3 className="text-lg font-bold text-slate-500 text-center mb-6">Sistem tambahan untuk eksekusi:</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {recommendations.filter(r => r.triggerKeywords.includes(result.priority.toolKey) === false).map((sol) => (
+                      <a 
+                        key={sol.id}
+                        href={sol.destinationUrl}
+                        className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center group"
+                      >
+                        <h4 className="font-black text-slate-800 text-lg mb-2 group-hover:text-blue-600 transition-colors">{sol.name}</h4>
+                        <p className="text-sm text-slate-500 font-medium">{sol.description}</p>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
-
-              {/* 4. ACTION PLAN */}
-              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm mt-8">
-                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                  <CheckCircle2 className="text-blue-600" /> Action Plan Anda
-                </h3>
-                <div className="space-y-4">
-                  {actionPlan.map((plan, i) => (
-                    <div key={i} className="flex gap-4 items-start p-4 bg-slate-50 rounded-2xl">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold shrink-0">{i + 1}</div>
-                      <div>
-                        <div className="font-bold text-slate-900">{plan.action}</div>
-                        <div className="text-sm font-medium text-slate-500 mt-1">{plan.expectedResult}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
             </motion.div>
           )}

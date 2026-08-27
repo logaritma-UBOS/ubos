@@ -7,27 +7,22 @@ export interface TargetData {
   currentValue: number;
   unit: string;
   period: TargetPeriod;
+  mainProblem: string;
 }
 
-export interface MappingStep {
-  label: string;
-  value: string;
-  subLabel?: string;
-}
-
-export interface NeedData {
+export interface MappingResult {
   gapValue: number;
   gapText: string;
-  category: 'TRAFFIC' | 'CONVERSION' | 'TRANSACTION' | 'AVERAGE_VALUE' | 'RETENTION' | 'PRODUCTIVITY' | 'SKILL' | 'SYSTEM' | 'GENERAL';
-  confidence: 'LOW' | 'MEDIUM' | 'HIGH';
-}
-
-export interface ActionPlan {
-  action: string;
-  target: string;
-  frequency: string;
-  metric: string;
-  expectedResult: string;
+  factors: string[];
+  priority: {
+    title: string;
+    description: string;
+    toolKey: string;
+  };
+  actionPlan: {
+    title: string;
+    description: string;
+  }[];
 }
 
 export function formatCurrency(value: number): string {
@@ -43,128 +38,95 @@ export function formatNumber(value: number): string {
   return value.toLocaleString('id-ID');
 }
 
-export function buildMapping(target: TargetData, profesi: string, businessType: string): MappingStep[] {
-  const steps: MappingStep[] = [];
-  
-  // Format original target
-  const isRev = target.type === 'REVENUE';
-  const valStr = isRev ? formatCurrency(target.value) : `${formatNumber(target.value)}`;
-  const periodStr = target.period === 'MONTHLY' ? '/bulan' : target.period === 'DAILY' ? '/hari' : target.period === 'YEARLY' ? '/tahun' : '/minggu';
-  
-  steps.push({ label: 'Target Utama', value: `${valStr}${periodStr}` });
-
-  // Breakdown to daily if monthly/yearly
-  let dailyValue = target.value;
-  if (target.period === 'MONTHLY') dailyValue = target.value / 30;
-  if (target.period === 'YEARLY') dailyValue = target.value / 365;
-  if (target.period === 'WEEKLY') dailyValue = target.value / 7;
-
-  if (target.period !== 'DAILY') {
-    const dailyStr = isRev ? formatCurrency(dailyValue) : `${formatNumber(Math.ceil(dailyValue))}`;
-    steps.push({ label: 'Target Harian', value: `${dailyStr}/hari` });
-  }
-
-  // Activity breakdown based on type & profesi
-  if (target.type === 'REVENUE') {
-    // Assume average transaction value based on business type (dummy logic for mapping illustration)
-    let atv = 50000;
-    if (businessType === 'F&B') atv = 35000;
-    if (businessType === 'Jasa') atv = 250000;
-    if (businessType === 'Retail') atv = 150000;
-    if (profesi === 'Marketing / Agen Coway') atv = 3000000; // Coway products are high ticket
-
-    const dailyTransactions = Math.ceil(dailyValue / atv);
-    steps.push({ label: 'Volume Transaksi', value: `${formatNumber(dailyTransactions)} trx/hari`, subLabel: `Asumsi nilai rata-rata: ${formatCurrency(atv)}` });
-    
-    // Traffic / Leads needed (assume 10% conversion)
-    const trafficNeeded = dailyTransactions * 10;
-    steps.push({ label: 'Traffic / Leads', value: `${formatNumber(trafficNeeded)} prospek/hari`, subLabel: 'Asumsi konversi 10%' });
-  } else if (target.type === 'LEADS' || target.type === 'TRANSACTION') {
-    const trafficNeeded = Math.ceil(dailyValue * 5); // 20% conversion
-    steps.push({ label: 'Traffic / Pengunjung', value: `${formatNumber(trafficNeeded)} orang/hari`, subLabel: 'Asumsi konversi 20%' });
-  } else if (target.type === 'FOLLOWERS') {
-    const viewsNeeded = Math.ceil(dailyValue * 100); // 1% follow rate
-    steps.push({ label: 'Reach / Views', value: `${formatNumber(viewsNeeded)} views/hari`, subLabel: 'Asumsi 1% rasio follow' });
-  }
-
-  return steps;
-}
-
-export function analyzeNeeds(target: TargetData): NeedData {
+export function runLogaritmaEngine(target: TargetData, profesi: string, businessType: string): MappingResult {
   const gapValue = Math.max(0, target.value - target.currentValue);
   const isRev = target.type === 'REVENUE';
   const valStr = isRev ? formatCurrency(gapValue) : `${formatNumber(gapValue)}`;
   const periodStr = target.period === 'MONTHLY' ? '/bulan' : target.period === 'DAILY' ? '/hari' : target.period === 'YEARLY' ? '/tahun' : '/minggu';
+  
+  const gapText = `Gap sebesar ${valStr}${periodStr}`;
 
-  let confidence: 'LOW' | 'MEDIUM' | 'HIGH' = 'HIGH';
-  let gapText = `Gap ${isRev ? 'omzet' : target.type.toLowerCase()} sebesar ${valStr}${periodStr}`;
+  // Analyze factors based on TargetType and mainProblem
+  let factors = ['Kapasitas Operasional', 'Konsistensi', 'Sistem Manajemen'];
+  let priority = {
+    title: 'Digitalisasi Operasional',
+    description: 'Beralih ke sistem digital untuk mengontrol seluruh pergerakan bisnis.',
+    toolKey: 'ubos'
+  };
+  let actionPlan = [
+    { title: 'Identifikasi Bottleneck', description: 'Cari tahu di mana operasional terhambat.' },
+    { title: 'Gunakan Sistem Sentral', description: 'Gunakan UBOS untuk mengelola pesanan.' }
+  ];
 
-  if (target.currentValue === 0) {
-    confidence = 'LOW';
-    gapText = `Data aktual belum cukup. Target Anda adalah mencapai ${isRev ? formatCurrency(target.value) : formatNumber(target.value)}${periodStr} dari kondisi awal.`;
-  } else if (target.currentValue < target.value * 0.1) {
-    confidence = 'MEDIUM';
-    gapText = `Kondisi saat ini masih jauh dari target (Gap: ${valStr}${periodStr}). Dibutuhkan lonjakan konversi yang sistematis.`;
+  if (target.mainProblem === 'HPP terlalu tinggi' || target.mainProblem === 'Profit kecil') {
+    factors = ['HPP & Margin Produk', 'Biaya Operasional', 'Volume Transaksi'];
+    priority = {
+      title: 'Audit HPP Produk',
+      description: 'Sebelum mengejar transaksi tambahan, pastikan setiap produk yang Anda jual menghasilkan margin yang sehat.',
+      toolKey: 'hpp_ai'
+    };
+    actionPlan = [
+      { title: 'Audit HPP produk', description: 'Hitung ulang modal dasar setiap produk.' },
+      { title: 'Identifikasi produk prioritas', description: 'Cari produk dengan margin terbaik.' },
+      { title: 'Tentukan target transaksi', description: 'Fokus jual produk margin tinggi.' },
+      { title: 'Optimasi penjualan', description: 'Kurangi biaya siluman.' },
+      { title: 'Monitor realisasi', description: 'Pantau profit harian.' }
+    ];
+  } else if (target.mainProblem === 'Penjualan kurang' || target.mainProblem === 'Tidak tahu masalahnya') {
+    factors = ['Jumlah Transaksi', 'Konversi Leads', 'Traffic Kunjungan'];
+    priority = {
+      title: 'Tingkatkan Volume Transaksi',
+      description: 'Perluas jangkauan ke pelanggan baru melalui channel online dan percepat proses checkout.',
+      toolKey: 'ubos'
+    };
+    actionPlan = [
+      { title: 'Evaluasi Channel Promosi', description: 'Fokus pada channel yang paling banyak mendatangkan leads.' },
+      { title: 'Perbaiki Konversi', description: 'Berikan penawaran menarik untuk pembelian pertama.' },
+      { title: 'Gunakan POS Cepat', description: 'Pastikan proses pembayaran tidak antre.' },
+      { title: 'Monitor Pertumbuhan', description: 'Pantau grafik penjualan harian.' }
+    ];
+  } else if (target.mainProblem === 'Pelanggan tidak repeat') {
+    factors = ['Repeat Order', 'Kualitas Layanan', 'Database Pelanggan'];
+    priority = {
+      title: 'Kelola Database Pelanggan',
+      description: 'Simpan data pelanggan dan berikan promo khusus untuk menarik mereka kembali.',
+      toolKey: 'ubos'
+    };
+    actionPlan = [
+      { title: 'Kumpulkan Data', description: 'Minta nomor WA setiap pembeli.' },
+      { title: 'Segmentasi Pelanggan', description: 'Pisahkan pelanggan loyal dan pasif.' },
+      { title: 'Broadcast Promo', description: 'Kirim penawaran eksklusif secara berkala.' },
+      { title: 'Evaluasi Layanan', description: 'Minta feedback langsung dari pelanggan.' }
+    ];
+  } else if (target.mainProblem === 'Operasional tidak efisien') {
+    factors = ['Sistem Manajemen', 'Kinerja Karyawan', 'Laporan Keuangan'];
+    priority = {
+      title: 'Sentralisasi Sistem Bisnis',
+      description: 'Gunakan satu sistem terpadu untuk mencegah kebocoran dana dan memantau stok secara real-time.',
+      toolKey: 'ubos'
+    };
+    actionPlan = [
+      { title: 'Gunakan Aplikasi Kasir', description: 'Catat semua transaksi secara digital.' },
+      { title: 'Audit Stok Berjangka', description: 'Pastikan fisik barang sesuai dengan sistem.' },
+      { title: 'Evaluasi Laporan Bulanan', description: 'Gunakan data untuk mengambil keputusan.' }
+    ];
   }
 
-  let category: NeedData['category'] = 'GENERAL';
-  if (target.type === 'REVENUE') category = 'TRANSACTION';
-  if (target.type === 'LEADS') category = 'TRAFFIC';
-  if (target.type === 'FOLLOWERS') category = 'TRAFFIC';
-
-  return { gapValue, gapText, category, confidence };
-}
-
-export function generateActionPlan(target: TargetData, needs: NeedData, profesi: string): ActionPlan[] {
-  const plans: ActionPlan[] = [];
-
-  if (target.type === 'REVENUE') {
-    plans.push({
-      action: 'Optimasi & monitoring transaksi',
-      target: 'Mencapai target harian',
-      frequency: 'Setiap Hari',
-      metric: 'Jumlah Transaksi',
-      expectedResult: 'Gap omzet harian tertutup'
-    });
-    plans.push({
-      action: 'Aktifkan program repeat order',
-      target: '15% pelanggan kembali',
-      frequency: 'Mingguan',
-      metric: 'Retention Rate',
-      expectedResult: 'Peningkatan LTV pelanggan'
-    });
-  } else if (target.type === 'LEADS' || profesi === 'Marketing / Agen Coway') {
-    plans.push({
-      action: 'Distribusi penawaran (Funneling)',
-      target: 'Prospect Database',
-      frequency: 'Setiap Hari',
-      metric: 'Jumlah Leads Masuk',
-      expectedResult: 'Pipeline penjualan penuh'
-    });
-    plans.push({
-      action: 'Follow-up prospek hangat',
-      target: 'Leads yang belum closing',
-      frequency: 'Harian (H+1 sd H+3)',
-      metric: 'Conversion Rate',
-      expectedResult: 'Leads menjadi closing'
-    });
-  } else if (target.type === 'FOLLOWERS' || profesi === 'Konten Kreator') {
-    plans.push({
-      action: 'Publikasi konten berkualitas',
-      target: 'Audience spesifik',
-      frequency: '1-2x Sehari',
-      metric: 'Reach / Impressions',
-      expectedResult: 'Pertumbuhan traffic organik'
-    });
-  } else {
-    plans.push({
-      action: 'Evaluasi alur kerja harian',
-      target: 'Meningkatkan produktivitas',
-      frequency: 'Setiap Hari',
-      metric: 'Output',
-      expectedResult: 'Lebih dekat ke target'
-    });
+  // Override for specific professions
+  if (profesi.includes('Coway')) {
+    factors = ['Leads Masuk', 'Tingkat Konversi (Follow-up)', 'Closing Rate'];
+    priority = {
+      title: 'Optimasi Manajemen Leads',
+      description: 'Jangan biarkan calon pelanggan mendingin. Segera follow-up leads yang masuk secara sistematis.',
+      toolKey: 'coway'
+    };
   }
 
-  return plans;
+  return {
+    gapValue,
+    gapText,
+    factors,
+    priority,
+    actionPlan
+  };
 }
