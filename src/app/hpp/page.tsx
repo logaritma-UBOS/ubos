@@ -106,7 +106,8 @@ function HPPContent() {
       const data = await res.json();
       if (!res.ok) {
         if (data.error?.code === 'VALIDATION_ERROR') {
-          throw new Error("Draft AI memiliki data atau satuan yang tidak valid. Mohon perjelas deskripsi produk Anda.");
+          console.error("AI Validation Error:", data.error.message);
+          throw new Error(`Draft AI memiliki data atau satuan yang tidak valid: ${data.error.message}. Mohon perjelas deskripsi produk Anda.`);
         }
         throw new Error(data.error?.message || "Gagal memproses AI");
       }
