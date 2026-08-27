@@ -5,7 +5,7 @@ import {
   RecipeData, 
   CalculatedRecipeData, 
   calculateRecipeCost, 
-  findLargestComponent,
+  calculateContributors,
   Ingredient,
   ProductionCost,
   CalculatedIngredient
@@ -203,10 +203,12 @@ function HPPContent() {
     return calculateRecipeCost(recipeState);
   }, [recipeState]);
 
-  const largestComponent = useMemo(() => {
-    if (!calculatedData) return null;
-    return findLargestComponent(calculatedData);
+  const contributors = useMemo(() => {
+    if (!calculatedData) return [];
+    return calculateContributors(calculatedData);
   }, [calculatedData]);
+
+  const largestComponent = contributors.length > 0 ? contributors[0] : null;
 
   const hppMaksimal = hargaJual * (1 - targetMargin / 100);
   const gap = (calculatedData?.costPerUnit || 0) - hppMaksimal;
@@ -693,7 +695,7 @@ function HPPContent() {
                      </>
                    ) : (
                      <div className="bg-gray-50 border border-gray-200 p-5 rounded-2xl mt-4 text-center">
-                        <p className="text-gray-500 font-medium">Belum cukup data untuk menemukan penyebab utama.</p>
+                        <p className="text-gray-500 font-medium">Belum cukup data untuk menentukan komponen yang paling berpengaruh.</p>
                      </div>
                    )}
                 </div>

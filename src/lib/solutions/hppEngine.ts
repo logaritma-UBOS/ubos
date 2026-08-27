@@ -188,29 +188,26 @@ export function calculateComponentPercentage(cost: number, totalCost: number): n
   return (cost / totalCost) * 100;
 }
 
-// 5. Mencari komponen terbesar
-export function findLargestComponent(calcRecipe: CalculatedRecipeData): LargestComponent | null {
+// 5. Menghitung contributors
+export interface Contributor {
+  ingredientId: string;
+  ingredientName: string;
+  cost: number;
+  percentage: number;
+}
+
+export function calculateContributors(calcRecipe: CalculatedRecipeData): Contributor[] {
   const allComponents = [...calcRecipe.ingredients, ...calcRecipe.packaging];
-  if (allComponents.length === 0 || calcRecipe.totalBatchCost <= 0) return null;
+  if (allComponents.length === 0 || calcRecipe.totalBatchCost <= 0) return [];
 
-  let largest = null;
-  let maxCost = -1;
+  const validComponents = allComponents.filter(c => c.validationStatus === 'valid' && c.calculatedCost > 0);
+  
+  const contributors = validComponents.map(c => ({
+    ingredientId: c.id,
+    ingredientName: c.name,
+    cost: c.calculatedCost,
+    percentage: Math.round(calculateComponentPercentage(c.calculatedCost, calcRecipe.totalBatchCost) * 10) / 10
+  }));
 
-  for (const comp of allComponents) {
-    if (comp.validationStatus === 'valid' && comp.calculatedCost > maxCost) {
-      maxCost = comp.calculatedCost;
-      largest = comp;
-    }
-  }
-
-  if (largest) {
-    return {
-      ingredientId: largest.id,
-      ingredientName: largest.name,
-      cost: largest.calculatedCost,
-      percentage: Math.round(calculateComponentPercentage(largest.calculatedCost, calcRecipe.totalBatchCost) * 10) / 10
-    };
-  }
-
-  return null;
+  return contributors.sort((a, b) => b.cost - a.cost);
 }
