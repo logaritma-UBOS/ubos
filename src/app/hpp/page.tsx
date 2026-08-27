@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calculator, Plus, Trash2, Edit2, RotateCcw, AlertTriangle, ArrowRight, TrendingDown, Info, Save, X, Search, Image as ImageIcon } from 'lucide-react';
+import { Calculator, Plus, Trash2, Edit2, RotateCcw, AlertTriangle, ArrowRight, Info, Save, Search, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { 
@@ -13,7 +13,6 @@ import {
   CalculatedRecipeData,
   UnitType
 } from '@/lib/solutions/hppEngine';
-
 import * as hppEngine from '@/lib/solutions/hppEngine';
 
 const UNITS: UnitType[] = ['kg', 'gram', 'liter', 'ml', 'pcs', 'bungkus', 'sdm', 'sdt', 'lembar', 'siung', 'ikat', 'botol'];
@@ -25,18 +24,25 @@ const formatRupiah = (value: number) => {
 export default function HppAiPage() {
   const searchParams = useSearchParams();
   const from = searchParams?.get('from');
-  const contextProf = searchParams?.get('prof');
-  const contextGap = searchParams?.get('gap');
 
   const [productName, setProductName] = useState('');
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
 
-  // Source of truth
+  // Single Source of Truth
   const [recipeState, setRecipeState] = useState<RecipeData | null>(null);
+  
+  // AI Metadata
   const [aiConfidence, setAiConfidence] = useState<'high'|'medium'|'low'>('high');
+  const [aiAssumptions, setAiAssumptions] = useState<string[]>([]);
+  const [isAiDraft, setIsAiDraft] = useState(true); // Turns false once user makes a meaningful edit
 
-  // Computed
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Computed Values
   const calculatedResult = useMemo(() => {
     if (!recipeState) return null;
     return hppEngine.calculateRecipeCost(recipeState);
@@ -47,20 +53,38 @@ export default function HppAiPage() {
     return hppEngine.findLargestComponent(calculatedResult);
   }, [calculatedResult]);
 
-  // Edit State
-  const [editingIngredientId, setEditingIngredientId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Ingredient | null>(null);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran foto maksimal 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setImageBase64(base64);
+      setImagePreview(base64);
+      setProductName(''); // Clear name if using photo
+      setError('');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAnalyze = async () => {
-    if (!productName.trim()) return;
+    if (!productName.trim() && !imageBase64) return;
     setIsAnalyzing(true);
     setError('');
     
     try {
+      const payload = imageBase64 ? { imageBase64 } : { productName };
+      
       const res = await fetch('/api/hpp/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName })
+        body: JSON.stringify(payload)
       });
       
       const data = await res.json();
@@ -69,23 +93,24 @@ export default function HppAiPage() {
         throw new Error(data.error || 'Gagal menganalisis produk');
       }
 
-      // Initialize state from draft
       const draft = data.draft;
       setAiConfidence(draft.confidence || 'high');
+      setAiAssumptions(draft.assumptions || []);
+      setIsAiDraft(true);
       
       const initialIngredients: Ingredient[] = draft.ingredients.map((ing: any) => ({
         id: ing.id || Math.random().toString(36).substring(7),
         name: ing.name,
-        purchaseQuantity: ing.purchaseQuantity,
-        purchaseUnit: ing.purchaseUnit,
-        purchasePrice: ing.estimatedMarketPrice, // Default actual price to AI estimate
+        purchaseQuantity: ing.purchaseQuantity || 1,
+        purchaseUnit: ing.purchaseUnit || 'kg',
+        purchasePrice: ing.estimatedMarketPrice || 0, 
         estimatedMarketPrice: ing.estimatedMarketPrice,
-        usedQuantity: ing.usedQuantity,
-        usedUnit: ing.usedUnit,
+        usedQuantity: ing.usedQuantity || 100,
+        usedUnit: ing.usedUnit || 'gram',
       }));
 
       setRecipeState({
-        productName: draft.productName || productName,
+        productName: draft.productName || productName || 'Produk dari Foto',
         yieldQuantity: draft.yieldQuantity || 1,
         yieldUnit: draft.yieldUnit || 'pcs',
         ingredients: initialIngredients
@@ -98,33 +123,50 @@ export default function HppAiPage() {
     }
   };
 
+  // Inline Handlers (No API calls)
   const handleUpdateYield = (newYield: number) => {
     if (!recipeState) return;
+    setIsAiDraft(false);
     setRecipeState({ ...recipeState, yieldQuantity: newYield });
   };
 
-  const handleSaveIngredient = () => {
-    if (!recipeState || !editForm) return;
-    
-    let updatedIngredients;
-    if (editingIngredientId === 'new') {
-      updatedIngredients = [...recipeState.ingredients, { ...editForm, id: Math.random().toString(36).substring(7) }];
-    } else {
-      updatedIngredients = recipeState.ingredients.map(ing => 
-        ing.id === editingIngredientId ? editForm : ing
-      );
-    }
-    
-    setRecipeState({ ...recipeState, ingredients: updatedIngredients });
-    setEditingIngredientId(null);
-    setEditForm(null);
+  const handleIngredientChange = (id: string, field: keyof Ingredient, value: any) => {
+    if (!recipeState) return;
+    setIsAiDraft(false);
+    setRecipeState({
+      ...recipeState,
+      ingredients: recipeState.ingredients.map(ing => 
+        ing.id === id ? { ...ing, [field]: value } : ing
+      )
+    });
   };
 
   const handleDeleteIngredient = (id: string) => {
     if (!recipeState) return;
+    setIsAiDraft(false);
     setRecipeState({
       ...recipeState,
       ingredients: recipeState.ingredients.filter(ing => ing.id !== id)
+    });
+  };
+
+  const handleAddIngredient = () => {
+    if (!recipeState) return;
+    setIsAiDraft(false);
+    setRecipeState({
+      ...recipeState,
+      ingredients: [
+        ...recipeState.ingredients,
+        {
+          id: Math.random().toString(36).substring(7),
+          name: 'Bahan Baru',
+          purchaseQuantity: 1,
+          purchaseUnit: 'kg',
+          purchasePrice: 0,
+          usedQuantity: 100,
+          usedUnit: 'gram'
+        }
+      ]
     });
   };
 
@@ -141,27 +183,8 @@ export default function HppAiPage() {
     });
   };
 
-  const startEdit = (ing: Ingredient) => {
-    setEditingIngredientId(ing.id);
-    setEditForm({ ...ing });
-  };
-
-  const startAdd = () => {
-    setEditingIngredientId('new');
-    setEditForm({
-      id: 'new',
-      name: '',
-      purchaseQuantity: 1,
-      purchaseUnit: 'kg',
-      purchasePrice: 0,
-      usedQuantity: 100,
-      usedUnit: 'gram'
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-24">
-      {/* HEADER */}
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-40">
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Calculator className="text-blue-600" />
@@ -171,24 +194,10 @@ export default function HppAiPage() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
         
-        {/* Context Banner */}
-        {from === 'mapping' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-8 flex gap-3 items-start">
-            <Info className="text-blue-600 shrink-0 mt-0.5" size={20} />
-            <div>
-              <div className="text-sm font-bold text-blue-900">Melanjutkan Action Plan</div>
-              <div className="text-sm text-blue-800 mt-1">
-                Anda datang dari Logaritma Mapping. Hitung HPP aktual untuk memvalidasi rencana perbaikan bisnis Anda.
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* INPUT SECTION */}
         {!recipeState && (
           <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-200 text-center">
             <h1 className="text-2xl sm:text-4xl font-black mb-3">Apa produk yang ingin Anda hitung?</h1>
-            <p className="text-slate-500 mb-8 font-medium">Masukkan nama makanan atau minuman.</p>
+            <p className="text-slate-500 mb-8 font-medium">Masukkan nama makanan atau upload foto.</p>
 
             <div className="relative max-w-xl mx-auto mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -196,256 +205,210 @@ export default function HppAiPage() {
                 type="text"
                 placeholder="Misal: Pempek Kapal Selam"
                 value={productName}
-                onChange={e => setProductName(e.target.value)}
+                onChange={e => { setProductName(e.target.value); setImagePreview(null); setImageBase64(null); }}
                 onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!!imageBase64}
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               />
             </div>
 
-            {/* <div className="text-sm font-bold text-slate-400 mb-6 uppercase tracking-widest">Atau</div>
-            <button className="flex items-center gap-2 mx-auto px-6 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors">
-              <ImageIcon size={20} /> Upload Foto
-            </button> */}
+            <div className="text-sm font-bold text-slate-400 mb-6 uppercase tracking-widest">Atau</div>
+            
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload}
+            />
+            
+            {!imagePreview ? (
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-2 mx-auto px-6 py-4 rounded-2xl border-2 border-dashed border-slate-300 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-400 transition-colors w-full max-w-xl">
+                <ImageIcon size={24} /> Upload Foto Produk
+              </button>
+            ) : (
+              <div className="relative w-40 h-40 mx-auto rounded-2xl overflow-hidden shadow-md">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button 
+                  onClick={() => { setImagePreview(null); setImageBase64(null); }}
+                  className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
 
-            {error && <div className="text-red-500 font-medium mt-4 bg-red-50 py-3 rounded-xl border border-red-100">{error}</div>}
+            {error && <div className="text-red-500 font-medium mt-6 bg-red-50 py-3 rounded-xl border border-red-100 max-w-xl mx-auto">{error}</div>}
 
             <button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || !productName}
-              className="mt-8 w-full max-w-md mx-auto bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2"
+              disabled={isAnalyzing || (!productName && !imageBase64)}
+              className="mt-8 w-full max-w-xl mx-auto bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2"
             >
-              {isAnalyzing ? 'MEMPROSES AI...' : 'ANALISIS PRODUK'}
+              {isAnalyzing ? 'MENGANALISIS...' : 'ANALISIS PRODUK'}
             </button>
           </div>
         )}
 
-        {/* RESULTS SECTION */}
         {calculatedResult && (
           <div className="space-y-6">
             
-            {/* Draft Warning */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3 shadow-sm">
-              <span className="text-xl">✨</span>
-              <div>
-                <h3 className="font-bold text-amber-900">Draft Resep AI</h3>
-                <p className="text-sm text-amber-800 mt-1 font-medium leading-relaxed">
-                  Kami membuat perkiraan komponen berdasarkan produk yang Anda masukkan. 
-                  <strong> Periksa dan sesuaikan bahan, takaran, dan harga dengan kondisi usaha Anda.</strong>
-                </p>
-              </div>
-            </div>
-
-            {/* SUMMARY PANEL */}
-            <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
-              
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6">
+            {/* Draft Warning / Validated */}
+            {isAiDraft ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                <span className="text-xl">✨</span>
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Biaya Resep</div>
-                  <div className="text-xl sm:text-2xl font-black text-white">{formatRupiah(calculatedResult.totalCost)}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Untuk Menghasilkan</div>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="number" 
-                      value={recipeState?.yieldQuantity} 
-                      onChange={(e) => handleUpdateYield(parseFloat(e.target.value) || 0)}
-                      className="w-16 bg-slate-800 border border-slate-700 text-white font-black rounded-lg px-2 py-1 text-center focus:outline-none focus:border-blue-500"
-                    />
-                    <span className="text-lg font-medium text-slate-300">{calculatedResult.yieldUnit}</span>
-                  </div>
+                  <h3 className="font-bold text-amber-900">Draft AI ({aiConfidence === 'high' ? 'Keyakinan Tinggi' : aiConfidence === 'medium' ? 'Keyakinan Sedang' : 'Ambiguitas Tinggi'})</h3>
+                  <p className="text-sm text-amber-800 mt-1 font-medium leading-relaxed">
+                    Periksa dan sesuaikan bahan, takaran, dan harga dengan kondisi aktual Anda sebelum menghitung HPP.
+                  </p>
+                  {aiAssumptions.length > 0 && (
+                    <ul className="mt-2 text-xs text-amber-700 list-disc pl-4 space-y-1">
+                      {aiAssumptions.map((a, i) => <li key={i}>{a}</li>)}
+                    </ul>
+                  )}
                 </div>
               </div>
-
-              <div className="pt-6 border-t border-slate-700/50">
-                <div className="text-sm font-bold text-emerald-400 uppercase tracking-widest mb-2">HPP PER {calculatedResult.yieldUnit.toUpperCase()}</div>
-                <div className="text-4xl sm:text-5xl font-black text-emerald-400">
-                  {formatRupiah(calculatedResult.costPerUnit)}
-                </div>
-              </div>
-            </div>
-
-            {/* INGREDIENTS LIST */}
-            <div className="flex items-center justify-between mt-8 mb-4">
-              <h2 className="text-xl font-black text-slate-900">Komponen Bahan</h2>
-              <button onClick={startAdd} className="flex items-center gap-1 text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">
-                <Plus size={16} /> Tambah
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {calculatedResult.ingredients.map(ing => {
-                const isEditing = editingIngredientId === ing.id;
-                
-                if (isEditing && editForm) {
-                  return (
-                    <div key={ing.id} className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-blue-500 shadow-lg">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Nama Bahan</label>
-                          <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Beli (Qty & Unit)</label>
-                            <div className="flex gap-2">
-                              <input type="number" value={editForm.purchaseQuantity} onChange={e => setEditForm({...editForm, purchaseQuantity: parseFloat(e.target.value)||0})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                              <select value={editForm.purchaseUnit} onChange={e => setEditForm({...editForm, purchaseUnit: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 font-bold focus:outline-none">
-                                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                              </select>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Harga Aktual</label>
-                            <input type="number" value={editForm.purchasePrice} onChange={e => setEditForm({...editForm, purchasePrice: parseFloat(e.target.value)||0})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Digunakan (Qty & Unit)</label>
-                          <div className="flex gap-2">
-                            <input type="number" value={editForm.usedQuantity} onChange={e => setEditForm({...editForm, usedQuantity: parseFloat(e.target.value)||0})} className="w-1/2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                            <select value={editForm.usedUnit} onChange={e => setEditForm({...editForm, usedUnit: e.target.value})} className="w-1/2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 font-bold focus:outline-none">
-                              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                          <button onClick={() => setEditingIngredientId(null)} className="px-4 py-2 text-sm font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">Batal</button>
-                          <button onClick={handleSaveIngredient} className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1">
-                            <Save size={16} /> Simpan
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // Display Card
-                return (
-                  <div key={ing.id} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm relative overflow-hidden group">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-black text-lg text-slate-800 pr-16">{ing.name}</h3>
-                      <div className="absolute top-4 right-4 flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEdit(ing)} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Edit2 size={16} /></button>
-                        <button onClick={() => handleDeleteIngredient(ing.id)} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 size={16} /></button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
-                      <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase">Harga Beli</div>
-                        <div className="font-medium text-slate-700">{formatRupiah(ing.purchasePrice)} <span className="text-slate-400 text-sm">/ {ing.purchaseQuantity}{ing.purchaseUnit}</span></div>
-                        {ing.estimatedMarketPrice !== undefined && ing.estimatedMarketPrice !== ing.purchasePrice && (
-                          <div className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
-                            Estimasi AI: {formatRupiah(ing.estimatedMarketPrice)}
-                            <button onClick={() => handleResetToAI(ing.id)} className="text-blue-600 ml-1 hover:underline flex items-center" title="Kembalikan estimasi AI"><RotateCcw size={10} className="mr-0.5"/> Reset</button>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase">Digunakan</div>
-                        <div className="font-medium text-slate-700">{ing.usedQuantity} {ing.usedUnit}</div>
-                      </div>
-                    </div>
-
-                    {ing.validationStatus !== 'valid' ? (
-                      <div className="bg-red-50 text-red-700 p-3 rounded-xl border border-red-100 flex items-start gap-2">
-                        <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                        <div className="text-sm font-medium">
-                          <strong>Perlu diperiksa:</strong> Harga beli dan satuan penggunaan tidak cocok atau data tidak lengkap.
-                          <button onClick={() => startEdit(ing)} className="ml-2 text-red-800 underline font-bold">Perbaiki</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
-                        <span className="text-sm font-bold text-slate-500 uppercase">Biaya Bahan</span>
-                        <span className="font-black text-slate-800 text-lg">{formatRupiah(ing.calculatedCost)}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              
-              {/* New Ingredient Form Inline */}
-              {editingIngredientId === 'new' && editForm && (
-                <div className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-emerald-500 shadow-lg">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Nama Bahan Baru</label>
-                      <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" placeholder="Misal: Kaldu Bubuk" />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Beli (Qty & Unit)</label>
-                        <div className="flex gap-2">
-                          <input type="number" value={editForm.purchaseQuantity} onChange={e => setEditForm({...editForm, purchaseQuantity: parseFloat(e.target.value)||0})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                          <select value={editForm.purchaseUnit} onChange={e => setEditForm({...editForm, purchaseUnit: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 font-bold focus:outline-none">
-                            {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                          </select>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Harga Aktual</label>
-                        <input type="number" value={editForm.purchasePrice} onChange={e => setEditForm({...editForm, purchasePrice: parseFloat(e.target.value)||0})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Digunakan (Qty & Unit)</label>
-                      <div className="flex gap-2">
-                        <input type="number" value={editForm.usedQuantity} onChange={e => setEditForm({...editForm, usedQuantity: parseFloat(e.target.value)||0})} className="w-1/2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-bold focus:outline-none focus:border-blue-500" />
-                        <select value={editForm.usedUnit} onChange={e => setEditForm({...editForm, usedUnit: e.target.value})} className="w-1/2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 font-bold focus:outline-none">
-                          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                      <button onClick={() => setEditingIngredientId(null)} className="px-4 py-2 text-sm font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">Batal</button>
-                      <button onClick={handleSaveIngredient} className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 flex items-center gap-1">
-                        <Plus size={16} /> Tambah
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* INSIGHT PANEL */}
-            {largestComponent && (
-              <div className="mt-12 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                <h3 className="flex items-center gap-2 font-black text-lg text-slate-900 mb-4">
-                  <Search className="text-blue-600" /> Temuan Logaritma
-                </h3>
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                  <div className="text-lg font-medium text-slate-700 leading-relaxed">
-                    <strong className="font-black text-slate-900 bg-yellow-200 px-1">{largestComponent.ingredientName}</strong> menyumbang <strong className="font-black text-red-600">{largestComponent.percentage}%</strong> biaya produk ini.
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <div className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Apa artinya?</div>
-                    <div className="text-slate-600 font-medium">
-                      Perubahan kecil pada harga atau penggunaan <strong>{largestComponent.ingredientName.toLowerCase()}</strong> akan memberi pengaruh paling drastis terhadap HPP Anda. Fokuskan negosiasi supplier atau efisiensi bahan pada komponen ini.
-                    </div>
-                  </div>
-                </div>
+            ) : (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+                <CheckCircle className="text-emerald-500" />
+                <div className="font-bold text-emerald-900">Disesuaikan dengan resep Anda</div>
               </div>
             )}
 
-            {/* CTA */}
-            <div className="mt-12">
-              <Link 
-                href={from === 'mapping' ? '/backward-mapping' : '/'} 
-                className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-slate-800 transition-colors shadow-xl"
-              >
-                {from === 'mapping' ? 'LANJUTKAN KE ACTION PLAN' : 'LIHAT INSIGHT PRODUK'} <ArrowRight />
-              </Link>
+            {/* PRODUCT TITLE & YIELD */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+              <h2 className="text-2xl font-black text-slate-900 mb-4">{calculatedResult.productName}</h2>
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <div className="text-sm font-bold text-slate-500 mb-1">Hasil Resep (Yield)</div>
+                  <p className="text-xs text-slate-400">Sesuaikan dengan hasil produksi aktual Anda.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleUpdateYield(Math.max(1, recipeState!.yieldQuantity - 1))} className="w-10 h-10 rounded-full bg-white border border-slate-200 font-bold hover:bg-slate-50">-</button>
+                  <input 
+                    type="number" 
+                    value={recipeState?.yieldQuantity} 
+                    onChange={(e) => handleUpdateYield(parseFloat(e.target.value) || 0)}
+                    className="w-20 text-center bg-white border border-slate-200 rounded-lg py-2 font-black focus:outline-none focus:border-blue-500"
+                  />
+                  <span className="font-bold text-slate-600">{calculatedResult.yieldUnit}</span>
+                  <button onClick={() => handleUpdateYield(recipeState!.yieldQuantity + 1)} className="w-10 h-10 rounded-full bg-white border border-slate-200 font-bold hover:bg-slate-50">+</button>
+                </div>
+              </div>
             </div>
+
+            {/* INGREDIENTS LIST - INLINE EDITING */}
+            <div className="space-y-4 mt-8">
+              {calculatedResult.ingredients.map(ing => (
+                <div key={ing.id} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm relative group transition-colors focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50">
+                  <div className="flex justify-between items-start mb-4">
+                    <input 
+                      type="text" 
+                      value={ing.name} 
+                      onChange={e => handleIngredientChange(ing.id, 'name', e.target.value)}
+                      className="font-black text-lg text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none w-2/3 truncate"
+                    />
+                    <button onClick={() => handleDeleteIngredient(ing.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                  </div>
+
+                  {/* Primary Fields (Inline) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    
+                    {/* Harga Aktual */}
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="text-xs font-bold text-slate-500 uppercase mb-2">Harga Beli Aktual</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-400">Rp</span>
+                        <input 
+                          type="number" 
+                          value={ing.purchasePrice || ''}
+                          onChange={e => handleIngredientChange(ing.id, 'purchasePrice', parseFloat(e.target.value) || 0)}
+                          className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 font-bold focus:outline-none focus:border-blue-500"
+                        />
+                        <span className="text-slate-400">/</span>
+                        <select 
+                          value={ing.purchaseUnit} 
+                          onChange={e => handleIngredientChange(ing.id, 'purchaseUnit', e.target.value)}
+                          className="bg-white border border-slate-200 rounded-md px-1 py-1.5 font-bold focus:outline-none text-sm"
+                        >
+                          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </div>
+                      
+                      {/* Secondary: Estimasi AI */}
+                      {ing.estimatedMarketPrice !== undefined && (
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <span className="text-slate-400">Estimasi AI: {formatRupiah(ing.estimatedMarketPrice)}</span>
+                          {ing.purchasePrice !== ing.estimatedMarketPrice && (
+                            <button onClick={() => handleResetToAI(ing.id)} className="text-blue-600 font-medium hover:underline flex items-center gap-1">
+                              <RotateCcw size={10} /> Reset
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Digunakan */}
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="text-xs font-bold text-slate-500 uppercase mb-2">Takaran Dipakai</div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          value={ing.usedQuantity || ''}
+                          onChange={e => handleIngredientChange(ing.id, 'usedQuantity', parseFloat(e.target.value) || 0)}
+                          className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 font-bold focus:outline-none focus:border-blue-500"
+                        />
+                        <select 
+                          value={ing.usedUnit} 
+                          onChange={e => handleIngredientChange(ing.id, 'usedUnit', e.target.value)}
+                          className="bg-white border border-slate-200 rounded-md px-1 py-1.5 font-bold focus:outline-none text-sm"
+                        >
+                          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </div>
+                      
+                      {/* Subtotal */}
+                      {ing.validationStatus === 'valid' ? (
+                        <div className="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-500">BIAYA</span>
+                          <span className="font-black text-slate-800">{formatRupiah(ing.calculatedCost)}</span>
+                        </div>
+                      ) : (
+                        <div className="mt-3 pt-2 border-t border-slate-200 text-xs font-bold text-red-500 flex items-center gap-1">
+                          <AlertTriangle size={12} /> Satuan tidak cocok
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={handleAddIngredient} className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 hover:border-blue-400 hover:text-blue-600 transition-colors">
+              <Plus size={20} /> Tambah Bahan Manual
+            </button>
             
+            {/* STICKY BOTTOM BAR */}
+            <div className="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 sm:px-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-40 border-t border-slate-800">
+              <div className="max-w-3xl mx-auto flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-slate-400 font-bold mb-1 uppercase tracking-wider">HPP / {calculatedResult.yieldUnit}</div>
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-400">{formatRupiah(calculatedResult.costPerUnit)}</div>
+                  <div className="text-xs text-slate-400 mt-1">Total {formatRupiah(calculatedResult.totalCost)}</div>
+                </div>
+                
+                <Link 
+                  href={from === 'mapping' ? '/backward-mapping' : '/'}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-6 rounded-xl flex items-center gap-2 transition-colors active:scale-95"
+                >
+                  <span className="hidden sm:inline">{from === 'mapping' ? 'LANJUTKAN ACTION PLAN' : 'LIHAT INSIGHT'}</span>
+                  <span className="sm:hidden">LANJUTKAN</span>
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+
           </div>
         )}
       </main>
