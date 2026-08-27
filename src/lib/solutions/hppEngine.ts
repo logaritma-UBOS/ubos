@@ -11,12 +11,14 @@ export type IngredientValidation =
 export interface Ingredient {
   id: string;
   name: string;
+  category?: string;
   purchaseQuantity: number;
   purchaseUnit: UnitType | string;
-  purchasePrice: number; // Harga aktual
-  estimatedMarketPrice?: number; // Estimasi AI
+  actualPurchasePrice: number; // Harga aktual dari user
+  estimatedMarketPrice?: number; // Estimasi AI (benchmark)
   usedQuantity: number;
   usedUnit: UnitType | string;
+  isUserOverridden?: boolean;
 }
 
 export interface CalculatedIngredient extends Ingredient {
@@ -24,16 +26,36 @@ export interface CalculatedIngredient extends Ingredient {
   calculatedCost: number; // 0 if invalid
 }
 
+export interface ProductionCost {
+  id: string;
+  name: string;
+  estimatedCostPerBatch: number; // Langsung berupa cost batch
+  actualCostPerBatch?: number; // Override user
+  isUserOverridden?: boolean;
+}
+
+export interface CalculatedProductionCost extends ProductionCost {
+  calculatedCost: number; // sama dengan actual / estimated
+}
+
 export interface RecipeData {
   productName: string;
   ingredients: Ingredient[];
+  packaging: Ingredient[];
+  productionCosts: ProductionCost[];
   yieldQuantity: number;
   yieldUnit: string;
+  isYieldEstimated: boolean;
 }
 
 export interface CalculatedRecipeData extends RecipeData {
   ingredients: CalculatedIngredient[];
-  totalCost: number;
+  packaging: CalculatedIngredient[];
+  productionCosts: CalculatedProductionCost[];
+  totalIngredientCost: number;
+  totalPackagingCost: number;
+  totalProductionCost: number;
+  totalBatchCost: number;
   costPerUnit: number;
 }
 
@@ -74,7 +96,7 @@ export function normalizeUnit(quantity: number, unit: string): NormalizedUnit {
 // 2. Validasi bahan
 export function validateIngredient(ingredient: Ingredient): IngredientValidation {
   if (!ingredient.purchaseQuantity || ingredient.purchaseQuantity <= 0) return 'missing_purchase_quantity';
-  if (ingredient.purchasePrice === undefined || ingredient.purchasePrice < 0) return 'missing_purchase_price';
+  if (ingredient.actualPurchasePrice === undefined || ingredient.actualPurchasePrice < 0) return 'missing_purchase_price';
   if (!ingredient.usedQuantity || ingredient.usedQuantity <= 0) return 'missing_used_quantity';
 
   const purchase = normalizeUnit(ingredient.purchaseQuantity, ingredient.purchaseUnit);
@@ -82,11 +104,7 @@ export function validateIngredient(ingredient: Ingredient): IngredientValidation
 
   if (purchase.baseUnit === 'unknown' || used.baseUnit === 'unknown') return 'unknown_unit';
   
-  // Strict matching
   if (purchase.baseUnit !== used.baseUnit) {
-    // Pengecualian khusus jika unit count spesifik digunakan (bungkus vs pcs) 
-    // Tapi secara umum, 'pcs' adalah baseUnit universal untuk tipe hitungan.
-    // Jika masih berbeda baseUnit (misal gram vs ml), maka incompat
     return 'incompatible_units';
   }
 
@@ -102,22 +120,24 @@ export function calculateIngredientCost(ingredient: Ingredient): number {
   const used = normalizeUnit(ingredient.usedQuantity, ingredient.usedUnit);
 
   if (purchase.value === 0) return 0;
-  return (used.value / purchase.value) * ingredient.purchasePrice;
+  return (used.value / purchase.value) * ingredient.actualPurchasePrice;
 }
 
-export function calculateCostPerUnit(totalCost: number, yieldQuantity: number): number {
-  if (yieldQuantity <= 0) return totalCost;
-  return totalCost / yieldQuantity;
+export function calculateCostPerUnit(totalBatchCost: number, yieldQuantity: number): number {
+  if (yieldQuantity <= 0) return totalBatchCost;
+  return totalBatchCost / yieldQuantity;
 }
 
 // 4. Menghitung seluruh resep
 export function calculateRecipeCost(recipe: RecipeData): CalculatedRecipeData {
-  let totalCost = 0;
+  let totalIngredientCost = 0;
+  let totalPackagingCost = 0;
+  let totalProductionCost = 0;
   
   const calcIngredients: CalculatedIngredient[] = recipe.ingredients.map(ing => {
     const status = validateIngredient(ing);
     const cost = calculateIngredientCost(ing);
-    if (status === 'valid') totalCost += cost;
+    if (status === 'valid') totalIngredientCost += cost;
     
     return {
       ...ing,
@@ -126,12 +146,39 @@ export function calculateRecipeCost(recipe: RecipeData): CalculatedRecipeData {
     };
   });
 
-  const costPerUnit = calculateCostPerUnit(totalCost, recipe.yieldQuantity);
+  const calcPackaging: CalculatedIngredient[] = recipe.packaging.map(pack => {
+    const status = validateIngredient(pack);
+    const cost = calculateIngredientCost(pack);
+    if (status === 'valid') totalPackagingCost += cost;
+    
+    return {
+      ...pack,
+      validationStatus: status,
+      calculatedCost: cost
+    };
+  });
+
+  const calcProduction: CalculatedProductionCost[] = recipe.productionCosts.map(prod => {
+    const cost = prod.isUserOverridden && prod.actualCostPerBatch !== undefined ? prod.actualCostPerBatch : prod.estimatedCostPerBatch;
+    totalProductionCost += cost;
+    return {
+      ...prod,
+      calculatedCost: cost
+    };
+  });
+
+  const totalBatchCost = totalIngredientCost + totalPackagingCost + totalProductionCost;
+  const costPerUnit = calculateCostPerUnit(totalBatchCost, recipe.yieldQuantity);
 
   return {
     ...recipe,
     ingredients: calcIngredients,
-    totalCost,
+    packaging: calcPackaging,
+    productionCosts: calcProduction,
+    totalIngredientCost,
+    totalPackagingCost,
+    totalProductionCost,
+    totalBatchCost,
     costPerUnit
   };
 }
@@ -143,17 +190,16 @@ export function calculateComponentPercentage(cost: number, totalCost: number): n
 
 // 5. Mencari komponen terbesar
 export function findLargestComponent(calcRecipe: CalculatedRecipeData): LargestComponent | null {
-  if (!calcRecipe.ingredients || calcRecipe.ingredients.length === 0 || calcRecipe.totalCost <= 0) {
-    return null;
-  }
+  const allComponents = [...calcRecipe.ingredients, ...calcRecipe.packaging];
+  if (allComponents.length === 0 || calcRecipe.totalBatchCost <= 0) return null;
 
-  let largest: CalculatedIngredient | null = null;
+  let largest = null;
   let maxCost = -1;
 
-  for (const ing of calcRecipe.ingredients) {
-    if (ing.validationStatus === 'valid' && ing.calculatedCost > maxCost) {
-      maxCost = ing.calculatedCost;
-      largest = ing;
+  for (const comp of allComponents) {
+    if (comp.validationStatus === 'valid' && comp.calculatedCost > maxCost) {
+      maxCost = comp.calculatedCost;
+      largest = comp;
     }
   }
 
@@ -162,7 +208,7 @@ export function findLargestComponent(calcRecipe: CalculatedRecipeData): LargestC
       ingredientId: largest.id,
       ingredientName: largest.name,
       cost: largest.calculatedCost,
-      percentage: Math.round(calculateComponentPercentage(largest.calculatedCost, calcRecipe.totalCost) * 10) / 10 // 1 decimal point
+      percentage: Math.round(calculateComponentPercentage(largest.calculatedCost, calcRecipe.totalBatchCost) * 10) / 10
     };
   }
 
