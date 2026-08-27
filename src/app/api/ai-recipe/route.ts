@@ -5,8 +5,9 @@ import { GoogleGenAI } from '@google/genai';
 const productCache = new Map();
 
 // Initialize Gemini SDK
-// It will automatically pick up process.env.GEMINI_API_KEY
-const ai = new GoogleGenAI({});
+// It will automatically pick up process.env.GEMINI_API_KEY, but we add a fallback just in case
+const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key_Logaritma_Home;
+const ai = new GoogleGenAI(apiKey ? { apiKey } : {});
 
 export async function POST(req: Request) {
   try {
