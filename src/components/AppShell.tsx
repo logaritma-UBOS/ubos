@@ -11,6 +11,7 @@ import UBOSLoading from './UBOSLoading';
 const isPublicPath = (pathname: string) =>
   pathname === '/' ||
   pathname.startsWith('/backward-mapping') ||
+  pathname.startsWith('/hpp') ||
   pathname.startsWith('/investor') ||
   pathname.startsWith('/member');
 
