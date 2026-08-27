@@ -169,7 +169,7 @@ export default function BottomNav({ merchant }: { merchant?: any }) {
                   className="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90 relative z-10"
                 >
                   <div className={`p-3 rounded-2xl transition-all duration-300 ${actionBg} shadow-lg scale-110 -translate-y-4 border-2 border-white`}>
-                    <Icon size={24} strokeWidth={2.5} className={actionColor} />
+                    <Icon size={24} strokeWidth={2.5} className="text-white" />
                   </div>
                   <span className={`text-[10px] font-bold text-slate-600 transition-all duration-300 absolute bottom-1.5 whitespace-nowrap`}>
                     {item.name}
