@@ -13,7 +13,8 @@ export interface Ingredient {
   name: string;
   purchaseQuantity: number;
   purchaseUnit: UnitType | string;
-  purchasePrice: number;
+  purchasePrice: number; // Harga aktual
+  estimatedMarketPrice?: number; // Estimasi AI
   usedQuantity: number;
   usedUnit: UnitType | string;
 }
