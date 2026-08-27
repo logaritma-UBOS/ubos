@@ -7,7 +7,7 @@ const RATE_LIMIT_MAX = 10; // Max 10 analysis per IP
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 
 const getAiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_Key_Logaritma_Home;
+  const apiKey = process.env.Gemini_API_Key_Logaritma_Home || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is missing');
   }
