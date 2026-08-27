@@ -105,7 +105,11 @@ export async function POST(req: Request) {
     }
 
     // 3. CACHE CHECK
-    const cacheKeyObj = { productName, hasImage: !!imageBase64, clarifications };
+    const cacheKeyObj = { 
+      productName, 
+      imageHash: imageBase64 ? crypto.createHash('md5').update(imageBase64).digest('hex') : null, 
+      clarifications 
+    };
     const cacheKey = crypto.createHash('md5').update(JSON.stringify(cacheKeyObj)).digest('hex');
     
     if (productCache.has(cacheKey)) {
