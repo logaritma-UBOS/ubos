@@ -92,7 +92,7 @@ ATURAN PENTING:
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash-lite',
+      model: 'gemini-1.5-flash',
       contents: contentParts,
       config: {
         responseMimeType: 'application/json',
