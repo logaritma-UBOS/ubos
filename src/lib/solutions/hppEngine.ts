@@ -1,5 +1,13 @@
 export type UnitType = 'kg' | 'gram' | 'liter' | 'ml' | 'pcs' | 'bungkus' | 'sdm' | 'sdt' | 'lembar' | 'siung' | 'ikat' | 'botol';
 
+export type IngredientValidation =
+  | 'valid'
+  | 'missing_purchase_quantity'
+  | 'missing_purchase_price'
+  | 'missing_used_quantity'
+  | 'incompatible_units'
+  | 'unknown_unit';
+
 export interface Ingredient {
   id: string;
   name: string;
@@ -8,7 +16,11 @@ export interface Ingredient {
   purchasePrice: number;
   usedQuantity: number;
   usedUnit: UnitType | string;
-  calculatedCost?: number; // Diisi otomatis oleh engine
+}
+
+export interface CalculatedIngredient extends Ingredient {
+  validationStatus: IngredientValidation;
+  calculatedCost: number; // 0 if invalid
 }
 
 export interface RecipeData {
@@ -16,102 +28,140 @@ export interface RecipeData {
   ingredients: Ingredient[];
   yieldQuantity: number;
   yieldUnit: string;
-  totalCost?: number;
-  costPerUnit?: number;
+}
+
+export interface CalculatedRecipeData extends RecipeData {
+  ingredients: CalculatedIngredient[];
+  totalCost: number;
+  costPerUnit: number;
 }
 
 export interface LargestComponent {
-  ingredient: Ingredient;
+  ingredientId: string;
+  ingredientName: string;
+  cost: number;
   percentage: number;
 }
 
-// Konversi satuan ke base unit (gram, ml, pcs)
-function getBaseUnitValue(quantity: number, unit: string): { value: number; baseUnit: string } {
-  const normalizedUnit = unit.toLowerCase().trim();
-  
-  // Massa
-  if (normalizedUnit === 'kg' || normalizedUnit === 'kilogram') {
-    return { value: quantity * 1000, baseUnit: 'gram' };
-  }
-  if (normalizedUnit === 'gram' || normalizedUnit === 'g' || normalizedUnit === 'gr') {
-    return { value: quantity, baseUnit: 'gram' };
-  }
-  
-  // Volume
-  if (normalizedUnit === 'liter' || normalizedUnit === 'l') {
-    return { value: quantity * 1000, baseUnit: 'ml' };
-  }
-  if (normalizedUnit === 'ml' || normalizedUnit === 'mililiter') {
-    return { value: quantity, baseUnit: 'ml' };
-  }
-  
-  // Satuan Dapur Umum (estimasi kasar)
-  if (normalizedUnit === 'sdm') {
-    return { value: quantity * 15, baseUnit: 'gram' }; // Asumsi 1 sdm = 15g
-  }
-  if (normalizedUnit === 'sdt') {
-    return { value: quantity * 5, baseUnit: 'gram' }; // Asumsi 1 sdt = 5g
-  }
-  
-  // Jika tidak dapat dikonversi, kembalikan apa adanya (diasumsikan satuannya match)
-  return { value: quantity, baseUnit: normalizedUnit };
+interface NormalizedUnit {
+  value: number;
+  baseUnit: 'gram' | 'ml' | 'pcs' | 'unknown';
 }
 
+// 1. Normalisasi ke canonical unit
+export function normalizeUnit(quantity: number, unit: string): NormalizedUnit {
+  const u = unit.toLowerCase().trim();
+  
+  // Massa -> gram
+  if (u === 'kg' || u === 'kilogram') return { value: quantity * 1000, baseUnit: 'gram' };
+  if (u === 'gram' || u === 'g' || u === 'gr') return { value: quantity, baseUnit: 'gram' };
+  if (u === 'sdm') return { value: quantity * 15, baseUnit: 'gram' }; // Asumsi
+  if (u === 'sdt') return { value: quantity * 5, baseUnit: 'gram' }; // Asumsi
+  
+  // Volume -> ml
+  if (u === 'liter' || u === 'l') return { value: quantity * 1000, baseUnit: 'ml' };
+  if (u === 'ml' || u === 'mililiter') return { value: quantity, baseUnit: 'ml' };
+  
+  // Count -> pcs
+  if (u === 'pcs' || u === 'buah' || u === 'biji' || u === 'lembar' || u === 'siung' || u === 'ikat' || u === 'botol' || u === 'bungkus') {
+    return { value: quantity, baseUnit: 'pcs' }; // Semuanya dihitung sebagai count
+  }
+  
+  return { value: quantity, baseUnit: 'unknown' };
+}
+
+// 2. Validasi bahan
+export function validateIngredient(ingredient: Ingredient): IngredientValidation {
+  if (!ingredient.purchaseQuantity || ingredient.purchaseQuantity <= 0) return 'missing_purchase_quantity';
+  if (ingredient.purchasePrice === undefined || ingredient.purchasePrice < 0) return 'missing_purchase_price';
+  if (!ingredient.usedQuantity || ingredient.usedQuantity <= 0) return 'missing_used_quantity';
+
+  const purchase = normalizeUnit(ingredient.purchaseQuantity, ingredient.purchaseUnit);
+  const used = normalizeUnit(ingredient.usedQuantity, ingredient.usedUnit);
+
+  if (purchase.baseUnit === 'unknown' || used.baseUnit === 'unknown') return 'unknown_unit';
+  
+  // Strict matching
+  if (purchase.baseUnit !== used.baseUnit) {
+    // Pengecualian khusus jika unit count spesifik digunakan (bungkus vs pcs) 
+    // Tapi secara umum, 'pcs' adalah baseUnit universal untuk tipe hitungan.
+    // Jika masih berbeda baseUnit (misal gram vs ml), maka incompat
+    return 'incompatible_units';
+  }
+
+  return 'valid';
+}
+
+// 3. Menghitung cost 1 bahan
 export function calculateIngredientCost(ingredient: Ingredient): number {
-  const purchase = getBaseUnitValue(ingredient.purchaseQuantity, ingredient.purchaseUnit);
-  const used = getBaseUnitValue(ingredient.usedQuantity, ingredient.usedUnit);
+  const status = validateIngredient(ingredient);
+  if (status !== 'valid') return 0;
 
-  // Jika satuannya berbeda dan tidak bisa dikonversi (misal: 'ikat' vs 'gram'),
-  // kita asumsikan perhitungan rasio langsung sebagai fallback,
-  // tapi idealnya UI harus memaksa unit yang setara (massa ke massa).
-  
-  // Cegah division by zero
+  const purchase = normalizeUnit(ingredient.purchaseQuantity, ingredient.purchaseUnit);
+  const used = normalizeUnit(ingredient.usedQuantity, ingredient.usedUnit);
+
   if (purchase.value === 0) return 0;
-
-  const cost = (used.value / purchase.value) * ingredient.purchasePrice;
-  return cost;
+  return (used.value / purchase.value) * ingredient.purchasePrice;
 }
 
-export function calculateRecipe(recipe: RecipeData): RecipeData {
+export function calculateCostPerUnit(totalCost: number, yieldQuantity: number): number {
+  if (yieldQuantity <= 0) return totalCost;
+  return totalCost / yieldQuantity;
+}
+
+// 4. Menghitung seluruh resep
+export function calculateRecipeCost(recipe: RecipeData): CalculatedRecipeData {
   let totalCost = 0;
   
-  const updatedIngredients = recipe.ingredients.map(ing => {
+  const calcIngredients: CalculatedIngredient[] = recipe.ingredients.map(ing => {
+    const status = validateIngredient(ing);
     const cost = calculateIngredientCost(ing);
-    totalCost += cost;
-    return { ...ing, calculatedCost: cost };
+    if (status === 'valid') totalCost += cost;
+    
+    return {
+      ...ing,
+      validationStatus: status,
+      calculatedCost: cost
+    };
   });
 
-  const costPerUnit = recipe.yieldQuantity > 0 ? totalCost / recipe.yieldQuantity : totalCost;
+  const costPerUnit = calculateCostPerUnit(totalCost, recipe.yieldQuantity);
 
   return {
     ...recipe,
-    ingredients: updatedIngredients,
+    ingredients: calcIngredients,
     totalCost,
     costPerUnit
   };
 }
 
-export function findLargestComponent(recipe: RecipeData): LargestComponent | null {
-  if (!recipe.ingredients || recipe.ingredients.length === 0 || !recipe.totalCost) {
+export function calculateComponentPercentage(cost: number, totalCost: number): number {
+  if (totalCost <= 0) return 0;
+  return (cost / totalCost) * 100;
+}
+
+// 5. Mencari komponen terbesar
+export function findLargestComponent(calcRecipe: CalculatedRecipeData): LargestComponent | null {
+  if (!calcRecipe.ingredients || calcRecipe.ingredients.length === 0 || calcRecipe.totalCost <= 0) {
     return null;
   }
 
-  let largest: Ingredient | null = null;
+  let largest: CalculatedIngredient | null = null;
   let maxCost = -1;
 
-  for (const ing of recipe.ingredients) {
-    const cost = ing.calculatedCost || 0;
-    if (cost > maxCost) {
-      maxCost = cost;
+  for (const ing of calcRecipe.ingredients) {
+    if (ing.validationStatus === 'valid' && ing.calculatedCost > maxCost) {
+      maxCost = ing.calculatedCost;
       largest = ing;
     }
   }
 
-  if (largest && recipe.totalCost > 0) {
-    const percentage = (maxCost / recipe.totalCost) * 100;
+  if (largest) {
     return {
-      ingredient: largest,
-      percentage: Math.round(percentage)
+      ingredientId: largest.id,
+      ingredientName: largest.name,
+      cost: largest.calculatedCost,
+      percentage: Math.round(calculateComponentPercentage(largest.calculatedCost, calcRecipe.totalCost) * 10) / 10 // 1 decimal point
     };
   }
 
