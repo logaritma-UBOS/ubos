@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calculator, Plus, Trash2, Edit2, RotateCcw, AlertTriangle, ArrowRight, Info, Save, Search, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { Calculator, Plus, Trash2, Edit2, RotateCcw, AlertTriangle, ArrowRight, Info, Save, Search, Image as ImageIcon, CheckCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { 
