@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { Suspense, useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calculator, Plus, Trash2, Edit2, RotateCcw, AlertTriangle, ArrowRight, Info, Save, Search, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -22,6 +22,14 @@ const formatRupiah = (value: number) => {
 };
 
 export default function HppAiPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-slate-500">Memuat...</div>}>
+      <HppAiContent />
+    </Suspense>
+  );
+}
+
+function HppAiContent() {
   const searchParams = useSearchParams();
   const from = searchParams?.get('from');
 
