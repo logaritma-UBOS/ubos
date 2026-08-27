@@ -160,7 +160,7 @@ Yield:
 Estimasi hasil resep, TIDAK BOLEH hardcode 1 (isEstimated: true).
 
 Konteks Produk:
-Nama Produk: ${productName || 'Lihat foto'}
+Nama Produk: ${productName || 'TEBAK NAMA PRODUK DARI FOTO INI (misal: Es Boba Susu, Nasi Goreng, dll)'}
 ${clarifications ? `Klarifikasi User: ${JSON.stringify(clarifications)}` : ''}
 
 Output HARUS mengikuti JSON schema v1 ini:
@@ -205,11 +205,13 @@ Output HARUS mengikuti JSON schema v1 ini:
     const contentParts: any[] = [{ text: prompt }];
 
     if (imageBase64) {
+      const mimeMatch = imageBase64.match(/^data:(image\/\w+);base64,/);
+      const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
       contentParts.push({
         inlineData: {
           data: base64Data,
-          mimeType: "image/jpeg"
+          mimeType: mimeType
         }
       });
     }
