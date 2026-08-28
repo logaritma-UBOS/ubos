@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { ArrowLeft, Save, UploadCloud, Plus, Trash2, HelpCircle, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import CurrencyInput from '@/components/CurrencyInput';
+import { calculateRecipeCost } from '@/lib/solutions/hppEngine';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string; category: string; slug: string }> }) {
   const router = useRouter();
@@ -111,19 +112,68 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   };
 
   const totalHPP = useMemo(() => {
+    let recipeData: any;
     if (hppMode === 'cepat') {
-      const belanja = parseFloat(totalBiayaBelanja.replace(/\D/g, '')) || 0;
-      const porsi = parseFloat(estimasiPorsi.replace(/\D/g, '')) || 1;
-      const kemasan = parseFloat(biayaKemasan.replace(/\D/g, '')) || 0;
-      return (belanja / (porsi || 1)) + kemasan;
+      const belanja = parseFloat(String(totalBiayaBelanja).replace(/\D/g, '')) || 0;
+      const porsi = parseFloat(String(estimasiPorsi).replace(/\D/g, '')) || 1;
+      const kemasan = parseFloat(String(biayaKemasan).replace(/\D/g, '')) || 0;
+      
+      recipeData = {
+        productName: namaProduk || "Produk",
+        yieldQuantity: porsi || 1,
+        yieldUnit: "porsi",
+        isYieldEstimated: false,
+        ingredients: [
+          {
+            id: "ing_cepat",
+            name: "Belanja Bahan",
+            purchaseQuantity: 1,
+            purchaseUnit: "pcs",
+            actualPurchasePrice: belanja,
+            usedQuantity: 1,
+            usedUnit: "pcs"
+          }
+        ],
+        packaging: [
+          {
+            id: "pack_cepat",
+            name: "Kemasan",
+            purchaseQuantity: 1,
+            purchaseUnit: "pcs",
+            actualPurchasePrice: kemasan * (porsi || 1), // convert back to total batch cost
+            usedQuantity: 1,
+            usedUnit: "pcs"
+          }
+        ],
+        productionCosts: []
+      };
+    } else {
+      recipeData = {
+        productName: namaProduk || "Produk",
+        yieldQuantity: 1,
+        yieldUnit: "porsi",
+        isYieldEstimated: false,
+        ingredients: recipes.map((r: any, i: number) => {
+          const qty = parseFloat(String(r.gramatur_dibutuhkan).replace(/\D/g, '')) || 0;
+          const price = parseFloat(String(r.harga_per_satuan).replace(/\D/g, '')) || 0;
+          return {
+            id: `ing_detail_${i}`,
+            name: r.nama_bahan || "Bahan",
+            purchaseQuantity: 1,
+            purchaseUnit: r.satuan || 'gram',
+            actualPurchasePrice: price,
+            usedQuantity: qty,
+            usedUnit: r.satuan || 'gram'
+          };
+        }),
+        packaging: [],
+        productionCosts: []
+      };
     }
     
-    return recipes.reduce((sum, r) => {
-      const qty = parseFloat(String(r.gramatur_dibutuhkan || '').replace(/\D/g, '')) || 0;
-      const price = parseFloat(String(r.harga_per_satuan || '').replace(/\D/g, '')) || 0;
-      return sum + (qty * price);
-    }, 0);
-  }, [hppMode, totalBiayaBelanja, estimasiPorsi, biayaKemasan, recipes]);
+    const calculated = calculateRecipeCost(recipeData);
+    return calculated.costPerUnit || 0;
+  }, [hppMode, totalBiayaBelanja, estimasiPorsi, biayaKemasan, recipes, namaProduk]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
