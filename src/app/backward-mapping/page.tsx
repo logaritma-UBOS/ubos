@@ -351,26 +351,6 @@ export default function BackwardMappingPage() {
                 </div>
               </div>
 
-              {/* BAGIAN 3: PRIORITAS (CTA BESAR) */}
-              <div className="text-center mb-10">
-                <h2 className="text-xl sm:text-2xl font-black text-red-600 mb-2 flex items-center justify-center gap-2">
-                  <Zap className="fill-red-600" /> MULAI DARI SINI
-                </h2>
-              </div>
-
-              <div className="bg-blue-50 rounded-3xl p-6 sm:p-10 border border-blue-200 shadow-2xl mb-12 ring-4 ring-blue-500/10">
-                <h3 className="text-2xl sm:text-3xl font-black text-blue-900 mb-4">{result.priority.title}</h3>
-                <p className="text-blue-800 font-medium text-lg mb-8 leading-relaxed">
-                  {result.priority.description}
-                </p>
-                <a 
-                  href={priorityToolUrl}
-                  className={`block w-full text-center font-black text-xl py-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all ${priorityToolColorClass}`}
-                >
-                  {priorityToolCta}
-                </a>
-              </div>
-
               {/* BAGIAN 4: ACTION PLAN (PROGRESSIVE DISCLOSURE) */}
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mb-12 overflow-hidden">
                 <button 
@@ -407,6 +387,27 @@ export default function BackwardMappingPage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+
+              
+{/* BAGIAN 3: PRIORITAS (CTA BESAR) */}
+              <div className="text-center mb-10">
+                <h2 className="text-xl sm:text-2xl font-black text-red-600 mb-2 flex items-center justify-center gap-2">
+                  <Zap className="fill-red-600" /> MULAI DARI SINI
+                </h2>
+              </div>
+
+              <div className="bg-blue-50 rounded-3xl p-6 sm:p-10 border border-blue-200 shadow-2xl mb-12 ring-4 ring-blue-500/10">
+                <h3 className="text-2xl sm:text-3xl font-black text-blue-900 mb-4">{result.priority.title}</h3>
+                <p className="text-blue-800 font-medium text-lg mb-8 leading-relaxed">
+                  {result.priority.description}
+                </p>
+                <a 
+                  href={priorityToolUrl}
+                  className={`block w-full text-center font-black text-xl py-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all ${priorityToolColorClass}`}
+                >
+                  {priorityToolCta}
+                </a>
               </div>
 
               {/* BAGIAN 5: SISTEM REKOMENDASI TAMBAHAN */}

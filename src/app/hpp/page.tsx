@@ -684,12 +684,10 @@ function HPPContent() {
                           <h4 className="font-bold text-xl mb-6">Mulai dari sini: audit harga & pemakaian {largestComponent.ingredientName.toLowerCase()}.</h4>
                           
                           <a 
-                            href="https://ubos.logaritma.id" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                            href="/backward-mapping"
                             className="inline-block w-full bg-white hover:bg-gray-50 text-blue-700 font-black py-4 px-4 rounded-xl shadow transition-all tracking-wide"
                           >
-                            {from === 'mapping' ? 'LANJUTKAN ACTION PLAN →' : 'AUDIT HPP SAYA →'}
+                            {from === 'mapping' ? 'LANJUTKAN ACTION PLAN →' : 'BUAT ACTION PLAN BISNIS →'}
                           </a>
                        </div>
                      </>
