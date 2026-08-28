@@ -1,4 +1,5 @@
-"use client"
+﻿"use client"
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 
 import { addIngredient } from "@/actions/catalog"
 import Link from "next/link"
@@ -24,7 +25,7 @@ export default function TambahBahanPage() {
           <label className="block text-sm font-medium text-gray-700">Total Harga Beli</label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-2.5 text-gray-500 text-sm">Rp</span>
-            <input name="purchasePrice" type="number" step="any" required placeholder="Contoh: 50000" className="block w-full border border-gray-300 rounded-md p-2 pl-9 text-gray-900" />
+            <FormattedNumberInput name="purchasePrice" step="any" required placeholder="Contoh: 50000" className="block w-full border border-gray-300 rounded-md p-2 pl-9 text-gray-900" />
           </div>
           <p className="text-xs text-gray-500 mt-1">Harga yang dibayarkan saat membeli bahan ini.</p>
         </div>
@@ -32,7 +33,7 @@ export default function TambahBahanPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Jumlah / Berat</label>
-            <input name="purchaseQuantity" type="number" step="any" required placeholder="Contoh: 1000" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+            <FormattedNumberInput name="purchaseQuantity" step="any" required placeholder="Contoh: 1000" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Satuan</label>
@@ -48,11 +49,11 @@ export default function TambahBahanPage() {
           <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700">Stok Saat Ini</label>
-              <input name="currentStock" type="number" step="any" placeholder="Otomatis diisi dari Jumlah jika kosong" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+              <FormattedNumberInput name="currentStock" step="any" placeholder="Otomatis diisi dari Jumlah jika kosong" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Cost Per Unit Manual (Bypass Kalkulasi)</label>
-              <input name="manualCostPerUnit" type="number" step="any" placeholder="Opsional" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
+              <FormattedNumberInput name="manualCostPerUnit" step="any" placeholder="Opsional" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
             </div>
           </div>
         </details>

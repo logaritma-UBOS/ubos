@@ -1,9 +1,11 @@
-export const dynamic = "force-dynamic"
+import { formatNumber, formatRupiah } from '@/lib/format';
+﻿export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import Image from "next/image"
 import { redirect } from "next/navigation"
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 import { revalidatePath } from "next/cache"
 import { addRecipeItem, deleteRecipeItemSecure } from "@/actions/catalog"
 import { updateProductHpp } from "@/lib/engines/hppEngine"
@@ -81,7 +83,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   {product.hasBOM ? (isFnB ? "Dari total biaya resep" : "Dari total biaya material") : (!product.hasBOM && !product.trackInventory ? "Layanan Jasa (HPP Rp0)" : "Sesuai HPP input")}
                 </p>
               </div>
-              <p className="font-bold text-orange-600">Rp {product.calculatedHpp.toLocaleString('id-ID')}</p>
+              <p className="font-bold text-orange-600">{formatRupiah(product.calculatedHpp)}</p>
             </div>
             
             {/* 2. Harga Jual */}
@@ -90,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <p className="text-sm font-semibold text-gray-700">2. Harga Jual</p>
                 <p className="text-xs text-gray-500">Yang dibayar pelanggan</p>
               </div>
-              <p className="font-bold text-emerald-700">Rp {product.sellPrice.toLocaleString('id-ID')}</p>
+              <p className="font-bold text-emerald-700">{formatRupiah(product.sellPrice)}</p>
             </div>
             
             {/* 3. Margin */}
@@ -99,7 +101,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <p className="text-sm font-bold text-gray-900">Keuntungan Kotor</p>
                 <p className="text-xs text-emerald-600 font-semibold">Margin: {product.calculatedMargin.toFixed(0)}%</p>
               </div>
-              <p className="text-xl font-black text-gray-900">Rp {profit.toLocaleString('id-ID')}</p>
+              <p className="text-xl font-black text-gray-900">{formatRupiah(profit)}</p>
             </div>
             
           </div>
@@ -135,7 +137,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   })
                   revalidatePath(`/katalog/produk/${product.id}`)
                 }} className="flex gap-2">
-                  <input type="number" name="purchaseCost" defaultValue={product.purchaseCost} step="any" required className="w-full border border-gray-300 p-2 rounded-lg text-sm bg-gray-50" />
+                  <FormattedNumberInput name="purchaseCost" defaultValue={product.purchaseCost} step="any" required className="w-full border border-gray-300 p-2 rounded-lg text-sm bg-gray-50" />
                   <button type="submit" className="bg-emerald-600 text-white font-bold px-4 rounded-lg text-sm shadow-sm">Simpan</button>
                 </form>
               </div>
@@ -165,7 +167,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                       <p className="text-xs text-gray-500">Pakai: {recipe.quantityNeeded} {recipe.ingredient.unit}</p>
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
-                      <p className="font-bold text-orange-600">Rp {Math.round(recipe.quantityNeeded * recipe.ingredient.costPerUnit).toLocaleString('id-ID')}</p>
+                      <p className="font-bold text-orange-600">{formatRupiah(Math.round(recipe.quantityNeeded * recipe.ingredient.costPerUnit))}</p>
                     </div>
                   </div>
                   
@@ -177,9 +179,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     </summary>
                     <div className="px-3 pb-3 pt-1 flex justify-between items-center">
                       <p className="text-xs text-gray-500">
-                        Harga: Rp {recipe.ingredient.costPerUnit.toLocaleString('id-ID')} / {recipe.ingredient.unit}
+                        Harga: {formatRupiah(recipe.ingredient.costPerUnit)} / {recipe.ingredient.unit}
                         <br/>
-                        Kalkulasi: {recipe.quantityNeeded} x Rp {recipe.ingredient.costPerUnit.toLocaleString('id-ID')}
+                        Kalkulasi: {recipe.quantityNeeded} x {formatRupiah(recipe.ingredient.costPerUnit)}
                       </p>
                       <form action={async () => {
                         "use server"
@@ -218,7 +220,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   ))}
                 </select>
                 <div className="flex gap-2">
-                  <input type="number" name="quantityNeeded" step="any" placeholder="Kuantitas?" className="w-full border border-gray-300 p-2.5 rounded-lg text-gray-900 text-sm bg-gray-50" />
+                  <FormattedNumberInput name="quantityNeeded" step="any" placeholder="Kuantitas?" className="w-full border border-gray-300 p-2.5 rounded-lg text-gray-900 text-sm bg-gray-50" />
                   <button type="submit" className="bg-emerald-600 text-white font-bold px-5 rounded-lg text-sm whitespace-nowrap shadow-sm">Tambah</button>
                 </div>
               </form>

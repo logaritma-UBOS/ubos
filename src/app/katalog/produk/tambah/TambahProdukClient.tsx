@@ -1,4 +1,5 @@
-"use client"
+﻿"use client"
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 
 import { addProduct } from "@/actions/catalog"
 import Link from "next/link"
@@ -75,7 +76,7 @@ export default function TambahProdukClient({ businessType }: { businessType: str
           <label className="block text-sm font-bold text-gray-700 mb-1.5">Harga Jual</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-            <input name="sellPrice" type="number" step="any" required placeholder="0" className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
+            <FormattedNumberInput name="sellPrice" step="any" required placeholder="0" className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
           </div>
         </div>
 
@@ -85,12 +86,12 @@ export default function TambahProdukClient({ businessType }: { businessType: str
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Modal Dasar (HPP)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                <input name="purchaseCost" type="number" step="any" required placeholder="0" className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
+                <FormattedNumberInput name="purchaseCost" step="any" required placeholder="0" className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Stok Awal Fisik</label>
-              <input name="initialStock" type="number" step="any" placeholder="0" defaultValue="0" className="block w-full border border-gray-300 rounded-xl p-3 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
+              <FormattedNumberInput name="initialStock" step="any" placeholder="0" defaultValue="0" className="block w-full border border-gray-300 rounded-xl p-3 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
             </div>
           </div>
         )}

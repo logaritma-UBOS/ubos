@@ -1,3 +1,4 @@
+import { formatNumber, formatRupiah } from '@/lib/format';
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
@@ -68,10 +69,10 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
           {/* Box Omzet */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500 font-semibold">Omzet {label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">Rp {omzet.toLocaleString('id-ID')}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{formatRupiah(omzet)}</p>
             <div className="flex justify-between mt-3 pt-3 border-t border-gray-50">
               <p className="text-xs text-gray-500">Jumlah Transaksi: <b className="text-gray-900">{txCount}</b></p>
-              <p className="text-xs text-gray-500">Rata-rata (AOV): <b className="text-gray-900">Rp {aov.toLocaleString('id-ID')}</b></p>
+              <p className="text-xs text-gray-500">Rata-rata (AOV): <b className="text-gray-900">{formatRupiah(aov)}</b></p>
             </div>
           </div>
 
@@ -79,7 +80,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between mb-2">
               <p className="text-sm text-gray-600">Total Modal (HPP)</p>
-              <p className="text-sm font-bold text-orange-600">Rp {hpp.toLocaleString('id-ID')}</p>
+              <p className="text-sm font-bold text-orange-600">{formatRupiah(hpp)}</p>
             </div>
             <div className="flex justify-between mb-2">
               <p className="text-sm text-gray-600">Uang Masuk Lain</p>
@@ -88,7 +89,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
             <div className="flex justify-between mt-3 pt-3 border-t border-gray-50">
               <p className="text-sm text-gray-800 font-bold">Untung Kotor</p>
               <div className="text-right">
-                <p className="text-lg font-bold text-green-700">Rp {grossProfit.toLocaleString('id-ID')}</p>
+                <p className="text-lg font-bold text-green-700">{formatRupiah(grossProfit)}</p>
                 <p className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-1 inline-block">Margin {margin}%</p>
               </div>
             </div>
@@ -98,11 +99,11 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-3">
               <p className="text-sm text-gray-600">Pengeluaran Operasional</p>
-              <p className="text-sm font-bold text-red-600">- Rp {expenses.toLocaleString('id-ID')}</p>
+              <p className="text-sm font-bold text-red-600">- {formatRupiah(expenses)}</p>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
               <p className="text-sm font-bold text-gray-900">Untung Bersih</p>
-              <p className={`text-lg font-bold ${netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>Rp {netProfit.toLocaleString('id-ID')}</p>
+              <p className={`text-lg font-bold ${netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatRupiah(netProfit)}</p>
             </div>
           </div>
         </div>

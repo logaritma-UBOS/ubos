@@ -1,3 +1,4 @@
+import { formatNumber, formatRupiah } from '@/lib/format';
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
@@ -30,19 +31,19 @@ export default async function KenapaPage() {
       
       <div className="p-4 space-y-4 -mt-2">
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <p className="text-sm font-bold text-gray-900 mb-2">Kenapa masih kurang Rp {masihKurang.toLocaleString('id-ID')}?</p>
+          <p className="text-sm font-bold text-gray-900 mb-2">Kenapa masih kurang {formatRupiah(masihKurang)}?</p>
           <ul className="text-sm text-gray-600 space-y-2 ml-4 list-disc">
-            <li>Target harian toko Anda adalah <b>Rp {targetHarian.toLocaleString('id-ID')}</b>.</li>
-            <li>Hari ini, uang yang sudah masuk ke kasir baru <b>Rp {sudahMasuk.toLocaleString('id-ID')}</b>.</li>
-            <li>Jika dikurangkan, target Anda masih kurang <b>Rp {masihKurang.toLocaleString('id-ID')}</b>.</li>
+            <li>Target harian toko Anda adalah <b>{formatRupiah(targetHarian)}</b>.</li>
+            <li>Hari ini, uang yang sudah masuk ke kasir baru <b>{formatRupiah(sudahMasuk)}</b>.</li>
+            <li>Jika dikurangkan, target Anda masih kurang <b>{formatRupiah(masihKurang)}</b>.</li>
           </ul>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm font-bold text-gray-900 mb-2">Kenapa butuh {butuhTransaksiSisa} transaksi lagi?</p>
           <ul className="text-sm text-gray-600 space-y-2 ml-4 list-disc">
-            <li>Berdasarkan catatan kasir, rata-rata satu pelanggan Anda menghabiskan <b>Rp {aovAktual.toLocaleString('id-ID')}</b> hari ini.</li>
-            <li>Untuk mengejar kekurangan Rp {masihKurang.toLocaleString('id-ID')}, Anda membutuhkan sekitar <b>{butuhTransaksiSisa} orang pelanggan lagi</b> yang belanja dengan rata-rata nominal tersebut.</li>
+            <li>Berdasarkan catatan kasir, rata-rata satu pelanggan Anda menghabiskan <b>{formatRupiah(aovAktual)}</b> hari ini.</li>
+            <li>Untuk mengejar kekurangan {formatRupiah(masihKurang)}, Anda membutuhkan sekitar <b>{butuhTransaksiSisa} orang pelanggan lagi</b> yang belanja dengan rata-rata nominal tersebut.</li>
             <li>Ini disebut dengan teknik hitung mundur <i>(Backward Mapping)</i> UBOS.</li>
           </ul>
         </div>

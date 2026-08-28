@@ -1,8 +1,13 @@
-export type PendingTransaction = {
+export interface PendingTransaction {
   clientTransactionId: string
-  cart: { quantity: number; price: number; productId: string }[]
-  total: number
+  cart: { productId: string, quantity: number, price: number }[]
+  totalAmount: number
+  paymentMethod: string
+  paidAmount: number
+  customerId?: string
+  promoCode?: string
   timestamp: string
+  status?: "PENDING" | "FAILED"
 }
 
 export function getPendingTransactions(): PendingTransaction[] {

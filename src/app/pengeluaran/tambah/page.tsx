@@ -1,4 +1,5 @@
-"use client"
+﻿"use client"
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 
 import { addExpense } from "@/actions/finance"
 import Link from "next/link"
@@ -21,7 +22,7 @@ export default function TambahPengeluaranPage() {
         
         <div>
           <label className="block text-sm font-medium text-gray-700">Nominal</label>
-          <input name="amount" type="number" required placeholder="Rp" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900 text-lg font-bold" />
+          <FormattedNumberInput name="amount" required placeholder="Rp" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900 text-lg font-bold" />
         </div>
 
         <div>

@@ -4,18 +4,58 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-}
+  }
 
 // 1. Core, Auth & Settings
 model User {
-  id            String     @id @default(uuid())
-  name          String
+  id            String     @id @default(uuid()) // standard NextAuth wants cuid, but uuid is fine too
+  name          String?    // made optional for NextAuth standard
   email         String     @unique
+  emailVerified DateTime?
+  image         String?
   phone         String?
-  passwordHash  String
+  passwordHash  String?    // made optional since OAuth users won't have one
   role          String     @default("OWNER")
   createdAt     DateTime   @default(now())
+  
+  accounts      Account[]
+  sessions      Session[]
   businesses    Business[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Business {
@@ -47,6 +87,9 @@ model Business {
   pilotEvents    PilotEvent[]
   pilotErrors    PilotError[]
   pilotFeedbacks PilotFeedback[]
+  promos         Promo[]
+  contentPlans   ContentPlan[]
+  campaigns      Campaign[]
 }
 
 model BusinessSetting {
@@ -56,6 +99,11 @@ model BusinessSetting {
   baseCurrency String   @default("IDR")
   timezone     String   @default("Asia/Jakarta")
   taxRate      Float    @default(0)
+  receiptFooter String?
+  storeAddress  String?
+  storePhone    String?
+  fonnteToken   String?
+  waStatus      String   @default("DISCONNECTED")
 }
 
 model AuditLog {
@@ -161,6 +209,14 @@ model Sale {
   totalAmount         Float
   discount            Float      @default(0)
   paymentMethod       String     // CASH, QR, TRANSFER
+  cashReceived        Float?
+  changeAmount        Float?
+  customerId          String?
+  customer            Customer?  @relation(fields: [customerId], references: [id])
+  promoId             String?
+  promo               Promo?     @relation(fields: [promoId], references: [id])
+  campaignId          String?
+  campaign            Campaign?  @relation(fields: [campaignId], references: [id])
   syncStatus          String     @default("SYNCED") // LOCAL, PENDING, SYNCED, FAILED
   createdAt           DateTime   @default(now())
   syncedAt            DateTime?
@@ -201,19 +257,19 @@ model Income {
   date        DateTime @default(now())
 }
 
-// 5. Customers (Pelanggan)
+// 5. Customer & Metrics (Loyalty & Target)
 model Customer {
-  id                String   @id @default(uuid())
-  businessId        String
-  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name              String
-  phone             String?
-  totalPurchases    Int      @default(0)
-  lastPurchaseDate  DateTime?
-  category          String?  // BARU, AKTIF, LAMA
+  id               String    @id @default(uuid())
+  businessId       String
+  business         Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name             String
+  phone            String?
+  totalPurchases   Int       @default(0)
+  lastPurchaseDate DateTime?
+  category         String?  // BARU, AKTIF, LAMA
+  sales            Sale[]
 }
 
-// 6. Logaritma & Goals (Mesin Rekomendasi & Metrik)
 model Goal {
   id                String   @id @default(uuid())
   businessId        String
@@ -221,76 +277,138 @@ model Goal {
   targetOmzet       Float
   targetProfit      Float?
   targetTransaction Int?
-  period            String   // MONTHLY, WEEKLY
+  period            String   // BULANAN, HARIAN
 }
 
 model BusinessMetricSnapshot {
-  id                      String   @id @default(uuid())
-  businessId              String
-  business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  date                    DateTime @default(now())
-  omzetAktual             Float    @default(0)
-  aovAktual               Float    @default(0)
-  transactionCountAktual  Int      @default(0)
-  hppTotal                Float    @default(0)
+  id                     String   @id @default(uuid())
+  businessId             String
+  business               Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  date                   DateTime @default(now())
+  omzetAktual            Float    @default(0)
+  aovAktual              Float    @default(0)
+  transactionCountAktual Int      @default(0)
+  hppTotal               Float    @default(0)
 }
 
+// Recommendation & Sync
 model Recommendation {
   id             String   @id @default(uuid())
   businessId     String
   business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   date           DateTime @default(now())
-  metricType     String   // OMZET, TRANSAKSI, AOV
+  metricType     String   // OMZET, AOV, FREQUENCY
   currentValue   Float
   targetValue    Float
   gap            Float
   dataConfidence String   // LOW, MEDIUM, HIGH
   causeText      String
   actionText     String
-  priorityScore  Int
-  status         String   @default("TODO") // TODO, DONE, IGNORED
+  priorityScore  Int      // 1-100
+  status         String   @default("TODO") // TODO, IN_PROGRESS, DISMISSED, COMPLETED
 }
 
-// 7. Sync & Queue (Sistem Offline)
 model SyncQueue {
   id                  String   @id @default(uuid())
   businessId          String
   business            Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   clientTransactionId String   @unique
   payloadJson         String
-  status              String   @default("PENDING")
+  status              String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
   retryCount          Int      @default(0)
   lastAttempt         DateTime?
 }
-// 8. Pilot Instrumentation
-model PilotEvent {
-  id         String   @id @default(uuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  eventName  String
-  metadata   String?
-  createdAt  DateTime @default(now())
 
-  @@index([eventName])
+model PilotEvent {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  eventName   String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
   @@index([createdAt])
+  @@index([eventName])
 }
 
 model PilotError {
-  id         String   @id @default(uuid())
-  businessId String?
-  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  errorType  String
-  message    String
-  stackTrace String?
-  path       String?
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  errorType   String
+  message     String
+  stackTrace  String?
+  path        String?
+  createdAt   DateTime @default(now())
 }
 
 model PilotFeedback {
-  id         String   @id @default(uuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  category   String
-  content    String
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category    String   // BUG, FEATURE, GENERAL
+  content     String
+  createdAt   DateTime @default(now())
+}
+
+// 6. Promo Engine
+model Promo {
+  id              String    @id @default(uuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  code            String
+  discountType    String    // PERCENTAGE, FIXED
+  discountValue   Float
+  minimumPurchase Float?
+  startAt         DateTime?
+  endAt           DateTime?
+  maxUsage        Int?
+  usageCount      Int       @default(0)
+  targetSegment   String?   // BARU, AKTIF, LOYAL, dll
+  isActive        Boolean   @default(true)
+  sales           Sale[]
+  campaigns       Campaign[]
+
+  @@unique([businessId, code])
+}
+
+// 7. Content Planner
+model ContentPlan {
+  id              String    @id @default(uuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title           String
+  platform        String    // TIKTOK, INSTAGRAM, FACEBOOK, WHATSAPP_STATUS
+  status          String    // DRAFT, SIAP_POSTING, SUDAH_POSTING
+  cta             String?
+  targetUrl       String?
+  postDate        DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  campaigns       Campaign[]
+}
+
+// 8. Marketing Campaigns (WhatsApp Blast layer)
+model Campaign {
+  id            String       @id @default(uuid())
+  businessId    String
+  business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name          String
+  contentPlanId String?
+  contentPlan   ContentPlan? @relation(fields: [contentPlanId], references: [id])
+  targetSegment String       // BARU, AKTIF, LOYAL, BERISIKO, TIDAK_AKTIF, SEMUA
+  message       String?
+  cta           String?
+  promoId       String?
+  promo         Promo?       @relation(fields: [promoId], references: [id])
+  linkUrl       String?
+  status        String       @default("DRAFT") // DRAFT, SIAP_DIKIRIM, TERKIRIM, SELESAI
+  sentAt        DateTime?
+  
+  sales         Sale[]
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }

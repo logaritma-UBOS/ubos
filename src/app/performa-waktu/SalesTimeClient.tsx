@@ -1,4 +1,5 @@
 "use client"
+import { formatNumber, formatRupiah } from '@/lib/format';
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -150,7 +151,7 @@ export default function SalesTimeClient() {
                           </div>
                           <div className="text-right flex items-center gap-3 shrink-0">
                             <div>
-                              <p className="text-sm font-bold text-gray-900">Rp {metric.omzet.toLocaleString('id-ID')}</p>
+                              <p className="text-sm font-bold text-gray-900">{formatRupiah(metric.omzet)}</p>
                               <p className="text-xs text-gray-400">Omzet</p>
                             </div>
                             <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-full text-gray-400 group-open:rotate-180 transition-transform">
@@ -162,7 +163,7 @@ export default function SalesTimeClient() {
                         <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50/50">
                           <div className="bg-white p-3 rounded-lg border border-gray-100">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Rata-rata Belanja (AOV)</p>
-                            <p className="text-sm font-bold text-green-700">Rp {metric.aov.toLocaleString('id-ID')}</p>
+                            <p className="text-sm font-bold text-green-700">{formatRupiah(metric.aov)}</p>
                           </div>
                         </div>
                       </details>

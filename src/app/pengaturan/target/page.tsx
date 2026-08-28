@@ -1,7 +1,8 @@
-import { auth } from "@/auth"
+﻿import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 import { updateMonthlyTarget } from "@/actions/settings"
 
 export const dynamic = "force-dynamic"
@@ -32,9 +33,7 @@ export default async function TargetSettingPage() {
         <form action={updateMonthlyTarget} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Target Omzet Bulanan (Rp)</label>
-            <input 
-              type="number" 
-              name="targetOmzet" 
+            <FormattedNumberInput name="targetOmzet" 
               defaultValue={monthlyTarget} 
               required
               min="0"

@@ -11,9 +11,10 @@ export default function FeedbackButton({ businessId }: { businessId?: string | n
 
   if (!businessId) return null
   
-  // Kasir page has a floating cart bar, so we push the button higher up
+  // Kasir page has a floating cart bar — push button well above it
+  // On all other pages, clear the 68px bottom nav + 20px safe gap = bottom-[92px]
   const isKasir = pathname === "/kasir"
-  const bottomClass = isKasir ? "bottom-[140px]" : "bottom-20"
+  const bottomClass = isKasir ? "bottom-[160px]" : "bottom-[92px]"
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

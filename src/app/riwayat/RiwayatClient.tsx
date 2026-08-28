@@ -1,4 +1,5 @@
 "use client"
+import { formatNumber, formatRupiah } from '@/lib/format';
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -68,25 +69,38 @@ export default function RiwayatClient() {
   const metrics = calculateHistoryMetrics(sales)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-md md:max-w-3xl lg:max-w-5xl mx-auto">
-      <div className="bg-blue-700 text-white p-4 pb-6 shrink-0 rounded-b-3xl md:rounded-b-[48px] shadow-sm">
-        <Link href="/" className="text-white text-sm font-semibold mb-4 inline-block">← Beranda</Link>
-        <h1 className="text-xl md:text-2xl font-bold">Riwayat Transaksi</h1>
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-7xl mx-auto">
+      {/* HEADER FLAT STANDAR */}
+      <div className="bg-white px-4 lg:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200">
+        <div className="mb-4 md:mb-0">
+          <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm font-semibold mb-2 inline-flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Beranda
+          </Link>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
+        </div>
+        <div className="flex gap-2">
+          <select className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2">
+            <option value="today">Hari Ini</option>
+            <option value="7d">7 Hari Terakhir</option>
+            <option value="30d">30 Hari Terakhir</option>
+          </select>
+        </div>
       </div>
       
-      <div className="p-4 -mt-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex justify-between">
-          <div>
-            <p className="text-xs text-gray-500 font-semibold mb-1">Total Transaksi</p>
-            <p className="text-lg font-bold text-gray-900">{metrics.totalTransaksi}</p>
+      <div className="p-4 lg:px-8 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 font-semibold mb-1">Total Transaksi</p>
+            <p className="text-2xl font-bold text-gray-900">{metrics.totalTransaksi}</p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-semibold mb-1">Total Omzet</p>
-            <p className="text-lg font-bold text-blue-700">Rp {metrics.totalOmzet.toLocaleString('id-ID')}</p>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 font-semibold mb-1">Total Omzet</p>
+            <p className="text-2xl font-bold text-blue-700">{formatRupiah(metrics.totalOmzet)}</p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-semibold mb-1">AOV</p>
-            <p className="text-lg font-bold text-green-700">Rp {metrics.aov.toLocaleString('id-ID')}</p>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 font-semibold mb-1">AOV</p>
+            <p className="text-2xl font-bold text-green-700">{formatRupiah(metrics.aov)}</p>
           </div>
         </div>
 
@@ -95,39 +109,50 @@ export default function RiwayatClient() {
         ) : (
           <div className="space-y-3">
             {sales.map(sale => (
-              <details key={sale.id} className="bg-white rounded-xl shadow-sm border border-gray-100 group">
-                <summary className="p-4 flex justify-between items-center cursor-pointer list-none">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
+              <details key={sale.id} className="bg-white rounded-xl shadow-sm border border-gray-200 group overflow-hidden">
+                <summary className="p-4 lg:px-6 flex flex-col lg:flex-row justify-between lg:items-center cursor-pointer list-none hover:bg-gray-50 transition-colors gap-3">
+                  <div className="flex items-center gap-4 min-w-[250px]">
+                    <div>
                       <p className="text-sm font-bold text-gray-900">
                         {new Date(sale.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      {sale.status === "PENDING" ? (
-                        <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full">PENDING</span>
-                      ) : (
-                        <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full">SYNCED</span>
-                      )}
+                      <p className="text-xs text-gray-500">{new Date(sale.createdAt).toLocaleDateString('id-ID')}</p>
                     </div>
-                    <p className="text-xs text-gray-500">{new Date(sale.createdAt).toLocaleDateString('id-ID')}</p>
+                    {sale.status === "PENDING" ? (
+                      <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">PENDING</span>
+                    ) : (
+                      <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">SYNCED</span>
+                    )}
                   </div>
-                  <div className="text-right flex items-center gap-2">
-                    <p className="text-sm font-bold text-gray-900">Rp {sale.totalAmount.toLocaleString('id-ID')}</p>
-                    <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                  
+                  <div className="hidden lg:block flex-1 text-sm text-gray-600 truncate px-4">
+                    {sale.saleItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')}
+                  </div>
+
+                  <div className="text-right flex justify-between lg:justify-end items-center gap-4 min-w-[150px]">
+                    <span className="lg:hidden text-xs text-gray-500">Total:</span>
+                    <p className="text-sm font-bold text-gray-900">{formatRupiah(sale.totalAmount)}</p>
+                    <svg className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </summary>
-                <div className="px-4 pb-4 border-t border-gray-50 pt-2">
-                  <p className="text-xs font-bold text-gray-400 mb-2">Item Terjual:</p>
-                  {sale.saleItems.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm mb-1">
-                      <p className="text-gray-700">{item.quantity}x {item.product.name}</p>
-                      <p className="text-gray-900 font-semibold">Rp {(item.priceAtSale * item.quantity).toLocaleString('id-ID')}</p>
-                    </div>
-                  ))}
+                <div className="px-4 lg:px-6 pb-4 border-t border-gray-100 pt-4 bg-gray-50/50">
+                  <p className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">Rincian Item Terjual</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {sale.saleItems.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm bg-white p-3 rounded-lg border border-gray-100">
+                        <p className="text-gray-700"><span className="font-semibold">{item.quantity}x</span> {item.product.name}</p>
+                        <p className="text-gray-900 font-semibold">{formatRupiah((item.priceAtSale * item.quantity))}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </details>
             ))}
             {sales.length === 0 && (
-              <p className="text-center text-gray-500 mt-10">Belum ada transaksi.</p>
+              <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                <p className="text-gray-500 font-medium">Belum ada transaksi hari ini.</p>
+              </div>
             )}
           </div>
         )}

@@ -1,4 +1,6 @@
-"use client"
+﻿"use client"
+import { formatNumber, formatRupiah } from '@/lib/format'
+import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 
 import { editProduct } from "@/actions/catalog"
 import Link from "next/link"
@@ -70,7 +72,7 @@ export default function EditProductClient({ product }: { product: any }) {
           <label className="block text-sm font-bold text-gray-700 mb-1.5">Harga Jual</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-            <input name="sellPrice" type="number" step="any" defaultValue={product.sellPrice} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+            <FormattedNumberInput name="sellPrice" step="any" defaultValue={product.sellPrice} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
           </div>
         </div>
 
@@ -79,7 +81,7 @@ export default function EditProductClient({ product }: { product: any }) {
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Harga Beli / Modal (HPP)</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-              <input name="purchaseCost" type="number" step="any" defaultValue={product.purchaseCost} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+              <FormattedNumberInput name="purchaseCost" step="any" defaultValue={product.purchaseCost} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
             </div>
             <p className="text-xs text-gray-500 mt-1.5">Mengubah HPP akan memperbarui margin keuntungan Anda.</p>
           </div>
@@ -88,7 +90,7 @@ export default function EditProductClient({ product }: { product: any }) {
         {isBom && (
           <div className="bg-info-50 border border-info-200 text-info-800 text-sm p-4 rounded-xl flex items-start gap-3">
             <span className="text-lg">ℹ️</span>
-            <p>HPP produk resep ini adalah Rp {product.calculatedHpp.toLocaleString("id-ID")}. HPP hanya dapat diubah dengan memodifikasi komponen bahan baku di halaman detail produk.</p>
+            <p>HPP produk resep ini adalah {formatRupiah(product.calculatedHpp)}. HPP hanya dapat diubah dengan memodifikasi komponen bahan baku di halaman detail produk.</p>
           </div>
         )}
 
