@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { CheckCircle2 } from 'lucide-react';
 import { 
   RecipeData, 
   CalculatedRecipeData, 
@@ -65,6 +66,7 @@ function HPPContent() {
   const gapParam = searchParams.get('gap');
 
   const [step, setStep] = useState<number>(1);
+  const [showActionPlan, setShowActionPlan] = useState(false);
   const [productInput, setProductInput] = useState('');
   const [isFromPhoto, setIsFromPhoto] = useState(false);
   
@@ -679,16 +681,58 @@ function HPPContent() {
                        </div>
 
                        {/* LAYER 3 - KEPUTUSAN */}
-                       <div className="bg-blue-600 p-6 rounded-2xl text-white shadow-lg shadow-blue-200 mt-6 text-center">
+                       <div className="bg-blue-600 p-6 rounded-2xl text-white shadow-lg shadow-blue-200 mt-6 text-center transition-all">
                           <span className="text-xs font-bold text-blue-200 tracking-wider block mb-2">LAYER 3 — KEPUTUSAN</span>
                           <h4 className="font-bold text-xl mb-6">Mulai dari sini: audit harga & pemakaian {largestComponent.ingredientName.toLowerCase()}.</h4>
                           
-                          <a 
-                            href="/backward-mapping"
-                            className="inline-block w-full bg-white hover:bg-gray-50 text-blue-700 font-black py-4 px-4 rounded-xl shadow transition-all tracking-wide"
-                          >
-                            {from === 'mapping' ? 'LANJUTKAN ACTION PLAN →' : 'BUAT ACTION PLAN BISNIS →'}
-                          </a>
+                          {!showActionPlan ? (
+                            <button 
+                              onClick={() => setShowActionPlan(true)}
+                              className="inline-block w-full bg-white hover:bg-gray-50 text-blue-700 font-black py-4 px-4 rounded-xl shadow transition-all tracking-wide"
+                            >
+                              LANJUTKAN ACTION PLAN →
+                            </button>
+                          ) : (
+                            <div className="mt-8 text-left bg-white text-slate-800 p-6 rounded-xl shadow-inner animate-in fade-in slide-in-from-top-4 duration-500">
+                              <h4 className="font-black text-lg mb-4 flex items-center gap-2"><CheckCircle2 className="text-green-600" /> Action Plan Anda:</h4>
+                              
+                              <div className="space-y-4">
+                                <div className="flex gap-4 items-start">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">1</div>
+                                  <div className="pt-1">
+                                    <div className="font-bold">Audit {largestComponent.ingredientName}</div>
+                                    <div className="text-sm font-medium text-slate-500 mt-1">Cari supplier alternatif atau diskusikan diskon volume untuk menekan harga bahan baku paling dominan ini.</div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-4 items-start">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">2</div>
+                                  <div className="pt-1">
+                                    <div className="font-bold">Standarisasi Resep (SOP)</div>
+                                    <div className="text-sm font-medium text-slate-500 mt-1">Gunakan takaran pasti (gram/ml) agar pemakaian bahan tidak bocor dan margin tetap terjaga.</div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-4 items-start">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">3</div>
+                                  <div className="pt-1">
+                                    <div className="font-bold">Pantau Profit Riil</div>
+                                    <div className="text-sm font-medium text-slate-500 mt-1">Catat setiap penjualan secara otomatis agar Anda tahu persis berapa laba bersih yang masuk ke kas.</div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-8 pt-6 border-t border-slate-100">
+                                <h4 className="font-black text-lg mb-4 text-center">Sistem Eksekusi</h4>
+                                <a 
+                                  href="https://ubos.logaritma.id" 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="block w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all text-lg tracking-wide text-center"
+                                >
+                                  Gunakan UBOS POS →
+                                </a>
+                              </div>
+                            </div>
+                          )}
                        </div>
                      </>
                    ) : (
@@ -699,20 +743,6 @@ function HPPContent() {
                 </div>
 
               </div>
-            </div>
-
-            <div className="pt-8 border-t border-gray-200 text-center">
-               <p className="text-sm text-gray-600 mb-4 leading-relaxed max-w-md mx-auto">
-                 Ingin tahu bagaimana HPP dan margin ini memengaruhi <strong>laba bersih</strong> dan <strong>arus kas</strong> bisnis Anda secara keseluruhan selama sebulan penuh?
-               </p>
-               <a 
-                 href="https://ubos.logaritma.id" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="block w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all text-lg tracking-wide text-center"
-               >
-                 LANJUT KE UBOS
-               </a>
             </div>
           </div>
         )}
