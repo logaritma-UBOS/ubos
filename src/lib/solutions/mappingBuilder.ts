@@ -146,7 +146,7 @@ export function runLogaritmaEngine(target: TargetData, profesi: string, business
     priority = {
       title: 'Analisis Kebutuhan Lanjutan',
       description: 'Anda memiliki model kerja yang unik. Diperlukan analisis kebutuhan mendalam sebelum menentukan sistem eksekusi yang tepat.',
-      toolKey: 'no_solution'
+      toolKey: 'konsultasi'
     };
     actionPlan = [
       { title: 'Audit Proses Kerja', description: 'Catat alur kerja harian yang repetitif.' },

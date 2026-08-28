@@ -394,7 +394,7 @@ export const SOLUTION_CATALOG: Solution[] = [
     tagline: 'Hasilkan komisi dengan merekomendasikan solusi Logaritma',
     description:
       'Bergabunglah sebagai mitra affiliate Logaritma dan dapatkan komisi recurring dari setiap pelanggan yang Anda referensikan.',
-    targetProfile: ['CREATOR', 'JASA', 'LAINNYA'],
+    targetProfile: ['CREATOR', 'JASA', 'LAINNYA', 'KARYAWAN'],
     targetGoal: [
       'penghasilan tambahan',
       'passive income',
@@ -489,4 +489,42 @@ export const SOLUTION_CATALOG: Solution[] = [
     color: 'amber',
     active: true,
   },
+  {
+    id: 'clipper',
+    name: 'Clipper Logaritma',
+    type: 'program',
+    tagline: 'Hasilkan uang dari memotong dan membagikan video pendek',
+    description: 'Gabung sebagai Clipper, potong video podcast atau materi edukasi Logaritma, upload ke sosial media, dan dapatkan bagi hasil dari views/engagement.',
+    targetProfile: ['KARYAWAN', 'JASA', 'CREATOR', 'LAINNYA', 'PELAJAR'],
+    targetGoal: [
+      'penghasilan tambahan',
+      'tanpa modal',
+      'ingin kerja fleksibel'
+    ],
+    triggerKeywords: [
+      'clipper', 'video', 'sampingan', 'potong video', 'short', 'reels', 'tiktok'
+    ],
+    offers: [
+      {
+        id: 'clipper-standard',
+        label: 'Clipper Partner',
+        description: 'Bagi hasil dari traffic dan engagement konten yang Anda sebarkan.',
+        price: 'Bagi Hasil',
+        priceAmount: 0,
+        currency: 'IDR',
+        billingType: 'partner',
+        revenueType: 'partner',
+        destinationUrl: 'https://wa.me/6285157621855?text=Halo%2C%20saya%20ingin%20bergabung%20sebagai%20Clipper%20Logaritma',
+        cta: 'Daftar Clipper',
+        ctaSecondary: 'Pelajari lebih lanjut',
+        highlighted: true,
+        active: true,
+      }
+    ],
+    price: 'Bagi Hasil',
+    destinationUrl: 'https://wa.me/6285157621855?text=Halo%2C%20saya%20ingin%20bergabung%20sebagai%20Clipper%20Logaritma',
+    cta: 'Daftar Clipper',
+    color: 'violet',
+    active: true,
+  }
 ];

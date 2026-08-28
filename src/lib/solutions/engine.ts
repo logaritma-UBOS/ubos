@@ -124,10 +124,10 @@ export function getRecommendations(input: RecommendationInput): Solution[] {
     }
   }
 
-  // Sort by score descending, cap at 1 recommendation (rekomendasi utama)
+  // Sort by score descending, cap at 3 recommendations
   const sorted = scored
     .sort((a, b) => b.score - a.score)
-    .slice(0, 1)
+    .slice(0, 3)
     .map(s => s.solution);
 
   // Jangan menebak produk jika belum cukup data
