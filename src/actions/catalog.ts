@@ -21,8 +21,21 @@ export async function addIngredient(prevState: any, formData: FormData) {
     const businessId = await getBusinessId()
     const name = formData.get("name") as string
     const unit = formData.get("unit") as string
-    const costPerUnit = parseFloat(formData.get("costPerUnit") as string) || 0
-    const currentStock = parseFloat(formData.get("currentStock") as string) || 0
+    
+    const manualCostPerUnit = parseFloat(formData.get("manualCostPerUnit") as string) || 0
+    const purchasePrice = parseFloat(formData.get("purchasePrice") as string) || 0
+    const purchaseQuantity = parseFloat(formData.get("purchaseQuantity") as string) || 0
+    
+    let costPerUnit = manualCostPerUnit;
+    if (purchasePrice > 0 && purchaseQuantity > 0) {
+      costPerUnit = purchasePrice / purchaseQuantity;
+    }
+    
+    // Fallback currentStock to purchaseQuantity if empty
+    let currentStock = parseFloat(formData.get("currentStock") as string);
+    if (isNaN(currentStock)) {
+      currentStock = purchaseQuantity || 0;
+    }
 
     if (!name || !unit) return { error: "Nama dan satuan wajib diisi" }
 
@@ -206,7 +219,16 @@ export async function editIngredient(prevState: any, formData: FormData) {
     const id = formData.get("id") as string
     const name = formData.get("name") as string
     const unit = formData.get("unit") as string
-    const costPerUnit = parseFloat(formData.get("costPerUnit") as string) || 0
+    
+    const manualCostPerUnit = parseFloat(formData.get("manualCostPerUnit") as string) || 0
+    const purchasePrice = parseFloat(formData.get("purchasePrice") as string) || 0
+    const purchaseQuantity = parseFloat(formData.get("purchaseQuantity") as string) || 0
+    
+    let costPerUnit = manualCostPerUnit;
+    if (purchasePrice > 0 && purchaseQuantity > 0) {
+      costPerUnit = purchasePrice / purchaseQuantity;
+    }
+    
     const currentStock = parseFloat(formData.get("currentStock") as string) || 0
     if (!name || !unit) return { error: "Nama dan Satuan wajib diisi" }
     
