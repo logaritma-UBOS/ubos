@@ -46,80 +46,113 @@ export function runLogaritmaEngine(target: TargetData, profesi: string, business
   
   const gapText = `Gap sebesar ${valStr}${periodStr}`;
 
-  // Analyze factors based on TargetType and mainProblem
-  let factors = ['Kapasitas Operasional', 'Konsistensi', 'Sistem Manajemen'];
-  let priority = {
-    title: 'Digitalisasi Operasional',
-    description: 'Beralih ke sistem digital untuk mengontrol seluruh pergerakan bisnis.',
-    toolKey: 'ubos'
-  };
-  let actionPlan = [
-    { title: 'Identifikasi Bottleneck', description: 'Cari tahu di mana operasional terhambat.' },
-    { title: 'Gunakan Sistem Sentral', description: 'Gunakan UBOS untuk mengelola pesanan.' }
-  ];
+  let factors: string[] = [];
+  let priority = { title: '', description: '', toolKey: '' };
+  let actionPlan: { title: string; description: string; }[] = [];
 
-  if (target.mainProblem === 'HPP terlalu tinggi' || target.mainProblem === 'Profit kecil') {
-    factors = ['HPP & Margin Produk', 'Biaya Operasional', 'Volume Transaksi'];
-    priority = {
-      title: 'Audit HPP Produk',
-      description: 'Sebelum mengejar transaksi tambahan, pastikan setiap produk yang Anda jual menghasilkan margin yang sehat.',
-      toolKey: 'hpp_ai'
-    };
-    actionPlan = [
-      { title: 'Audit HPP produk', description: 'Hitung ulang modal dasar setiap produk.' },
-      { title: 'Identifikasi produk prioritas', description: 'Cari produk dengan margin terbaik.' },
-      { title: 'Tentukan target transaksi', description: 'Fokus jual produk margin tinggi.' },
-      { title: 'Optimasi penjualan', description: 'Kurangi biaya siluman.' },
-      { title: 'Monitor realisasi', description: 'Pantau profit harian.' }
-    ];
-  } else if (target.mainProblem === 'Penjualan kurang' || target.mainProblem === 'Tidak tahu masalahnya') {
-    factors = ['Jumlah Transaksi', 'Konversi Leads', 'Traffic Kunjungan'];
-    priority = {
-      title: 'Tingkatkan Volume Transaksi',
-      description: 'Perluas jangkauan ke pelanggan baru melalui channel online dan percepat proses checkout.',
-      toolKey: 'ubos'
-    };
-    actionPlan = [
-      { title: 'Evaluasi Channel Promosi', description: 'Fokus pada channel yang paling banyak mendatangkan leads.' },
-      { title: 'Perbaiki Konversi', description: 'Berikan penawaran menarik untuk pembelian pertama.' },
-      { title: 'Gunakan POS Cepat', description: 'Pastikan proses pembayaran tidak antre.' },
-      { title: 'Monitor Pertumbuhan', description: 'Pantau grafik penjualan harian.' }
-    ];
-  } else if (target.mainProblem === 'Pelanggan tidak repeat') {
-    factors = ['Repeat Order', 'Kualitas Layanan', 'Database Pelanggan'];
-    priority = {
-      title: 'Kelola Database Pelanggan',
-      description: 'Simpan data pelanggan dan berikan promo khusus untuk menarik mereka kembali.',
-      toolKey: 'ubos'
-    };
-    actionPlan = [
-      { title: 'Kumpulkan Data', description: 'Minta nomor WA setiap pembeli.' },
-      { title: 'Segmentasi Pelanggan', description: 'Pisahkan pelanggan loyal dan pasif.' },
-      { title: 'Broadcast Promo', description: 'Kirim penawaran eksklusif secara berkala.' },
-      { title: 'Evaluasi Layanan', description: 'Minta feedback langsung dari pelanggan.' }
-    ];
-  } else if (target.mainProblem === 'Operasional tidak efisien') {
-    factors = ['Sistem Manajemen', 'Kinerja Karyawan', 'Laporan Keuangan'];
-    priority = {
-      title: 'Sentralisasi Sistem Bisnis',
-      description: 'Gunakan satu sistem terpadu untuk mencegah kebocoran dana dan memantau stok secara real-time.',
-      toolKey: 'ubos'
-    };
-    actionPlan = [
-      { title: 'Gunakan Aplikasi Kasir', description: 'Catat semua transaksi secara digital.' },
-      { title: 'Audit Stok Berjangka', description: 'Pastikan fisik barang sesuai dengan sistem.' },
-      { title: 'Evaluasi Laporan Bulanan', description: 'Gunakan data untuk mengambil keputusan.' }
-    ];
-  }
+  const lowerProfesi = profesi.toLowerCase();
 
-  // Override for specific professions
-  if (profesi.includes('Coway')) {
+  // 1. UMKM
+  if (lowerProfesi.includes('umkm') || lowerProfesi.includes('retail') || lowerProfesi.includes('jasa')) {
+    if (target.mainProblem === 'HPP terlalu tinggi' || target.mainProblem === 'Profit kecil') {
+      factors = ['HPP & Margin Produk', 'Biaya Operasional', 'Volume Transaksi'];
+      priority = {
+        title: 'Audit HPP Produk',
+        description: 'Pastikan produk yang Anda jual menghasilkan margin sehat agar operasional bisnis bisa bertumbuh.',
+        toolKey: 'hpp_ai'
+      };
+      actionPlan = [
+        { title: 'Audit HPP produk', description: 'Hitung ulang modal dasar setiap produk.' },
+        { title: 'Identifikasi prioritas', description: 'Cari produk dengan margin terbaik.' },
+        { title: 'Gunakan Sistem POS', description: 'Gunakan UBOS untuk mencatat penjualan agar profit riil terpantau otomatis.' },
+        { title: 'Evaluasi berkala', description: 'Kurangi biaya siluman pada operasional harian.' }
+      ];
+    } else if (target.mainProblem === 'Pelanggan tidak repeat') {
+      factors = ['Repeat Order', 'Kualitas Layanan', 'Database Pelanggan'];
+      priority = {
+        title: 'Kelola Database Pelanggan',
+        description: 'Simpan data pelanggan dengan rapi dan berikan promo khusus untuk menarik mereka kembali.',
+        toolKey: 'ubos'
+      };
+      actionPlan = [
+        { title: 'Kumpulkan Data', description: 'Minta nomor WA setiap pelanggan.' },
+        { title: 'Sentralisasi Data CRM', description: 'Masukkan database ke dalam UBOS CRM.' },
+        { title: 'Segmentasi', description: 'Pisahkan pelanggan loyal dan pasif.' },
+        { title: 'Broadcast Promo', description: 'Kirim penawaran eksklusif secara berkala.' }
+      ];
+    } else {
+      factors = ['Volume Transaksi', 'Kapasitas Operasional', 'Sistem Manajemen'];
+      priority = {
+        title: 'Digitalisasi Operasional',
+        description: 'Beralih ke sistem digital untuk mempercepat transaksi dan mengontrol pergerakan bisnis.',
+        toolKey: 'ubos'
+      };
+      actionPlan = [
+        { title: 'Identifikasi Bottleneck', description: 'Cari tahu proses yang memakan waktu lama.' },
+        { title: 'Evaluasi Channel Promosi', description: 'Perkuat channel yang mendatangkan pembeli.' },
+        { title: 'Gunakan Sistem Sentral', description: 'Gunakan UBOS untuk mengelola kasir, inventaris, dan laporan keuangan.' },
+        { title: 'Monitor Pertumbuhan', description: 'Pantau grafik penjualan harian.' }
+      ];
+    }
+  } 
+  // 2. MARKETING / AGEN COWAY
+  else if (lowerProfesi.includes('coway') || lowerProfesi.includes('marketing')) {
     factors = ['Leads Masuk', 'Tingkat Konversi (Follow-up)', 'Closing Rate'];
     priority = {
       title: 'Optimasi Manajemen Leads',
       description: 'Jangan biarkan calon pelanggan mendingin. Segera follow-up leads yang masuk secara sistematis.',
       toolKey: 'coway'
     };
+    actionPlan = [
+      { title: 'Pemetaan Channel', description: 'Petakan darimana leads terbanyak masuk.' },
+      { title: 'Kumpulkan Database', description: 'Catat setiap prospek ke dalam sistem secara terstruktur.' },
+      { title: 'Follow-up Rutin', description: 'Lakukan follow-up terjadwal agar konversi meningkat.' },
+      { title: 'Gunakan Tools', description: 'Gunakan solusi Coway untuk mengelola proses penjualan.' }
+    ];
+  } 
+  // 3. KONTEN KREATOR
+  else if (lowerProfesi.includes('kreator') || lowerProfesi.includes('creator') || lowerProfesi.includes('influencer') || lowerProfesi.includes('kol')) {
+    factors = ['Monetisasi Audiens', 'Engagement Rate', 'Personal Branding'];
+    priority = {
+      title: 'Monetisasi Lewat Affiliate',
+      description: 'Ubah audiens dan traffic Anda menjadi passive income yang konsisten dengan merekomendasikan solusi digital.',
+      toolKey: 'affiliate'
+    };
+    actionPlan = [
+      { title: 'Audit Niche', description: 'Identifikasi kebutuhan utama audiens Anda.' },
+      { title: 'Bergabung di Program Affiliate', description: 'Daftar sebagai mitra affiliate Logaritma.' },
+      { title: 'Buat Konten Edukasi', description: 'Buat konten yang membahas masalah audiens dan solusi tools-nya.' },
+      { title: 'Sematkan Link', description: 'Gunakan link referral di bio atau deskripsi video Anda.' }
+    ];
+  } 
+  // 4 & 5. KARYAWAN & FREELANCER
+  else if (lowerProfesi.includes('karyawan') || lowerProfesi.includes('freelance') || lowerProfesi.includes('agen')) {
+    factors = ['Manajemen Waktu', 'Sumber Penghasilan Tambahan', 'Network'];
+    priority = {
+      title: 'Bangun Passive Income',
+      description: 'Manfaatkan jaringan dan waktu luang Anda untuk merekomendasikan sistem B2B kepada kenalan atau klien.',
+      toolKey: 'affiliate'
+    };
+    actionPlan = [
+      { title: 'Petakan Network', description: 'Tulis daftar rekan/klien yang memiliki masalah bisnis atau butuh sistem.' },
+      { title: 'Daftar Mitra', description: 'Bergabung ke program partnership/affiliate B2B.' },
+      { title: 'Kenalkan Solusi', description: 'Rekomendasikan sistem terpadu (seperti UBOS) kepada mereka.' },
+      { title: 'Dapatkan Komisi', description: 'Nikmati komisi rutin dari biaya berlangganan mereka.' }
+    ];
+  } 
+  // 6. PROFESIONAL
+  else {
+    factors = ['Efisiensi Waktu', 'Skalabilitas', 'Sistem Kustom'];
+    priority = {
+      title: 'Analisis Kebutuhan Lanjutan',
+      description: 'Anda memiliki model kerja yang unik. Diperlukan analisis kebutuhan mendalam sebelum menentukan sistem eksekusi yang tepat.',
+      toolKey: 'no_solution'
+    };
+    actionPlan = [
+      { title: 'Audit Proses Kerja', description: 'Catat alur kerja harian yang repetitif.' },
+      { title: 'Identifikasi Tools', description: 'Petakan aplikasi/software yang saat ini digunakan.' },
+      { title: 'Konsultasi Digitalisasi', description: 'Diskusikan kebutuhan spesifik Anda dengan konsultan kami.' }
+    ];
   }
 
   return {

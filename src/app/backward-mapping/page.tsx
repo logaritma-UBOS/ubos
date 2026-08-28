@@ -120,6 +120,10 @@ export default function BackwardMappingPage() {
     if (result.priority.toolKey === 'hpp_ai') {
       priorityToolUrl = `/hpp?from=mapping&prof=${encodeURIComponent(profession)}&gap=${result.gapValue}`;
       priorityToolCta = 'Hitung HPP dengan AI →';
+    } else if (result.priority.toolKey === 'no_solution') {
+      priorityToolUrl = 'https://wa.me/6285157621855?text=Halo%2C%20saya%20butuh%20konsultasi%20sistem%20digital';
+      priorityToolCta = 'Konsultasi Sekarang →';
+      priorityToolColorClass = 'bg-slate-800 text-white hover:bg-slate-900';
     } else {
       const rec = recommendations.find(r => r.triggerKeywords.includes(result.priority.toolKey)) || recommendations[0];
       if (rec) {
