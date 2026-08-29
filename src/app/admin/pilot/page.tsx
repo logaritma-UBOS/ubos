@@ -1,20 +1,11 @@
-﻿import { cookies } from "next/headers"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { formatNumber } from "@/lib/format"
-import { runOwnerEngine } from "@/lib/ownerEngine"
+import { runOwnerEngine, getRevenueSnapshot } from "@/lib/ownerEngine"
 
 export const dynamic = "force-dynamic"
-
-async function saveGlobalSetting(key: string, value: string) {
-  const existing = await prisma.systemSetting.findUnique({ where: { key } })
-  if (existing) {
-    await prisma.systemSetting.update({ where: { key }, data: { value } })
-  } else {
-    await prisma.systemSetting.create({ data: { key, value } })
-  }
-}
 
 async function loginAdmin(formData: FormData) {
   "use server"
@@ -56,6 +47,7 @@ async function triggerAction(formData: FormData) {
   const targetStr = formData.get("target")?.toString() || "0"
   const severity = formData.get("severity")?.toString() || "LOW"
   const confidence = formData.get("confidence")?.toString() || "LOW"
+  const direction = formData.get("direction")?.toString() || "HIGHER_IS_BETTER"
   
   await prisma.ownerAction.create({
     data: {
@@ -69,12 +61,31 @@ async function triggerAction(formData: FormData) {
       gapBefore: parseFloat(gapStr) || 0,
       severity,
       confidence,
+      direction,
       status: "ACCEPTED",
       acceptedAt: new Date()
     }
   })
   
   revalidatePath("/admin/pilot")
+}
+
+async function setRevenueTarget(formData: FormData) {
+  "use server"
+  const cookieStore = await cookies()
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") throw new Error("Unauthorized")
+  const targetStr = formData.get("revenueTarget")?.toString() || ""
+  const target = parseFloat(targetStr)
+  if (!isNaN(target) && target >= 0) {
+    const key = "owner_revenue_target_weekly"
+    const existing = await prisma.systemSetting.findUnique({ where: { key } })
+    if (existing) {
+      await prisma.systemSetting.update({ where: { key }, data: { value: target.toString(), updatedBy: "owner" } })
+    } else {
+      await prisma.systemSetting.create({ data: { key, value: target.toString(), description: "Target revenue mingguan untuk Owner Engine", updatedBy: "owner" } })
+    }
+    revalidatePath("/admin/pilot")
+  }
 }
 
 export default async function AdminPilotPage() {
@@ -150,8 +161,26 @@ export default async function AdminPilotPage() {
   const registerCount = totalUsers
   const activeCount = totalBusinesses
 
-  // Run Owner Engine
+  // Revenue Snapshot — real data from Sale.totalAmount
+  const revenueSnapshot = await getRevenueSnapshot()
+
+  // Revenue target from SystemSetting
+  const revenueSetting = await prisma.systemSetting.findUnique({ where: { key: "owner_revenue_target_weekly" } })
+  const revenueTarget = revenueSetting ? parseFloat(revenueSetting.value) : null
+
+  // Revenue period trend
+  const revenueTrend = revenueSnapshot.previousPeriodRevenue > 0
+    ? ((revenueSnapshot.currentPeriodRevenue - revenueSnapshot.previousPeriodRevenue) / revenueSnapshot.previousPeriodRevenue) * 100
+    : null
+  const revenueGap = revenueTarget !== null
+    ? revenueSnapshot.currentPeriodRevenue - revenueTarget
+    : null
+
+  // Run Owner Engine (includes revenue metric)
   const gapAnalysis = await runOwnerEngine()
+
+  // Format currency
+  const formatRp = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
   return (
     <AdminLayout activeMenu="control" logoutAction={logoutAdmin}>
@@ -203,10 +232,34 @@ export default async function AdminPilotPage() {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 opacity-70">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue (MRR)</p>
-            <p className="text-xl font-black text-gray-900 leading-none">DATA BELUM TERSEDIA</p>
-            <p className="text-[10px] text-gray-500 font-medium mt-1">Subscription system belum ada di DB.</p>
+          {/* REVENUE KPI — real data from Sale.totalAmount */}
+          <div className={`p-5 rounded-2xl shadow-sm border ${revenueSnapshot.totalTransactions > 0 ? 'bg-white border-gray-100' : 'bg-white border-gray-100 opacity-80'}`}>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue (7 Hari)</p>
+            {revenueSnapshot.totalTransactions === 0 ? (
+              <>
+                <p className="text-base font-black text-gray-400 leading-none">Rp 0</p>
+                <p className="text-[10px] text-gray-400 font-medium mt-1">Belum ada transaksi POS tersimpan.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xl font-black text-gray-900 leading-none">{formatRp(revenueSnapshot.currentPeriodRevenue)}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {revenueTrend !== null ? (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${revenueTrend >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {revenueTrend >= 0 ? '▲' : '▼'} {Math.abs(revenueTrend).toFixed(1)}% vs 7H lalu
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-gray-400">Data sebelumnya: —</span>
+                  )}
+                </div>
+                {revenueTarget !== null && revenueGap !== null && (
+                  <p className={`text-[10px] font-bold mt-1 ${revenueGap >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    Target: {formatRp(revenueTarget)} · Gap: {revenueGap >= 0 ? '+' : ''}{formatRp(revenueGap)}
+                  </p>
+                )}
+                <p className="text-[9px] text-gray-400 mt-1">{formatNumber(revenueSnapshot.currentPeriodTransactions)} transaksi · ∅ {formatRp(revenueSnapshot.avgTransactionValue)}</p>
+              </>
+            )}
           </div>
 
           <div className="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 text-white">
@@ -219,6 +272,72 @@ export default async function AdminPilotPage() {
             </div>
           </div>
         </div>
+
+        {/* REVENUE INTELLIGENCE PANEL */}
+        <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+            <div>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Revenue Intelligence</p>
+              <h3 className="text-lg font-bold text-gray-900">Performa Revenue Aktual</h3>
+              <p className="text-[10px] text-gray-400 mt-0.5">Sumber: <code>Sale.totalAmount</code> — Agregasi Global Semua Merchant</p>
+            </div>
+            {/* Target setter */}
+            <form action={setRevenueTarget} className="flex items-center gap-2 flex-shrink-0">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Set Target Revenue Mingguan</label>
+                <input
+                  type="number"
+                  name="revenueTarget"
+                  min="0"
+                  step="100000"
+                  defaultValue={revenueTarget ?? ""}
+                  placeholder="contoh: 10000000"
+                  className="w-44 p-2 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+              <button type="submit" className="mt-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-all active:scale-95">Set</button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 p-4 rounded-xl">
+              <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">7 Hari Terakhir</p>
+              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.currentPeriodRevenue)}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.currentPeriodTransactions} transaksi</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl">
+              <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">7 Hari Sebelumnya</p>
+              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.previousPeriodRevenue)}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.previousPeriodTransactions} transaksi</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl">
+              <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">All Time Revenue</p>
+              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.allTimeRevenue)}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.totalTransactions} transaksi total</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl">
+              <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Avg Transaksi</p>
+              <p className="text-lg font-black text-gray-900">{revenueSnapshot.totalTransactions > 0 ? formatRp(revenueSnapshot.avgTransactionValue) : '—'}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Per transaksi (all time)</p>
+            </div>
+          </div>
+
+          {revenueTarget !== null && revenueGap !== null && (
+            <div className={`mt-4 p-4 rounded-xl flex items-center gap-3 ${revenueGap >= 0 ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
+              <span className={`text-2xl ${revenueGap >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{revenueGap >= 0 ? '✓' : '▽'}</span>
+              <div>
+                <p className={`text-sm font-bold ${revenueGap >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                  {revenueGap >= 0
+                    ? `TARGET TERCAPAI — Surplus ${formatRp(Math.abs(revenueGap))}`
+                    : `GAP REVENUE — Kekurangan ${formatRp(Math.abs(revenueGap))} dari target`}
+                </p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  Target: {formatRp(revenueTarget)} · Aktual 7H: {formatRp(revenueSnapshot.currentPeriodRevenue)} · gapBefore = actualBefore − target = {formatRp(revenueGap)}
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* 2. LOGARITMA GAP & ACTIONS */}
         <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
@@ -253,6 +372,7 @@ export default async function AdminPilotPage() {
                         <span className="text-xs text-gray-500 mb-1">/ {formatNumber(item.target)} target</span>
                       </div>
                       <p className="text-xs font-bold text-rose-600 mt-1">Gap: {formatNumber(item.gap)} ({item.gapPercentage}%)</p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 uppercase">{item.direction}</p>
                     </div>
                     
                     <div className="lg:col-span-2">
@@ -274,6 +394,7 @@ export default async function AdminPilotPage() {
                         <input type="hidden" name="target" value={item.target} />
                         <input type="hidden" name="severity" value={item.severity} />
                         <input type="hidden" name="confidence" value={item.confidence} />
+                        <input type="hidden" name="direction" value={item.direction} />
                         <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm active:scale-95">
                           TERIMA & EKSEKUSI
                         </button>
@@ -290,6 +411,3 @@ export default async function AdminPilotPage() {
     </AdminLayout>
   )
 }
-
-
-

@@ -1,4 +1,4 @@
-﻿import { prisma } from "./prisma"
+import { prisma } from "./prisma"
 
 export interface OwnerMetric {
   metric: string
@@ -16,11 +16,68 @@ export interface OwnerMetric {
   expectedResult: string
   measurementMetric: string
   status: string
+  direction: "HIGHER_IS_BETTER" | "LOWER_IS_BETTER"
+}
+
+export interface RevenueSnapshot {
+  currentPeriodRevenue: number   // 7 days
+  previousPeriodRevenue: number  // 7 days prior
+  allTimeRevenue: number
+  totalTransactions: number
+  currentPeriodTransactions: number
+  previousPeriodTransactions: number
+  avgTransactionValue: number
+  periodLabel: string
+}
+
+export async function getRevenueSnapshot(): Promise<RevenueSnapshot> {
+  const now = new Date()
+  const startOfCurrent = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const startOfPrevious = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  // Current period: last 7 days
+  const currentSales = await prisma.sale.findMany({
+    where: { createdAt: { gte: startOfCurrent } },
+    select: { totalAmount: true }
+  })
+
+  // Previous period: 7-14 days ago
+  const previousSales = await prisma.sale.findMany({
+    where: { createdAt: { gte: startOfPrevious, lt: startOfCurrent } },
+    select: { totalAmount: true }
+  })
+
+  // All time
+  const allSales = await prisma.sale.findMany({
+    select: { totalAmount: true }
+  })
+
+  const currentPeriodRevenue = currentSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+  const previousPeriodRevenue = previousSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+  const allTimeRevenue = allSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+  const totalTransactions = allSales.length
+  const currentPeriodTransactions = currentSales.length
+  const previousPeriodTransactions = previousSales.length
+  const avgTransactionValue = totalTransactions > 0
+    ? Math.round(allTimeRevenue / totalTransactions)
+    : 0
+
+  return {
+    currentPeriodRevenue,
+    previousPeriodRevenue,
+    allTimeRevenue,
+    totalTransactions,
+    currentPeriodTransactions,
+    previousPeriodTransactions,
+    avgTransactionValue,
+    periodLabel: "7 Hari Terakhir"
+  }
 }
 
 export async function runOwnerEngine(): Promise<OwnerMetric[]> {
   const now = new Date()
   const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const startOfPreviousWeek = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
 
   const totalUsers = await prisma.user.count()
   
@@ -51,15 +108,112 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
   const hppUsage = await prisma.pilotEvent.count({ where: { eventName: 'hpp_created' } })
   const posUsage = await prisma.pilotEvent.count({ where: { eventName: 'pos_transaction_completed' } })
 
+  // Revenue data: actual SUM from Sale.totalAmount
+  const currentSales = await prisma.sale.findMany({
+    where: { createdAt: { gte: startOfWeek } },
+    select: { totalAmount: true }
+  })
+  const previousSales = await prisma.sale.findMany({
+    where: { createdAt: { gte: startOfPreviousWeek, lt: startOfWeek } },
+    select: { totalAmount: true }
+  })
+  const currentRevenue = currentSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+  const previousRevenue = previousSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+
+  // Revenue target: read from SystemSetting if set, otherwise null (no fake target)
+  const revenueSetting = await prisma.systemSetting.findUnique({ where: { key: "owner_revenue_target_weekly" } })
+  const revenueTarget = revenueSetting ? parseFloat(revenueSetting.value) : null
+
   const analysis: OwnerMetric[] = []
 
-  // 1. REGISTER -> BUSINESS CREATED
+  // ─── METRIC 0: WEEKLY REVENUE INTELLIGENCE ───────────────────────────────
+  // Only push if we have transaction data OR there's a set target
+  if (currentSales.length > 0 || previousSales.length > 0 || revenueTarget !== null) {
+    const hasTarget = revenueTarget !== null && revenueTarget > 0
+    const revenueGap = hasTarget ? currentRevenue - revenueTarget : 0
+    const revenueTrend = previousRevenue > 0
+      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
+      : null
+
+    // Severity: if has target, use gap; if no target, use trend
+    let severity: "LOW" | "MEDIUM" | "HIGH" = "LOW"
+    if (hasTarget) {
+      const gapRatio = revenueGap / revenueTarget
+      if (gapRatio < -0.3) severity = "HIGH"
+      else if (gapRatio < -0.1) severity = "MEDIUM"
+      else severity = "LOW"
+    } else if (revenueTrend !== null) {
+      if (revenueTrend < -20) severity = "HIGH"
+      else if (revenueTrend < -5) severity = "MEDIUM"
+      else severity = "LOW"
+    }
+
+    // Confidence: based on transaction volume
+    const confidence: "LOW" | "MEDIUM" | "HIGH" =
+      currentSales.length >= 50 ? "HIGH" : currentSales.length >= 10 ? "MEDIUM" : "LOW"
+
+    // Recommendation: based on gap / trend
+    let recommendation = ""
+    let cause = ""
+    let expectedResult = ""
+
+    if (hasTarget && revenueGap < 0) {
+      const deficit = Math.abs(revenueGap)
+      const remainingDays = 7
+      const neededPerDay = Math.round(deficit / remainingDays)
+      cause = `Revenue periode berjalan lebih rendah ${deficit.toLocaleString('id-ID')} dari target mingguan.`
+      recommendation = `Dorong aktivitas POS di bisnis aktif. Target tambahan Rp ${neededPerDay.toLocaleString('id-ID')}/hari untuk menutup gap.`
+      expectedResult = `Revenue 7 hari mendekati atau melampaui target Rp ${revenueTarget!.toLocaleString('id-ID')}`
+    } else if (revenueTrend !== null && revenueTrend < -5) {
+      cause = `Revenue 7 hari ini (Rp ${currentRevenue.toLocaleString('id-ID')}) turun ${Math.abs(revenueTrend).toFixed(1)}% dari periode sebelumnya.`
+      recommendation = `Cek bisnis yang aktif minggu lalu namun tidak transaksi minggu ini. Lakukan re-engagement via WhatsApp atau promo.`
+      expectedResult = `Revenue kembali setara atau melampaui periode sebelumnya (Rp ${previousRevenue.toLocaleString('id-ID')})`
+    } else if (revenueTrend !== null && revenueTrend >= 0) {
+      cause = `Revenue 7 hari ini naik ${revenueTrend.toFixed(1)}% dari periode sebelumnya.`
+      recommendation = `Pertahankan momentum. Pantau bisnis dengan volume transaksi tinggi untuk optimasi margin.`
+      expectedResult = `Revenue tetap tumbuh positif minggu berikutnya`
+    } else {
+      cause = `Revenue 7 hari terbaca: Rp ${currentRevenue.toLocaleString('id-ID')}. Belum ada data pembanding yang cukup.`
+      recommendation = `Pastikan seluruh bisnis aktif menggunakan fitur POS secara konsisten.`
+      expectedResult = `Peningkatan frekuensi transaksi POS`
+    }
+
+    // Only push as gap-based recommendation if there's an actual gap
+    const shouldRecommend = (hasTarget && revenueGap < 0) || (revenueTrend !== null && revenueTrend < -5)
+
+    if (shouldRecommend) {
+      analysis.push({
+        metric: "Revenue Mingguan",
+        goal: hasTarget
+          ? `Revenue 7 hari mencapai target Rp ${revenueTarget!.toLocaleString('id-ID')}`
+          : `Revenue minggu ini melampaui periode sebelumnya`,
+        target: hasTarget ? revenueTarget! : previousRevenue,
+        actual: currentRevenue,
+        gap: hasTarget ? revenueGap : (currentRevenue - previousRevenue),
+        gapPercentage: hasTarget
+          ? Math.round((revenueGap / revenueTarget!) * 100)
+          : (revenueTrend !== null ? Math.round(revenueTrend) : 0),
+        severity,
+        where: "POS / Kasir — Seluruh Merchant",
+        cause,
+        recommendation,
+        confidence,
+        actionType: "REVENUE_RECOVERY",
+        expectedResult,
+        measurementMetric: "Revenue Mingguan",
+        status: "RECOMMENDED",
+        direction: "HIGHER_IS_BETTER"
+      })
+    }
+  }
+
+  // ─── METRIC 1: REGISTER -> BUSINESS CREATED ──────────────────────────────
   const targetActivation = Math.round(totalUsers * 0.6)
   const gapActivation = businessesCreated - targetActivation
   if (totalUsers > 0 && gapActivation < 0) {
     const ratio = businessesCreated / totalUsers
     analysis.push({
-      metric: "Activation (Register -> Biz)",
+      metric: "Activation (Register → Biz)",
       goal: "Konversi registrasi ke pembuatan bisnis > 60%",
       target: targetActivation,
       actual: businessesCreated,
@@ -72,12 +226,13 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
       confidence: totalUsers > 50 ? "HIGH" : "LOW",
       actionType: "UI_IMPROVEMENT",
       expectedResult: "Activation rate naik ke 60%",
-      measurementMetric: "Activation (Register -> Biz)",
-      status: "RECOMMENDED"
+      measurementMetric: "Activation (Register → Biz)",
+      status: "RECOMMENDED",
+      direction: "HIGHER_IS_BETTER"
     })
   }
 
-  // 2. BUSINESS CREATED -> FIRST DATA (Product/Ingredient)
+  // ─── METRIC 2: BUSINESS CREATED -> FIRST DATA ────────────────────────────
   const targetData = Math.round(businessesCreated * 0.7)
   const gapData = businessesWithData - targetData
   if (businessesCreated > 0 && gapData < 0) {
@@ -97,11 +252,12 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
       actionType: "ONBOARDING_WIZARD",
       expectedResult: "First Data rate naik ke 70%",
       measurementMetric: "First Data Input",
-      status: "RECOMMENDED"
+      status: "RECOMMENDED",
+      direction: "HIGHER_IS_BETTER"
     })
   }
 
-  // 3. POS FEATURE ENGAGEMENT
+  // ─── METRIC 3: POS FEATURE ENGAGEMENT ───────────────────────────────────
   const targetPosUsage = Math.round(hppUsage * 0.5)
   const gapPos = posUsage - targetPosUsage
   if (hppUsage > 10 && gapPos < 0) {
@@ -120,11 +276,12 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
       actionType: "FEATURE_PROMPT",
       expectedResult: "POS usage meningkat mendekati 50% HPP usage",
       measurementMetric: "HPP to POS Conversion",
-      status: "RECOMMENDED"
+      status: "RECOMMENDED",
+      direction: "HIGHER_IS_BETTER"
     })
   }
 
-  // 4. WEEKLY RETENTION (Active Businesses)
+  // ─── METRIC 4: WEEKLY RETENTION ─────────────────────────────────────────
   const targetRetention = Math.round(businessesCreated * 0.3)
   const gapRetention = weeklyActiveBusinesses - targetRetention
   if (businessesCreated > 0 && gapRetention < 0) {
@@ -143,10 +300,10 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
       actionType: "CRM_CAMPAIGN",
       expectedResult: "WAU rate naik ke 30%",
       measurementMetric: "Weekly Active Businesses",
-      status: "RECOMMENDED"
+      status: "RECOMMENDED",
+      direction: "HIGHER_IS_BETTER"
     })
   }
 
   return analysis
 }
-
