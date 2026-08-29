@@ -77,8 +77,16 @@ export default async function ControlCenterPage() {
   const systemHealth = "HEALTHY"
   
   const intel = await getDashboardIntelligence()
+  
   const opportunities = await getOwnerOpportunities()
   const dailyBrief = await getDailyBrief(opportunities)
+  
+  // FETCH LAST EVALUATED ACTION FOR DAILY BRIEF
+  const lastAction = await prisma.ownerAction.findFirst({
+    where: { status: "EVALUATED" },
+    orderBy: { gapAfter: 'asc' }, // just some deterministic order, ideally updatedAt
+  });
+
   const gapAnalysis = await runOwnerEngine()
 
   return (
@@ -90,8 +98,9 @@ export default async function ControlCenterPage() {
         </div>
 
         
+        
         {/* OWNER DAILY BRIEF */}
-        {dailyBrief && (
+        {dailyBrief ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
               <h2 className="text-sm font-black tracking-widest uppercase">UBOS HARI INI</h2>
@@ -113,6 +122,16 @@ export default async function ControlCenterPage() {
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Evidence (Data Nyata)</p>
                 <p className="font-semibold text-slate-900">{opportunities[0]?.evidence || dailyBrief.penyebab}</p>
               </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Action Terakhir (History)</p>
+                <p className="font-semibold text-slate-900 line-clamp-1">{lastAction ? lastAction.recommendation : 'Belum ada action yang dievaluasi'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Result Action Terakhir</p>
+                <p className={`font-semibold ${lastAction?.learningResult === 'SUCCESS' ? 'text-emerald-600' : lastAction?.learningResult === 'FAILED' ? 'text-rose-600' : 'text-slate-600'}`}>
+                  {lastAction ? `${lastAction.learningResult} - ${lastAction.evaluation}` : '-'}
+                </p>
+              </div>
               <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -126,6 +145,11 @@ export default async function ControlCenterPage() {
                 </a>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+            <h2 className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">UBOS HARI INI</h2>
+            <p className="text-slate-500 font-medium">Tidak ada opportunity prioritas saat ini. Semua indikator operasional berjalan stabil.</p>
           </div>
         )}
 

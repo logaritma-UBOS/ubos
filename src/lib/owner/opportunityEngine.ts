@@ -40,6 +40,21 @@ function calculatePriority(gapPercentage: number, affectedUsers: number): "CRITI
 export async function getOwnerOpportunities(): Promise<Opportunity[]> {
   const opps: Opportunity[] = [];
   
+  // FETCH LEARNING HISTORY
+  const pastActions = await prisma.ownerAction.findMany({
+    where: { learningResult: { not: null } },
+    select: { source: true, learningResult: true }
+  });
+  
+  const historyScore = new Map<string, number>(); // source (opportunity ID) -> net success
+  pastActions.forEach(a => {
+    let score = historyScore.get(a.source) || 0;
+    if (a.learningResult === 'SUCCESS') score += 1;
+    if (a.learningResult === 'FAILED') score -= 1;
+    if (a.learningResult === 'NO_CHANGE') score -= 0.5;
+    historyScore.set(a.source, score);
+  });
+
   // 1. ACTIVATION OPPORTUNITY
   const totalRegistered = await prisma.user.count();
   const totalBusiness = await prisma.business.count();
@@ -61,6 +76,13 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
     const gapHppTx = hppCount - txCount;
     if (gapHppTx > 0) {
       const gapPerc = (gapHppTx / hppCount) * 100;
+      const baseImpactAct = gapPerc * gapHppTx;
+      const histAct = historyScore.get("opp_act_hpp_tx") || 0;
+      let finalConfAct: "HIGH" | "MEDIUM" | "LOW" = "HIGH";
+      if (histAct > 0) finalConfAct = "HIGH";
+      else if (histAct < 0) finalConfAct = "LOW";
+      else finalConfAct = "MEDIUM";
+
       opps.push({
         id: "opp_act_hpp_tx",
         category: "ACTIVATION",
@@ -68,8 +90,8 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
         affectedUsers: gapHppTx,
         evidence: `${gapHppTx} user telah membuat HPP tapi belum memiliki pos_transaction_completed`,
         severity: gapPerc > 50 ? "HIGH" : "MEDIUM",
-        confidence: "HIGH",
-        impactScore: gapPerc * gapHppTx,
+        confidence: finalConfAct,
+        impactScore: baseImpactAct + (histAct * 10),
         urgency: "IMMEDIATE",
         recommendedAction: "Jalankan activation campaign (Edukasi Transaksi Pertama)",
         recommendedMessage: "Mulai transaksi pertamamu menggunakan resep HPP yang sudah kamu buat!",
@@ -106,6 +128,13 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
   const dormantBizCount = allBizIds.filter(b => !activeBiz14d.has(b.id)).length;
   
   if (dormantBizCount > 0) {
+    const baseImpactRet = (dormantBizCount / allBizIds.length)*100 * dormantBizCount;
+    const histRet = historyScore.get("opp_ret_dormant") || 0;
+    let finalConfRet: "HIGH" | "MEDIUM" | "LOW" = "HIGH";
+    if (histRet > 0) finalConfRet = "HIGH";
+    else if (histRet < 0) finalConfRet = "LOW";
+    else finalConfRet = "MEDIUM";
+
     opps.push({
       id: "opp_ret_dormant",
       category: "REACTIVATION",
@@ -113,8 +142,8 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
       affectedUsers: dormantBizCount,
       evidence: `${dormantBizCount} user terdaftar tidak mencatat PilotEvent apapun dalam 14 hari terakhir`,
       severity: dormantBizCount > (allBizIds.length * 0.3) ? "HIGH" : "MEDIUM",
-      confidence: "HIGH",
-      impactScore: (dormantBizCount / allBizIds.length)*100 * dormantBizCount,
+      confidence: finalConfRet,
+      impactScore: baseImpactRet + (histRet * 10),
       urgency: "THIS_WEEK",
       recommendedAction: "Kirim Re-engagement Campaign",
       recommendedMessage: "Kami merindukan Anda di UBOS! Lihat fitur terbaru kami.",

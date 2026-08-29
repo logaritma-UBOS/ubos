@@ -450,6 +450,7 @@ model OwnerAction {
   expectedResult   String?
   actualResult     String?
   evaluation       String?
+  learningResult   String? // SUCCESS, FAILED, NO_CHANGE
   nextAction       String?
   ownerNote        String?
   
@@ -478,6 +479,8 @@ model OwnerCampaign {
   engaged         Int      @default(0)
   converted       Int      @default(0)
 
+  actionId        String? // Link to OwnerAction
+
   startAt         DateTime?
   endAt           DateTime?
   createdAt       DateTime @default(now())
@@ -494,6 +497,11 @@ model OwnerNotification {
   priority        String   @default("LOW") // CRITICAL, HIGH, MEDIUM, LOW
   channel         String   @default("IN_APP")
   status          String   @default("PENDING") // PENDING, READY, SENT, FAILED, CANCELLED
+  campaignId      String?
+  actionId        String?
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  failedAt        DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
