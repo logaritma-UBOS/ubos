@@ -141,7 +141,15 @@ export default async function CampaignsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <p className="font-black text-slate-900">{c.targetUsers}</p>
-                    {c.status === 'ACTIVE' && <p className="text-[9px] font-bold text-emerald-600">{c.queued} Queued</p>}
+                    {c.status !== 'DRAFT' && (
+                      <div className="text-[9px] font-bold mt-1 flex flex-col gap-0.5 items-end">
+                        <span className="text-slate-500">{c.queued} Queued</span>
+                        <span className="text-blue-500">{c.delivered} Delivered</span>
+                        <span className="text-amber-500">{c.opened} Opened</span>
+                        <span className="text-purple-500">{c.clicked} Clicked</span>
+                        <span className="text-emerald-600">{c.converted} Converted</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {c.status === "DRAFT" && (
