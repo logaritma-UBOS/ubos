@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { formatNumber } from "@/lib/format"
 import { runOwnerEngine } from "@/lib/ownerEngine"
+import { getOwnerOpportunities, getDailyBrief } from "@/lib/owner/opportunityEngine"
 
 export const dynamic = "force-dynamic"
 
@@ -109,6 +110,8 @@ export default async function AdminPilotPage() {
   ])
 
   const gapAnalysis = await runOwnerEngine()
+  const opportunities = await getOwnerOpportunities()
+  const dailyBrief = await getDailyBrief(opportunities)
   const activeActions = await prisma.ownerAction.findMany({
     where: { status: { in: ["ACCEPTED", "EXECUTED"] } },
     orderBy: { createdAt: "desc" },
@@ -159,10 +162,43 @@ export default async function AdminPilotPage() {
           </div>
         </div>
 
+        
+        {/* OWNER DAILY BRIEF */}
+        {dailyBrief && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 mt-6">
+            <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
+              <h2 className="text-sm font-black tracking-widest uppercase">UBOS HARI INI</h2>
+            </div>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Kondisi</p>
+                <p className="font-semibold text-slate-900">{dailyBrief.kondisi}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Masalah Utama</p>
+                <p className="font-semibold text-rose-600">{dailyBrief.masalah}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Dampak</p>
+                <p className="font-semibold text-slate-900">{dailyBrief.dampak}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Penyebab</p>
+                <p className="font-semibold text-slate-900">{dailyBrief.penyebab}</p>
+              </div>
+              <div className="md:col-span-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Action & Expected Result</p>
+                <p className="font-bold text-blue-900">{dailyBrief.action}</p>
+                <p className="text-xs text-blue-700 mt-1">Expected: {dailyBrief.expectedResult}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* LOGARITMA ENGINE DIAGNOSIS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Rekomendasi Utama (Logaritma)</h2>
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Top Opportunities (Logaritma)</h2>
             {gapAnalysis.length > 0 ? gapAnalysis.map((metric, i) => (
               <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50/50">
