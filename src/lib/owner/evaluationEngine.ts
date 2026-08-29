@@ -86,12 +86,16 @@ export async function evaluateActions() {
 
     const conversionRate = (convertedUsers.size / targetUserIds.length) * 100;
 
+    const deliveryRate = campaign.queued > 0 ? (campaign.delivered / campaign.queued) * 100 : 0;
+    const openRate = campaign.delivered > 0 ? (campaign.opened / campaign.delivered) * 100 : 0;
+    const clickRate = campaign.opened > 0 ? (campaign.clicked / campaign.opened) * 100 : 0;
+    const absConversionRate = targetUserIds.length > 0 ? (convertedUsers.size / targetUserIds.length) * 100 : 0;
+
     // Determine success
     let learningResult = "INCONCLUSIVE";
     if (daysSinceStart > 3) {
-      // Wait at least 3 days to judge
-      if (conversionRate >= 10) learningResult = "SUCCESS";
-      else if (conversionRate > 0) learningResult = "NO_CHANGE"; // Slight change but not enough to call success
+      if (absConversionRate >= 10) learningResult = "SUCCESS";
+      else if (absConversionRate > 0) learningResult = "NO_CHANGE";
       else learningResult = "FAILED";
     }
 
@@ -100,10 +104,10 @@ export async function evaluateActions() {
       where: { id: action.id },
       data: {
         actualAfter: convertedUsers.size,
-        actualResult: `${convertedUsers.size} dari ${targetUserIds.length} user melakukan aksi`,
-        evaluation: `Conversion Rate: ${conversionRate.toFixed(1)}%`,
+        actualResult: `Delivered: ${deliveryRate.toFixed(1)}% | Opened: ${openRate.toFixed(1)}% | Clicked: ${clickRate.toFixed(1)}% | Converted: ${absConversionRate.toFixed(1)}%`,
+        evaluation: `Conversion Rate: ${absConversionRate.toFixed(1)}% (${convertedUsers.size} users)`,
         learningResult: learningResult,
-        status: daysSinceStart >= 7 ? "EVALUATED" : "EXECUTED" // Mark evaluated if window passed
+        status: daysSinceStart >= 7 ? "EVALUATED" : "EXECUTED"
       }
     });
 

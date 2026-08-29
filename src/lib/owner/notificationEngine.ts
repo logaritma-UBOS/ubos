@@ -1,0 +1,150 @@
+import { prisma } from "../prisma";
+
+export interface NotificationPayload {
+  userId: string;
+  campaignId: string;
+  actionId?: string;
+  title?: string;
+  message: string;
+  cta?: string;
+  ctaUrl?: string;
+  channel: "IN_APP" | "WHATSAPP" | "EMAIL" | "PUSH";
+  idempotencyKey: string;
+}
+
+export abstract class NotificationProvider {
+  abstract channel: "IN_APP" | "WHATSAPP" | "EMAIL" | "PUSH";
+  abstract send(payload: NotificationPayload): Promise<{ success: boolean; error?: string }>;
+}
+
+export class InAppProvider extends NotificationProvider {
+  channel = "IN_APP" as const;
+  
+  async send(payload: NotificationPayload) {
+    // In-App is always ready because it just stays in the DB
+    return { success: true };
+  }
+}
+
+export class WhatsappProvider extends NotificationProvider {
+  channel = "WHATSAPP" as const;
+  async send(payload: NotificationPayload) {
+    return { success: false, error: "NOT_CONFIGURED" };
+  }
+}
+
+export class EmailProvider extends NotificationProvider {
+  channel = "EMAIL" as const;
+  async send(payload: NotificationPayload) {
+    return { success: false, error: "NOT_CONFIGURED" };
+  }
+}
+
+export class PushProvider extends NotificationProvider {
+  channel = "PUSH" as const;
+  async send(payload: NotificationPayload) {
+    return { success: false, error: "NOT_CONFIGURED" };
+  }
+}
+
+export class NotificationEngine {
+  private providers: Record<string, NotificationProvider> = {
+    "IN_APP": new InAppProvider(),
+    "WHATSAPP": new WhatsappProvider(),
+    "EMAIL": new EmailProvider(),
+    "PUSH": new PushProvider()
+  };
+
+  async processQueue() {
+    const readyNotifications = await prisma.ownerNotification.findMany({
+      where: { status: "READY" },
+      take: 50 // process in batches
+    });
+
+    for (const notif of readyNotifications) {
+      if (!notif.recipientId || !notif.campaignId) {
+        await this.markFailed(notif.id, "MISSING_RECIPIENT_OR_CAMPAIGN");
+        continue;
+      }
+
+      const provider = this.providers[notif.channel];
+      if (!provider) {
+        await this.markFailed(notif.id, "PROVIDER_NOT_FOUND");
+        continue;
+      }
+
+      const payload: NotificationPayload = {
+        userId: notif.recipientId,
+        campaignId: notif.campaignId,
+        actionId: notif.actionId || undefined,
+        title: notif.title || undefined,
+        message: notif.message,
+        cta: notif.cta || undefined,
+        ctaUrl: notif.ctaUrl || undefined,
+        channel: notif.channel as any,
+        idempotencyKey: notif.idempotencyKey || notif.id
+      };
+
+      try {
+        await prisma.ownerNotification.update({
+          where: { id: notif.id },
+          data: {
+            status: "SENDING",
+            lastAttemptAt: new Date(),
+            retryCount: { increment: 1 }
+          }
+        });
+
+        const result = await provider.send(payload);
+
+        if (result.success) {
+          await prisma.ownerNotification.update({
+            where: { id: notif.id },
+            data: { 
+              status: "SENT", 
+              sentAt: new Date(),
+              errorMessage: null 
+            }
+          });
+
+          const userBiz = await prisma.business.findFirst({
+            where: { userId: payload.userId }
+          });
+          const bizId = userBiz ? userBiz.id : "NO_BIZ_" + payload.userId;
+
+          // Track delivery
+          await prisma.pilotEvent.create({
+            data: {
+              eventName: "notification_delivered",
+              businessId: bizId, 
+              metadata: JSON.stringify({ campaignId: payload.campaignId, notificationId: notif.id }),
+            }
+          });
+          
+          await prisma.ownerCampaign.update({
+             where: { id: payload.campaignId },
+             data: { delivered: { increment: 1 } }
+          });
+        } else {
+          if (result.error === "NOT_CONFIGURED") {
+            await prisma.ownerNotification.update({
+              where: { id: notif.id },
+              data: { status: "READY", errorMessage: "NOT_CONFIGURED" }
+            });
+          } else {
+            await this.markFailed(notif.id, result.error || "UNKNOWN_ERROR");
+          }
+        }
+      } catch (e: any) {
+        await this.markFailed(notif.id, e.message);
+      }
+    }
+  }
+
+  private async markFailed(id: string, error: string) {
+    await prisma.ownerNotification.update({
+      where: { id },
+      data: { status: "FAILED", errorMessage: error, failedAt: new Date() }
+    });
+  }
+}

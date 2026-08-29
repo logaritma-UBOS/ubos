@@ -467,7 +467,10 @@ model OwnerCampaign {
   objective       String
   targetSegment   String
   trigger         String?
+  title           String?
   message         String
+  cta             String?
+  ctaUrl          String?
   channel         String   @default("IN_APP")
   status          String   @default("DRAFT") // DRAFT, ACTIVE, PAUSED, COMPLETED
   expectedResult  String?
@@ -476,6 +479,9 @@ model OwnerCampaign {
   eligibleUsers   Int      @default(0)
   queued          Int      @default(0)
   sent            Int      @default(0)
+  delivered       Int      @default(0)
+  opened          Int      @default(0)
+  clicked         Int      @default(0)
   engaged         Int      @default(0)
   converted       Int      @default(0)
 
@@ -493,7 +499,10 @@ model OwnerNotification {
   segment         String?
   trigger         String
   reason          String?
+  title           String?
   message         String
+  cta             String?
+  ctaUrl          String?
   priority        String   @default("LOW") // CRITICAL, HIGH, MEDIUM, LOW
   channel         String   @default("IN_APP")
   status          String   @default("PENDING") // PENDING, READY, SENT, FAILED, CANCELLED
@@ -502,6 +511,12 @@ model OwnerNotification {
   scheduledAt     DateTime?
   sentAt          DateTime?
   failedAt        DateTime?
+  readAt          DateTime?
+  clickedAt       DateTime?
+  idempotencyKey  String?  @unique
+  retryCount      Int      @default(0)
+  lastAttemptAt   DateTime?
+  errorMessage    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
