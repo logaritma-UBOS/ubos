@@ -1,8 +1,8 @@
-import { cookies } from "next/headers"
+﻿import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
-import { formatNumber } from "@/lib/format"
+import { formatNumber, formatRupiah } from "@/lib/format"
 import { runOwnerEngine, getRevenueSnapshot } from "@/lib/ownerEngine"
 
 export const dynamic = "force-dynamic"
@@ -74,9 +74,10 @@ async function setRevenueTarget(formData: FormData) {
   "use server"
   const cookieStore = await cookies()
   if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") throw new Error("Unauthorized")
-  const targetStr = formData.get("revenueTarget")?.toString() || ""
+  const targetStr = formData.get("revenueTarget")?.toString()?.trim() || ""
   const target = parseFloat(targetStr)
-  if (!isNaN(target) && target >= 0) {
+  // Reject: empty, NaN, 0, negative, or unreasonably large (> 100 trillion)
+  if (!isNaN(target) && target > 0 && target <= 100_000_000_000_000) {
     const key = "owner_revenue_target_weekly"
     const existing = await prisma.systemSetting.findUnique({ where: { key } })
     if (existing) {
@@ -161,26 +162,26 @@ export default async function AdminPilotPage() {
   const registerCount = totalUsers
   const activeCount = totalBusinesses
 
-  // Revenue Snapshot — real data from Sale.totalAmount
+  // Revenue Snapshot â€” real data from Sale.totalAmount (DB aggregated)
   const revenueSnapshot = await getRevenueSnapshot()
 
-  // Revenue target from SystemSetting
+  // Revenue target from SystemSetting (reject 0 and NaN)
   const revenueSetting = await prisma.systemSetting.findUnique({ where: { key: "owner_revenue_target_weekly" } })
-  const revenueTarget = revenueSetting ? parseFloat(revenueSetting.value) : null
+  const rawTarget = revenueSetting ? parseFloat(revenueSetting.value) : NaN
+  const revenueTarget: number | null = (!isNaN(rawTarget) && rawTarget > 0) ? rawTarget : null
 
-  // Revenue period trend
+  // Revenue trend: safe against division-by-zero and Infinity
   const revenueTrend = revenueSnapshot.previousPeriodRevenue > 0
     ? ((revenueSnapshot.currentPeriodRevenue - revenueSnapshot.previousPeriodRevenue) / revenueSnapshot.previousPeriodRevenue) * 100
     : null
-  const revenueGap = revenueTarget !== null
-    ? revenueSnapshot.currentPeriodRevenue - revenueTarget
+
+  // gapBefore for HIGHER_IS_BETTER: target - actual (positive = below target, negative = surplus)
+  const revenueGapBefore = revenueTarget !== null
+    ? revenueTarget - revenueSnapshot.currentPeriodRevenue
     : null
 
   // Run Owner Engine (includes revenue metric)
   const gapAnalysis = await runOwnerEngine()
-
-  // Format currency
-  const formatRp = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
   return (
     <AdminLayout activeMenu="control" logoutAction={logoutAdmin}>
@@ -232,7 +233,7 @@ export default async function AdminPilotPage() {
             </div>
           </div>
 
-          {/* REVENUE KPI — real data from Sale.totalAmount */}
+          {/* REVENUE KPI â€” real data from Sale.totalAmount */}
           <div className={`p-5 rounded-2xl shadow-sm border ${revenueSnapshot.totalTransactions > 0 ? 'bg-white border-gray-100' : 'bg-white border-gray-100 opacity-80'}`}>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue (7 Hari)</p>
             {revenueSnapshot.totalTransactions === 0 ? (
@@ -242,22 +243,22 @@ export default async function AdminPilotPage() {
               </>
             ) : (
               <>
-                <p className="text-xl font-black text-gray-900 leading-none">{formatRp(revenueSnapshot.currentPeriodRevenue)}</p>
+                <p className="text-xl font-black text-gray-900 leading-none">{formatRupiah(revenueSnapshot.currentPeriodRevenue)}</p>
                 <div className="flex items-center gap-2 mt-1">
                   {revenueTrend !== null ? (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${revenueTrend >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                      {revenueTrend >= 0 ? '▲' : '▼'} {Math.abs(revenueTrend).toFixed(1)}% vs 7H lalu
+                      {revenueTrend >= 0 ? 'â–²' : 'â–¼'} {Math.abs(revenueTrend).toFixed(1)}% vs 7H lalu
                     </span>
                   ) : (
-                    <span className="text-[10px] text-gray-400">Data sebelumnya: —</span>
+                    <span className="text-[10px] text-gray-400">Data sebelumnya: â€”</span>
                   )}
                 </div>
-                {revenueTarget !== null && revenueGap !== null && (
-                  <p className={`text-[10px] font-bold mt-1 ${revenueGap >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    Target: {formatRp(revenueTarget)} · Gap: {revenueGap >= 0 ? '+' : ''}{formatRp(revenueGap)}
+                {revenueTarget !== null && revenueGapBefore !== null && (
+                  <p className={`text-[10px] font-bold mt-1 ${revenueGapBefore <= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    Target: {formatRupiah(revenueTarget)} Â· Gap: {revenueGapBefore <= 0 ? '+' : ''}{formatRupiah(revenueGapBefore)}
                   </p>
                 )}
-                <p className="text-[9px] text-gray-400 mt-1">{formatNumber(revenueSnapshot.currentPeriodTransactions)} transaksi · ∅ {formatRp(revenueSnapshot.avgTransactionValue)}</p>
+                <p className="text-[9px] text-gray-400 mt-1">{formatNumber(revenueSnapshot.currentPeriodTransactions)} transaksi Â· âˆ… {formatRupiah(revenueSnapshot.avgTransactionValue)}</p>
               </>
             )}
           </div>
@@ -279,7 +280,7 @@ export default async function AdminPilotPage() {
             <div>
               <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Revenue Intelligence</p>
               <h3 className="text-lg font-bold text-gray-900">Performa Revenue Aktual</h3>
-              <p className="text-[10px] text-gray-400 mt-0.5">Sumber: <code>Sale.totalAmount</code> — Agregasi Global Semua Merchant</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Sumber: <code>Sale.totalAmount</code> â€” Agregasi Global Semua Merchant</p>
             </div>
             {/* Target setter */}
             <form action={setRevenueTarget} className="flex items-center gap-2 flex-shrink-0">
@@ -302,37 +303,36 @@ export default async function AdminPilotPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">7 Hari Terakhir</p>
-              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.currentPeriodRevenue)}</p>
+              <p className="text-lg font-black text-gray-900">{formatRupiah(revenueSnapshot.currentPeriodRevenue)}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.currentPeriodTransactions} transaksi</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">7 Hari Sebelumnya</p>
-              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.previousPeriodRevenue)}</p>
+              <p className="text-lg font-black text-gray-900">{formatRupiah(revenueSnapshot.previousPeriodRevenue)}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.previousPeriodTransactions} transaksi</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">All Time Revenue</p>
-              <p className="text-lg font-black text-gray-900">{formatRp(revenueSnapshot.allTimeRevenue)}</p>
+              <p className="text-lg font-black text-gray-900">{formatRupiah(revenueSnapshot.allTimeRevenue)}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">{revenueSnapshot.totalTransactions} transaksi total</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Avg Transaksi</p>
-              <p className="text-lg font-black text-gray-900">{revenueSnapshot.totalTransactions > 0 ? formatRp(revenueSnapshot.avgTransactionValue) : '—'}</p>
+              <p className="text-lg font-black text-gray-900">{revenueSnapshot.totalTransactions > 0 ? formatRupiah(revenueSnapshot.avgTransactionValue) : 'â€”'}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">Per transaksi (all time)</p>
             </div>
           </div>
 
-          {revenueTarget !== null && revenueGap !== null && (
-            <div className={`mt-4 p-4 rounded-xl flex items-center gap-3 ${revenueGap >= 0 ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
-              <span className={`text-2xl ${revenueGap >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{revenueGap >= 0 ? '✓' : '▽'}</span>
+          {revenueTarget !== null && revenueGapBefore !== null && (
+            <div className={`mt-4 p-4 rounded-xl flex items-center gap-3 ${revenueGapBefore <= 0 ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
+              <span className={`text-2xl ${revenueGapBefore <= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{revenueGapBefore >= 0 ? 'âœ“' : 'â–½'}</span>
               <div>
-                <p className={`text-sm font-bold ${revenueGap >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
-                  {revenueGap >= 0
-                    ? `TARGET TERCAPAI — Surplus ${formatRp(Math.abs(revenueGap))}`
-                    : `GAP REVENUE — Kekurangan ${formatRp(Math.abs(revenueGap))} dari target`}
+                <p className={`text-sm font-bold ${revenueGapBefore <= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                  {revenueGapBefore <= 0 ? `TARGET TERCAPAI â€” Surplus ${formatRupiah(Math.abs(revenueGapBefore))}`
+                    : `GAP REVENUE â€” Kekurangan ${formatRupiah(Math.abs(revenueGapBefore))} dari target`}
                 </p>
                 <p className="text-[10px] text-gray-500 mt-0.5">
-                  Target: {formatRp(revenueTarget)} · Aktual 7H: {formatRp(revenueSnapshot.currentPeriodRevenue)} · gapBefore = actualBefore − target = {formatRp(revenueGap)}
+                  Target: {formatRupiah(revenueTarget)} Â· Aktual 7H: {formatRupiah(revenueSnapshot.currentPeriodRevenue)} Â· gapBefore = target - actual = {formatRupiah(revenueGapBefore)}
                 </p>
               </div>
             </div>

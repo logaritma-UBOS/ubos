@@ -1,4 +1,20 @@
 import { prisma } from "./prisma"
+import { getStartOfDayUTC } from "./engines/timeEngine"
+
+// Owner Backend timezone (global — all merchants, WIB by convention)
+const OWNER_TZ = "Asia/Jakarta"
+
+/** Compute a 7-day rolling window boundary in WIB-aligned UTC */
+function getWeekBoundaries() {
+  const now = new Date()
+  // "Now" aligned to WIB — but for rolling 7d window we subtract milliseconds,
+  // not calendar days, so UTC offset doesn't affect the window width.
+  // We DO want the "start of today" in WIB so reports are stable intra-day.
+  const startOfToday = getStartOfDayUTC(OWNER_TZ, now)
+  const startOfCurrent = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const startOfPrevious = new Date(startOfToday.getTime() - 14 * 24 * 60 * 60 * 1000)
+  return { now, startOfToday, startOfCurrent, startOfPrevious }
+}
 
 export interface OwnerMetric {
   metric: string
@@ -20,8 +36,8 @@ export interface OwnerMetric {
 }
 
 export interface RevenueSnapshot {
-  currentPeriodRevenue: number   // 7 days
-  previousPeriodRevenue: number  // 7 days prior
+  currentPeriodRevenue: number
+  previousPeriodRevenue: number
   allTimeRevenue: number
   totalTransactions: number
   currentPeriodTransactions: number
@@ -31,58 +47,54 @@ export interface RevenueSnapshot {
 }
 
 export async function getRevenueSnapshot(): Promise<RevenueSnapshot> {
-  const now = new Date()
-  const startOfCurrent = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const startOfPrevious = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+  const { startOfToday, startOfCurrent, startOfPrevious } = getWeekBoundaries()
 
-  // Current period: last 7 days
-  const currentSales = await prisma.sale.findMany({
-    where: { createdAt: { gte: startOfCurrent } },
-    select: { totalAmount: true }
-  })
+  // Use DB-level aggregation — avoids loading all rows into memory
+  const [currentAgg, previousAgg, allTimeAgg, currentCount, previousCount, allTimeCount] = await Promise.all([
+    prisma.sale.aggregate({
+      where: { createdAt: { gte: startOfCurrent, lt: startOfToday } },
+      _sum: { totalAmount: true },
+    }),
+    prisma.sale.aggregate({
+      where: { createdAt: { gte: startOfPrevious, lt: startOfCurrent } },
+      _sum: { totalAmount: true },
+    }),
+    prisma.sale.aggregate({
+      _sum: { totalAmount: true },
+    }),
+    prisma.sale.count({ where: { createdAt: { gte: startOfCurrent, lt: startOfToday } } }),
+    prisma.sale.count({ where: { createdAt: { gte: startOfPrevious, lt: startOfCurrent } } }),
+    prisma.sale.count(),
+  ])
 
-  // Previous period: 7-14 days ago
-  const previousSales = await prisma.sale.findMany({
-    where: { createdAt: { gte: startOfPrevious, lt: startOfCurrent } },
-    select: { totalAmount: true }
-  })
-
-  // All time
-  const allSales = await prisma.sale.findMany({
-    select: { totalAmount: true }
-  })
-
-  const currentPeriodRevenue = currentSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
-  const previousPeriodRevenue = previousSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
-  const allTimeRevenue = allSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
-  const totalTransactions = allSales.length
-  const currentPeriodTransactions = currentSales.length
-  const previousPeriodTransactions = previousSales.length
-  const avgTransactionValue = totalTransactions > 0
-    ? Math.round(allTimeRevenue / totalTransactions)
+  const currentPeriodRevenue = currentAgg._sum.totalAmount ?? 0
+  const previousPeriodRevenue = previousAgg._sum.totalAmount ?? 0
+  const allTimeRevenue = allTimeAgg._sum.totalAmount ?? 0
+  const avgTransactionValue = allTimeCount > 0
+    ? Math.round(allTimeRevenue / allTimeCount)
     : 0
 
   return {
     currentPeriodRevenue,
     previousPeriodRevenue,
     allTimeRevenue,
-    totalTransactions,
-    currentPeriodTransactions,
-    previousPeriodTransactions,
+    totalTransactions: allTimeCount,
+    currentPeriodTransactions: currentCount,
+    previousPeriodTransactions: previousCount,
     avgTransactionValue,
-    periodLabel: "7 Hari Terakhir"
+    periodLabel: "7 Hari Terakhir (WIB)"
   }
 }
 
 export async function runOwnerEngine(): Promise<OwnerMetric[]> {
-  const now = new Date()
-  const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const startOfPreviousWeek = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+  const { startOfToday, startOfCurrent, startOfPrevious } = getWeekBoundaries()
+  const startOfWeek = startOfCurrent   // alias for readability
+  const startOfPreviousWeek = startOfPrevious
 
   const totalUsers = await prisma.user.count()
   
   const activeBusinessesEvents = await prisma.pilotEvent.findMany({ 
-    where: { createdAt: { gte: startOfWeek } }, 
+    where: { createdAt: { gte: startOfWeek, lt: startOfToday } }, 
     select: { businessId: true } 
   })
   const activeBusinessesIds = [...new Set(activeBusinessesEvents.map(e => e.businessId))].filter(Boolean)
@@ -108,39 +120,51 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
   const hppUsage = await prisma.pilotEvent.count({ where: { eventName: 'hpp_created' } })
   const posUsage = await prisma.pilotEvent.count({ where: { eventName: 'pos_transaction_completed' } })
 
-  // Revenue data: actual SUM from Sale.totalAmount
-  const currentSales = await prisma.sale.findMany({
-    where: { createdAt: { gte: startOfWeek } },
-    select: { totalAmount: true }
-  })
-  const previousSales = await prisma.sale.findMany({
-    where: { createdAt: { gte: startOfPreviousWeek, lt: startOfWeek } },
-    select: { totalAmount: true }
-  })
-  const currentRevenue = currentSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
-  const previousRevenue = previousSales.reduce((sum, s) => sum + (s.totalAmount ?? 0), 0)
+  // Revenue: DB aggregation, no in-memory SUM
+  const [currentAgg, previousAgg] = await Promise.all([
+    prisma.sale.aggregate({
+      where: { createdAt: { gte: startOfWeek, lt: startOfToday } },
+      _sum: { totalAmount: true },
+      _count: true,
+    }),
+    prisma.sale.aggregate({
+      where: { createdAt: { gte: startOfPreviousWeek, lt: startOfWeek } },
+      _sum: { totalAmount: true },
+      _count: true,
+    }),
+  ])
 
-  // Revenue target: read from SystemSetting if set, otherwise null (no fake target)
+  const currentRevenue = currentAgg._sum.totalAmount ?? 0
+  const previousRevenue = previousAgg._sum.totalAmount ?? 0
+  const currentTxCount = currentAgg._count
+  const previousTxCount = previousAgg._count
+
+  // Revenue target: SystemSetting only — no hardcoded default
   const revenueSetting = await prisma.systemSetting.findUnique({ where: { key: "owner_revenue_target_weekly" } })
-  const revenueTarget = revenueSetting ? parseFloat(revenueSetting.value) : null
+  const rawTarget = revenueSetting ? parseFloat(revenueSetting.value) : NaN
+  const revenueTarget: number | null = !isNaN(rawTarget) && rawTarget > 0 ? rawTarget : null
 
   const analysis: OwnerMetric[] = []
 
   // ─── METRIC 0: WEEKLY REVENUE INTELLIGENCE ───────────────────────────────
-  // Only push if we have transaction data OR there's a set target
-  if (currentSales.length > 0 || previousSales.length > 0 || revenueTarget !== null) {
-    const hasTarget = revenueTarget !== null && revenueTarget > 0
-    const revenueGap = hasTarget ? currentRevenue - revenueTarget : 0
-    const revenueTrend = previousRevenue > 0
-      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
-      : null
+  // Trigger only when there's a real gap or a real negative trend
+  if (currentTxCount > 0 || previousTxCount > 0 || revenueTarget !== null) {
+    const hasTarget = revenueTarget !== null
 
-    // Severity: if has target, use gap; if no target, use trend
+    // gapBefore for HIGHER_IS_BETTER = target - actual (positive means below target)
+    const gapBefore = hasTarget ? revenueTarget - currentRevenue : 0
+
+    // Trend: safe against division by zero and zero-previous
+    const revenueTrend: number | null = previousRevenue > 0
+      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
+      : (currentRevenue > 0 ? null : null)  // No comparison possible if prev = 0
+
+    // Severity
     let severity: "LOW" | "MEDIUM" | "HIGH" = "LOW"
     if (hasTarget) {
-      const gapRatio = revenueGap / revenueTarget
-      if (gapRatio < -0.3) severity = "HIGH"
-      else if (gapRatio < -0.1) severity = "MEDIUM"
+      const gapRatio = gapBefore / revenueTarget
+      if (gapRatio > 0.3) severity = "HIGH"
+      else if (gapRatio > 0.1) severity = "MEDIUM"
       else severity = "LOW"
     } else if (revenueTrend !== null) {
       if (revenueTrend < -20) severity = "HIGH"
@@ -148,50 +172,43 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
       else severity = "LOW"
     }
 
-    // Confidence: based on transaction volume
+    // Confidence
     const confidence: "LOW" | "MEDIUM" | "HIGH" =
-      currentSales.length >= 50 ? "HIGH" : currentSales.length >= 10 ? "MEDIUM" : "LOW"
+      currentTxCount >= 50 ? "HIGH" : currentTxCount >= 10 ? "MEDIUM" : "LOW"
 
-    // Recommendation: based on gap / trend
     let recommendation = ""
     let cause = ""
     let expectedResult = ""
 
-    if (hasTarget && revenueGap < 0) {
-      const deficit = Math.abs(revenueGap)
-      const remainingDays = 7
-      const neededPerDay = Math.round(deficit / remainingDays)
-      cause = `Revenue periode berjalan lebih rendah ${deficit.toLocaleString('id-ID')} dari target mingguan.`
-      recommendation = `Dorong aktivitas POS di bisnis aktif. Target tambahan Rp ${neededPerDay.toLocaleString('id-ID')}/hari untuk menutup gap.`
-      expectedResult = `Revenue 7 hari mendekati atau melampaui target Rp ${revenueTarget!.toLocaleString('id-ID')}`
+    if (hasTarget && gapBefore > 0) {
+      const deficit = gapBefore
+      const neededPerDay = Math.round(deficit / 7)
+      cause = `Revenue 7 hari lebih rendah ${deficit.toLocaleString('id-ID')} dari target mingguan.`
+      recommendation = `Dorong aktivitas POS di bisnis aktif. Butuh tambahan Rp ${neededPerDay.toLocaleString('id-ID')}/hari untuk menutup gap.`
+      expectedResult = `Revenue 7 hari mendekati atau melampaui target Rp ${revenueTarget.toLocaleString('id-ID')}`
     } else if (revenueTrend !== null && revenueTrend < -5) {
-      cause = `Revenue 7 hari ini (Rp ${currentRevenue.toLocaleString('id-ID')}) turun ${Math.abs(revenueTrend).toFixed(1)}% dari periode sebelumnya.`
+      cause = `Revenue 7 hari (Rp ${currentRevenue.toLocaleString('id-ID')}) turun ${Math.abs(revenueTrend).toFixed(1)}% dari periode sebelumnya.`
       recommendation = `Cek bisnis yang aktif minggu lalu namun tidak transaksi minggu ini. Lakukan re-engagement via WhatsApp atau promo.`
       expectedResult = `Revenue kembali setara atau melampaui periode sebelumnya (Rp ${previousRevenue.toLocaleString('id-ID')})`
-    } else if (revenueTrend !== null && revenueTrend >= 0) {
-      cause = `Revenue 7 hari ini naik ${revenueTrend.toFixed(1)}% dari periode sebelumnya.`
-      recommendation = `Pertahankan momentum. Pantau bisnis dengan volume transaksi tinggi untuk optimasi margin.`
-      expectedResult = `Revenue tetap tumbuh positif minggu berikutnya`
     } else {
-      cause = `Revenue 7 hari terbaca: Rp ${currentRevenue.toLocaleString('id-ID')}. Belum ada data pembanding yang cukup.`
-      recommendation = `Pastikan seluruh bisnis aktif menggunakan fitur POS secara konsisten.`
-      expectedResult = `Peningkatan frekuensi transaksi POS`
+      cause = ""
+      recommendation = ""
+      expectedResult = ""
     }
 
-    // Only push as gap-based recommendation if there's an actual gap
-    const shouldRecommend = (hasTarget && revenueGap < 0) || (revenueTrend !== null && revenueTrend < -5)
+    const shouldRecommend = (hasTarget && gapBefore > 0) || (revenueTrend !== null && revenueTrend < -5)
 
     if (shouldRecommend) {
       analysis.push({
         metric: "Revenue Mingguan",
         goal: hasTarget
-          ? `Revenue 7 hari mencapai target Rp ${revenueTarget!.toLocaleString('id-ID')}`
+          ? `Revenue 7 hari mencapai target Rp ${revenueTarget.toLocaleString('id-ID')}`
           : `Revenue minggu ini melampaui periode sebelumnya`,
-        target: hasTarget ? revenueTarget! : previousRevenue,
+        target: hasTarget ? revenueTarget : previousRevenue,
         actual: currentRevenue,
-        gap: hasTarget ? revenueGap : (currentRevenue - previousRevenue),
+        gap: hasTarget ? gapBefore : (currentRevenue - previousRevenue),
         gapPercentage: hasTarget
-          ? Math.round((revenueGap / revenueTarget!) * 100)
+          ? Math.round((gapBefore / revenueTarget) * 100)
           : (revenueTrend !== null ? Math.round(revenueTrend) : 0),
         severity,
         where: "POS / Kasir — Seluruh Merchant",
