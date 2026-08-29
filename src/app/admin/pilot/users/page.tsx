@@ -30,7 +30,7 @@ export default async function AdminUsersPage() {
     select: { businessId: true, eventName: true }
   })
   
-  const hasHppMap = new Set(events.filter(e => e.eventName === "hpp_calculated").map(e => e.businessId))
+  const hasHppMap = new Set(events.filter(e => e.eventName === "hpp_created").map(e => e.businessId))
   const hasPosMap = new Set(events.filter(e => e.eventName === "pos_transaction_completed").map(e => e.businessId))
 
   return (
@@ -121,3 +121,4 @@ export default async function AdminUsersPage() {
     </AdminLayout>
   )
 }
+

@@ -30,7 +30,7 @@ export default async function AdminConversionPage() {
   }
 
   const events = await prisma.pilotEvent.findMany({ select: { businessId: true, eventName: true } })
-  const hasHppMap = new Set(events.filter(e => e.eventName === "hpp_calculated").map(e => e.businessId))
+  const hasHppMap = new Set(events.filter(e => e.eventName === "hpp_created").map(e => e.businessId))
   const hasPosMap = new Set(events.filter(e => e.eventName === "pos_transaction_completed").map(e => e.businessId))
   
   let hppCount = 0
@@ -107,3 +107,4 @@ export default async function AdminConversionPage() {
     </AdminLayout>
   )
 }
+

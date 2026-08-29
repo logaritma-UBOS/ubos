@@ -48,7 +48,7 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
     if (b.sales.length > 0) businessesWithTx++
   }
 
-  const hppUsage = await prisma.pilotEvent.count({ where: { eventName: 'hpp_calculated' } })
+  const hppUsage = await prisma.pilotEvent.count({ where: { eventName: 'hpp_created' } })
   const posUsage = await prisma.pilotEvent.count({ where: { eventName: 'pos_transaction_completed' } })
 
   const analysis: OwnerMetric[] = []
@@ -149,3 +149,4 @@ export async function runOwnerEngine(): Promise<OwnerMetric[]> {
 
   return analysis
 }
+
