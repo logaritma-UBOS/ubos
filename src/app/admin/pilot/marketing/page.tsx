@@ -1,54 +1,41 @@
 ﻿import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
-import { formatNumber } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
 
-export default async function AdminMarketingPage() {
+export default async function MarketingControlPage() {
   const cookieStore = await cookies()
-  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") {
-    redirect("/admin/pilot")
-  }
-  
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") return <div className="p-8">Unauthorized</div>
+
+  const opportunities = [
+    { segment: "NOT_ACTIVATED", trigger: "User terdaftar > 1 hari tapi belum buat bisnis", action: "Kirim WA Reminder Onboarding", priority: "HIGH" },
+    { segment: "INACTIVE", trigger: "Pernah aktif tapi tidak login 7 hari", action: "Kirim Weekly Insight WA", priority: "MEDIUM" },
+    { segment: "ACTIVE", trigger: "Sudah aktif, fitur POS terpakai rutin", action: "Tawarkan Upgrade/Premium (Coming Soon)", priority: "LOW" }
+  ]
+
   return (
     <AdminLayout activeMenu="marketing">
-      <div className="p-4 md:p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 min-h-full">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Marketing Attribution</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Menjawab pertanyaan: Campaign mana yang menghasilkan user, activation, dan paid user?</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Marketing Control</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Peluang intervensi marketing berdasarkan segment pengguna</p>
         </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-h-[400px]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Campaign Performance (UTM Tracking)</h3>
-            <span className="px-3 py-1 bg-rose-100 text-rose-700 text-[10px] font-black uppercase rounded border border-rose-200 tracking-widest">DATA BELUM TERSEDIA</span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  <th className="p-4">UTM Campaign</th>
-                  <th className="p-4">Source / Medium</th>
-                  <th className="p-4">Leads</th>
-                  <th className="p-4">Registered</th>
-                  <th className="p-4">Activated</th>
-                  <th className="p-4">Paid User</th>
-                  <th className="p-4">Conv. Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colSpan={7} className="p-12 text-center">
-                    <p className="text-sm text-gray-500 font-medium mb-2">Sistem belum merekam jejak atribusi pemasaran (UTM parameter).</p>
-                    <p className="text-xs text-gray-400">Skema membutuhkan tambahan layer UTM (utm_source, utm_medium, utm_campaign, utm_content, utm_term) saat registrasi.</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        
+        <div className="grid gap-4">
+          {opportunities.map((opp, i) => (
+            <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Segment: {opp.segment}</p>
+                <p className="text-lg font-black text-slate-900">{opp.trigger}</p>
+                <p className="text-sm text-slate-600 font-medium mt-1">Rekomendasi: <span className="text-blue-600 font-bold">{opp.action}</span></p>
+              </div>
+              <div>
+                <span className={"px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest "}>
+                  Priority: {opp.priority}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </AdminLayout>

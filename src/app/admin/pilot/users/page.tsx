@@ -1,124 +1,100 @@
 ﻿import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { formatNumber } from "@/lib/format"
+import { getStartOfDayUTC } from "@/lib/engines/timeEngine"
 
 export const dynamic = "force-dynamic"
 
-export default async function AdminUsersPage() {
+export default async function UserIntelligencePage() {
   const cookieStore = await cookies()
-  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") {
-    redirect("/admin/pilot")
-  }
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") return <div className="p-8">Unauthorized</div>
 
-  // Fetch all users with their business relations
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      businesses: {
-        include: {
-          products: { select: { id: true } },
-          ingredients: { select: { id: true } },
-          sales: { select: { id: true } }
-        }
+  const now = new Date()
+  const tz = "Asia/Jakarta"
+  const today = getStartOfDayUTC(tz, now)
+  const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const fourteenDaysAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  // Fetch base data
+  const totalUsers = await prisma.user.count()
+  const usersNew = await prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } })
+  const allBusinesses = await prisma.business.findMany({ select: { id: true, userId: true } })
+  const activeEvents = await prisma.pilotEvent.findMany({ where: { createdAt: { gte: sevenDaysAgo } }, select: { businessId: true } })
+  const activeEvents14 = await prisma.pilotEvent.findMany({ where: { createdAt: { gte: fourteenDaysAgo } }, select: { businessId: true } })
+
+  const businessIdsActive7d = new Set(activeEvents.map(e => e.businessId).filter(Boolean))
+  const businessIdsActive14d = new Set(activeEvents14.map(e => e.businessId).filter(Boolean))
+
+  const usersWithBusiness = new Set(allBusinesses.map(b => b.userId))
+  
+  let activated = usersWithBusiness.size
+  let notActivated = totalUsers - activated
+  
+  let activeUsers = 0
+  let inactiveUsers = 0
+  let churnRiskUsers = 0
+
+  // We consider a user ACTIVE if ANY of their businesses are active in 7d
+  // INACTIVE if they have a business but NO businesses active in 7d
+  // CHURN RISK if they have a business but NO businesses active in 14d
+
+  const userBusinessMap = new Map<string, string[]>()
+  allBusinesses.forEach(b => {
+    if (!userBusinessMap.has(b.userId)) userBusinessMap.set(b.userId, [])
+    userBusinessMap.get(b.userId)!.push(b.id)
+  })
+
+  userBusinessMap.forEach((businessIds) => {
+    const isActive7d = businessIds.some(id => businessIdsActive7d.has(id))
+    const isActive14d = businessIds.some(id => businessIdsActive14d.has(id))
+    
+    if (isActive7d) {
+      activeUsers++
+    } else {
+      if (isActive14d) {
+        inactiveUsers++ // Inactive 7d but active 14d
+      } else {
+        churnRiskUsers++ // Inactive >14d
       }
     }
   })
 
-  // Also get the pilot events to see who did HPP vs POS
-  const events = await prisma.pilotEvent.findMany({
-    select: { businessId: true, eventName: true }
-  })
-  
-  const hasHppMap = new Set(events.filter(e => e.eventName === "hpp_created").map(e => e.businessId))
-  const hasPosMap = new Set(events.filter(e => e.eventName === "pos_transaction_completed").map(e => e.businessId))
-
   return (
     <AdminLayout activeMenu="users">
-      <div className="p-4 md:p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 min-h-full">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Users Journey</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Lacak funnel dan aktivitas tiap user (Data Real)</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">User Intelligence</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Siapa yang perlu diperhatikan Owner sekarang?</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  <th className="p-4">User</th>
-                  <th className="p-4">Tanggal Daftar</th>
-                  <th className="p-4">Business</th>
-                  <th className="p-4">Journey Stage</th>
-                  <th className="p-4">First Data</th>
-                  <th className="p-4">First HPP</th>
-                  <th className="p-4">First POS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {users.map(user => {
-                  const hasBusiness = user.businesses.length > 0
-                  const business = hasBusiness ? user.businesses[0] : null
-                  
-                  const hasData = business ? (business.products.length > 0 || business.ingredients.length > 0) : false
-                  const hasHpp = business ? hasHppMap.has(business.id) : false
-                  const hasPos = business ? hasPosMap.has(business.id) || business.sales.length > 0 : false
-                  
-                  let statusColor = "bg-gray-100 text-gray-600"
-                  let statusText = "REGISTERED"
-                  
-                  if (hasPos) {
-                    statusColor = "bg-rose-100 text-rose-700"
-                    statusText = "ACTIVE (POS)"
-                  } else if (hasHpp) {
-                    statusColor = "bg-emerald-100 text-emerald-700"
-                    statusText = "ACTIVE (HPP)"
-                  } else if (hasData) {
-                    statusColor = "bg-blue-100 text-blue-700"
-                    statusText = "FIRST DATA"
-                  } else if (hasBusiness) {
-                    statusColor = "bg-amber-100 text-amber-700"
-                    statusText = "BIZ CREATED"
-                  }
-
-                  return (
-                    <tr key={user.id} className="hover:bg-gray-50/50">
-                      <td className="p-4">
-                        <p className="font-bold text-sm text-gray-900">{user.name || "No Name"}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </td>
-                      <td className="p-4 text-sm text-gray-600">
-                        {new Date(user.createdAt).toLocaleDateString('id-ID')}
-                      </td>
-                      <td className="p-4 text-sm text-gray-800 font-medium">
-                        {business ? business.name : "-"}
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded ${statusColor}`}>
-                          {statusText}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-center">
-                        {hasData ? "✅" : "❌"}
-                      </td>
-                      <td className="p-4 text-sm text-center">
-                        {hasHpp ? "✅" : "❌"}
-                      </td>
-                      <td className="p-4 text-sm text-center">
-                        {hasPos ? "✅" : "❌"}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Registered</p>
+            <p className="text-2xl font-black text-slate-900">{formatNumber(totalUsers)}</p>
           </div>
-          {users.length === 0 && (
-            <div className="p-8 text-center text-gray-500 text-sm">Belum ada data user.</div>
-          )}
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm border-l-4 border-l-blue-500">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">User Baru (7H)</p>
+            <p className="text-2xl font-black text-blue-600">{formatNumber(usersNew)}</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm border-l-4 border-l-amber-500">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Not Activated</p>
+            <p className="text-2xl font-black text-amber-600">{formatNumber(notActivated)}</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm border-l-4 border-l-emerald-500">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Active (7H)</p>
+            <p className="text-2xl font-black text-emerald-600">{formatNumber(activeUsers)}</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm border-l-4 border-l-orange-500">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Inactive (7-14H)</p>
+            <p className="text-2xl font-black text-orange-600">{formatNumber(inactiveUsers)}</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm border-l-4 border-l-rose-500">
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Churn Risk (&gt;14H)</p>
+            <p className="text-2xl font-black text-rose-600">{formatNumber(churnRiskUsers)}</p>
+          </div>
         </div>
       </div>
     </AdminLayout>
   )
 }
-
