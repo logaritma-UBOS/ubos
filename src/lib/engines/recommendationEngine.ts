@@ -17,12 +17,21 @@ export function generateRecommendations(params: {
   actualTransactions: number
   targetAOV: number
   actualAOV: number
-  marginDrop: boolean // true if current margin < target margin
+  marginDrop: boolean
+  highExpense: boolean         // NEW: expenses > 30% of omzet
+  expenses: number             // NEW: total expenses today
+  netProfit: number            // NEW: omzet - hpp - expenses
   lowStockItems: string[]
   confidence: DataConfidence
 }): Recommendation[] {
-  const { targetOmzet, actualOmzet, targetTransactions, actualTransactions, targetAOV, actualAOV, marginDrop, lowStockItems, confidence } = params
-  
+  const {
+    targetOmzet, actualOmzet,
+    targetTransactions, actualTransactions,
+    targetAOV, actualAOV,
+    marginDrop, highExpense, expenses, netProfit,
+    lowStockItems, confidence
+  } = params
+
   // PRIORITY 1: Data Tidak Cukup
   if (confidence === "LOW") {
     return [{
@@ -49,15 +58,27 @@ export function generateRecommendations(params: {
     })
   }
 
-  // PRIORITY 3: Critical Margin
-  if (actualOmzet >= targetOmzet && marginDrop) {
+  // PRIORITY 3: Margin Drop — omzet oke tapi untung tipis karena HPP naik
+  if (actualOmzet >= targetOmzet && marginDrop && !highExpense) {
     recs.push({
       ruleId: "RULE_3_MARGIN_DROP",
-      priority: 80,
+      priority: 82,
       type: "MARGIN",
-      causeText: "Omzet capai target, tapi keuntungan bersih tipis.",
-      actionText: "Periksa harga bahan baku yang sedang naik (HPP tinggi).",
+      causeText: "Omzet capai target, tapi keuntungan bersih tipis karena modal/HPP membengkak.",
+      actionText: "Periksa harga bahan baku yang sedang naik di menu Katalog.",
       expectedResult: "Margin kembali normal tanpa perlu capek nambah pelanggan."
+    })
+  }
+
+  // PRIORITY 3b: High Expense — pengeluaran operasional terlalu besar
+  if (highExpense) {
+    recs.push({
+      ruleId: "RULE_6_HIGH_EXPENSE",
+      priority: 80,
+      type: "EXPENSE",
+      causeText: `Pengeluaran operasional hari ini terlalu tinggi dan menggerus keuntungan bersih.`,
+      actionText: "Tinjau catatan pengeluaran hari ini. Efisiensi di mana bisa dikurangi.",
+      expectedResult: "Untung bersih meningkat tanpa harus naikkan omzet."
     })
   }
 
@@ -76,7 +97,7 @@ export function generateRecommendations(params: {
         actionText: "Lakukan Up-Selling (Tawarkan tambah es teh/kerupuk di kasir).",
         expectedResult: `Omzet naik tanpa perlu cari pelanggan baru.`
       })
-    } 
+    }
     // PRIORITY 5: Low Transactions
     else if (!txIsClose && aovIsClose) {
       recs.push({
@@ -87,7 +108,7 @@ export function generateRecommendations(params: {
         actionText: "Sebarkan promo di grup WA / tawarkan diskon kecil untuk pancing pelanggan baru.",
         expectedResult: `Tambah pelanggan lagi hari ini.`
       })
-    } 
+    }
     // Both low
     else {
       recs.push({
@@ -101,17 +122,17 @@ export function generateRecommendations(params: {
     }
   }
 
-  // Jika sukses dan aman
-  if (actualOmzet >= targetOmzet && !marginDrop && recs.length === 0) {
+  // Jika sukses dan aman (omzet tercapai, margin sehat, pengeluaran normal)
+  if (actualOmzet >= targetOmzet && !marginDrop && !highExpense && recs.length === 0) {
     recs.push({
       ruleId: "RULE_0_SUCCESS",
       priority: 10,
       type: "SUCCESS",
-      causeText: "Target omzet hari ini sudah tercapai dengan sehat.",
+      causeText: "Target omzet hari ini sudah tercapai dan keuangan sehat.",
       actionText: "Pertahankan performa atau dorong up-sell kecil-kecilan.",
       expectedResult: "Tutup toko dengan tenang."
     })
   }
 
-  return recs.sort((a,b) => b.priority - a.priority)
+  return recs.sort((a, b) => b.priority - a.priority)
 }

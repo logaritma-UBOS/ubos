@@ -17,7 +17,7 @@ export default function LandingPage() {
   const faqs = [
     { q: "Apakah UBOS cocok untuk bisnis F&B?", a: "Sangat cocok. UBOS dilengkapi dengan fitur manajemen bahan baku (resep) dan kalkulator HPP otomatis untuk bisnis kuliner." },
     { q: "Apakah bisa digunakan untuk toko retail atau jasa?", a: "Tentu. Anda bisa mematikan fitur resep dan menggunakan UBOS murni sebagai sistem kasir (POS), pencatatan inventaris, atau pemantauan layanan jasa." },
-    { q: "Apakah butuh koneksi internet yang cepat?", a: "UBOS dirancang agar tetap bisa memproses transaksi pada kondisi offline (Pending state), dan akan otomatis sinkronisasi saat internet kembali stabil." },
+    { q: "Apakah butuh koneksi internet yang cepat?", a: "Saat ini UBOS berbasis Cloud Web, sehingga membutuhkan koneksi internet (kuota seluler standar sudah cukup) agar data stok, HPP, dan transaksi kasir sinkron secara real-time." },
   ]
 
   return (
@@ -138,7 +138,7 @@ export default function LandingPage() {
                   <p className="text-xs font-semibold text-blue-600">65% dari target tercapai</p>
                 </div>
                 <div className="bg-blue-50/50 rounded-xl p-5 border border-blue-100 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                  <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">? Prioritas Tindakan</p>
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">🔥 Prioritas Tindakan</p>
                   <p className="text-lg font-bold text-slate-900 mb-1 leading-snug">Buat Promo Diskon Spesial Sore</p>
                   <p className="text-sm text-slate-600">Lalu lintas pengunjung sedang turun. Berikan diskon untuk dorong penjualan.</p>
                 </div>
@@ -247,8 +247,8 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100">
                 <IconCash className="w-7 h-7" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Kasir POS Offline-Ready</h3>
-              <p className="text-slate-600 leading-relaxed">Catat pesanan pelanggan dengan cepat walau tanpa internet. Transaksi akan sinkron otomatis saat koneksi kembali stabil.</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Kasir POS Real-Time</h3>
+              <p className="text-slate-600 leading-relaxed">Catat pesanan pelanggan dengan cepat dan terintegrasi. Transaksi otomatis memotong stok bahan baku dan tercatat ke laporan akhir hari itu juga.</p>
             </div>
             
             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">

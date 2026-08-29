@@ -9,7 +9,7 @@ import { runLogaritmaEngine } from "@/lib/engines/logaritmaEngine"
 import { Card, CardContent } from "@/components/ui/Card"
 import { IconHome, IconCatalog, IconHistory, IconInsights, IconWarning, IconCash, IconTrendingUp } from "@/components/ui/Icons"
 import { trackEvent } from "@/actions/analytics"
-import { logoutUser } from "@/actions/auth"
+import ProfileMenu from "@/components/ProfileMenu"
 import LandingPage from "@/components/LandingPage"
 
 // Maps recommendation type → contextual CTA label + destination
@@ -43,7 +43,7 @@ export default async function Home() {
 
   const business = await prisma.business.findFirst({
     where: { userId: session.user.id },
-    include: { goals: true }
+    include: { goals: true, user: true }
   })
 
   if (!business) redirect("/onboarding")
@@ -58,7 +58,12 @@ export default async function Home() {
     aovAktual,
     rekomendasiUtama,
     confidence,
-    lowStockItems
+    lowStockItems,
+    netProfit,
+    expenses: engineExpenses,
+    grossProfit,
+    marginDrop,
+    highExpense
   } = await runLogaritmaEngine(business.id)
 
   const progressPct = targetHarian > 0 ? Math.min(100, Math.round((sudahMasuk / targetHarian) * 100)) : 0
@@ -96,6 +101,12 @@ export default async function Home() {
   }
   const conf = confidenceConfig[confidence as keyof typeof confidenceConfig] ?? confidenceConfig.LOW
 
+  // Fetch Global Settings
+  const notifSettingRow = await prisma.pilotError.findFirst({ where: { errorType: "GLOBAL_SETTING", path: "NOTIFICATION" }, orderBy: { createdAt: "desc" } })
+  const bannerSettingRow = await prisma.pilotError.findFirst({ where: { errorType: "GLOBAL_SETTING", path: "BANNER" }, orderBy: { createdAt: "desc" } })
+  const notifSetting = notifSettingRow ? JSON.parse(notifSettingRow.message) : { text: "", active: "false" }
+  const bannerSetting = bannerSettingRow ? JSON.parse(bannerSettingRow.message) : { imageUrl: "", linkUrl: "", active: "false" }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-32 overflow-x-hidden">
       <div className="w-full max-w-md md:max-w-5xl lg:max-w-7xl mx-auto px-4 md:px-8 lg:px-10 py-4 md:py-8 box-border">
@@ -110,23 +121,18 @@ export default async function Home() {
             <p className="text-xs text-gray-400 font-medium">{greeting} 👋</p>
           </div>
 
-          <details className="relative group">
-            <summary className="list-none cursor-pointer">
-              <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-gray-500 border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-[18px] h-[18px]">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-            </summary>
-            <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 p-1 z-50">
-              <form action={logoutUser}>
-                <button type="submit" className="w-full text-left px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                  Logout Akun
-                </button>
-              </form>
-            </div>
-          </details>
+          <ProfileMenu userImage={business.user?.image} />
         </div>
+
+        {/* GLOBAL NOTIFICATION */}
+        {notifSetting.active === "true" && notifSetting.text && (
+          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+            <div className="shrink-0 text-blue-500 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM12 16.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" /></svg>
+            </div>
+            <p className="text-sm text-blue-900 font-medium leading-relaxed">{notifSetting.text}</p>
+          </div>
+        )}
 
         {/* DESKTOP/MOBILE 2-COLUMN LAYOUT */}
         <div className="flex flex-col lg:flex-row lg:gap-8 items-start">
@@ -224,6 +230,12 @@ export default async function Home() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal truncate lg:w-full">Rata-rata Belanja</span>
+                </Link>
+                <Link href="/laporan" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
+                  <div className="w-8 h-8 lg:bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal truncate lg:w-full">Laporan Keuangan</span>
                 </Link>
               </div>
             </div>
@@ -400,6 +412,23 @@ export default async function Home() {
                         <p className={`text-xs lg:text-sm font-black tabular-nums ${masihKurang > 0 ? "text-red-600" : "text-success-600"}`}>{masihKurang > 0 ? `-${formatRupiah(masihKurang)}` : "✓ Tercapai"}</p>
                       </div>
                     </div>
+
+                    {/* Keuangan Mini: Net Profit & Pengeluaran */}
+                    {(engineExpenses > 0 || grossProfit > 0) && (
+                      <div className={`flex items-center justify-between gap-4 mt-3 pt-3 border-t ${highExpense || marginDrop ? 'border-red-100 bg-red-50 -mx-2 px-2 rounded-lg py-2' : 'border-gray-100'}`}>
+                        <div>
+                          <p className="text-[9px] text-gray-400 font-semibold uppercase">Untung Bersih</p>
+                          <p className={`text-xs font-black tabular-nums ${netProfit >= 0 ? 'text-success-700' : 'text-red-600'}`}>{formatRupiah(netProfit)}</p>
+                        </div>
+                        {engineExpenses > 0 && (
+                          <div className="text-right">
+                            <p className="text-[9px] text-gray-400 font-semibold uppercase">Pengeluaran</p>
+                            <p className={`text-xs font-black tabular-nums ${highExpense ? 'text-red-600' : 'text-gray-600'}`}>- {formatRupiah(engineExpenses)}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Confidence explanation */}
                     <p className="text-[10px] text-gray-400 mt-3 pt-2 lg:mt-4 lg:pt-3 border-t border-gray-100 leading-relaxed">{conf.explanation}</p>
                   </div>
@@ -426,6 +455,22 @@ export default async function Home() {
             )}
           </div>
         </div>
+
+        {/* GLOBAL BANNER PROMO */}
+        {bannerSetting.active === "true" && bannerSetting.imageUrl && (
+          <div className="mt-8 mb-4 w-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 relative">
+            {bannerSetting.linkUrl ? (
+              <a href={bannerSetting.linkUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative hover:opacity-95 transition-opacity">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={bannerSetting.imageUrl} alt="Promo Banner" className="w-full h-auto object-cover" style={{maxHeight: '400px'}} />
+              </a>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={bannerSetting.imageUrl} alt="Promo Banner" className="w-full h-auto object-cover" style={{maxHeight: '400px'}} />
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION — safe area + full clearance */}

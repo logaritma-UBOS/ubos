@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -7,9 +7,18 @@ const poppins = Poppins({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#059669",
+};
+
 export const metadata: Metadata = {
   title: "UBOS - UMKM Business Operation System",
   description: "Sistem Operasi Bisnis untuk UMKM Indonesia",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "UBOS",
+  },
 };
 
 import { auth } from "@/auth"

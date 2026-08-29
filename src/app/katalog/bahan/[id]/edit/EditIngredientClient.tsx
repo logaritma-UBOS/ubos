@@ -28,7 +28,7 @@ export default function EditIngredientClient({ ingredient }: { ingredient: any }
             <span className="absolute left-3 top-2.5 text-gray-500 text-sm">Rp</span>
             <FormattedNumberInput name="purchasePrice" step="any" placeholder="Contoh: 50000" className="block w-full border border-gray-300 rounded-md p-2 pl-9 text-gray-900" />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Isi jika harga bahan berubah.</p>
+          <p className="text-xs text-gray-500 mt-1">Isi jika harga bahan berubah. (Wajib isi Jumlah/Berat juga)</p>
         </div>
         
         <div className="grid grid-cols-2 gap-4">

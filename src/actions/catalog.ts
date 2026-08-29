@@ -149,6 +149,103 @@ export async function addProduct(prevState: any, formData: FormData) {
           }
         })
       }
+
+      // Pemrosesan Dinamis untuk Bahan Baku (BOM / Racikan)
+      if (itemType === "BOM") {
+        const iNames = formData.getAll("ingredientName") as string[]
+        const iUnits = formData.getAll("ingredientUnit") as string[]
+        const iPurchaseQtys = formData.getAll("ingredientPurchaseQty") as string[]
+        const iPurchaseTotals = formData.getAll("ingredientPurchaseTotal") as string[]
+        const iRecipeQtys = formData.getAll("ingredientRecipeQty") as string[]
+        const recipeYield = parseFloat(formData.get("recipeYield") as string) || 1
+        
+        let totalHppPerPortion = 0;
+
+        for (let i = 0; i < iNames.length; i++) {
+          const iname = iNames[i]?.trim()
+          const iunit = iUnits[i]?.trim() || "Unit"
+          const pQty = parseFloat(iPurchaseQtys[i]) || 0
+          const pTotal = parseFloat(iPurchaseTotals[i]) || 0
+          const rQty = parseFloat(iRecipeQtys[i]) || 0
+
+          if (iname && pQty > 0 && rQty > 0) {
+            const costPerUnit = pTotal / pQty;
+            const qtyPerPortion = rQty / recipeYield;
+
+            // Cari bahan baku dengan nama yang sama persis (case insensitive)
+            let ingredient = await tx.ingredient.findFirst({
+              where: { businessId, name: { equals: iname } } 
+            });
+
+            // Jika belum ada, buatkan otomatis
+            if (!ingredient) {
+              ingredient = await tx.ingredient.create({
+                data: {
+                  businessId,
+                  name: iname,
+                  unit: iunit,
+                  costPerUnit: costPerUnit,
+                  currentStock: pQty // Sisa akan tetap jadi stok karena dibeli full
+                }
+              });
+              
+              await tx.stockMovement.create({
+                data: {
+                  businessId,
+                  ingredientId: ingredient.id,
+                  type: "IN",
+                  quantity: pQty,
+                  referenceType: "PURCHASE"
+                }
+              });
+            } else {
+              // Jika bahan sudah ada, update harga modal jika baru, dan tambah stok dari belanjanya
+              ingredient = await tx.ingredient.update({
+                where: { id: ingredient.id },
+                data: { 
+                  unit: iunit, // update satuan jika diganti
+                  costPerUnit: costPerUnit,
+                  currentStock: ingredient.currentStock + pQty
+                }
+              });
+              
+              await tx.stockMovement.create({
+                data: {
+                  businessId,
+                  ingredientId: ingredient.id,
+                  type: "IN",
+                  quantity: pQty,
+                  referenceType: "PURCHASE"
+                }
+              });
+            }
+
+            // Gabungkan produk & bahan jadi resep per 1 porsi jual
+            await tx.recipe.create({
+              data: {
+                businessId,
+                productId: p.id,
+                ingredientId: ingredient.id,
+                quantityNeeded: qtyPerPortion
+              }
+            });
+
+            totalHppPerPortion += (costPerUnit * qtyPerPortion);
+          }
+        }
+
+        // Hitung ulang HPP dan margin total
+        if (totalHppPerPortion > 0) {
+          const marginBOM = sellPrice > 0 ? ((sellPrice - totalHppPerPortion) / sellPrice) * 100 : 0;
+          await tx.product.update({
+            where: { id: p.id },
+            data: { 
+              calculatedHpp: totalHppPerPortion,
+              calculatedMargin: marginBOM
+            }
+          });
+        }
+      }
     })
 
     trackEvent(businessId, "product_created", { name }).catch(()=>{})
