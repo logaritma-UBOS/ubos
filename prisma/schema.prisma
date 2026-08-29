@@ -412,3 +412,39 @@ model Campaign {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
+
+// --- OWNER BACKEND MODELS ---
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OwnerAction {
+  id               String    @id @default(uuid())
+  actionType       String
+  source           String
+  metric           String
+  goal             String?
+  target           Float?
+  actualBefore     Float?
+  actualAfter      Float?
+  gap              Float?
+  recommendation   String?
+  status           String    @default("RECOMMENDED") // RECOMMENDED, ACCEPTED, EXECUTED, MEASURED, SUCCESS, FAILED, DISMISSED
+  
+  expectedResult   String?
+  actualResult     String?
+  evaluation       String?
+  ownerNote        String?
+  
+  acceptedAt       DateTime?
+  executedAt       DateTime?
+  evaluatedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}

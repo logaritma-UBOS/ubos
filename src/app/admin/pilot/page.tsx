@@ -2,20 +2,18 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
-import { formatNumber, formatRupiah } from "@/lib/format"
-import { IconTrendingUp } from "@/components/ui/Icons"
+import { formatNumber } from "@/lib/format"
 import { runOwnerEngine } from "@/lib/ownerEngine"
 
 export const dynamic = "force-dynamic"
 
 async function saveGlobalSetting(key: string, value: string) {
-  await prisma.pilotError.create({
-    data: {
-      errorType: "GLOBAL_SETTING",
-      path: key,
-      message: value
-    }
-  })
+  const existing = await prisma.systemSetting.findUnique({ where: { key } })
+  if (existing) {
+    await prisma.systemSetting.update({ where: { key }, data: { value } })
+  } else {
+    await prisma.systemSetting.create({ data: { key, value } })
+  }
 }
 
 async function updateNotification(formData: FormData) {
@@ -42,11 +40,15 @@ async function loginAdmin(formData: FormData) {
   const email = formData.get("email")?.toString()
   const password = formData.get("password")?.toString()
   
-  if (email === "logaritma.tim@gmail.com" && password === "adminlog2026") {
+  const expectedEmail = process.env.OWNER_EMAIL || "owner@logaritma.id"
+  const expectedPassword = process.env.OWNER_PASSWORD || "ownerlogaritma2026"
+
+  if (email === expectedEmail && password === expectedPassword) {
     const cookieStore = await cookies()
     cookieStore.set("ubos_pilot_auth", "authenticated", { 
       httpOnly: true, 
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 2592000
     })
     revalidatePath("/admin/pilot")
@@ -57,6 +59,27 @@ async function logoutAdmin() {
   "use server"
   const cookieStore = await cookies()
   cookieStore.delete("ubos_pilot_auth")
+  revalidatePath("/admin/pilot")
+}
+
+async function triggerAction(formData: FormData) {
+  "use server"
+  const metric = formData.get("metric")?.toString() || ""
+  const recommendation = formData.get("recommendation")?.toString() || ""
+  const expectedResult = formData.get("expectedResult")?.toString() || ""
+  
+  await prisma.ownerAction.create({
+    data: {
+      actionType: "OWNER_INTERVENTION",
+      source: "SYSTEM_RECOMMENDATION",
+      metric,
+      recommendation,
+      expectedResult,
+      status: "ACCEPTED",
+      acceptedAt: new Date()
+    }
+  })
+  
   revalidatePath("/admin/pilot")
 }
 
@@ -92,44 +115,55 @@ export default async function AdminPilotPage() {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
+  let systemHealth = "HEALTHY"
+  try {
+    await prisma.$queryRaw`SELECT 1`
+  } catch (error) {
+    systemHealth = "DATABASE_ERROR"
+  }
+
+  const totalUsers = await prisma.user.count()
+  
+  const allBusinesses = await prisma.business.findMany({
+    include: {
+      products: { select: { id: true } },
+      ingredients: { select: { id: true } },
+      sales: { select: { id: true } }
+    }
+  })
+  
+  const totalBusinesses = allBusinesses.length
+  let businessesWithData = 0
+  let firstTxCount = 0
+  
+  for (const b of allBusinesses) {
+    if (b.products.length > 0 || b.ingredients.length > 0) businessesWithData++
+    if (b.sales.length > 0) firstTxCount++
+  }
+
   const [
-    totalUsers,
-    totalBusinesses,
     active7DaysEvents,
     activeTodayEvents,
-    newToday,
-    totalSales,
-    dashboardViews,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.business.count(),
     prisma.pilotEvent.findMany({ where: { createdAt: { gte: startOfWeek } }, select: { businessId: true } }),
     prisma.pilotEvent.findMany({ where: { createdAt: { gte: startOfToday } }, select: { businessId: true } }),
-    prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
-    prisma.sale.count(),
-    prisma.pilotEvent.count({ where: { eventName: 'dashboard_viewed' } }),
   ])
 
-  const active7Days = new Set(active7DaysEvents.map(e => e.businessId)).size
-  const activeToday = new Set(activeTodayEvents.map(e => e.businessId)).size
-  const returningUser = active7Days > 0 ? active7Days : "DATA BELUM TERSEDIA"
+  const active7Days = new Set(active7DaysEvents.map(e => e.businessId).filter(Boolean)).size
+  const activeToday = new Set(activeTodayEvents.map(e => e.businessId).filter(Boolean)).size
   
   // Real Funnel Data
   const registerCount = totalUsers
   const activeCount = totalBusinesses
-  const firstTxCount = await prisma.sale.groupBy({ by: ['businessId'] }).then(res => res.length)
-  
-  // No subscription table exists
-  const paidCount = "DATA BELUM TERSEDIA"
 
   // Run Owner Engine
   const gapAnalysis = await runOwnerEngine()
 
   // Fetch Current Settings
-  const notifSettingRow = await prisma.pilotError.findFirst({ where: { errorType: "GLOBAL_SETTING", path: "NOTIFICATION" }, orderBy: { createdAt: "desc" } })
-  const bannerSettingRow = await prisma.pilotError.findFirst({ where: { errorType: "GLOBAL_SETTING", path: "BANNER" }, orderBy: { createdAt: "desc" } })
-  const notifSetting = notifSettingRow ? JSON.parse(notifSettingRow.message) : { text: "", active: "false" }
-  const bannerSetting = bannerSettingRow ? JSON.parse(bannerSettingRow.message) : { imageUrl: "", linkUrl: "", active: "false" }
+  const notifSettingRow = await prisma.systemSetting.findUnique({ where: { key: "NOTIFICATION" } })
+  const bannerSettingRow = await prisma.systemSetting.findUnique({ where: { key: "BANNER" } })
+  const notifSetting = notifSettingRow ? JSON.parse(notifSettingRow.value) : { text: "", active: "false" }
+  const bannerSetting = bannerSettingRow ? JSON.parse(bannerSettingRow.value) : { imageUrl: "", linkUrl: "", active: "false" }
 
   return (
     <AdminLayout activeMenu="control" logoutAction={logoutAdmin}>
@@ -138,51 +172,62 @@ export default async function AdminPilotPage() {
         {/* HEADER */}
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Control Center</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">10-Second Status Overview (Metode Logaritma)</p>
+          <p className="text-sm text-gray-500 font-medium mt-1">Metode Logaritma (Backward Mapping)</p>
         </div>
 
         {/* 1. STATUS & KPI GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Status</p>
-            <div className="flex items-center gap-2">
-              <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-              </span>
-              <span className="text-lg font-black text-gray-900">Sistem Normal</span>
-            </div>
-            <p className="text-xs text-emerald-600 font-medium mt-1">Database & API Sehat</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">System Health</p>
+            {systemHealth === "HEALTHY" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-lg font-black text-gray-900">Normal</span>
+                </div>
+                <p className="text-xs text-emerald-600 font-medium mt-1">Database Ping OK</p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                  <span className="text-lg font-black text-rose-900">Error</span>
+                </div>
+                <p className="text-xs text-rose-600 font-medium mt-1">Database tidak merespon</p>
+              </>
+            )}
           </div>
 
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">User</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Businesses</p>
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-3xl font-black text-gray-900 leading-none">{formatNumber(totalUsers)}</p>
-                <p className="text-xs text-gray-500 font-medium mt-1">Total Register</p>
+                <p className="text-3xl font-black text-gray-900 leading-none">{formatNumber(totalBusinesses)}</p>
+                <p className="text-xs text-gray-500 font-medium mt-1">Total Created</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-900">{formatNumber(active7Days)} <span className="text-[10px] text-gray-500 font-normal">Aktif 7H</span></p>
                 <p className="text-sm font-bold text-gray-900">{formatNumber(activeToday)} <span className="text-[10px] text-gray-500 font-normal">Aktif Hari Ini</span></p>
-                <p className="text-sm font-bold text-emerald-600">+{formatNumber(newToday)} <span className="text-[10px] text-emerald-600/70 font-normal">Baru Hari Ini</span></p>
               </div>
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 opacity-70">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue (MRR)</p>
             <p className="text-xl font-black text-gray-900 leading-none">DATA BELUM TERSEDIA</p>
-            <p className="text-xs text-gray-500 font-medium mt-1">Sistem Subscription belum dibuat.</p>
+            <p className="text-xs text-gray-500 font-medium mt-1">Sistem Subscription/Plan belum ada di DB.</p>
           </div>
 
           <div className="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 text-white">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">SaaS Funnel</p>
             <div className="space-y-1">
-              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Register</span><span className="font-bold text-sm text-blue-400">{formatNumber(registerCount)}</span></div>
-              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Activated (Biz)</span><span className="font-bold text-sm text-emerald-400">{formatNumber(activeCount)}</span></div>
-              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">First Tx</span><span className="font-bold text-sm text-amber-400">{formatNumber(firstTxCount)}</span></div>
-              <div className="flex justify-between items-center pt-1 border-t border-slate-700 mt-1"><span className="text-xs font-bold text-rose-300">Paid</span><span className="font-black text-[10px] text-rose-400">DATA BELUM TERSEDIA</span></div>
+              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Registered Users</span><span className="font-bold text-sm text-blue-400">{formatNumber(registerCount)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Business Created</span><span className="font-bold text-sm text-emerald-400">{formatNumber(activeCount)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">First Data Input</span><span className="font-bold text-sm text-amber-400">{formatNumber(businessesWithData)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-xs text-slate-300">First POS Tx</span><span className="font-bold text-sm text-rose-400">{formatNumber(firstTxCount)}</span></div>
             </div>
           </div>
         </div>
@@ -191,10 +236,10 @@ export default async function AdminPilotPage() {
         <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-end mb-6">
             <div>
-              <h2 className="text-rose-600 font-bold tracking-widest text-xs uppercase mb-1">Action Center</h2>
-              <h3 className="text-xl font-bold text-gray-900">Prioritas Owner</h3>
+              <h2 className="text-rose-600 font-bold tracking-widest text-xs uppercase mb-1">Logaritma Engine</h2>
+              <h3 className="text-xl font-bold text-gray-900">Analisis Gap & Tindakan Owner</h3>
             </div>
-            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hidden md:inline-block">Backward Mapping Engine</span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hidden md:inline-block">Backward Mapping Active</span>
           </div>
 
           <div className="space-y-4">
@@ -203,22 +248,44 @@ export default async function AdminPilotPage() {
             ) : (
               gapAnalysis.map((item, idx) => (
                 <div key={idx} className={`p-5 border-l-4 rounded-r-xl border-t border-b border-r border-gray-100 ${item.severity === 'HIGH' ? 'border-rose-500 bg-rose-50/50' : 'border-amber-500 bg-amber-50/50'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded ${item.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{item.severity} PRIORITY</span>
-                    <span className="text-sm font-bold text-gray-900">{item.metric}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded ${item.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{item.severity} PRIORITY</span>
+                      <span className="text-sm font-bold text-gray-900">{item.metric}</span>
+                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">Lokasi: {item.where}</span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase font-bold">GAP</p>
-                      <p className="text-sm font-medium text-gray-800">Target {item.target}, Aktual {item.actual} ({item.gap})</p>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-3">
+                    <div className="lg:col-span-1">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">TARGET VS AKTUAL</p>
+                      <p className="text-xs text-gray-700 mb-1">Goal: {item.goal}</p>
+                      <div className="flex items-end gap-2">
+                        <span className="text-2xl font-black text-gray-900">{item.actual}</span>
+                        <span className="text-sm text-gray-500 mb-1">/ {item.target} target</span>
+                      </div>
+                      <p className="text-xs font-bold text-rose-600 mt-1">Gap: {item.gap} ({item.gapPercentage}%)</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase font-bold">PENYEBAB (Hypothesis)</p>
-                      <p className="text-sm font-medium text-gray-800">{item.cause}</p>
+                    
+                    <div className="lg:col-span-2">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">DIAGNOSIS (ROOT CAUSE)</p>
+                      <p className="text-sm font-medium text-gray-800 mb-3">{item.cause}</p>
+                      
+                      <p className="text-[10px] text-blue-600 uppercase font-bold mb-1">REKOMENDASI SISTEM</p>
+                      <p className="text-sm font-medium text-blue-900">{item.recommendation}</p>
+                      <p className="text-xs text-gray-500 mt-1">Ekspektasi: {item.expectedResult}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase font-bold">TINDAKAN OWNER</p>
-                      <button className="text-sm font-bold text-blue-600 hover:text-blue-700">{item.recommendation}</button>
+                    
+                    <div className="lg:col-span-1 flex flex-col justify-end">
+                      <form action={triggerAction}>
+                        <input type="hidden" name="metric" value={item.metric} />
+                        <input type="hidden" name="recommendation" value={item.recommendation} />
+                        <input type="hidden" name="expectedResult" value={item.expectedResult} />
+                        <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm">
+                          TERIMA & EKSEKUSI
+                        </button>
+                      </form>
+                      <p className="text-[10px] text-center text-gray-500 mt-2">Confidence: {item.confidence}</p>
                     </div>
                   </div>
                 </div>
