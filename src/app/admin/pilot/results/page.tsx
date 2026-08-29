@@ -8,13 +8,16 @@ export const dynamic = "force-dynamic"
 
 async function evaluateAction(formData: FormData) {
   "use server"
+  const cookieStore = await cookies()
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") throw new Error("Unauthorized")
+
   const id = formData.get("id")?.toString()
   const actualAfterStr = formData.get("actualAfter")?.toString()
   const actualAfter = actualAfterStr ? parseFloat(actualAfterStr) : null
 
   if (id && actualAfter !== null && !isNaN(actualAfter)) {
     const action = await prisma.ownerAction.findUnique({ where: { id } })
-    if (action && action.actualBefore !== null && action.target !== null) {
+    if (action && action.actualBefore !== null && action.target !== null && (action.status === "EXECUTED" || action.status === "EVALUATED")) {
       const { actualBefore, target, direction } = action
       let evaluation = "INCONCLUSIVE"
       let status = "EVALUATED"
@@ -25,18 +28,19 @@ async function evaluateAction(formData: FormData) {
         else if (actualAfter === actualBefore) evaluation = "NO_CHANGE"
         else evaluation = "FAILED"
       } else {
-        // LOWER_IS_BETTER
         if (actualAfter <= target) evaluation = "SUCCESS"
         else if (actualAfter < actualBefore) evaluation = "IMPROVED"
         else if (actualAfter === actualBefore) evaluation = "NO_CHANGE"
         else evaluation = "FAILED"
       }
+      
+      const gapAfter = direction === "LOWER_IS_BETTER" ? actualAfter - target : target - actualAfter;
 
       await prisma.ownerAction.update({
         where: { id },
         data: {
           actualAfter,
-          gapAfter: Math.abs(target - actualAfter), // Gap from target
+          gapAfter,
           status,
           evaluation,
           evaluatedAt: new Date(),
@@ -156,3 +160,4 @@ export default async function AdminResultsPage() {
     </AdminLayout>
   )
 }
+

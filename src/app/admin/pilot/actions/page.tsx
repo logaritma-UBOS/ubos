@@ -9,16 +9,22 @@ export const dynamic = "force-dynamic"
 
 async function executeAction(formData: FormData) {
   "use server"
+  const cookieStore = await cookies()
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") throw new Error("Unauthorized")
+
   const id = formData.get("id")?.toString()
   if (id) {
-    await prisma.ownerAction.update({
-      where: { id },
-      data: {
-        status: "EXECUTED",
-        executedAt: new Date()
-      }
-    })
-    revalidatePath("/admin/pilot/actions")
+    const existing = await prisma.ownerAction.findUnique({ where: { id } })
+    if (existing?.status === "ACCEPTED") {
+      await prisma.ownerAction.update({
+        where: { id },
+        data: {
+          status: "EXECUTED",
+          executedAt: new Date()
+        }
+      })
+      revalidatePath("/admin/pilot/actions")
+    }
   }
 }
 
@@ -125,3 +131,4 @@ export default async function AdminActionsPage() {
     </AdminLayout>
   )
 }
+

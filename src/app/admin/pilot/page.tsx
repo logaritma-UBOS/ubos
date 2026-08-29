@@ -1,4 +1,4 @@
-import { cookies } from "next/headers"
+﻿import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
@@ -45,6 +45,8 @@ async function logoutAdmin() {
 
 async function triggerAction(formData: FormData) {
   "use server"
+  const cookieStore = await cookies()
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") throw new Error("Unauthorized")
   const metric = formData.get("metric")?.toString() || ""
   const recommendation = formData.get("recommendation")?.toString() || ""
   const expectedResult = formData.get("expectedResult")?.toString() || ""
@@ -288,3 +290,6 @@ export default async function AdminPilotPage() {
     </AdminLayout>
   )
 }
+
+
+
