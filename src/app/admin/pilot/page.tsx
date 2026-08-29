@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
@@ -16,34 +16,15 @@ async function saveGlobalSetting(key: string, value: string) {
   }
 }
 
-async function updateNotification(formData: FormData) {
-  "use server"
-  const text = formData.get("notif_text")?.toString() || ""
-  const active = formData.get("notif_active") === "on" ? "true" : "false"
-  await saveGlobalSetting("NOTIFICATION", JSON.stringify({ text, active }))
-  revalidatePath("/admin/pilot")
-  revalidatePath("/")
-}
-
-async function updateBanner(formData: FormData) {
-  "use server"
-  const imageUrl = formData.get("banner_image")?.toString() || ""
-  const linkUrl = formData.get("banner_link")?.toString() || ""
-  const active = formData.get("banner_active") === "on" ? "true" : "false"
-  await saveGlobalSetting("BANNER", JSON.stringify({ imageUrl, linkUrl, active }))
-  revalidatePath("/admin/pilot")
-  revalidatePath("/")
-}
-
 async function loginAdmin(formData: FormData) {
   "use server"
   const email = formData.get("email")?.toString()
   const password = formData.get("password")?.toString()
   
-  const expectedEmail = process.env.OWNER_EMAIL || "owner@logaritma.id"
-  const expectedPassword = process.env.OWNER_PASSWORD || "ownerlogaritma2026"
+  const expectedEmail = process.env.OWNER_EMAIL
+  const expectedPassword = process.env.OWNER_PASSWORD
 
-  if (email === expectedEmail && password === expectedPassword) {
+  if (expectedEmail && expectedPassword && email === expectedEmail && password === expectedPassword) {
     const cookieStore = await cookies()
     cookieStore.set("ubos_pilot_auth", "authenticated", { 
       httpOnly: true, 
@@ -67,6 +48,8 @@ async function triggerAction(formData: FormData) {
   const metric = formData.get("metric")?.toString() || ""
   const recommendation = formData.get("recommendation")?.toString() || ""
   const expectedResult = formData.get("expectedResult")?.toString() || ""
+  const actualStr = formData.get("actual")?.toString() || "0"
+  const actual = parseFloat(actualStr) || 0
   
   await prisma.ownerAction.create({
     data: {
@@ -75,6 +58,7 @@ async function triggerAction(formData: FormData) {
       metric,
       recommendation,
       expectedResult,
+      actualBefore: actual,
       status: "ACCEPTED",
       acceptedAt: new Date()
     }
@@ -159,20 +143,14 @@ export default async function AdminPilotPage() {
   // Run Owner Engine
   const gapAnalysis = await runOwnerEngine()
 
-  // Fetch Current Settings
-  const notifSettingRow = await prisma.systemSetting.findUnique({ where: { key: "NOTIFICATION" } })
-  const bannerSettingRow = await prisma.systemSetting.findUnique({ where: { key: "BANNER" } })
-  const notifSetting = notifSettingRow ? JSON.parse(notifSettingRow.value) : { text: "", active: "false" }
-  const bannerSetting = bannerSettingRow ? JSON.parse(bannerSettingRow.value) : { imageUrl: "", linkUrl: "", active: "false" }
-
   return (
     <AdminLayout activeMenu="control" logoutAction={logoutAdmin}>
       <div className="p-4 md:p-8 space-y-8">
         
         {/* HEADER */}
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Control Center</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Metode Logaritma (Backward Mapping)</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">UBOS Control Center</h1>
+          <p className="text-sm text-gray-500 font-medium mt-1">Management Layer & Logaritma Method Dashboard</p>
         </div>
 
         {/* 1. STATUS & KPI GRID */}
@@ -188,7 +166,7 @@ export default async function AdminPilotPage() {
                   </span>
                   <span className="text-lg font-black text-gray-900">Normal</span>
                 </div>
-                <p className="text-xs text-emerald-600 font-medium mt-1">Database Ping OK</p>
+                <p className="text-xs text-emerald-600 font-medium mt-1">Database & Core OK</p>
               </>
             ) : (
               <>
@@ -202,7 +180,7 @@ export default async function AdminPilotPage() {
           </div>
 
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Businesses</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Acquisition (Biz)</p>
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-3xl font-black text-gray-900 leading-none">{formatNumber(totalBusinesses)}</p>
@@ -218,11 +196,11 @@ export default async function AdminPilotPage() {
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 opacity-70">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Revenue (MRR)</p>
             <p className="text-xl font-black text-gray-900 leading-none">DATA BELUM TERSEDIA</p>
-            <p className="text-xs text-gray-500 font-medium mt-1">Sistem Subscription/Plan belum ada di DB.</p>
+            <p className="text-[10px] text-gray-500 font-medium mt-1">Subscription system belum ada di DB.</p>
           </div>
 
           <div className="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 text-white">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">SaaS Funnel</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Activation Funnel</p>
             <div className="space-y-1">
               <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Registered Users</span><span className="font-bold text-sm text-blue-400">{formatNumber(registerCount)}</span></div>
               <div className="flex justify-between items-center"><span className="text-xs text-slate-300">Business Created</span><span className="font-bold text-sm text-emerald-400">{formatNumber(activeCount)}</span></div>
@@ -232,14 +210,14 @@ export default async function AdminPilotPage() {
           </div>
         </div>
 
-        {/* 2. PRIORITAS OWNER (ACTION CENTER LOGARITMA) */}
+        {/* 2. LOGARITMA GAP & ACTIONS */}
         <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-end mb-6">
             <div>
-              <h2 className="text-rose-600 font-bold tracking-widest text-xs uppercase mb-1">Logaritma Engine</h2>
-              <h3 className="text-xl font-bold text-gray-900">Analisis Gap & Tindakan Owner</h3>
+              <h2 className="text-rose-600 font-bold tracking-widest text-xs uppercase mb-1">Target Bisnis UBOS & Gap</h2>
+              <h3 className="text-xl font-bold text-gray-900">Analisis & Tindakan Owner</h3>
             </div>
-            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hidden md:inline-block">Backward Mapping Active</span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold hidden md:inline-block uppercase">Logaritma Engine (Read-Only)</span>
           </div>
 
           <div className="space-y-4">
@@ -247,33 +225,33 @@ export default async function AdminPilotPage() {
               <div className="text-center py-8 text-gray-500 text-sm">Tidak ada gap kritis. Semua metrik sesuai target.</div>
             ) : (
               gapAnalysis.map((item, idx) => (
-                <div key={idx} className={`p-5 border-l-4 rounded-r-xl border-t border-b border-r border-gray-100 ${item.severity === 'HIGH' ? 'border-rose-500 bg-rose-50/50' : 'border-amber-500 bg-amber-50/50'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                <div key={idx} className={`p-5 md:p-6 border-l-4 rounded-r-xl border-t border-b border-r border-gray-100 ${item.severity === 'HIGH' ? 'border-rose-500 bg-rose-50/50' : 'border-amber-500 bg-amber-50/50'}`}>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded ${item.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{item.severity} PRIORITY</span>
                       <span className="text-sm font-bold text-gray-900">{item.metric}</span>
-                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">Lokasi: {item.where}</span>
+                      <span className="text-[10px] text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full uppercase tracking-wider">Lokasi: {item.where}</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-3">
                     <div className="lg:col-span-1">
                       <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">TARGET VS AKTUAL</p>
-                      <p className="text-xs text-gray-700 mb-1">Goal: {item.goal}</p>
+                      <p className="text-xs text-gray-700 mb-1 line-clamp-2" title={item.goal}>Goal: {item.goal}</p>
                       <div className="flex items-end gap-2">
-                        <span className="text-2xl font-black text-gray-900">{item.actual}</span>
-                        <span className="text-sm text-gray-500 mb-1">/ {item.target} target</span>
+                        <span className="text-2xl font-black text-gray-900">{formatNumber(item.actual)}</span>
+                        <span className="text-xs text-gray-500 mb-1">/ {formatNumber(item.target)} target</span>
                       </div>
-                      <p className="text-xs font-bold text-rose-600 mt-1">Gap: {item.gap} ({item.gapPercentage}%)</p>
+                      <p className="text-xs font-bold text-rose-600 mt-1">Gap: {formatNumber(item.gap)} ({item.gapPercentage}%)</p>
                     </div>
                     
                     <div className="lg:col-span-2">
-                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">DIAGNOSIS (ROOT CAUSE)</p>
+                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">DIAGNOSIS (WHY)</p>
                       <p className="text-sm font-medium text-gray-800 mb-3">{item.cause}</p>
                       
                       <p className="text-[10px] text-blue-600 uppercase font-bold mb-1">REKOMENDASI SISTEM</p>
                       <p className="text-sm font-medium text-blue-900">{item.recommendation}</p>
-                      <p className="text-xs text-gray-500 mt-1">Ekspektasi: {item.expectedResult}</p>
+                      <p className="text-[11px] text-gray-500 mt-1 italic">Ekspektasi: {item.expectedResult}</p>
                     </div>
                     
                     <div className="lg:col-span-1 flex flex-col justify-end">
@@ -281,11 +259,12 @@ export default async function AdminPilotPage() {
                         <input type="hidden" name="metric" value={item.metric} />
                         <input type="hidden" name="recommendation" value={item.recommendation} />
                         <input type="hidden" name="expectedResult" value={item.expectedResult} />
-                        <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm">
+                        <input type="hidden" name="actual" value={item.actual} />
+                        <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm active:scale-95">
                           TERIMA & EKSEKUSI
                         </button>
                       </form>
-                      <p className="text-[10px] text-center text-gray-500 mt-2">Confidence: {item.confidence}</p>
+                      <p className="text-[9px] text-center text-gray-400 mt-2 uppercase tracking-widest">Confidence: {item.confidence}</p>
                     </div>
                   </div>
                 </div>
@@ -293,54 +272,6 @@ export default async function AdminPilotPage() {
             )}
           </div>
         </section>
-
-        {/* 3. GLOBAL UI SETTINGS */}
-        <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-          <h2 className="text-blue-600 font-bold tracking-widest text-xs uppercase mb-1">System Override</h2>
-          <h3 className="text-xl font-bold mb-6 text-gray-900">Global UI & Engagement</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <form action={updateNotification} className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-bold text-blue-900 flex items-center gap-2">
-                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">NOTIF</span>
-                  Global Top Notification
-                </h4>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="notif_active" className="sr-only peer" defaultChecked={notifSetting.active === "true"} />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Teks Pengumuman</label>
-                <textarea name="notif_text" rows={2} defaultValue={notifSetting.text} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="Contoh: Ada maintenance sistem..."></textarea>
-              </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm text-sm">Simpan Notifikasi</button>
-            </form>
-
-            <form action={updateBanner} className="bg-fuchsia-50/50 p-6 rounded-2xl border border-fuchsia-100/50 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-bold text-fuchsia-900 flex items-center gap-2">
-                  <span className="bg-fuchsia-100 text-fuchsia-700 px-2 py-0.5 rounded text-xs">BANNER</span>
-                  Promo Slide Bawah (Dashboard)
-                </h4>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="banner_active" className="sr-only peer" defaultChecked={bannerSetting.active === "true"} />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-fuchsia-600"></div>
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">URL Gambar (Landscape)</label>
-                <input type="url" name="banner_image" defaultValue={bannerSetting.imageUrl} className="w-full p-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm mb-3" placeholder="https://res.cloudinary.com/..." />
-                
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Link Tujuan (Opsional)</label>
-                <input type="url" name="banner_link" defaultValue={bannerSetting.linkUrl} className="w-full p-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm" placeholder="https://wa.me/62..." />
-              </div>
-              <button type="submit" className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm text-sm">Simpan Banner Promo</button>
-            </form>
-          </div>
-        </section>
-
       </div>
     </AdminLayout>
   )
