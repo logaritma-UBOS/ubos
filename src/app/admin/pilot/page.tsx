@@ -89,6 +89,7 @@ export default async function ControlCenterPage() {
           <p className="text-sm text-slate-500 font-medium mt-1">Intelligence, Priorities, and Action Center</p>
         </div>
 
+        
         {/* OWNER DAILY BRIEF */}
         {dailyBrief && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -97,29 +98,37 @@ export default async function ControlCenterPage() {
             </div>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Kondisi Saat Ini</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Kondisi Utama</p>
                 <p className="font-semibold text-slate-900">{dailyBrief.kondisi}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Masalah Utama</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Masalah Terbesar</p>
                 <p className="font-semibold text-rose-600">{dailyBrief.masalah}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Dampak</p>
-                <p className="font-semibold text-slate-900">{dailyBrief.dampak}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Jumlah User Terdampak</p>
+                <p className="font-semibold text-slate-900">{opportunities[0]?.affectedUsers || 0} Users</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Penyebab</p>
-                <p className="font-semibold text-slate-900">{dailyBrief.penyebab}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Evidence (Data Nyata)</p>
+                <p className="font-semibold text-slate-900">{opportunities[0]?.evidence || dailyBrief.penyebab}</p>
               </div>
-              <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2">
-                <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Action Owner</p>
-                <p className="font-bold text-blue-900">{dailyBrief.action}</p>
-                <p className="text-xs text-blue-700 mt-2">Expected Result: <span className="font-medium italic">{dailyBrief.expectedResult}</span></p>
+              <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-[10px] font-bold text-blue-600 uppercase">Action Owner yang Direkomendasikan</p>
+                    <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded ${opportunities[0]?.priority === 'CRITICAL' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>{opportunities[0]?.priority} PRIORITY</span>
+                  </div>
+                  <p className="font-bold text-blue-900">{dailyBrief.action}</p>
+                </div>
+                <a href="#opportunities" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">
+                  Lihat Opportunity &rarr;
+                </a>
               </div>
             </div>
           </div>
         )}
+
 
         {/* GROWTH & LIFECYCLE GRID */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -182,7 +191,7 @@ export default async function ControlCenterPage() {
         {/* LOGARITMA ENGINE DIAGNOSIS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Top Opportunities (Priority Sorted)</h2>
+            <h2 id="opportunities" className="text-sm font-black text-slate-900 uppercase tracking-widest">Top Opportunities (Priority Sorted)</h2>
             {opportunities.length > 0 ? opportunities.map((opp, i) => (
               <div key={opp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50/50">

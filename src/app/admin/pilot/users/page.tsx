@@ -6,7 +6,9 @@ import { getStartOfDayUTC } from "@/lib/engines/timeEngine"
 
 export const dynamic = "force-dynamic"
 
-export default async function UserIntelligencePage() {
+export default async function UserIntelligencePage({ searchParams }: { searchParams: { state?: string, risk?: string } }) {
+  const filterState = searchParams.state;
+  const filterRisk = searchParams.risk;
   const cookieStore = await cookies()
   if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") return <div className="p-8">Unauthorized</div>
 
@@ -126,6 +128,11 @@ export default async function UserIntelligencePage() {
     };
   });
 
+  
+  let filteredUsers = detailedUsers;
+  if (filterState) filteredUsers = filteredUsers.filter(u => u.state === filterState);
+  if (filterRisk) filteredUsers = filteredUsers.filter(u => u.riskLevel === filterRisk);
+
   return (
     <AdminLayout activeMenu="users">
       <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 min-h-full">
@@ -165,6 +172,16 @@ export default async function UserIntelligencePage() {
           <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
             <h2 className="text-sm font-black tracking-widest uppercase">Detailed User State (Top 100)</h2>
           </div>
+          
+          <div className="flex flex-wrap gap-2 mb-4 mt-6">
+            <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center mr-2">Filter:</span>
+            <a href="/admin/pilot/users" className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${(!filterState && !filterRisk) ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600'}`}>All</a>
+            <a href="/admin/pilot/users?state=ACTIVE" className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${filterState === 'ACTIVE' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>Active</a>
+            <a href="/admin/pilot/users?state=INACTIVE" className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${filterState === 'INACTIVE' ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-700'}`}>Inactive</a>
+            <a href="/admin/pilot/users?state=CHURN_RISK" className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${filterState === 'CHURN_RISK' ? 'bg-rose-600 text-white' : 'bg-rose-100 text-rose-700'}`}>Churn Risk</a>
+            <a href="/admin/pilot/users?state=NOT_ACTIVATED" className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${filterState === 'NOT_ACTIVATED' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700'}`}>Not Activated</a>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
@@ -178,7 +195,7 @@ export default async function UserIntelligencePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {detailedUsers.map((user: any) => (
+                {filteredUsers.length === 0 ? <tr><td colSpan={6} className="p-8 text-center text-slate-500">Tidak ada user yang cocok dengan filter ini.</td></tr> : filteredUsers.map((user: any) => (
                   <tr key={user.id} className="hover:bg-slate-50/50">
                     <td className="px-4 py-4">
                       <p className="font-bold text-slate-900">{user.name}</p>

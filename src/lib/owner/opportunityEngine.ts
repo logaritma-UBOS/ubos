@@ -5,19 +5,27 @@ const OWNER_TZ = "Asia/Jakarta";
 
 export interface Opportunity {
   id: string;
-  type: "ACTIVATION" | "RETENTION" | "FEATURE_ADOPTION" | "USER_GROWTH" | "MONETIZATION" | "CAMPAIGN";
-  priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  category: "ACTIVATION" | "RETENTION" | "FEATURE_ADOPTION" | "USER_GROWTH" | "REACTIVATION" | "UPGRADE" | "EDUCATION";
+  targetSegment: string;
+  affectedUsers: number;
+  evidence: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   confidence: "HIGH" | "MEDIUM" | "LOW";
+  impactScore: number;
+  urgency: "IMMEDIATE" | "THIS_WEEK" | "THIS_MONTH" | "MONITOR";
+  recommendedAction: string;
+  recommendedMessage: string;
+  channel: "IN_APP" | "WHATSAPP" | "EMAIL";
+  expectedResult: string;
+  
+  // Legacy fields kept for compatibility with UI
+  type: string;
+  priority: string;
   current: number;
   target: number;
   gap: number;
   diagnosis: string;
   audience: string;
-  recommendedAction: string;
-  recommendedMessage: string;
-  expectedResult: string;
-  impactScore: number;
   numberOfAffectedUsers: number;
 }
 
@@ -36,7 +44,6 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
   const totalRegistered = await prisma.user.count();
   const totalBusiness = await prisma.business.count();
   
-  // Real event check (business_created vs pos_transaction_completed vs hpp_created)
   const businessesWithHpp = await prisma.pilotEvent.groupBy({
     by: ['businessId'],
     where: { eventName: 'hpp_created', businessId: { not: "" } }
@@ -56,19 +63,26 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
       const gapPerc = (gapHppTx / hppCount) * 100;
       opps.push({
         id: "opp_act_hpp_tx",
-        type: "ACTIVATION",
-        priority: calculatePriority(gapPerc, gapHppTx),
+        category: "ACTIVATION",
+        targetSegment: "HPP_NOT_TRANSACTED",
+        affectedUsers: gapHppTx,
+        evidence: `${gapHppTx} user telah membuat HPP tapi belum memiliki pos_transaction_completed`,
         severity: gapPerc > 50 ? "HIGH" : "MEDIUM",
         confidence: "HIGH",
+        impactScore: gapPerc * gapHppTx,
+        urgency: "IMMEDIATE",
+        recommendedAction: "Jalankan activation campaign (Edukasi Transaksi Pertama)",
+        recommendedMessage: "Mulai transaksi pertamamu menggunakan resep HPP yang sudah kamu buat!",
+        channel: "IN_APP",
+        expectedResult: "Peningkatan rasio First Transaction (POS USED)",
+        // Legacy
+        type: "ACTIVATION",
+        priority: calculatePriority(gapPerc, gapHppTx),
         current: txCount,
         target: hppCount,
         gap: gapHppTx,
         diagnosis: "HPP -> First Transaction adalah bottleneck utama. Banyak merchant sudah membuat resep tapi belum transaksi.",
         audience: "User yang sudah membuat HPP tetapi belum transaksi",
-        recommendedAction: "Jalankan activation campaign / edukasi merchant.",
-        recommendedMessage: "Mulai transaksi pertamamu menggunakan HPP yang sudah kamu buat!",
-        expectedResult: "Peningkatan First Transaction",
-        impactScore: gapPerc * gapHppTx,
         numberOfAffectedUsers: gapHppTx
       });
     }
@@ -81,7 +95,6 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
   
   const allBizIds = await prisma.business.findMany({ select: { id: true } });
   
-  // Businesses active previously but not in last 14 days
   const recentEvents = await prisma.pilotEvent.groupBy({
     by: ['businessId'],
     where: { 
@@ -95,19 +108,26 @@ export async function getOwnerOpportunities(): Promise<Opportunity[]> {
   if (dormantBizCount > 0) {
     opps.push({
       id: "opp_ret_dormant",
-      type: "RETENTION",
-      priority: calculatePriority((dormantBizCount / allBizIds.length)*100, dormantBizCount),
+      category: "REACTIVATION",
+      targetSegment: "DORMANT_14D",
+      affectedUsers: dormantBizCount,
+      evidence: `${dormantBizCount} user terdaftar tidak mencatat PilotEvent apapun dalam 14 hari terakhir`,
       severity: dormantBizCount > (allBizIds.length * 0.3) ? "HIGH" : "MEDIUM",
       confidence: "HIGH",
+      impactScore: (dormantBizCount / allBizIds.length)*100 * dormantBizCount,
+      urgency: "THIS_WEEK",
+      recommendedAction: "Kirim Re-engagement Campaign",
+      recommendedMessage: "Kami merindukan Anda di UBOS! Lihat fitur terbaru kami.",
+      channel: "IN_APP",
+      expectedResult: "User kembali login dan mencatat minimal 1 event",
+      // Legacy
+      type: "RETENTION",
+      priority: calculatePriority((dormantBizCount / allBizIds.length)*100, dormantBizCount),
       current: activeBiz14d.size,
       target: allBizIds.length,
       gap: dormantBizCount,
-      diagnosis: "Banyak user tidak aktif selama lebih dari 14 hari.",
+      diagnosis: "Banyak user tidak aktif selama lebih dari 14 hari (DORMANT).",
       audience: "Dormant users (>14 hari tidak ada aktivitas)",
-      recommendedAction: "Kirim Retention Reminder / Re-engagement",
-      recommendedMessage: "Kami merindukan Anda di UBOS! Lihat fitur terbaru kami.",
-      expectedResult: "User kembali aktif",
-      impactScore: (dormantBizCount / allBizIds.length)*100 * dormantBizCount,
       numberOfAffectedUsers: dormantBizCount
     });
   }
