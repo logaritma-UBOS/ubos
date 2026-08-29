@@ -130,3 +130,103 @@ export async function getDailyBrief(opps: Opportunity[]) {
     expectedResult: top.expectedResult
   };
 }
+
+export async function getDashboardIntelligence() {
+  const now = new Date();
+  const startOfToday = getStartOfDayUTC(OWNER_TZ, now);
+  const sevenDaysAgo = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(startOfToday.getTime() - 14 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const [
+    totalUsers,
+    newUsers,
+    totalBusinesses,
+    totalActions,
+    acceptedActions,
+    executedActions,
+    evaluatedActions
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.business.count(),
+    prisma.ownerAction.count(),
+    prisma.ownerAction.count({ where: { status: "ACCEPTED" } }),
+    prisma.ownerAction.count({ where: { status: "EXECUTED" } }),
+    prisma.ownerAction.count({ where: { status: "EVALUATED" } }),
+  ]);
+
+  // Active Users (any event in last 7 days)
+  const activeEvents7d = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { createdAt: { gte: sevenDaysAgo }, businessId: { not: "" } }
+  });
+  const activeUsersCount = activeEvents7d.length;
+
+  // Inactive / Dormant (No event in 14 days but has business)
+  const activeEvents14d = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { createdAt: { gte: fourteenDaysAgo }, businessId: { not: "" } }
+  });
+  const active14dSet = new Set(activeEvents14d.map(e => e.businessId));
+  const inactiveUsersCount = totalBusinesses - active14dSet.size;
+
+  // Users stuck after register
+  const stuckAfterRegister = totalUsers - totalBusinesses;
+
+  // Churn Risk (inactive for 30+ days)
+  const activeEvents30d = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { createdAt: { gte: thirtyDaysAgo }, businessId: { not: "" } }
+  });
+  const active30dSet = new Set(activeEvents30d.map(e => e.businessId));
+  const churnRiskUsersCount = totalBusinesses > 0 ? (totalBusinesses - active30dSet.size) : 0;
+
+  // Feature adoption
+  const hppEvents = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { eventName: 'hpp_created', businessId: { not: "" } }
+  });
+  const posEvents = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { eventName: 'pos_transaction_completed', businessId: { not: "" } }
+  });
+  const catalogEvents = await prisma.pilotEvent.groupBy({
+    by: ['businessId'],
+    where: { eventName: 'catalog_updated', businessId: { not: "" } }
+  });
+
+  const hppAdoption = totalBusinesses > 0 ? (hppEvents.length / totalBusinesses) * 100 : 0;
+  const posAdoption = totalBusinesses > 0 ? (posEvents.length / totalBusinesses) * 100 : 0;
+  const catalogAdoption = totalBusinesses > 0 ? (catalogEvents.length / totalBusinesses) * 100 : 0;
+
+  // Activation Rate (Business created -> POS used)
+  const activationRate = totalBusinesses > 0 ? (posEvents.length / totalBusinesses) * 100 : 0;
+  const retentionRate = totalBusinesses > 0 ? (activeUsersCount / totalBusinesses) * 100 : 0;
+
+  // Notifications and Offers
+  const pendingNotifications = await prisma.ownerNotification.count({ where: { status: "PENDING" } });
+  const activeOffers = await prisma.ownerOffer.count({ where: { status: "ACTIVE" } });
+  const activeCampaigns = await prisma.ownerCampaign.count({ where: { status: "ACTIVE" } });
+
+  return {
+    totalUsers,
+    newUsers,
+    activeUsers: activeUsersCount,
+    activatedUsers: totalBusinesses,
+    inactiveUsers: inactiveUsersCount,
+    churnRiskUsers: churnRiskUsersCount,
+    stuckAfterRegister,
+    hppAdoption,
+    posAdoption,
+    catalogAdoption,
+    activationRate,
+    retentionRate,
+    activeActions: acceptedActions + executedActions,
+    successfulActions: evaluatedActions, // Simplified proxy for now
+    failedActions: 0, 
+    pendingNotifications,
+    activeOffers,
+    activeCampaigns
+  };
+}

@@ -459,3 +459,53 @@ model OwnerAction {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
+
+model OwnerCampaign {
+  id              String   @id @default(uuid())
+  name            String
+  objective       String
+  targetSegment   String
+  trigger         String?
+  message         String
+  channel         String   @default("IN_APP")
+  status          String   @default("DRAFT") // DRAFT, ACTIVE, PAUSED, COMPLETED
+  expectedResult  String?
+  
+  targetUsers     Int      @default(0)
+  eligibleUsers   Int      @default(0)
+  queued          Int      @default(0)
+  sent            Int      @default(0)
+  engaged         Int      @default(0)
+  converted       Int      @default(0)
+
+  startAt         DateTime?
+  endAt           DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OwnerNotification {
+  id              String   @id @default(uuid())
+  recipientId     String?  // Could be User ID or null for segments
+  segment         String?
+  trigger         String
+  reason          String?
+  message         String
+  priority        String   @default("LOW") // CRITICAL, HIGH, MEDIUM, LOW
+  channel         String   @default("IN_APP")
+  status          String   @default("PENDING") // PENDING, READY, SENT, FAILED, CANCELLED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OwnerOffer {
+  id              String   @id @default(uuid())
+  name            String
+  targetSegment   String
+  eligibility     String?
+  cta             String
+  recommendedOffer String?
+  status          String   @default("OFFER_NOT_CONFIGURED") // OFFER_NOT_CONFIGURED, ACTIVE, PAUSED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
