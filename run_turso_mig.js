@@ -23,7 +23,8 @@ async function migrate() {
         '20260822114400_content_planner',
         '20260822123000_campaign',
         '20260822171000_wa_fonnte',
-        '20260826123000_nextauth'
+        '20260826123000_nextauth',
+        '20260829000000_owner_backend'
     ];
 
     for (const m of migs) {
