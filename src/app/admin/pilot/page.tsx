@@ -50,15 +50,23 @@ async function triggerAction(formData: FormData) {
   const expectedResult = formData.get("expectedResult")?.toString() || ""
   const actualStr = formData.get("actual")?.toString() || "0"
   const actual = parseFloat(actualStr) || 0
+  const gapStr = formData.get("gap")?.toString() || "0"
+  const targetStr = formData.get("target")?.toString() || "0"
+  const severity = formData.get("severity")?.toString() || "LOW"
+  const confidence = formData.get("confidence")?.toString() || "LOW"
   
   await prisma.ownerAction.create({
     data: {
       actionType: "OWNER_INTERVENTION",
       source: "SYSTEM_RECOMMENDATION",
       metric,
+      target: parseFloat(targetStr) || 0,
       recommendation,
       expectedResult,
       actualBefore: actual,
+      gapBefore: parseFloat(gapStr) || 0,
+      severity,
+      confidence,
       status: "ACCEPTED",
       acceptedAt: new Date()
     }
@@ -260,6 +268,10 @@ export default async function AdminPilotPage() {
                         <input type="hidden" name="recommendation" value={item.recommendation} />
                         <input type="hidden" name="expectedResult" value={item.expectedResult} />
                         <input type="hidden" name="actual" value={item.actual} />
+                        <input type="hidden" name="gap" value={item.gap} />
+                        <input type="hidden" name="target" value={item.target} />
+                        <input type="hidden" name="severity" value={item.severity} />
+                        <input type="hidden" name="confidence" value={item.confidence} />
                         <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm active:scale-95">
                           TERIMA & EKSEKUSI
                         </button>

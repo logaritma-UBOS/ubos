@@ -431,15 +431,26 @@ model OwnerAction {
   metric           String
   goal             String?
   target           Float?
+  
   actualBefore     Float?
+  gapBefore        Float?
+  
   actualAfter      Float?
-  gap              Float?
+  gapAfter         Float?
+  
+  gap              Float? // Legacy field, keeping for safety, use gapBefore/gapAfter
   recommendation   String?
-  status           String    @default("RECOMMENDED") // RECOMMENDED, ACCEPTED, EXECUTED, MEASURED, SUCCESS, FAILED, DISMISSED
+  
+  severity         String?
+  confidence       String?
+  direction        String?   @default("HIGHER_IS_BETTER")
+
+  status           String    @default("RECOMMENDED") 
   
   expectedResult   String?
   actualResult     String?
   evaluation       String?
+  nextAction       String?
   ownerNote        String?
   
   acceptedAt       DateTime?

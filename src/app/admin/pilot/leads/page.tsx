@@ -32,7 +32,7 @@ export default async function AdminLeadsPage() {
       <div className="p-4 md:p-8 space-y-6">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Leads Funnel</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Siklus pengunjung hingga menjadi lead dan terdaftar di UBOS</p>
+          <p className="text-sm text-gray-500 font-medium mt-1">Siklus pengunjung hingga menjadi lead dan user berbayar di UBOS</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-6 md:p-8">
@@ -45,7 +45,7 @@ export default async function AdminLeadsPage() {
                 <span className="font-bold text-gray-900 text-lg">VISITOR (Traffic)</span>
                 <p className="text-xs text-gray-500 mt-1">Pengunjung landing page ubos.logaritma.id</p>
               </div>
-              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
+              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
             </div>
             
             <div className="w-1 h-6 bg-gray-200 mx-auto rounded-full"></div>
@@ -56,7 +56,7 @@ export default async function AdminLeadsPage() {
                 <span className="font-bold text-gray-900 text-lg">LEAD (Meninggalkan Kontak)</span>
                 <p className="text-xs text-gray-500 mt-1">Mengisi form CTA namun belum verifikasi akun</p>
               </div>
-              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
+              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
             </div>
 
             <div className="w-1 h-6 bg-gray-200 mx-auto rounded-full"></div>
@@ -90,6 +90,17 @@ export default async function AdminLeadsPage() {
                 <p className="text-xs text-emerald-700 mt-1">Memasukkan produk atau bahan baku pertama</p>
               </div>
               <span className="font-black text-emerald-700 bg-white px-6 py-2 rounded-xl border border-emerald-100 mt-4 md:mt-0 text-center text-xl">{businessesWithData}</span>
+            </div>
+
+            <div className="w-1 h-6 bg-emerald-200 mx-auto rounded-full"></div>
+
+            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-gray-50 rounded-2xl border border-gray-100">
+              <div>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Tahap 6</span>
+                <span className="font-bold text-gray-900 text-lg">PAID</span>
+                <p className="text-xs text-gray-500 mt-1">User melakukan monetization event (langganan)</p>
+              </div>
+              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
             </div>
           </div>
         </div>
