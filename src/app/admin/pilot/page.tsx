@@ -3,8 +3,7 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { formatNumber } from "@/lib/format"
-import { runOwnerEngine } from "@/lib/ownerEngine"
-import { getOwnerOpportunities, getDailyBrief, getDashboardIntelligence } from "@/lib/owner/opportunityEngine"
+import { getOwnerOpportunities, getDashboardIntelligence } from "@/lib/owner/opportunityEngine"
 
 export const dynamic = "force-dynamic"
 
@@ -13,6 +12,17 @@ async function logoutAdmin() {
   const cookieStore = await cookies()
   cookieStore.delete("ubos_pilot_auth")
   revalidatePath("/admin/pilot")
+}
+
+async function loginAdmin(formData: FormData) {
+  "use server"
+  const email = formData.get("email")?.toString()
+  const password = formData.get("password")?.toString()
+  
+  if (email === "logaritma.tim@gmail.com" && password === "adminlog2026") {
+    const cookieStore = await cookies()
+    cookieStore.set("ubos_pilot_auth", "authenticated", { path: "/" })
+  }
 }
 
 async function triggerAction(formData: FormData) {
@@ -48,7 +58,6 @@ async function triggerAction(formData: FormData) {
     }
   })
 
-  // Also create a Campaign draft
   if (actionType === "MARKETING_CAMPAIGN") {
     await prisma.ownerCampaign.create({
       data: {
@@ -65,24 +74,11 @@ async function triggerAction(formData: FormData) {
   revalidatePath("/admin/pilot")
 }
 
-
-async function loginAdmin(formData: FormData) {
-  "use server"
-  const email = formData.get("email")?.toString()
-  const password = formData.get("password")?.toString()
-  
-  if (email === "logaritma.tim@gmail.com" && password === "adminlog2026") {
-    const cookieStore = await cookies()
-    cookieStore.set("ubos_pilot_auth", "authenticated", { path: "/" })
-  }
-}
-
 export default async function ControlCenterPage() {
-
   const cookieStore = await cookies()
   const auth = cookieStore.get("ubos_pilot_auth")?.value
   
-    if (auth !== "authenticated") {
+  if (auth !== "authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <form action={loginAdmin} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-sm w-full">
@@ -113,244 +109,216 @@ export default async function ControlCenterPage() {
     )
   }
 
-  const systemHealth = "HEALTHY"
-  
   const intel = await getDashboardIntelligence()
-  
   const opportunities = await getOwnerOpportunities()
-  const dailyBrief = await getDailyBrief(opportunities)
   
-  // FETCH LAST EVALUATED ACTION FOR DAILY BRIEF
-  const lastAction = await prisma.ownerAction.findFirst({
-    where: { status: "EVALUATED" },
-    orderBy: { gapAfter: 'asc' }, // just some deterministic order, ideally updatedAt
-  });
-
-  const gapAnalysis = await runOwnerEngine()
+  const trafficOpps = opportunities.filter(o => o.category === "USER_GROWTH");
+  const conversionOpps = opportunities.filter(o => o.category === "ACTIVATION" || o.category === "UPGRADE");
+  const relationshipOpps = opportunities.filter(o => o.category === "RETENTION" || o.category === "FEATURE_ADOPTION" || o.category === "REACTIVATION" || o.category === "EDUCATION");
+  
+  const getTopOpp = (opps: any[]) => opps.length > 0 ? opps[0] : null;
+  const trafficProblem = getTopOpp(trafficOpps);
+  const conversionProblem = getTopOpp(conversionOpps);
+  const relationshipProblem = getTopOpp(relationshipOpps);
 
   return (
     <AdminLayout activeMenu="control" logoutAction={logoutAdmin}>
       <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 min-h-full">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">UBOS Growth Control Center</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">Intelligence, Priorities, and Action Center</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Growth Control Center</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Traffic &rarr; Conversion &rarr; Relationship &rarr; Revenue</p>
         </div>
 
-        
-        
-        {/* OWNER DAILY BRIEF */}
-        {dailyBrief ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
-              <h2 className="text-sm font-black tracking-widest uppercase">UBOS HARI INI</h2>
+        {/* OWNER DECISION SCREEN */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800">
+            <h2 className="text-xs font-black tracking-widest text-slate-400 mb-4">REVENUE</h2>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-500">Target Revenue</p>
+                <p className="text-xl font-bold">DATA BELUM TERSEDIA</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-500">Pencapaian Actual</p>
+                <p className="text-xl font-bold">DATA BELUM TERSEDIA</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-rose-400">Kurang (Gap)</p>
+                <p className="text-xl font-bold text-rose-300">DATA BELUM TERSEDIA</p>
+              </div>
             </div>
-            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 className="text-xs font-black tracking-widest text-slate-500 mb-4">PAYING USERS</h2>
+            <div className="space-y-4">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Kondisi Utama</p>
-                <p className="font-semibold text-slate-900">{dailyBrief.kondisi}</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500">Target Paying Users</p>
+                <p className="text-xl font-bold text-slate-900">DATA BELUM TERSEDIA</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Masalah Terbesar</p>
-                <p className="font-semibold text-rose-600">{dailyBrief.masalah}</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500">Pencapaian Actual</p>
+                <p className="text-xl font-bold text-slate-900">DATA BELUM TERSEDIA</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Jumlah User Terdampak</p>
-                <p className="font-semibold text-slate-900">{opportunities[0]?.affectedUsers || 0} Users</p>
+                <p className="text-[10px] uppercase font-bold text-rose-500">Kurang (Gap)</p>
+                <p className="text-xl font-bold text-rose-600">DATA BELUM TERSEDIA</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BACKWARD MAPPING */}
+        <div className="space-y-6">
+          <h2 className="text-lg font-black text-slate-900 uppercase tracking-widest">Digital Marketing Backward Mapping</h2>
+          
+          {/* TRAFFIC */}
+          <div className="bg-white border-l-4 border-indigo-500 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-black text-indigo-900 uppercase tracking-wider">1. TRAFFIC</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Target (User Baru)</p>
+                <p className="font-bold text-slate-900">DATA BELUM TERSEDIA</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Evidence (Data Nyata)</p>
-                <p className="font-semibold text-slate-900">{opportunities[0]?.evidence || dailyBrief.penyebab}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Pencapaian (User Terdaftar)</p>
+                <p className="font-bold text-indigo-700">{formatNumber(intel.totalUsers)} User</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Action Terakhir (History)</p>
-                <p className="font-semibold text-slate-900 line-clamp-1">{lastAction ? lastAction.recommendation : 'Belum ada action yang dievaluasi'}</p>
+                <p className="text-[10px] font-bold text-rose-500 uppercase">Kurang (Gap)</p>
+                <p className="font-bold text-rose-600">DATA BELUM TERSEDIA</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Result Action Terakhir</p>
-                <p className={`font-semibold ${lastAction?.learningResult === 'SUCCESS' ? 'text-emerald-600' : lastAction?.learningResult === 'FAILED' ? 'text-rose-600' : 'text-slate-600'}`}>
-                  {lastAction ? `${lastAction.learningResult} - ${lastAction.evaluation}` : '-'}
-                </p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Status</p>
+                <p className="font-bold text-slate-700">{trafficProblem ? trafficProblem.severity + " RISK" : "AMAN"}</p>
               </div>
-              <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            </div>
+            {trafficProblem ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-indigo-50 p-4 rounded-lg">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-[10px] font-bold text-blue-600 uppercase">Action Owner yang Direkomendasikan</p>
-                    <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded ${opportunities[0]?.priority === 'CRITICAL' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>{opportunities[0]?.priority} PRIORITY</span>
-                  </div>
-                  <p className="font-bold text-blue-900">{dailyBrief.action}</p>
+                  <p className="text-[10px] font-bold text-indigo-800 uppercase">Masalah Utama</p>
+                  <p className="text-sm font-semibold">{trafficProblem.diagnosis || trafficProblem.evidence}</p>
                 </div>
-                <a href="#opportunities" className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">
-                  Lihat Opportunity &rarr;
-                </a>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
-            <h2 className="text-lg font-black text-slate-900 uppercase tracking-widest mb-2">UBOS HARI INI</h2>
-            <p className="text-slate-500 font-medium">Tidak ada opportunity prioritas saat ini. Semua indikator operasional berjalan stabil.</p>
-          </div>
-        )}
-
-
-        {/* GROWTH & LIFECYCLE GRID */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Users</p>
-            <p className="text-2xl font-black text-slate-900">{formatNumber(intel.totalUsers)}</p>
-            <p className="text-[10px] text-emerald-600 font-bold mt-1">+{formatNumber(intel.newUsers)} (7d)</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Activated</p>
-            <p className="text-2xl font-black text-slate-900">{formatNumber(intel.activatedUsers)}</p>
-            <p className="text-[10px] text-slate-500 font-bold mt-1">Rate: {intel.activationRate.toFixed(1)}%</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active (7d)</p>
-            <p className="text-2xl font-black text-slate-900">{formatNumber(intel.activeUsers)}</p>
-            <p className="text-[10px] text-slate-500 font-bold mt-1">Ret: {intel.retentionRate.toFixed(1)}%</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-rose-100 bg-rose-50/30">
-            <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest mb-1">Inactive / Churn Risk</p>
-            <p className="text-2xl font-black text-rose-700">{formatNumber(intel.inactiveUsers)}</p>
-            <p className="text-[10px] text-rose-500 font-bold mt-1">{formatNumber(intel.churnRiskUsers)} Critical Risk</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-amber-100 bg-amber-50/30">
-            <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">Stuck at Reg</p>
-            <p className="text-2xl font-black text-amber-700">{formatNumber(intel.stuckAfterRegister)}</p>
-            <p className="text-[10px] text-amber-600 font-bold mt-1">Belum bikin bisnis</p>
-          </div>
-        </div>
-
-        {/* OPERATIONS GRID */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Feature Adoption</p>
-            <div className="space-y-1 mt-2">
-              <div className="flex justify-between text-[10px]"><span className="font-bold">Catalog</span><span>{intel.catalogAdoption.toFixed(0)}%</span></div>
-              <div className="flex justify-between text-[10px]"><span className="font-bold">HPP</span><span>{intel.hppAdoption.toFixed(0)}%</span></div>
-              <div className="flex justify-between text-[10px]"><span className="font-bold">POS</span><span>{intel.posAdoption.toFixed(0)}%</span></div>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Actions</p>
-            <p className="text-2xl font-black text-blue-600">{formatNumber(intel.activeActions)}</p>
-            <p className="text-[10px] text-emerald-600 font-bold mt-1">{formatNumber(intel.successfulActions)} Success</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Marketing Status</p>
-            <div className="space-y-1 mt-2">
-              <div className="flex justify-between text-[10px]"><span className="font-bold">Campaigns</span><span className="text-blue-600 font-bold">{intel.activeCampaigns}</span></div>
-              <div className="flex justify-between text-[10px]"><span className="font-bold">Offers</span><span className="text-purple-600 font-bold">{intel.activeOffers}</span></div>
-              <div className="flex justify-between text-[10px]"><span className="font-bold">Pending Notif</span><span className="text-amber-600 font-bold">{intel.pendingNotifications}</span></div>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 opacity-60">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Monetization</p>
-            <p className="text-lg font-bold text-slate-400 mt-2 leading-tight">Data Belum Tersedia</p>
-          </div>
-        </div>
-
-        {/* LOGARITMA ENGINE DIAGNOSIS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <h2 id="opportunities" className="text-sm font-black text-slate-900 uppercase tracking-widest">Top Opportunities (Priority Sorted)</h2>
-            {opportunities.length > 0 ? opportunities.map((opp, i) => (
-              <div key={opp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">{opp.audience}</p>
-                      <h3 className="text-lg font-black text-slate-900">{opp.type} OPPORTUNITY</h3>
-                    </div>
-                    <span className={`px-2 py-1 text-[9px] font-black uppercase tracking-widest rounded-md ${opp.priority === 'CRITICAL' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {opp.priority} PRIORITY
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-6 mt-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">Target</p>
-                      <p className="font-bold text-slate-900">{formatNumber(opp.target)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">Aktual</p>
-                      <p className="font-bold text-slate-900">{formatNumber(opp.current)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">Gap</p>
-                      <p className="font-bold text-rose-600">{formatNumber(Math.abs(opp.gap))}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">Impact Score</p>
-                      <p className="font-bold text-blue-600">{formatNumber(Math.round(opp.impactScore))}</p>
-                    </div>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-bold text-indigo-800 uppercase">Penyebab</p>
+                  <p className="text-sm">{trafficProblem.evidence}</p>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Diagnosis (Why)</p>
-                    <p className="text-sm font-medium text-slate-700">{opp.diagnosis}</p>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Recommended Action</p>
-                    <p className="text-sm font-bold text-blue-900">{opp.recommendedAction}</p>
-                    <p className="text-xs text-blue-700 mt-2">Marketing Message: <span className="font-medium italic">"{opp.recommendedMessage}"</span></p>
-                    
-                    <form action={triggerAction} className="mt-4">
-                      <input type="hidden" name="metric" value={opp.type} />
-                      <input type="hidden" name="recommendation" value={opp.recommendedAction} />
-                      <input type="hidden" name="expectedResult" value={opp.expectedResult} />
-                      <input type="hidden" name="target" value={opp.target} />
-                      <input type="hidden" name="actual" value={opp.current} />
-                      <input type="hidden" name="gap" value={opp.gap} />
-                      <input type="hidden" name="severity" value={opp.severity} />
-                      <input type="hidden" name="confidence" value={opp.confidence} />
-                      <input type="hidden" name="direction" value="HIGHER_IS_BETTER" />
-                      <input type="hidden" name="actionType" value="MARKETING_CAMPAIGN" />
-                      <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors uppercase tracking-wider">
-                        Accept & Execute Campaign
-                      </button>
-                    </form>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-bold text-indigo-800 uppercase">Apa yang harus dilakukan</p>
+                  <p className="text-sm font-bold text-indigo-900">{trafficProblem.recommendedAction}</p>
+                  <form action={triggerAction} className="mt-2">
+                    <input type="hidden" name="metric" value={trafficProblem.targetSegment} />
+                    <input type="hidden" name="recommendation" value={trafficProblem.recommendedAction} />
+                    <input type="hidden" name="expectedResult" value={trafficProblem.expectedResult} />
+                    <input type="hidden" name="actionType" value="MARKETING_CAMPAIGN" />
+                    <button type="submit" className="bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded">Jalankan Kampanye</button>
+                  </form>
                 </div>
               </div>
-            )) : (
-              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center">
-                <p className="text-slate-500 font-bold">Tidak ada opportunity aktif saat ini.</p>
-              </div>
+            ) : (
+              <p className="text-sm text-slate-500 italic">Traffic aman. Tidak ada masalah mendesak di tahap ini.</p>
             )}
           </div>
 
-          <div>
-            <div className="space-y-4">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Marketing Opportunity Hari Ini</h2>
-              {opportunities.length > 0 ? opportunities.slice(0, 3).map(opp => (
-                <div key={"mkt_"+opp.id} className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase">{opp.audience}</p>
-                    <span className="text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-200 text-emerald-800">
-                      {opp.type}
-                    </span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-900 mb-1">{opp.recommendedAction}</p>
-                  <p className="text-[10px] text-slate-600 mb-2">{opp.numberOfAffectedUsers} user terdampak</p>
-                  <a href="/admin/pilot/campaigns" className="text-[10px] font-bold text-emerald-700 uppercase hover:underline">Launch Campaign &rarr;</a>
-                </div>
-              )) : (
-                 <div className="bg-slate-100 p-6 rounded-xl border border-slate-200 text-center">
-                   <p className="text-xs text-slate-500 font-medium">Tidak ada marketing opportunity.</p>
-                 </div>
-              )}
+          {/* CONVERSION */}
+          <div className="bg-white border-l-4 border-emerald-500 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-black text-emerald-900 uppercase tracking-wider">2. CONVERSION</h3>
             </div>
-            
-            <div className="space-y-4 mt-8">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Active Actions</h2>
-              <div className="bg-slate-100 p-6 rounded-xl border border-slate-200 text-center">
-                <p className="text-xs text-slate-500 font-medium">Lihat detail di halaman Actions.</p>
-                <a href="/admin/pilot/actions" className="text-[10px] font-bold text-blue-600 uppercase hover:underline mt-2 inline-block">Buka Actions &rarr;</a>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Target (User Aktif/Bisnis)</p>
+                <p className="font-bold text-slate-900">DATA BELUM TERSEDIA</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Pencapaian (Bisnis Teraktivasi)</p>
+                <p className="font-bold text-emerald-700">{formatNumber(intel.activatedUsers)} Bisnis</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-rose-500 uppercase">Kurang (Gap)</p>
+                <p className="font-bold text-rose-600">{formatNumber(intel.stuckAfterRegister)} Stuck</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Status</p>
+                <p className="font-bold text-slate-700">{conversionProblem ? conversionProblem.severity + " RISK" : "AMAN"}</p>
               </div>
             </div>
+            {conversionProblem ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50 p-4 rounded-lg">
+                <div>
+                  <p className="text-[10px] font-bold text-emerald-800 uppercase">Masalah Utama</p>
+                  <p className="text-sm font-semibold">{conversionProblem.diagnosis || conversionProblem.evidence}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-emerald-800 uppercase">Penyebab</p>
+                  <p className="text-sm">{conversionProblem.evidence}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-emerald-800 uppercase">Apa yang harus dilakukan</p>
+                  <p className="text-sm font-bold text-emerald-900">{conversionProblem.recommendedAction}</p>
+                  <form action={triggerAction} className="mt-2">
+                    <input type="hidden" name="metric" value={conversionProblem.targetSegment} />
+                    <input type="hidden" name="recommendation" value={conversionProblem.recommendedAction} />
+                    <input type="hidden" name="expectedResult" value={conversionProblem.expectedResult} />
+                    <input type="hidden" name="actionType" value="MARKETING_CAMPAIGN" />
+                    <button type="submit" className="bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded">Jalankan Kampanye</button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 italic">Conversion aman. Tidak ada masalah mendesak di tahap ini.</p>
+            )}
+          </div>
+
+          {/* RELATIONSHIP */}
+          <div className="bg-white border-l-4 border-amber-500 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-black text-amber-900 uppercase tracking-wider">3. RELATIONSHIP & RETENTION</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Target (Pengguna Rutin)</p>
+                <p className="font-bold text-slate-900">DATA BELUM TERSEDIA</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Pencapaian (Aktif 7 Hari)</p>
+                <p className="font-bold text-amber-700">{formatNumber(intel.activeUsers)} User</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-rose-500 uppercase">Kurang (Gap)</p>
+                <p className="font-bold text-rose-600">{formatNumber(intel.inactiveUsers)} Pasif / Churn</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Status</p>
+                <p className="font-bold text-slate-700">{relationshipProblem ? relationshipProblem.severity + " RISK" : "AMAN"}</p>
+              </div>
+            </div>
+            {relationshipProblem ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-amber-50 p-4 rounded-lg">
+                <div>
+                  <p className="text-[10px] font-bold text-amber-800 uppercase">Masalah Utama</p>
+                  <p className="text-sm font-semibold">{relationshipProblem.diagnosis || relationshipProblem.evidence}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-amber-800 uppercase">Penyebab</p>
+                  <p className="text-sm">{relationshipProblem.evidence}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-amber-800 uppercase">Apa yang harus dilakukan</p>
+                  <p className="text-sm font-bold text-amber-900">{relationshipProblem.recommendedAction}</p>
+                  <form action={triggerAction} className="mt-2">
+                    <input type="hidden" name="metric" value={relationshipProblem.targetSegment} />
+                    <input type="hidden" name="recommendation" value={relationshipProblem.recommendedAction} />
+                    <input type="hidden" name="expectedResult" value={relationshipProblem.expectedResult} />
+                    <input type="hidden" name="actionType" value="MARKETING_CAMPAIGN" />
+                    <button type="submit" className="bg-amber-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded">Jalankan Kampanye</button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 italic">Relationship aman. Tidak ada masalah mendesak di tahap ini.</p>
+            )}
           </div>
         </div>
       </div>

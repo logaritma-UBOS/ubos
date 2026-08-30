@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    console.log("[SMOKE TEST] Cron Evaluation Engine Triggered");
     await evaluateActions();
 
     return NextResponse.json({ success: true, message: "Actions evaluated" });

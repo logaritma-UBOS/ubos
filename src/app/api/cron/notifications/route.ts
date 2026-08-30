@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     const engine = new NotificationEngine();
+    console.log("[SMOKE TEST] Cron Notification Engine Triggered");
     await engine.processQueue();
 
     return NextResponse.json({ success: true, message: "Queue processed" });
