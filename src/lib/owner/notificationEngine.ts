@@ -29,7 +29,35 @@ export class InAppProvider extends NotificationProvider {
 export class WhatsappProvider extends NotificationProvider {
   channel = "WHATSAPP" as const;
   async send(payload: NotificationPayload) {
-    return { success: false, error: "NOT_CONFIGURED" };
+    try {
+      const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+      if (!user) return { success: false, error: "USER_NOT_FOUND" };
+      
+      // Menggunakan nomor user, fallback ke nomor admin jika user belum mendaftarkan HP
+      const targetPhone = user.phone || "085179660408"; 
+
+      const token = process.env.FONNTE_TOKEN || "yR1HdhH9wfPVVoKu2G4e";
+      const params = new URLSearchParams();
+      params.append("target", targetPhone);
+      params.append("message", payload.message);
+
+      const res = await fetch("https://api.fonnte.com/send", {
+        method: "POST",
+        headers: {
+          "Authorization": token
+        },
+        body: params
+      });
+
+      const result = await res.json();
+      if (result.status) {
+        return { success: true };
+      } else {
+        return { success: false, error: result.reason || "FONNTE_ERROR" };
+      }
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
   }
 }
 

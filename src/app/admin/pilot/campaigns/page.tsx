@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import AdminLayout from "@/components/admin/AdminLayout"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { NotificationEngine } from "@/lib/owner/notificationEngine"
 
 export const dynamic = "force-dynamic"
 
@@ -10,10 +11,45 @@ async function activateCampaign(formData: FormData) {
   "use server"
   const id = formData.get("id")?.toString()
   if (!id) return
+  
+  const campaign = await prisma.ownerCampaign.findUnique({ where: { id } })
+  if (!campaign) return
+
+  // Cari users target (maksimal 5 untuk menghindari spam saat testing)
+  const users = await prisma.user.findMany({
+    take: 5,
+    orderBy: { createdAt: 'desc' }
+  })
+
+  let eligible = 0
+  for (const user of users) {
+    await prisma.ownerNotification.create({
+      data: {
+        recipientId: user.id,
+        campaignId: campaign.id,
+        trigger: "CAMPAIGN_ACTIVATION",
+        message: campaign.message,
+        channel: "WHATSAPP",
+        status: "READY"
+      }
+    })
+    eligible++
+  }
+
   await prisma.ownerCampaign.update({
     where: { id },
-    data: { status: "ACTIVE", startAt: new Date() }
+    data: { 
+      status: "ACTIVE", 
+      startAt: new Date(),
+      eligibleUsers: eligible,
+      targetUsers: eligible
+    }
   })
+
+  // Langsung trigger engine agar pesan WA terkirim seketika
+  const engine = new NotificationEngine()
+  await engine.processQueue()
+
   revalidatePath("/admin/pilot/campaigns")
 }
 
@@ -63,8 +99,8 @@ export default async function MarketingPage() {
                       {c.status === "DRAFT" && (
                         <form action={activateCampaign}>
                           <input type="hidden" name="id" value={c.id} />
-                          <button type="submit" className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800">
-                            Aktifkan
+                          <button type="submit" className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                            Aktifkan & Kirim WA
                           </button>
                         </form>
                       )}
