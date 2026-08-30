@@ -5,6 +5,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   const [isVIP, setIsVIP] = useState(false);
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState<any>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [realDonors, setRealDonors] = useState<any[]>([]);
   
   // Fake Donors
@@ -98,14 +99,21 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
 
   if (position === "bottom") {
     return (
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white">
+      <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white transition-all duration-300">
         <div className="flex items-center gap-2 mb-3">
           <span className="bg-amber-500 text-amber-950 text-[10px] font-black px-2 py-1 rounded">VIP INSIGHT</span>
           <span className="text-xs font-medium text-slate-300">Wawasan Bisnis Premium</span>
         </div>
         <h3 className="font-bold text-lg mb-1 leading-tight">{article?.title || "Wawasan Bisnis"}</h3>
-        <p className="text-sm text-slate-300 line-clamp-2">{article?.content || "Memuat..."}</p>
-        <button className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors">BACA SELENGKAPNYA &rarr;</button>
+        <p className={`text-sm text-slate-300 ${isExpanded ? '' : 'line-clamp-2'} whitespace-pre-line`}>
+          {article?.content || "Memuat..."}
+        </p>
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors"
+        >
+          {isExpanded ? "TUTUP KONTEN \u2191" : "BACA SELENGKAPNYA \u2192"}
+        </button>
       </div>
     );
   }
