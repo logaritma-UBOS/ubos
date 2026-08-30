@@ -65,13 +65,52 @@ async function triggerAction(formData: FormData) {
   revalidatePath("/admin/pilot")
 }
 
+
+async function loginAdmin(formData: FormData) {
+  "use server"
+  const email = formData.get("email")?.toString()
+  const password = formData.get("password")?.toString()
+  
+  if (email === "logaritma.tim@gmail.com" && password === "adminlog2026") {
+    const cookieStore = await cookies()
+    cookieStore.set("ubos_pilot_auth", "authenticated", { path: "/" })
+  }
+}
+
 export default async function ControlCenterPage() {
+
   const cookieStore = await cookies()
   const auth = cookieStore.get("ubos_pilot_auth")?.value
   
-  if (auth !== "authenticated") {
-    // Should be handled by middleware or layout, but just in case
-    return <div className="p-10">Unauthorized</div>
+    if (auth !== "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <form action={loginAdmin} className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-sm w-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-black text-xl">U</span>
+            </div>
+            <div>
+              <h1 className="font-bold text-slate-900">Control Center</h1>
+              <p className="text-xs text-slate-500">Internal Access Only</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email</label>
+              <input type="email" name="email" className="w-full p-2 border border-slate-200 rounded text-sm focus:outline-none focus:border-indigo-500" required />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+              <input type="password" name="password" className="w-full p-2 border border-slate-200 rounded text-sm focus:outline-none focus:border-indigo-500" required />
+            </div>
+            <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded uppercase text-xs tracking-wider transition-colors mt-2">
+              Login to Control Center
+            </button>
+          </div>
+        </form>
+      </div>
+    )
   }
 
   const systemHealth = "HEALTHY"
