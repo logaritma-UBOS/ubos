@@ -16,6 +16,7 @@ type Product = {
   name: string
   sellPrice: number
   imageUrl?: string | null
+  stock?: number | null
 }
 
 type CartItem = Product & { quantity: number }
@@ -136,6 +137,16 @@ export default function KasirClient({ products, customers }: { products: any[], 
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existing = prev.find(p => p.id === product.id)
+      const currentQty = existing ? existing.quantity : 0;
+      
+      // Stock Validation
+      if (product.stock !== undefined && product.stock !== null) {
+        if (currentQty >= product.stock) {
+          alert(`Stok habis! Sisa ${product.name} yang tersedia adalah ${product.stock}.`);
+          return prev;
+        }
+      }
+
       if (existing) {
         return prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p)
       }
@@ -164,6 +175,10 @@ export default function KasirClient({ products, customers }: { products: any[], 
       setCart(prev => {
         const existing = prev.find(p => p.id === productId)
         if (existing) {
+          if (existing.stock !== undefined && existing.stock !== null && newQty > existing.stock) {
+            alert(`Stok habis! Sisa ${existing.name} yang tersedia adalah ${existing.stock}.`);
+            return prev.map(p => p.id === productId ? { ...p, quantity: existing.stock || 0 } : p);
+          }
           return prev.map(p => p.id === productId ? { ...p, quantity: newQty } : p)
         }
         return prev

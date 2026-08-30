@@ -16,5 +16,28 @@ export default async function KasirPage() {
     prisma.customer.findMany({ where: { businessId: business.id } })
   ])
 
-  return <KasirClient products={products} customers={customers} />
+  // Get retail product stocks
+  const retailProducts = products.filter(p => !p.hasBOM && p.trackInventory)
+  const productStocks: Record<string, number> = {}
+  
+  if (retailProducts.length > 0) {
+    const movements = await prisma.stockMovement.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true },
+      where: { businessId: business.id, productId: { in: retailProducts.map(p => p.id) } }
+    })
+    for (const m of movements) {
+      if (m.productId) productStocks[m.productId] = m._sum.quantity || 0
+    }
+  }
+
+  const productsWithStock = products.map(p => {
+    let stock = null;
+    if (!p.hasBOM && p.trackInventory) {
+      stock = productStocks[p.id] || 0;
+    }
+    return { ...p, stock }
+  })
+
+  return <KasirClient products={productsWithStock as any} customers={customers} />
 }
