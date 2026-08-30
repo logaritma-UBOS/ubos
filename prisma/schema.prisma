@@ -532,3 +532,24 @@ model OwnerOffer {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// --- UBOS MONETIZATION & FEED ---
+model UbosRevenue {
+  id              String   @id @default(uuid())
+  userId          String
+  mayarTrxId      String   @unique
+  amount          Float
+  paymentMethod   String?
+  status          String   @default("PAID")
+  createdAt       DateTime @default(now())
+}
+
+model UbosFeedContent {
+  id              String   @id @default(uuid())
+  title           String
+  content         String
+  author          String   @default("Logaritma Team")
+  category        String   @default("TIPS")
+  status          String   @default("PUBLISHED")
+  createdAt       DateTime @default(now())
+}
