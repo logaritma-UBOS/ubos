@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    
 
     const { amount } = await req.json();
     if (!amount || isNaN(amount) || amount < 10000) {
@@ -23,8 +20,8 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: session.user.name || "UBOS User",
-        email: session.user.email,
+        name: "UBOS Owner",
+        email: "logaritma.tim@gmail.com",
         mobile: "08000000000",
         amount: Number(amount),
         description: "Dukungan Pembayaran UBOS",
