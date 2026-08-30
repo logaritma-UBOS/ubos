@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    
-
     const { amount } = await req.json();
     if (!amount || isNaN(amount) || amount < 10000) {
       return NextResponse.json({ error: "Invalid amount. Minimum Rp 10.000" }, { status: 400 });
@@ -26,7 +24,15 @@ export async function POST(req: NextRequest) {
         amount: Number(amount),
         description: "Dukungan Pembayaran UBOS",
         redirectUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/thank-you` : "https://ubos.logaritma.id/thank-you",
-        expiredAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+        expiredAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        items: [
+          {
+            name: "Dukungan VIP UBOS",
+            description: "Pembayaran seikhlasnya untuk dukungan pengembangan UBOS",
+            quantity: 1,
+            rate: Number(amount)
+          }
+        ]
       })
     });
 
