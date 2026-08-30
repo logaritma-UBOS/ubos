@@ -33,9 +33,13 @@ export class WhatsappProvider extends NotificationProvider {
       const user = await prisma.user.findUnique({ where: { id: payload.userId } });
       if (!user) return { success: false, error: "USER_NOT_FOUND" };
       
-      // Menggunakan nomor user, fallback ke nomor admin jika user belum mendaftarkan HP
-      const targetPhone = user.phone || "085179660408"; 
+      // Target penerima MUTLAK adalah nomor pengguna
+      const targetPhone = user.phone; 
+      if (!targetPhone) {
+        return { success: false, error: "USER_HAS_NO_PHONE" };
+      }
 
+      // Token Fonnte ini yang menentukan bahwa PENGIRIM-nya adalah 085179660408
       const token = process.env.FONNTE_TOKEN || "yR1HdhH9wfPVVoKu2G4e";
       const params = new URLSearchParams();
       params.append("target", targetPhone);
