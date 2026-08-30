@@ -20,13 +20,19 @@ export default function FreemiumNagScreen() {
     fetch("/api/user/status")
       .then(r => r.json())
       .then(data => {
-        if (!data.isVIP) {
+        // Cegah muncul di Landing Page (not authenticated & route is '/')
+        if (pathname === '/' && !data.isAuthenticated) {
+          return;
+        }
+
+        // Jika terautentikasi (masuk dashboard) dan BUKAN VIP
+        if (data.isAuthenticated && !data.isVIP) {
           setIsVIP(false);
           checkNagSchedule();
         }
       })
       .catch(() => {});
-  }, []);
+  }, [pathname]);
 
   const checkNagSchedule = () => {
     const lastNag = localStorage.getItem("ubos_last_nag");
@@ -116,7 +122,7 @@ export default function FreemiumNagScreen() {
     }
   };
 
-  const isExcluded = pathname === '/' || pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
+  const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
 
   if (isExcluded) return null;
 
