@@ -116,7 +116,7 @@ export default function FreemiumNagScreen() {
     }
   };
 
-  const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
+  const isExcluded = pathname === '/' || pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
 
   if (isExcluded) return null;
 
