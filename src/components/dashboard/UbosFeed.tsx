@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-export default function UbosFeed() {
+export default function UbosFeed({ position = "bottom" }: { position?: "top" | "bottom" }) {
   const [isVIP, setIsVIP] = useState(false);
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState<any>(null);
@@ -43,35 +43,41 @@ export default function UbosFeed() {
     }
   }, [isVIP, loading]);
 
-  if (loading) return <div className="h-24 bg-slate-100 rounded-xl animate-pulse"></div>;
+  if (loading) return null;
 
   if (!isVIP) {
+    if (position === "top") {
+      return (
+        <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative overflow-hidden mb-6">
+          <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1 rounded-bl-lg">Dukungan Komunitas</div>
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <span className="text-xl">🙌</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
+            <p className="text-sm font-medium text-slate-800 animate-in slide-in-from-bottom-2 fade-in duration-300" key={currentDonor}>
+              {donors[currentDonor]}
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  if (position === "bottom") {
     return (
-      <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1 rounded-bl-lg">Dukungan Komunitas</div>
-        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-          <span className="text-xl">🙌</span>
+      <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="bg-amber-500 text-amber-950 text-[10px] font-black px-2 py-1 rounded">VIP INSIGHT</span>
+          <span className="text-xs font-medium text-slate-300">Wawasan Bisnis Premium</span>
         </div>
-        <div className="flex-1">
-          <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
-          <p className="text-sm font-medium text-slate-800 animate-in slide-in-from-bottom-2 fade-in duration-300" key={currentDonor}>
-            {donors[currentDonor]}
-          </p>
-        </div>
+        <h3 className="font-bold text-lg mb-1 leading-tight">{article?.title || "Wawasan Bisnis"}</h3>
+        <p className="text-sm text-slate-300 line-clamp-2">{article?.content || "Memuat..."}</p>
+        <button className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors">BACA SELENGKAPNYA &rarr;</button>
       </div>
     );
   }
 
-  // VIP State - Premium Blog Feed
-  return (
-    <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="bg-amber-500 text-amber-950 text-[10px] font-black px-2 py-1 rounded">VIP INSIGHT</span>
-        <span className="text-xs font-medium text-slate-300">Wawasan Bisnis Premium</span>
-      </div>
-      <h3 className="font-bold text-lg mb-1 leading-tight">{article?.title || "Wawasan Bisnis"}</h3>
-      <p className="text-sm text-slate-300 line-clamp-2">{article?.content || "Memuat..."}</p>
-      <button className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors">BACA SELENGKAPNYA →</button>
-    </div>
-  );
+  return null;
 }

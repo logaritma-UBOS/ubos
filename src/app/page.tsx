@@ -125,6 +125,9 @@ export default async function Home() {
           <ProfileMenu userImage={business.user?.image} />
         </div>
 
+        <UbosFeed position="top" />
+
+
         {/* GLOBAL NOTIFICATION */}
         {notifSetting.active === "true" && notifSetting.text && (
           <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 shadow-sm">
@@ -458,7 +461,7 @@ export default async function Home() {
         </div>
 
         <div className="mt-6 mb-2">
-          <UbosFeed />
+          <UbosFeed position="bottom" />
         </div>
 
         {/* GLOBAL BANNER PROMO */}

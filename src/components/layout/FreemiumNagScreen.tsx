@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function FreemiumNagScreen() {
   const [isOpen, setIsOpen] = useState(false);
   const [canClose, setCanClose] = useState(false);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(20);
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVIP, setIsVIP] = useState(true); // Assume VIP until checked
@@ -44,7 +44,7 @@ export default function FreemiumNagScreen() {
   const triggerNag = () => {
     setIsOpen(true);
     setCanClose(false);
-    setCountdown(5);
+    setCountdown(20);
     localStorage.setItem("ubos_last_nag", Date.now().toString());
 
     // Setup 15 min next trigger
