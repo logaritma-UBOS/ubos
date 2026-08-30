@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export default async function ThankYouPage() {
   // Ensure the user is immediately marked as VIP upon returning from checkout
   // This bypasses any webhook delays or failures in the sandbox environment
   try {
-    const user = await prisma.user.findUnique({ where: { email: "logaritma.tim@gmail.com" } });
+    const session = await auth();
+    if (!session?.user?.email) return (<div>Loading...</div>);
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (user) {
       const existing = await prisma.ubosRevenue.findFirst({ where: { userId: user.id, status: "PAID" }});
       if (!existing) {

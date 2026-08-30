@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { amount } = await req.json();
     if (!amount || isNaN(amount) || amount < 10000) {
       return NextResponse.json({ error: "Invalid amount. Minimum Rp 10.000" }, { status: 400 });
@@ -18,8 +21,8 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: "UBOS Owner",
-        email: "logaritma.tim@gmail.com",
+        name: session.user.name || "UBOS User",
+        email: session.user.email,
         mobile: "08000000000",
         amount: Number(amount),
         description: "Dukungan Pembayaran UBOS",
