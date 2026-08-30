@@ -50,7 +50,7 @@ export default function FreemiumNagScreen() {
     // Setup 15 min next trigger
     setTimeout(() => {
       checkNagSchedule();
-    }, NAG_INTERVAL);
+    }, Math.floor(Math.random() * (600000 - 300000 + 1) + 300000));
   };
 
   useEffect(() => {
