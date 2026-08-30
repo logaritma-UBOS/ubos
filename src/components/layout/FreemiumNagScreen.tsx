@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function FreemiumNagScreen() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +12,7 @@ export default function FreemiumNagScreen() {
   const [showThankYou, setShowThankYou] = useState(false);
   
   const router = useRouter();
+  const pathname = usePathname();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -114,6 +115,10 @@ export default function FreemiumNagScreen() {
       setIsLoading(false);
     }
   };
+
+  const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
+
+  if (isExcluded) return null;
 
   if (isVIP) {
     if (showThankYou) {
