@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 
 import { signOut } from "@/auth";
@@ -9,6 +10,10 @@ export default async function PilotLayout({ children }: { children: React.ReactN
   const ALLOWED_EMAILS = [
     "logaritma.tim@gmail.com"
   ];
+
+  if (!session?.user) {
+    redirect("/admin/pilot/login");
+  }
 
   if (!session?.user?.email || !ALLOWED_EMAILS.includes(session.user.email)) {
     return (
@@ -29,7 +34,7 @@ export default async function PilotLayout({ children }: { children: React.ReactN
              </Link>
              <form action={async () => {
                "use server";
-               await signOut({ redirectTo: "/login" });
+               await signOut({ redirectTo: "/admin/pilot/login" });
              }}>
                <button type="submit" className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
                  Ganti Akun (Logout)
@@ -106,7 +111,7 @@ export default async function PilotLayout({ children }: { children: React.ReactN
           </div>
           <form action={async () => {
             "use server";
-            await signOut({ redirectTo: "/login" });
+            await signOut({ redirectTo: "/admin/pilot/login" });
           }}>
             <button type="submit" className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Logout">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>

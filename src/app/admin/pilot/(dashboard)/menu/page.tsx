@@ -34,7 +34,7 @@ export default async function AdminMenuPage() {
         </Link>
         <form action={async () => {
           "use server";
-          await signOut({ redirectTo: "/login" });
+          await signOut({ redirectTo: "/admin/pilot/login" });
         }}>
           <button type="submit" className="w-full flex items-center gap-4 bg-red-50 p-4 rounded-2xl shadow-sm border border-red-100 active:scale-95 transition-transform">
             <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
