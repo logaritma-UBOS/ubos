@@ -5,18 +5,29 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   const [isVIP, setIsVIP] = useState(false);
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState<any>(null);
+  const [realDonors, setRealDonors] = useState<any[]>([]);
   
-  // Social Proof Simulation
-  const donors = [
-    "Toko Mawar berdonasi Rp 50.000",
-    "Warung Budi berdonasi Rp 100.000",
-    "Kedai Kopi Senja berdonasi Rp 25.000",
-    "Ayam Geprek Mas berdonasi Rp 150.000",
-    "Berkah Grosir berdonasi Rp 50.000",
-    "Toko Plastik Makmur berdonasi Rp 20.000"
+  // Fake Donors
+  const fakeDonors = [
+    { name: "Toko Mawar", amount: 50000 },
+    { name: "Warung Budi", amount: 100000 },
+    { name: "Kedai Kopi Senja", amount: 25000 },
+    { name: "Ayam Geprek Mas", amount: 150000 },
+    { name: "Berkah Grosir", amount: 50000 },
+    { name: "Toko Plastik Makmur", amount: 20000 },
+    { name: "Nasi Padang Sederhana", amount: 75000 },
+    { name: "Minimarket Barokah", amount: 200000 },
+    { name: "Laundry Kinclong", amount: 35000 },
+    { name: "Apotek Sehat", amount: 50000 },
+    { name: "Bengkel Motor Jaya", amount: 100000 },
+    { name: "Salon Cantik", amount: 25000 },
+    { name: "Toko Besi Maju", amount: 150000 },
+    { name: "Bakso Urat Solo", amount: 50000 },
+    { name: "Percetakan Kilat", amount: 80000 }
   ];
   
   const [currentDonor, setCurrentDonor] = useState(0);
+  const [allDonors, setAllDonors] = useState(fakeDonors);
 
   useEffect(() => {
     fetch("/api/user/status")
@@ -29,7 +40,16 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
             setLoading(false);
           });
         } else {
-          setLoading(false);
+          // Fetch real donors
+          fetch("/api/feed/donors").then(r => r.json()).then(rd => {
+             if (rd && rd.length > 0) {
+               const merged = [...rd, ...fakeDonors];
+               setAllDonors(merged);
+             }
+             setLoading(false);
+          }).catch(() => {
+             setLoading(false);
+          });
         }
       });
   }, []);
@@ -37,26 +57,37 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   useEffect(() => {
     if (!isVIP && !loading) {
       const interval = setInterval(() => {
-        setCurrentDonor((prev) => (prev + 1) % donors.length);
+        setCurrentDonor((prev) => (prev + 1) % allDonors.length);
       }, 4000);
       return () => clearInterval(interval);
     }
-  }, [isVIP, loading]);
+  }, [isVIP, loading, allDonors.length]);
 
   if (loading) return null;
 
   if (!isVIP) {
     if (position === "top") {
+      const donor = allDonors[currentDonor];
       return (
-        <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative overflow-hidden mb-6">
+        <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative mb-6" style={{ perspective: "1000px" }}>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes flipUp {
+              0% { transform: rotateX(-90deg); opacity: 0; }
+              100% { transform: rotateX(0deg); opacity: 1; }
+            }
+            .animate-flip {
+              animation: flipUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+              transform-origin: bottom center;
+            }
+          `}} />
           <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1 rounded-bl-lg">Dukungan Komunitas</div>
           <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
             <span className="text-xl">🙌</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden" style={{ perspective: "1000px" }}>
             <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
-            <p className="text-sm font-medium text-slate-800 animate-in slide-in-from-bottom-2 fade-in duration-300" key={currentDonor}>
-              {donors[currentDonor]}
+            <p className="text-sm font-medium text-slate-800 animate-flip" key={currentDonor}>
+              {donor.name} <span className="text-blue-600 font-bold">berdonasi Rp {donor.amount.toLocaleString('id-ID')}</span>
             </p>
           </div>
         </div>
