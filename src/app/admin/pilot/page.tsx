@@ -37,7 +37,7 @@ export default async function AdminPilotPage() {
   else if (currentHour >= 15 && currentHour < 18) greeting = "Selamat Sore";
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-[80px] md:pb-0 font-sans">
+    <div className="w-full font-sans">
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
         
         {/* HEADER */}
@@ -58,13 +58,7 @@ export default async function AdminPilotPage() {
           <Card className="min-w-[280px] lg:min-w-0 snap-center shrink-0 shadow-sm border-gray-100 hover:border-gray-200 transition-colors bg-white">
             <CardContent className="p-5 lg:p-6 flex flex-col h-full justify-between">
               <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xs lg:text-sm font-bold text-gray-400 uppercase tracking-wider">Target Bulanan</h3>
-                  <form action={updateTarget} className="flex gap-2">
-                    <input type="number" name="target" placeholder="Ubah target..." className="w-24 text-xs px-2 py-1 rounded border border-gray-200" required />
-                    <button type="submit" className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs px-2 rounded font-bold">Simpan</button>
-                  </form>
-                </div>
+                <div className="flex flex-col gap-3 mb-2">\n  <h3 className="text-xs lg:text-sm font-bold text-gray-400 uppercase tracking-wider">Target Bulanan</h3>\n  <form action={updateTarget} className="flex gap-2">\n    <input type="number" name="target" defaultValue={target} placeholder="Ubah target..." className="w-full min-w-[120px] text-sm px-3 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 bg-gray-50/50" required />\n    <button type="submit" className="bg-blue-600 text-white hover:bg-blue-700 text-sm px-4 py-1.5 rounded-lg font-bold shrink-0 transition-colors">Simpan</button>\n  </form>\n</div>
                 <div className="flex items-baseline gap-1 mt-1 lg:mt-2">
                   <span className="text-2xl lg:text-3xl font-black text-gray-800 tracking-tight">{formatRupiah(target)}</span>
                 </div>
