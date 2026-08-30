@@ -37,8 +37,8 @@ export default function FreemiumNagScreen() {
   const checkNagSchedule = () => {
     const lastNag = localStorage.getItem("ubos_last_nag");
     const now = Date.now();
-    // 15 minutes = 15 * 60 * 1000 = 900000 ms
-    const NAG_INTERVAL = 60000; // 1 min 
+    // 3 minutes = 3 * 60 * 1000 = 180000 ms
+    const NAG_INTERVAL = 180000; 
 
     if (!lastNag || (now - parseInt(lastNag, 10)) > NAG_INTERVAL) {
       triggerNag();
@@ -54,10 +54,10 @@ export default function FreemiumNagScreen() {
     setCountdown(20);
     localStorage.setItem("ubos_last_nag", Date.now().toString());
 
-    // Setup 15 min next trigger
+    // Setup 3 min next trigger
     setTimeout(() => {
       checkNagSchedule();
-    }, 60000);
+    }, 180000);
   };
 
   useEffect(() => {
