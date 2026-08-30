@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 
+import { signOut } from "@/auth";
+
 export default async function PilotLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans text-slate-900">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto justify-between">
         <div className="p-6 border-b border-gray-100">
           <Link href="/admin/pilot" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -53,15 +56,37 @@ export default async function PilotLayout({ children }: { children: React.ReactN
             </div>
           </div>
         </nav>
+
+        {/* User Info / Logout */}
+        <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 mt-auto">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
+              {session?.user?.name?.charAt(0) || "U"}
+            </div>
+            <div className="truncate">
+              <p className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Admin UBOS"}</p>
+              <p className="text-[10px] text-slate-500 truncate">{session?.user?.email || "admin@ubos"}</p>
+            </div>
+          </div>
+          <form action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/login" });
+          }}>
+            <button type="submit" className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Logout">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+            </button>
+          </form>
+        </div>
       </aside>
 
+
       {/* MAIN CONTENT */}
-      <main className="flex-1 min-w-0 relative pb-[80px] md:pb-0">
+      <main className="flex-1 min-w-0 relative pb-[80px] lg:pb-0">
         {children}
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-[68px] z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-[68px] z-50">
         <Link href="/admin/pilot" className="flex flex-col items-center justify-center w-[20%] h-full text-blue-600">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
           <span className="text-[10px] font-bold mt-0.5">Beranda</span>
