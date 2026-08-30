@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma"
 
 export async function runOwnerEngine() {
-  const targetRevenue = 10000000; // Rp 10 Juta per bulan
+  // Fetch dynamic target
+  const targetSetting = await prisma.systemSetting.findUnique({ where: { key: "MONTHLY_REVENUE_TARGET" } });
+  const targetRevenue = targetSetting ? parseInt(targetSetting.value, 10) : 10000000;
   
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);

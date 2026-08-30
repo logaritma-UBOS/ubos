@@ -29,7 +29,8 @@ async function migrate() {
         '20260829000002_owner_marketing',
   '20260830000000_final_learning_loop',
   '20260830005600_notification_delivery',
-  '20260830150000_ubos_monetization'
+  '20260830150000_ubos_monetization',
+  '20260830160000_visitor_analytics'
     ];
 
     for (const m of migs) {

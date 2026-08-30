@@ -25,6 +25,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FeedbackButton from "@/components/FeedbackButton"
 import FreemiumNagScreen from "@/components/layout/FreemiumNagScreen"
+import TrackerScript from "@/components/layout/TrackerScript"
 
 export default async function RootLayout({
   children,
@@ -44,6 +45,7 @@ export default async function RootLayout({
         {children}
         <FeedbackButton businessId={businessId} />
         <FreemiumNagScreen />
+        <TrackerScript />
       </body>
     </html>
   );

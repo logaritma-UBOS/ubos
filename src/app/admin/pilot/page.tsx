@@ -5,10 +5,23 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { runOwnerEngine } from "@/lib/engines/ownerEngine";
 import { Card, CardContent } from "@/components/ui/Card";
+import { revalidatePath } from "next/cache";
 import { IconHome, IconCatalog, IconHistory } from "@/components/ui/Icons";
 import ProfileMenu from "@/components/ProfileMenu";
 
 export default async function AdminPilotPage() {
+  async function updateTarget(formData: FormData) {
+    "use server";
+    const newTarget = formData.get("target")?.toString();
+    if (newTarget) {
+      await prisma.systemSetting.upsert({
+        where: { key: "MONTHLY_REVENUE_TARGET" },
+        update: { value: newTarget },
+        create: { key: "MONTHLY_REVENUE_TARGET", value: newTarget }
+      });
+      revalidatePath("/admin/pilot");
+    }
+  }
   const session = await auth();
   // Validasi khusus untuk role owner/admin bisa ditambahkan di sini
 
@@ -47,6 +60,10 @@ export default async function AdminPilotPage() {
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-xs lg:text-sm font-bold text-gray-400 uppercase tracking-wider">Target Bulanan</h3>
+                  <form action={updateTarget} className="flex gap-2">
+                    <input type="number" name="target" placeholder="Ubah target..." className="w-24 text-xs px-2 py-1 rounded border border-gray-200" required />
+                    <button type="submit" className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs px-2 rounded font-bold">Simpan</button>
+                  </form>
                 </div>
                 <div className="flex items-baseline gap-1 mt-1 lg:mt-2">
                   <span className="text-2xl lg:text-3xl font-black text-gray-800 tracking-tight">{formatRupiah(target)}</span>

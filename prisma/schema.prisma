@@ -553,3 +553,11 @@ model UbosFeedContent {
   status          String   @default("PUBLISHED")
   createdAt       DateTime @default(now())
 }
+
+model VisitorAnalytics {
+  id          String   @id @default(uuid())
+  path        String
+  referrer    String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
