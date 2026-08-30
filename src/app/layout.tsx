@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FeedbackButton from "@/components/FeedbackButton"
+import FreemiumNagScreen from "@/components/layout/FreemiumNagScreen"
 
 export default async function RootLayout({
   children,
@@ -42,6 +43,7 @@ export default async function RootLayout({
       <body className={`${poppins.className} bg-gray-50 antialiased`}>
         {children}
         <FeedbackButton businessId={businessId} />
+        <FreemiumNagScreen />
       </body>
     </html>
   );

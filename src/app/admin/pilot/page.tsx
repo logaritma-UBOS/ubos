@@ -2,7 +2,6 @@ import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
-import UbosFeed from "@/components/dashboard/UbosFeed"
 import { formatNumber } from "@/lib/format"
 import { getOwnerOpportunities, getDashboardIntelligence } from "@/lib/owner/opportunityEngine"
 
@@ -131,10 +130,7 @@ export default async function ControlCenterPage() {
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase">Dashboard Utama</h1>
           <p className="text-sm text-slate-500 font-medium mt-1">Sistem Pemetaan Mundur (Backward Mapping)</p>
         </div>
-        <div className="mt-6">
-          <UbosFeed />
-        </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 1. REVENUE */}
           <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-md border border-slate-800">

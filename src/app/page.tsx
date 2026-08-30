@@ -11,6 +11,7 @@ import { IconHome, IconCatalog, IconHistory, IconInsights, IconWarning, IconCash
 import { trackEvent } from "@/actions/analytics"
 import ProfileMenu from "@/components/ProfileMenu"
 import LandingPage from "@/components/LandingPage"
+import UbosFeed from "@/components/dashboard/UbosFeed"
 
 // Maps recommendation type → contextual CTA label + destination
 function getContextualCTA(type: string | undefined): { label: string; href: string } {
@@ -454,6 +455,10 @@ export default async function Home() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="mt-6 mb-2">
+          <UbosFeed />
         </div>
 
         {/* GLOBAL BANNER PROMO */}
