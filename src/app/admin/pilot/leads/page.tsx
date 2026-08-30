@@ -1,109 +1,113 @@
-﻿import { cookies } from "next/headers"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import AdminLayout from "@/components/admin/AdminLayout"
+import { getOwnerOpportunities } from "@/lib/owner/opportunityEngine"
+import { formatNumber } from "@/lib/format"
+import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 
 export const dynamic = "force-dynamic"
 
-export default async function AdminLeadsPage() {
-  const cookieStore = await cookies()
-  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") {
-    redirect("/admin/pilot")
-  }
+async function acceptOpportunity(formData: FormData) {
+  "use server"
+  const opportunityId = formData.get("opportunityId")?.toString()
+  const metric = formData.get("metric")?.toString() || ""
+  const recommendation = formData.get("recommendation")?.toString() || ""
+  const expectedResult = formData.get("expectedResult")?.toString() || ""
+  
+  if (!opportunityId) return
+  
+  await prisma.ownerAction.create({
+    data: {
+      source: opportunityId,
+      metric,
+      actionType: "MARKETING_CAMPAIGN",
+      recommendation,
+      expectedResult,
+      actualBefore: 0,
+      target: 0,
+      gapBefore: 0,
+      severity: "HIGH",
+      confidence: "HIGH",
+      direction: "HIGHER_IS_BETTER",
+      status: "ACCEPTED"
+    }
+  })
 
-  const totalUsers = await prisma.user.count()
-  const allBusinesses = await prisma.business.findMany({
-    include: {
-      products: { select: { id: true } },
-      ingredients: { select: { id: true } },
-      sales: { select: { id: true } }
+  await prisma.ownerCampaign.create({
+    data: {
+      name: `${metric} Push`,
+      objective: recommendation,
+      targetSegment: metric,
+      message: recommendation,
+      status: "DRAFT",
+      expectedResult: expectedResult
     }
   })
   
-  const totalBusinesses = allBusinesses.length
-  let businessesWithData = 0
-  
-  for (const b of allBusinesses) {
-    if (b.products.length > 0 || b.ingredients.length > 0) businessesWithData++
-  }
+  revalidatePath("/admin/pilot/leads")
+}
+
+export default async function PeluangPage() {
+  const cookieStore = await cookies()
+  if (cookieStore.get("ubos_pilot_auth")?.value !== "authenticated") redirect("/admin/pilot")
+
+  const opportunities = await getOwnerOpportunities()
 
   return (
     <AdminLayout activeMenu="leads">
       <div className="p-4 md:p-8 space-y-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Leads Funnel</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Siklus pengunjung hingga menjadi lead dan user berbayar di UBOS</p>
+          <h1 className="text-2xl font-black text-slate-900 uppercase">Peluang & Masalah Utama</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Daftar potensi perbaikan yang paling bernilai untuk bisnis saat ini.</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-6 md:p-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Acquisition & Lead Journey</h3>
-          
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-gray-50 rounded-2xl border border-gray-100">
-              <div>
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Tahap 1</span>
-                <span className="font-bold text-gray-900 text-lg">VISITOR (Traffic)</span>
-                <p className="text-xs text-gray-500 mt-1">Pengunjung landing page ubos.logaritma.id</p>
-              </div>
-              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
-            </div>
-            
-            <div className="w-1 h-6 bg-gray-200 mx-auto rounded-full"></div>
-            
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-gray-50 rounded-2xl border border-gray-100">
-              <div>
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Tahap 2</span>
-                <span className="font-bold text-gray-900 text-lg">LEAD (Meninggalkan Kontak)</span>
-                <p className="text-xs text-gray-500 mt-1">Mengisi form CTA namun belum verifikasi akun</p>
-              </div>
-              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
-            </div>
-
-            <div className="w-1 h-6 bg-gray-200 mx-auto rounded-full"></div>
-
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-blue-50 rounded-2xl border border-blue-100">
-              <div>
-                <span className="text-xs font-bold text-blue-500 uppercase tracking-widest block mb-1">Tahap 3</span>
-                <span className="font-bold text-blue-900 text-lg">REGISTERED</span>
-                <p className="text-xs text-blue-700 mt-1">User berhasil login/membuat akun</p>
-              </div>
-              <span className="font-black text-blue-700 bg-white px-6 py-2 rounded-xl border border-blue-100 mt-4 md:mt-0 text-center text-xl">{totalUsers}</span>
-            </div>
-
-            <div className="w-1 h-6 bg-blue-200 mx-auto rounded-full"></div>
-
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-amber-50 rounded-2xl border border-amber-100">
-              <div>
-                <span className="text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">Tahap 4</span>
-                <span className="font-bold text-amber-900 text-lg">BUSINESS CREATED</span>
-                <p className="text-xs text-amber-700 mt-1">Membuat profil bisnis UMKM</p>
-              </div>
-              <span className="font-black text-amber-700 bg-white px-6 py-2 rounded-xl border border-amber-100 mt-4 md:mt-0 text-center text-xl">{totalBusinesses}</span>
-            </div>
-
-            <div className="w-1 h-6 bg-amber-200 mx-auto rounded-full"></div>
-
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-emerald-50 rounded-2xl border border-emerald-100">
-              <div>
-                <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest block mb-1">Tahap 5</span>
-                <span className="font-bold text-emerald-900 text-lg">ACTIVATED (First Data)</span>
-                <p className="text-xs text-emerald-700 mt-1">Memasukkan produk atau bahan baku pertama</p>
-              </div>
-              <span className="font-black text-emerald-700 bg-white px-6 py-2 rounded-xl border border-emerald-100 mt-4 md:mt-0 text-center text-xl">{businessesWithData}</span>
-            </div>
-
-            <div className="w-1 h-6 bg-emerald-200 mx-auto rounded-full"></div>
-
-            <div className="flex flex-col md:flex-row justify-between md:items-center p-5 bg-gray-50 rounded-2xl border border-gray-100">
-              <div>
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Tahap 6</span>
-                <span className="font-bold text-gray-900 text-lg">PAID</span>
-                <p className="text-xs text-gray-500 mt-1">User melakukan monetization event (langganan)</p>
-              </div>
-              <span className="font-black text-rose-500 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 mt-4 md:mt-0 text-center">DATA BELUM TERSEDIA</span>
-            </div>
+        {opportunities.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl border border-slate-200 text-center">
+            <h2 className="text-slate-500 font-bold">Belum Ada Peluang Mendesak</h2>
+            <p className="text-sm text-slate-400 mt-2">Mesin belum mendeteksi masalah atau peluang baru yang signifikan saat ini.</p>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {opportunities.map((opp, i) => (
+              <div key={opp.id} className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6">
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded ${opp.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                      Prioritas {opp.severity}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg leading-tight text-slate-900">{opp.diagnosis}</h3>
+                    <p className="text-sm text-slate-500 mt-1"><strong>Penyebab:</strong> {opp.evidence}</p>
+                  </div>
+                </div>
+                
+                <div className="flex-1 md:border-l border-slate-100 md:pl-6 space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Dampak (Pengguna)</p>
+                      <p className="text-xl font-black text-slate-700">{formatNumber(opp.affectedUsers)}</p>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <p className="text-[10px] uppercase font-bold text-blue-500">Rekomendasi Aksi</p>
+                    <p className="text-sm font-bold text-blue-900">{opp.recommendedAction}</p>
+                    <form action={acceptOpportunity} className="mt-3">
+                      <input type="hidden" name="opportunityId" value={opp.id} />
+                      <input type="hidden" name="metric" value={opp.targetSegment} />
+                      <input type="hidden" name="recommendation" value={opp.recommendedAction} />
+                      <input type="hidden" name="expectedResult" value={opp.expectedResult} />
+                      <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase px-4 py-2 rounded shadow-sm transition-colors">
+                        Jadikan Kampanye
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </AdminLayout>
   )

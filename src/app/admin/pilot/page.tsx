@@ -233,11 +233,11 @@ export default async function ControlCenterPage() {
         )}
 
         <div className="space-y-4">
-          <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">Detail Funnel</h2>
+          <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">Performa Alur Bisnis</h2>
           
-          {/* 3. CONVERSION */}
+          {/* 3. KONVERSI */}
           <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
-            <h3 className="font-black text-emerald-900 uppercase tracking-wider mb-4">3. CONVERSION</h3>
+            <h3 className="font-black text-emerald-900 uppercase tracking-wider mb-4">3. KONVERSI</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Target (Bisnis Aktif)</p>
@@ -258,9 +258,9 @@ export default async function ControlCenterPage() {
             </div>
           </div>
 
-          {/* 4. TRAFFIC */}
+          {/* 4. TRAFIK (KUNJUNGAN) */}
           <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500">
-            <h3 className="font-black text-indigo-900 uppercase tracking-wider mb-4">4. TRAFFIC</h3>
+            <h3 className="font-black text-indigo-900 uppercase tracking-wider mb-4">4. TRAFIK (KUNJUNGAN)</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Target (User Baru)</p>
@@ -281,9 +281,9 @@ export default async function ControlCenterPage() {
             </div>
           </div>
 
-          {/* 5. RELATIONSHIP */}
+          {/* 5. HUBUNGAN (RETENSI) */}
           <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500">
-            <h3 className="font-black text-amber-900 uppercase tracking-wider mb-4">5. RELATIONSHIP</h3>
+            <h3 className="font-black text-amber-900 uppercase tracking-wider mb-4">5. HUBUNGAN (RETENSI)</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Pencapaian (Aktif)</p>
