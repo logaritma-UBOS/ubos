@@ -9,7 +9,7 @@ export default function FeedbackButton({ businessId }: { businessId?: string | n
   const [status, setStatus] = useState("")
   const pathname = usePathname()
 
-  if (!businessId) return null
+  if (!businessId || pathname.startsWith("/toko")) return null
   
   // Kasir page has a floating cart bar — push button well above it
   // On all other pages, clear the 68px bottom nav + 20px safe gap = bottom-[92px]

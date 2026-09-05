@@ -5,6 +5,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { deleteExpense } from "@/actions/finance"
 import { revalidatePath } from "next/cache"
+import AppShell from "@/components/layout/AppShell"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +26,7 @@ export default async function PengeluaranPage() {
   const averageHarian = expenses.length > 0 ? totalPengeluaran / new Date().getDate() : 0 // Anggap bulan berjalan
 
   return (
+    <AppShell businessName={business.name}>
     <div className="min-h-screen bg-slate-50 pb-16">
       {/* --- DESKTOP HEADER --- */}
       <div className="hidden md:block bg-white border-b border-slate-200 px-4 lg:px-8 py-4 mb-6">
@@ -107,5 +109,6 @@ export default async function PengeluaranPage() {
         </div>
       </div>
     </div>
+    </AppShell>
   )
 }

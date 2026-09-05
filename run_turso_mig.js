@@ -31,7 +31,14 @@ async function migrate() {
   '20260830005600_notification_delivery',
   '20260830150000_ubos_monetization',
   '20260830160000_visitor_analytics',
-  '20260830170000_fix_dummy_amount'
+  '20260830170000_fix_dummy_amount',
+  '20260831150000_pilot_activity_log',
+  '20260831160000_sosmed_links',
+  '20260901000000_toko_online',
+  '20260902100000_author_campaign',
+  '20260903000000_supplier',
+  '20260903195000_feed_audience',
+  '20260904104500_feed_image_url'
     ];
 
     for (const m of migs) {

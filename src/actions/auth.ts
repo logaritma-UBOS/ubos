@@ -3,26 +3,38 @@
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
-import { signIn, signOut } from "@/auth"
+import { signIn, signOut, auth } from "@/auth"
 import { AuthError } from "next-auth"
 
 export async function registerUser(prevState: any, formData: FormData) {
   const name = formData.get("name") as string
   const rawEmail = formData.get("email") as string
   const password = formData.get("password") as string
+  const phone = formData.get("phone") as string
   
-  if (!name || !rawEmail || !password) return { error: "Semua field wajib diisi" }
+  if (!name || !rawEmail || !password || !phone) return { error: "Semua field wajib diisi, termasuk Nomor WhatsApp." }
   
   const email = rawEmail.trim().toLowerCase()
   
   const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return { error: "Email sudah terdaftar. Silakan login." }
   
-  const passwordHash = await bcrypt.hash(password, 10)
-  
-  await prisma.user.create({
-    data: { name, email, passwordHash, role: "OWNER" }
-  })
+  if (existing) {
+    if (!existing.passwordHash || existing.passwordHash === "") {
+      // User created via Google, now setting a password
+      const passwordHash = await bcrypt.hash(password, 10)
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { passwordHash, name: existing.name || name, phone }
+      })
+    } else {
+      return { error: "Email sudah terdaftar. Silakan masuk (Login)." }
+    }
+  } else {
+    const passwordHash = await bcrypt.hash(password, 10)
+    await prisma.user.create({
+      data: { name, email, passwordHash, role: "OWNER", phone }
+    })
+  }
   
   try {
     await signIn("credentials", {
@@ -43,6 +55,11 @@ export async function loginUser(prevState: any, formData: FormData) {
     const rawEmail = formData.get("email") as string
     const email = rawEmail ? rawEmail.trim().toLowerCase() : ""
     
+    const existing = await prisma.user.findUnique({ where: { email } })
+    if (existing && (!existing.passwordHash || existing.passwordHash === "")) {
+      return { error: "Akun ini didaftarkan via Google. Silakan klik tombol 'Google' di atas, atau Daftar ulang dengan email untuk membuat kata sandi." }
+    }
+
     await signIn("credentials", {
       email,
       password: formData.get("password"),
@@ -168,4 +185,21 @@ export async function resetPassword(prevState: any, formData: FormData) {
   })
 
   return { success: "Kata sandi berhasil diubah! Silakan masuk dengan sandi baru Anda." }
+}
+
+
+export async function updatePhoneNumber(phone: string) {
+  const session = await auth();
+  if (!session?.user?.email) return { error: "Not authenticated" };
+  if (!phone || phone.length < 9) return { error: "Nomor WhatsApp tidak valid" };
+
+  try {
+    await prisma.user.update({
+      where: { email: session.user.email },
+      data: { phone: phone }
+    });
+    return { success: true };
+  } catch (err) {
+    return { error: "Gagal menyimpan nomor" };
+  }
 }

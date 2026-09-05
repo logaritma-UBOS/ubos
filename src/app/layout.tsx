@@ -25,6 +25,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FeedbackButton from "@/components/FeedbackButton"
 import FreemiumNagScreen from "@/components/layout/FreemiumNagScreen"
+import RequireWhatsappModal from "@/components/layout/RequireWhatsappModal"
 import TrackerScript from "@/components/layout/TrackerScript"
 
 export default async function RootLayout({
@@ -40,10 +41,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="id">
-      <body className={`${poppins.className} bg-gray-50 antialiased`}>
+    <html lang="id" suppressHydrationWarning>
+      <body className={`${poppins.className} bg-gray-50 antialiased`} suppressHydrationWarning>
         {children}
         <FeedbackButton businessId={businessId} />
+        <RequireWhatsappModal />
         <FreemiumNagScreen />
         <TrackerScript />
       </body>

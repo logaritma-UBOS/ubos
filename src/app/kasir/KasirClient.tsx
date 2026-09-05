@@ -365,22 +365,25 @@ export default function KasirClient({ products, customers }: { products: any[], 
     const isCashValid = paymentMethod !== "CASH" || paidAmount >= total;
     
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col max-w-md md:max-w-2xl lg:max-w-3xl mx-auto relative">
-        <div className="bg-white border-b p-4 flex items-center gap-3 sticky top-0 z-20">
-          <button onClick={() => setStep("CART")} className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-bold">Pembayaran</h1>
-        </div>
-        
-        <div className="flex-1 px-4 pt-4 md:px-6 md:pt-6 pb-32 md:pb-40 overflow-y-auto">
-          {/* Order Total */}
-          <div className="bg-primary-700 text-white rounded-2xl p-6 flex flex-col items-center justify-center mb-6 shadow-sm">
-            <p className="text-primary-100 font-medium mb-1">Total Tagihan</p>
-            <p className="text-4xl font-bold tracking-tight">{formatRupiah(total)}</p>
+      <div className="bg-gray-50 min-h-screen lg:h-[calc(100vh-2rem)] w-full lg:flex lg:gap-6 lg:p-6 lg:overflow-hidden relative">
+        {/* LEFT COLUMN: Payment Form */}
+        <div className="flex-1 max-w-md md:max-w-3xl mx-auto lg:max-w-none lg:mx-0 w-full flex flex-col relative pb-28 lg:pb-0 lg:overflow-y-auto lg:pr-2">
+          
+          <div className="bg-white border-b lg:border-none lg:bg-transparent p-4 lg:p-0 flex items-center gap-3 sticky top-0 lg:static z-20 mb-2 lg:mb-6">
+            <button onClick={() => setStep("CART")} className="p-2 -ml-2 rounded-full hover:bg-gray-200 text-gray-700 bg-white lg:border shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+            </button>
+            <h1 className="text-lg lg:text-2xl font-black text-gray-900">Pembayaran</h1>
           </div>
+
+          <div className="px-4 lg:px-0">
+            {/* Order Total - Mobile Only */}
+            <div className="lg:hidden bg-primary-700 text-white rounded-2xl p-6 flex flex-col items-center justify-center mb-6 shadow-sm">
+              <p className="text-primary-100 font-medium mb-1">Total Tagihan</p>
+              <p className="text-4xl font-bold tracking-tight">{formatRupiah(total)}</p>
+            </div>
 
           {/* Customer Picker */}
           <div className="mb-6 relative z-30">
@@ -550,17 +553,56 @@ export default function KasirClient({ products, customers }: { products: any[], 
               </div>
             </div>
           )}
+          </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-white border-t z-10 w-full max-w-md md:max-w-2xl lg:max-w-3xl mx-auto">
-          <Button
-            onClick={handleCheckout}
-            disabled={isProcessing || !isCashValid}
-            variant="primary"
-            className="w-full py-4 text-lg rounded-xl shadow-lg"
-          >
-            {isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}
-          </Button>
+        {/* RIGHT COLUMN: Desktop Summary & Confirm */}
+        <div className="hidden lg:flex flex-col w-96 bg-white border border-gray-200 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-[calc(100vh-3rem)] sticky top-6 shrink-0 overflow-hidden">
+          <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+             <h2 className="font-bold text-gray-800 text-lg flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-primary-600"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" /></svg>
+               Ringkasan Pesanan
+             </h2>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-5">
+            <div className="space-y-4 mb-6">
+               {cart.map(item => (
+                  <div key={item.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3">
+                    <div>
+                      <p className="font-bold text-gray-800">{item.name}</p>
+                      <p className="text-gray-500 font-medium">{item.quantity} x {formatRupiah(item.sellPrice)}</p>
+                    </div>
+                    <p className="font-bold text-gray-900">{formatRupiah(item.quantity * item.sellPrice)}</p>
+                  </div>
+               ))}
+            </div>
+
+            <div className="space-y-3 text-sm border-t border-dashed border-gray-200 pt-4">
+               <div className="flex justify-between"><span className="text-gray-500 font-medium">Subtotal</span><span className="font-bold text-gray-700">{formatRupiah(subtotal)}</span></div>
+               {promoDiscount > 0 && <div className="flex justify-between text-success-600"><span className="font-medium">Diskon Promo</span><span className="font-bold">-{formatRupiah(promoDiscount)}</span></div>}
+            </div>
+          </div>
+          
+          <div className="p-5 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-500 font-medium">Total Tagihan</span>
+            </div>
+            <div className="text-3xl font-black text-gray-900 mb-5">{formatRupiah(total)}</div>
+            <Button onClick={handleCheckout} disabled={isProcessing || !isCashValid} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <span>{isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}</span>
+              {!isProcessing && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>}
+            </Button>
+          </div>
+        </div>
+
+        {/* MOBILE BOTTOM BUTTON (Hidden on Desktop) */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 pb-safe bg-white border-t z-30 w-full max-w-md md:max-w-2xl mx-auto left-1/2 -translate-x-1/2" style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0px)'}}>
+          <div className="p-4 md:p-6">
+            <Button onClick={handleCheckout} disabled={isProcessing || !isCashValid} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg">
+              {isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -568,17 +610,29 @@ export default function KasirClient({ products, customers }: { products: any[], 
 
   // --- CART VIEW (Default) ---
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md md:max-w-3xl lg:max-w-5xl mx-auto relative">
-      {/* Header */}
-      <div className="bg-primary-700 text-white p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
-        <h1 className="text-lg font-bold">Kasir POS</h1>
-        {syncCount > 0 && (
-          <Badge variant="warning">Sync ({syncCount})</Badge>
-        )}
-      </div>
+    <div className="bg-gray-50 min-h-screen lg:h-[calc(100vh-2rem)] w-full lg:flex lg:gap-6 lg:p-6 lg:overflow-hidden relative">
+      
+      {/* LEFT COLUMN: Products */}
+      <div className="flex-1 max-w-md md:max-w-3xl mx-auto lg:max-w-none lg:mx-0 w-full flex flex-col relative pb-52 lg:pb-0 lg:overflow-y-auto lg:pr-2">
+        
+        {/* Header - Mobile Only */}
+        <div className="bg-primary-700 text-white p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm lg:hidden">
+          <h1 className="text-lg font-bold">Kasir POS</h1>
+          {syncCount > 0 && (
+            <Badge variant="warning">Sync ({syncCount})</Badge>
+          )}
+        </div>
+        
+        {/* Desktop Header */}
+        <div className="hidden lg:flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-black text-gray-900">Pilih Menu Transaksi</h1>
+          {syncCount > 0 && (
+            <Badge variant="warning" className="text-sm">Sync ({syncCount})</Badge>
+          )}
+        </div>
 
-      {/* Product Grid */}
-      <div className="flex-1 px-4 pt-4 md:px-6 md:pt-6 pb-52 md:pb-52 overflow-y-auto">
+        {/* Product Grid Container */}
+        <div className="flex-1 px-4 pt-4 lg:px-0 lg:pt-0 overflow-y-auto">
         
         {/* Kasir Search Input */}
         <div className="mb-4">
@@ -646,8 +700,15 @@ export default function KasirClient({ products, customers }: { products: any[], 
                   )}
                   <div className="p-3 flex-1 flex flex-col justify-between w-full">
                     <div>
-                      <p className="font-bold text-gray-900 leading-tight text-sm mb-1.5 line-clamp-2">{prod.name}</p>
-                      <p className="text-sm font-semibold text-emerald-600 mb-2">{formatRupiah(prod.sellPrice)}</p>
+                      <p className="font-bold text-gray-900 leading-tight text-sm mb-1 line-clamp-2">{prod.name}</p>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm font-semibold text-emerald-600">{formatRupiah(prod.sellPrice)}</p>
+                        {prod.stock !== undefined && prod.stock !== null && (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${prod.stock > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-50 text-red-600'}`}>
+                            Stok: {prod.stock}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-auto border-t border-gray-100 pt-2">
@@ -699,9 +760,73 @@ export default function KasirClient({ products, customers }: { products: any[], 
           </div>
         )}
       </div>
+      </div> {/* Closes LEFT COLUMN */}
 
+      {/* RIGHT COLUMN: Desktop Cart Sidebar */}
+      <div className="hidden lg:flex flex-col w-96 bg-white border border-gray-200 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-[calc(100vh-3rem)] sticky top-6 shrink-0 overflow-hidden">
+        <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+           <h2 className="font-bold text-gray-800 text-lg flex items-center gap-2">
+             <IconCash className="w-5 h-5 text-emerald-600" />
+             Keranjang
+           </h2>
+           <Badge variant="secondary" className="bg-gray-200 text-gray-700">{totalItems} item</Badge>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+           {cart.length === 0 ? (
+             <div className="h-full flex flex-col items-center justify-center text-center opacity-60 mt-10">
+               <IconCatalog className="w-12 h-12 text-gray-300 mb-3" />
+               <p className="text-gray-500 font-medium">Belum ada pesanan.</p>
+               <p className="text-xs text-gray-400 mt-1">Pilih menu di samping untuk menambahkan.</p>
+             </div>
+           ) : (
+             cart.map(item => (
+                <div key={item.id} className="flex flex-col gap-2 p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                  <div className="flex justify-between items-start gap-2">
+                    <p className="font-bold text-gray-800 text-sm leading-tight">{item.name}</p>
+                    <p className="font-bold text-gray-900 text-sm shrink-0">{formatRupiah((item.sellPrice * item.quantity))}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500 font-medium">{formatRupiah(item.sellPrice)} / porsi</p>
+                    <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        className="w-7 h-7 rounded-md bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm"
+                      >
+                        <IconMinus className="w-3.5 h-3.5 text-gray-700" />
+                      </button>
+                      <span className="w-6 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="w-7 h-7 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center hover:bg-emerald-200 transition-colors shadow-sm"
+                      >
+                        <IconPlus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+             ))
+           )}
+        </div>
+        
+        <div className="p-5 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-gray-500 font-medium">Total Tagihan</span>
+            <span className="text-2xl font-black text-gray-900">{formatRupiah(total)}</span>
+          </div>
+          <Button onClick={() => setStep("PAYMENT")} disabled={cart.length === 0} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span>Lanjut Bayar</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Button>
+        </div>
+      </div>
+
+      {/* MOBILE CART & BOTTOM NAV (Hidden on Desktop) */}
+      <div className="lg:hidden">
       {/* Cart Bottom Sheet */}
-      <div className="fixed bottom-[56px] md:bottom-[72px] left-0 right-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-6 z-10 left-1/2 -translate-x-1/2">
+      <div className="fixed bottom-[56px] md:bottom-[72px] left-0 right-0 w-full max-w-md md:max-w-3xl mx-auto px-4 md:px-6 z-10 left-1/2 -translate-x-1/2">
         <div className="bg-white rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.12)] border border-gray-200">
           
           {/* Cart Detail (Expandable) */}
@@ -787,6 +912,8 @@ export default function KasirClient({ products, customers }: { products: any[], 
           <span className="text-[10px] md:text-xs font-bold mt-1">Kasir</span>
         </Link>
       </div>
+      </div>
+
     </div>
   )
 }

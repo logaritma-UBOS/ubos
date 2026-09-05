@@ -139,6 +139,10 @@ export default function TambahProdukClient({ businessType }: { businessType: str
               Barang Ritel
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-900 bg-white p-2.5 rounded-lg border border-gray-200 cursor-pointer flex-1 hover:border-emerald-300">
+              <input type="radio" name="itemType" value="CONSIGNMENT" checked={itemType === 'CONSIGNMENT'} onChange={(e) => setItemType(e.target.value)} className="text-emerald-600 focus:ring-emerald-500 w-4 h-4" />
+              Konsinyasi / Titipan
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-900 bg-white p-2.5 rounded-lg border border-gray-200 cursor-pointer flex-1 hover:border-emerald-300">
               <input type="radio" name="itemType" value="SERVICE" checked={itemType === 'SERVICE'} onChange={(e) => setItemType(e.target.value)} className="text-emerald-600 focus:ring-emerald-500 w-4 h-4" />
               Jasa Murni
             </label>
@@ -153,7 +157,7 @@ export default function TambahProdukClient({ businessType }: { businessType: str
           </div>
         </div>
 
-        {itemType === 'RETAIL' && (
+        {(itemType === 'RETAIL' || itemType === 'CONSIGNMENT') && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Modal Dasar (HPP)</label>

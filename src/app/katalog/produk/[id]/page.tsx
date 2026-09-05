@@ -1,14 +1,14 @@
 import { formatNumber, formatRupiah } from '@/lib/format';
-﻿export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import Image from "next/image"
 import { redirect } from "next/navigation"
-import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 import { revalidatePath } from "next/cache"
 import { addRecipeItem, deleteRecipeItemSecure } from "@/actions/catalog"
 import { updateProductHpp } from "@/lib/engines/hppEngine"
+import { StockUpdateForm, CostUpdateForm } from "./StockForms"
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -114,32 +114,74 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <h2 className="font-bold text-gray-900 text-sm">Informasi Ritel & Persediaan</h2>
             </div>
             <div className="p-4 space-y-4">
-              <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Stok Saat Ini</p>
-                  <p className="text-xs text-gray-500">Otomatis terpotong saat penjualan</p>
+              <div className="border-b border-gray-100 pb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-semibold text-gray-700">Penyesuaian Stok Cepat</p>
+                  {currentStock > 0 && (
+                    <form action={async () => {
+                      "use server"
+                      if (currentStock > 0) {
+                        await prisma.stockMovement.create({
+                          data: {
+                            businessId: product.businessId,
+                            productId: product.id,
+                            type: 'OUT',
+                            quantity: -currentStock,
+                            referenceType: 'ADJUSTMENT'
+                          }
+                        })
+                        revalidatePath(`/katalog/produk/${product.id}`, "layout")
+                        revalidatePath(`/katalog`, "layout")
+                      }
+                    }}>
+                      <button type="submit" className="text-xs bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold px-3 py-1 rounded-full transition-colors border border-orange-200">
+                        🔄 Retur Titipan (Nol-kan)
+                      </button>
+                    </form>
+                  )}
                 </div>
-                <p className="font-bold text-2xl text-emerald-700">{currentStock}</p>
+                <StockUpdateForm
+                  productId={product.id}
+                  businessId={product.businessId}
+                  currentStock={currentStock}
+                  onStockUpdate={async (formData) => {
+                    "use server"
+                    const newStock = parseFloat(formData.get("newStock") as string) || 0
+                    const delta = newStock - currentStock
+                    if (delta !== 0) {
+                      await prisma.stockMovement.create({
+                        data: {
+                          businessId: product.businessId,
+                          productId: product.id,
+                          type: delta > 0 ? 'IN' : 'OUT',
+                          quantity: delta,
+                          referenceType: 'ADJUSTMENT'
+                        }
+                      })
+                      revalidatePath(`/katalog/produk/${product.id}`, "layout")
+                      revalidatePath(`/katalog`, "layout")
+                    }
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-2">Update angka di atas untuk menyesuaikan stok, atau gunakan tombol Retur untuk barang konsinyasi di penghujung hari.</p>
               </div>
 
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-2">Edit Harga Beli / Modal</p>
-                <form action={async (formData) => {
-                  "use server"
-                  if (product.hasBOM || !product.trackInventory) {
-                    throw new Error("Unauthorized update. Only RETAIL can update purchaseCost inline.");
-                  }
-                  const newCost = parseFloat(formData.get("purchaseCost") as string) || 0
-                  const newMargin = product.sellPrice > 0 ? ((product.sellPrice - newCost) / product.sellPrice) * 100 : 0
-                  await prisma.product.update({ 
-                    where: { id: product.id }, 
-                    data: { purchaseCost: newCost, calculatedHpp: newCost, calculatedMargin: newMargin } 
-                  })
-                  revalidatePath(`/katalog/produk/${product.id}`)
-                }} className="flex gap-2">
-                  <FormattedNumberInput name="purchaseCost" defaultValue={product.purchaseCost} step="any" required className="w-full border border-gray-300 p-2 rounded-lg text-sm bg-gray-50" />
-                  <button type="submit" className="bg-emerald-600 text-white font-bold px-4 rounded-lg text-sm shadow-sm">Simpan</button>
-                </form>
+                <CostUpdateForm
+                  defaultValue={product.purchaseCost}
+                  onCostUpdate={async (formData) => {
+                    "use server"
+                    if (product.hasBOM || !product.trackInventory) return
+                    const newCost = parseFloat(formData.get("purchaseCost") as string) || 0
+                    const newMargin = product.sellPrice > 0 ? ((product.sellPrice - newCost) / product.sellPrice) * 100 : 0
+                    await prisma.product.update({ 
+                      where: { id: product.id }, 
+                      data: { purchaseCost: newCost, calculatedHpp: newCost, calculatedMargin: newMargin } 
+                    })
+                    revalidatePath(`/katalog/produk/${product.id}`, "layout")
+                  }}
+                />
               </div>
             </div>
           </div>

@@ -48,6 +48,17 @@ export default function FreemiumNagScreen() {
     }
   };
 
+  useEffect(() => {
+    const handleOpenDonate = () => {
+      setIsOpen(true);
+      setCanClose(true); // Allow closing if opened manually
+      setCountdown(0);
+    };
+    
+    window.addEventListener('open-donate-modal', handleOpenDonate);
+    return () => window.removeEventListener('open-donate-modal', handleOpenDonate);
+  }, []);
+
   const triggerNag = () => {
     setIsOpen(true);
     setCanClose(false);
@@ -122,7 +133,7 @@ export default function FreemiumNagScreen() {
     }
   };
 
-  const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you');
+  const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/login') || pathname?.startsWith('/register') || pathname?.startsWith('/thank-you') || pathname?.startsWith('/toko');
 
   if (isExcluded) return null;
 
@@ -144,58 +155,68 @@ export default function FreemiumNagScreen() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl overflow-hidden max-w-md w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-center text-white">
-          <h2 className="text-2xl font-black mb-2">Dukung UBOS</h2>
-          <p className="text-blue-100 text-sm">UBOS gratis 100% tanpa iklan. Dukung kami untuk terus berinovasi dan nikmati pengalaman VIP yang bersih dari gangguan ini.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl overflow-hidden max-w-[400px] w-full shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="px-8 pt-8 pb-6 text-center border-b border-slate-50 bg-slate-50/50">
+          <div className="w-16 h-16 bg-white shadow-sm border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5 transform rotate-3">
+            <span className="text-3xl">☕</span>
+          </div>
+          <h2 className="text-xl font-black text-slate-800 mb-2.5 tracking-tight">Dukung Perjalanan Kami</h2>
+          <p className="text-slate-500 text-[13px] leading-relaxed font-medium px-2">
+            UBOS dikembangkan oleh tim kecil yang berdedikasi. Jika aplikasi ini membantu bisnis Anda, sekecil apapun dukungan Anda akan sangat membantu biaya server kami agar UBOS tetap 100% gratis.
+          </p>
         </div>
         
         <div className="p-8 space-y-6">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="font-bold text-slate-700">Menunggu Pembayaran...</p>
-              <p className="text-sm text-slate-500 mt-2">Silakan selesaikan pembayaran di tab Mayar. Jendela ini akan otomatis tertutup setelah berhasil.</p>
+            <div className="text-center py-6">
+              <div className="w-10 h-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="font-bold text-slate-700 text-sm">Menyiapkan pembayaran...</p>
+              <p className="text-xs text-slate-500 mt-2">Jendela ini akan tertutup otomatis setelah berhasil.</p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-3">
-                {[25000, 50000, 100000].map(val => (
-                  <button 
-                    key={val}
-                    onClick={() => setAmount(val.toString())}
-                    className={`py-2 rounded-xl border text-sm font-bold transition-all ${amount === val.toString() ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                  >
-                    {val / 1000}K
-                  </button>
-                ))}
-              </div>
-              
-              <div>
-                <input 
-                  type="number" 
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Atau ketik nominal (Min 10.000)"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent font-medium"
-                />
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2.5">
+                  {[25000, 50000, 100000].map(val => (
+                    <button 
+                      key={val}
+                      onClick={() => setAmount(val.toString())}
+                      className={`py-2.5 rounded-xl border text-sm font-bold transition-all ${amount === val.toString() ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'}`}
+                    >
+                      {val / 1000}K
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span className="text-slate-400 font-semibold text-sm">Rp</span>
+                  </div>
+                  <input 
+                    type="number" 
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Nominal lainnya (Min 10rb)"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-600 font-semibold text-slate-700 text-sm transition-all placeholder:font-medium"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-2">
                 <button 
                   onClick={handlePayment}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-lg shadow-blue-200 transition-all"
+                  className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-md shadow-slate-200 transition-all text-sm"
                 >
-                  Bayar Seikhlasnya & Hilangkan Pop-up
+                  Kirim Dukungan
                 </button>
                 
                 <button 
                   onClick={() => setIsOpen(false)}
                   disabled={!canClose}
-                  className={`w-full py-3 rounded-xl font-bold transition-all ${canClose ? 'text-slate-500 hover:bg-slate-100' : 'text-slate-300 cursor-not-allowed'}`}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all text-sm ${canClose ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' : 'text-slate-400 cursor-not-allowed'}`}
                 >
-                  {canClose ? "Nanti Saja (Tutup)" : `Tutup (${countdown} detik)`}
+                  {canClose ? "Lain kali saja" : `Bisa ditutup dalam ${countdown} detik`}
                 </button>
               </div>
             </>

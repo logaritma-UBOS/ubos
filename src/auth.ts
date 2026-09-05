@@ -60,15 +60,62 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      const ALLOWED_EMAILS = [
+        "logaritma.tim@gmail.com",
+        "tony@logaritma.id",
+        "reza@logaritma.id",
+        "bana@logaritma.id",
+        "baim@logaritma.id"
+      ];
+      
+      if (user?.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+          const userEmailLower = user.email.toLowerCase();
+          const isPilot = ALLOWED_EMAILS.includes(userEmailLower);
+          
+          if (isPilot) {
+            const { logPilotActivityRaw } = await import("./lib/pilotAudit");
+            await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
+          }
+        } catch (e) {
+          console.error("Failed to log pilot login:", e);
+        }
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
+      const currentDayStr = new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric", month: "numeric", day: "numeric"
+      }).format(new Date());
+
       if (user) {
         token.id = user.id
         token.email = user.email
         token.role = user.role
+        
+        // Simpan hari login untuk fitur "Wajib login tiap hari" (Reset tengah malam)
+        token.loginDateStr = currentDayStr;
       }
+      
+      // Paksa logout jika:
+      // 1. Tanggal login di token berbeda dengan tanggal hari ini (sudah ganti hari)
+      // 2. Atau token ini dari sesi lama (sebelum ada fitur loginDateStr)
+      if (!token.loginDateStr || token.loginDateStr !== currentDayStr) {
+         // Hari berganti atau token tidak valid! Logout otomatis
+         return {} as any; // Return empty token
+      }
+      
       return token
     },
     async session({ session, token }) {
+      // Jika token dikosongkan (karena kedaluwarsa tengah malam)
+      if (!token || !token.email) {
+        return {} as any;
+      }
+      
       if (session.user && token) {
         session.user.id = token.id as string
         session.user.role = token.role as string

@@ -5,8 +5,21 @@ import Link from "next/link";
 import { runOwnerEngine } from "@/lib/engines/ownerEngine";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import DailyActivityForm from "./DailyActivityForm";
 
 export default async function AdminPilotPage() {
+  const session = await auth();
+  const userEmail = session?.user?.email || "";
+  const userName = session?.user?.name || "Admin";
+  
+  const TARGET_EMAILS = [
+    "logaritma.tim@gmail.com",
+    "tony@logaritma.id",
+    "reza@logaritma.id",
+    "bana@logaritma.id"
+  ];
+  const isInternalTeam = TARGET_EMAILS.includes(userEmail);
+
   async function updateTarget(formData: FormData) {
     "use server";
     const newTarget = formData.get("target")?.toString();
@@ -58,6 +71,10 @@ export default async function AdminPilotPage() {
             </p>
           </div>
         </div>
+
+        {isInternalTeam && (
+          <DailyActivityForm userName={userName} userEmail={userEmail} />
+        )}
 
         {/* METRICS CARDS */}
         <div className="mb-8 lg:mb-10">

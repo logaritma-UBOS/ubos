@@ -7,20 +7,27 @@ import { Card } from "@/components/ui/Card"
 import { formatRupiah } from '@/lib/format'
 import { deleteIngredient, deleteProduct } from './actions'
 
+import SupabaseImportModal from './SupabaseImportModal'
+import BulkSupplierModal from './BulkSupplierModal'
+
 export default function KatalogListClient({
   ingredients,
   products,
   productStocks,
   showIngredientsSection,
   ingredientsTitle,
+  suppliers
 }: {
   ingredients: any[],
   products: any[],
   productStocks: Record<string, number>,
   showIngredientsSection: boolean,
-  ingredientsTitle: string
+  ingredientsTitle: string,
+  suppliers: any[]
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
   const filteredMaterials = useMemo(() => {
     if (!searchQuery.trim()) return ingredients;
@@ -38,6 +45,9 @@ export default function KatalogListClient({
 
   return (
     <div className="space-y-6">
+      {showImportModal && <SupabaseImportModal onClose={() => setShowImportModal(false)} />}
+      {showBulkModal && <BulkSupplierModal onClose={() => setShowBulkModal(false)} products={products} ingredients={ingredients} suppliers={suppliers} />}
+      
       {/* Cari & Filter */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -77,9 +87,14 @@ export default function KatalogListClient({
         {/* Kolom Kiri: Bahan/Material (1/3 Lebar Desktop) */}
         {(showIngredientsSection && (filteredMaterials.length > 0 || !searchQuery)) && (
           <div className="lg:w-1/3 space-y-4">
-            <div className="flex justify-between items-center mb-1">
-              <h2 className="text-sm md:text-base font-bold text-gray-800 tracking-wide">{ingredientsTitle}</h2>
-              <Link href="/katalog/bahan/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ Tambah</Link>
+            <div className="flex justify-between items-start mb-1 gap-2">
+              <h2 className="text-sm md:text-base font-bold text-gray-800 tracking-wide mt-1 shrink-0">{ingredientsTitle}</h2>
+              <div className="flex gap-2 flex-wrap justify-end">
+                <button onClick={() => setShowBulkModal(true)} className="text-emerald-700 text-sm font-bold bg-emerald-50 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </button>
+                <Link href="/katalog/bahan/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ Tambah</Link>
+              </div>
             </div>
 
             {filteredMaterials.length > 0 ? (
@@ -120,10 +135,20 @@ export default function KatalogListClient({
 
         {/* Kolom Kanan: Produk Jualan (2/3 Lebar Desktop) */}
         <div className={showIngredientsSection ? "lg:w-2/3 space-y-4" : "w-full space-y-4"}>
-          <div className="flex justify-between items-center mb-1">
-            <h2 className="text-sm md:text-base font-bold text-gray-800 tracking-wide">Produk Jualan</h2>
-            <Link href="/katalog/produk/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ Tambah</Link>
-          </div>
+            <div className="flex justify-between items-start mb-1 gap-2">
+              <h2 className="text-sm md:text-base font-bold text-gray-800 tracking-wide mt-1 shrink-0">Produk Jualan</h2>
+              <div className="flex gap-2 flex-wrap justify-end">
+                <button onClick={() => setShowBulkModal(true)} className="text-emerald-700 text-sm font-bold bg-emerald-50 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                  <span className="hidden sm:inline">Atur</span> Supplier
+                </button>
+                <button onClick={() => setShowImportModal(true)} className="text-emerald-700 text-sm font-bold bg-emerald-50 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span className="hidden sm:inline">Import</span>
+                </button>
+                <Link href="/katalog/produk/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ Tambah</Link>
+              </div>
+            </div>
 
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">

@@ -10,6 +10,10 @@ export default function NotificationBell() {
 
   useEffect(() => {
     loadNotifications();
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 5000); // Realtime polling every 5s
+    return () => clearInterval(interval);
   }, []);
 
   async function loadNotifications() {

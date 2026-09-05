@@ -7,6 +7,7 @@ export async function runOwnerEngine() {
   
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   
   // Hitung pendapatan bulan ini
   const revenues = await prisma.ubosRevenue.findMany({
@@ -24,33 +25,86 @@ export async function runOwnerEngine() {
   const premiumUsers = paidUsersQuery.length;
   const freeUsers = totalUsers - premiumUsers;
   
-  let type = "TRAFFIC";
-  let reason = "Trafik pendaftaran terlihat sepi. Fokus datangkan lebih banyak pengunjung ke Landing Page.";
-  let actionText = "Tingkatkan akuisisi pengguna baru bulan ini.";
-  let ctaLabel = "Kelola Trafik";
-  let ctaHref = "/admin/pilot/trafik";
-  
-  if (totalUsers < 20) {
-    type = "TRAFFIC";
-    reason = "User base masih sangat sedikit. Sistem butuh lebih banyak user untuk dianalisa.";
-    actionText = "Tingkatkan trafik dan akuisisi user baru.";
-    ctaLabel = "Kelola Trafik";
-    ctaHref = "/admin/pilot/trafik";
-  } else if (freeUsers > (premiumUsers * 2)) {
-    type = "CONVERSION";
-    reason = "Banyak user gratis (Free) yang belum berdonasi. Segera eksekusi strategi konversi (seperti promosi atau penyesuaian nag screen).";
-    actionText = "Fokus ubah Free User menjadi Premium User.";
-    ctaLabel = "Optimasi Konversi";
-    ctaHref = "/admin/pilot/konversi";
-  } else {
-    type = "RELATIONSHIP";
-    reason = "Rasio konversi sudah cukup baik. Rawat user VIP Anda, kumpulkan testimoni, dan tawarkan layanan upsell.";
-    actionText = "Rawat pelanggan VIP & tingkatkan Upsell.";
-    ctaLabel = "Kelola Relationship";
-    ctaHref = "/admin/pilot/relationship";
-  }
+  // Cek matrik lain
+  const recentFeedbacks = await prisma.pilotFeedback.count({
+    where: { createdAt: { gte: sevenDaysAgo } }
+  });
+
+  const recentInAppContent = await prisma.ubosFeedContent.count({
+    where: { createdAt: { gte: sevenDaysAgo } }
+  });
+
+  const upcomingSosmed = await prisma.ownerCampaign.count({
+    where: { objective: 'SOCIAL_MEDIA', startAt: { gte: now } }
+  });
+
+  const activePromos = await prisma.promo.count({
+    where: { isActive: true }
+  }).catch(() => 0);
   
   const gap = targetRevenue - currentRevenue;
+
+  let type = "TRAFFIC";
+  let reason = "";
+  let actionText = "";
+  let ctaLabel = "";
+  let ctaHref = "";
+
+  // LOGARITMA BACKWARD MAPPING: Start from GAP -> Conversion -> Traffic -> Retention -> Content/Asset
+  if (gap > 0) {
+    if (freeUsers > 10) {
+      // Punya user gratis tapi belum bayar.
+      if (activePromos === 0) {
+        type = "PROMO";
+        reason = "Banyak user gratis (Free) namun tidak ada pancingan (Hook). Buat kode promo untuk mendesak mereka Upgrade.";
+        actionText = "Buat Promo untuk mempercepat Konversi.";
+        ctaLabel = "Kelola Promo";
+        ctaHref = "/admin/pilot/promo";
+      } else {
+        type = "CONVERSION";
+        reason = "Banyak user gratis (Free) yang belum berdonasi. Eksekusi strategi konversi melalui WhatsApp Follow Up atau edukasi.";
+        actionText = "Fokus ubah Free User menjadi Premium User.";
+        ctaLabel = "Optimasi Konversi";
+        ctaHref = "/admin/pilot/konversi";
+      }
+    } else {
+      // User gratis terlalu sedikit.
+      if (upcomingSosmed === 0) {
+        type = "SOSMED";
+        reason = "Stok peluru konten sosial media kosong. Sulit mendatangkan trafik baru tanpa konten distribusi.";
+        actionText = "Jadwalkan Konten Sosmed Baru.";
+        ctaLabel = "Kalender Konten";
+        ctaHref = "/admin/pilot/kalender-konten";
+      } else {
+        type = "TRAFFIC";
+        reason = "Kolam (User Base) masih terlalu kecil untuk menghasilkan konversi maksimal. Sebarkan link pendaftaran.";
+        actionText = "Tingkatkan trafik dan akuisisi user baru.";
+        ctaLabel = "Kelola Trafik";
+        ctaHref = "/admin/pilot/trafik";
+      }
+    }
+  } else {
+    // Target tercapai. Fokus pada RAWAT & TUMBUH.
+    if (recentFeedbacks > 0) {
+      type = "FEEDBACK";
+      reason = "Ada masukan / saran baru dari tenant dalam 7 hari terakhir. Dengarkan keluhan mereka agar tidak churn.";
+      actionText = "Tinjau dan balas Masukan / Saran tenant.";
+      ctaLabel = "Buka Feedback";
+      ctaHref = "/admin/pilot/feedback";
+    } else if (recentInAppContent === 0) {
+      type = "IN_APP_CONTENT";
+      reason = "Sudah 7 hari tenant tidak mendapatkan asupan edukasi di dashboard mereka. Berikan mereka tips bisnis terbaru.";
+      actionText = "Buat Konten Edukasi In-App.";
+      ctaLabel = "Buat Konten In-App";
+      ctaHref = "/admin/pilot/konten";
+    } else {
+      type = "RELATIONSHIP";
+      reason = "Semua matrik sehat. Rawat user VIP Anda, kumpulkan testimoni, dan tawarkan layanan upsell premium (Coway/Lainnya).";
+      actionText = "Rawat pelanggan VIP & tawarkan Upsell.";
+      ctaLabel = "Kelola Relationship";
+      ctaHref = "/admin/pilot/relationship";
+    }
+  }
   
   return {
     target: targetRevenue,

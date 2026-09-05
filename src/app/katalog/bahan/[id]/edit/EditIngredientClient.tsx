@@ -5,7 +5,7 @@ import { editIngredient } from "@/actions/catalog"
 import Link from "next/link"
 import { useActionState } from "react"
 
-export default function EditIngredientClient({ ingredient }: { ingredient: any }) {
+export default function EditIngredientClient({ ingredient, suppliers }: { ingredient: any, suppliers: any[] }) {
   const [state, action, pending] = useActionState(editIngredient, null)
 
   return (
@@ -40,6 +40,16 @@ export default function EditIngredientClient({ ingredient }: { ingredient: any }
             <label className="block text-sm font-medium text-gray-700">Satuan</label>
             <input name="unit" type="text" defaultValue={ingredient.unit} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900" />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Supplier (Opsional)</label>
+          <select name="supplierId" defaultValue={ingredient.supplierId || ""} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">-- Tanpa Supplier --</option>
+            {suppliers.map((s: any) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
         </div>
 
         <details className="group border border-gray-200 rounded-md p-2">

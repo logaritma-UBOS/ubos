@@ -1,11 +1,1 @@
-import Link from "next/link";
-export default function PromoPage() {
-  return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-black text-gray-900 mb-4">PROMO</h1>
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <p className="text-gray-500">Halaman pengelolaan promo sedang dalam pengembangan. Segera hadir!</p>
-      </div>
-    </div>
-  );
-}
+import PromoClient from './PromoClient'; import { getOwnerOffers } from '@/actions/marketing'; export default async function PromoPage() { const offers = await getOwnerOffers(); return ( <div className='p-4 lg:p-8 max-w-4xl mx-auto space-y-6'> <div> <h1 className='text-3xl font-black text-gray-900 mb-2'>PROMO</h1> <p className='text-slate-500'>Manajemen penawaran khusus dan promo untuk Upgrade VIP.</p> </div> <PromoClient initialData={offers} /> </div> ); }

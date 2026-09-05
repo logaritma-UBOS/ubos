@@ -48,7 +48,7 @@ export function WaSettingsClient() {
     }
     
     // Nomor WA Admin UBOS (hardcoded for pilot)
-    const adminWa = "6281211638357"
+    const adminWa = "6285175150408"
     const text = `Halo Admin UBOS, saya ingin meminta akses fitur WA Blast.%0A%0ANama Toko: ${reqName}%0ANomor WA (untuk Blast): ${reqPhone}%0A%0AMohon bantu aktifkan dan berikan Kode Aktivasi sistem untuk toko saya. Terima kasih.`
     
     window.open(`https://wa.me/${adminWa}?text=${text}`, "_blank")

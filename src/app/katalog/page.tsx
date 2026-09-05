@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache"
 import { Badge } from "@/components/ui/Badge"
 import { Card } from "@/components/ui/Card"
 import KatalogListClient from "./KatalogListClient"
+import AppShell from "@/components/layout/AppShell"
 
 function stockBadge(currentStock: number, minStock: number) {
   if (currentStock <= 0) return <Badge variant="danger">HABIS</Badge>
@@ -31,9 +32,10 @@ export default async function KatalogPage() {
 
   const isFnB = business.businessType === 'F_AND_B'
 
-  const [products, ingredients] = await Promise.all([
+  const [products, ingredients, suppliers] = await Promise.all([
     prisma.product.findMany({ where: { businessId: business.id, isActive: true } }),
-    prisma.ingredient.findMany({ where: { businessId: business.id } })
+    prisma.ingredient.findMany({ where: { businessId: business.id } }),
+    prisma.supplier.findMany({ where: { businessId: business.id }, orderBy: { name: 'asc' } })
   ])
 
   // Retail stock fetch
@@ -68,6 +70,7 @@ export default async function KatalogPage() {
   const ingredientsTitle = isFnB ? "Bahan Baku" : "Komponen / Material"
 
   return (
+    <AppShell businessName={business.name}>
     <div className="min-h-screen bg-gray-50 pb-24 max-w-7xl mx-auto">
       {/* HEADER FLAT STANDAR */}
       <div className="bg-white px-4 lg:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200">
@@ -85,35 +88,43 @@ export default async function KatalogPage() {
 
         {/* Peringatan Stok */}
         {hasWarnings && (
-          <div className="bg-white border-t-4 border-warning-400 rounded-xl shadow-sm p-4 space-y-2 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 md:items-start">
-            <div className="md:col-span-2">
-              <p className="text-xs font-bold text-warning-800 uppercase tracking-wider mb-3">Peringatan Stok Keseluruhan</p>
+          <details className="bg-white border-t-4 border-warning-400 rounded-xl shadow-sm overflow-hidden">
+            <summary className="flex justify-between items-center px-4 py-3 cursor-pointer select-none list-none hover:bg-amber-50 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-warning-800 uppercase tracking-wider">⚠ Peringatan Stok Keseluruhan</span>
+                <span className="text-xs font-semibold text-white bg-warning-500 rounded-full px-2 py-0.5">
+                  {outOfStockIng.length + lowStockIng.length + outOfStockProd.length + lowStockProd.length}
+                </span>
+              </div>
+              <span className="text-warning-600 text-xs font-medium">Klik untuk lihat detail ▼</span>
+            </summary>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-2 border-t border-amber-100">
+              {outOfStockIng.map(i => (
+                <Link href={`/stok?addId=${i.id}&type=INGREDIENT`} key={i.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer">
+                  <span className="text-gray-800 font-medium truncate pr-2">{i.name}</span>
+                  <Badge variant="danger">Habis &rarr;</Badge>
+                </Link>
+              ))}
+              {lowStockIng.map(i => (
+                <Link href={`/stok?addId=${i.id}&type=INGREDIENT`} key={i.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer">
+                  <span className="text-gray-800 font-medium truncate pr-2">{i.name} ({i.currentStock} {i.unit})</span>
+                  <Badge variant="warning">Menipis &rarr;</Badge>
+                </Link>
+              ))}
+              {outOfStockProd.map(p => (
+                <Link href={`/stok?addId=${p.id}&type=PRODUCT`} key={p.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer">
+                  <span className="text-gray-800 font-medium truncate pr-2">{p.name}</span>
+                  <Badge variant="danger">Stok Habis &rarr;</Badge>
+                </Link>
+              ))}
+              {lowStockProd.map(p => (
+                <Link href={`/stok?addId=${p.id}&type=PRODUCT`} key={p.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm hover:bg-emerald-50 hover:border-emerald-200 transition-colors cursor-pointer">
+                  <span className="text-gray-800 font-medium truncate pr-2">{p.name} ({productStocks[p.id]} unit)</span>
+                  <Badge variant="warning">Menipis &rarr;</Badge>
+                </Link>
+              ))}
             </div>
-            {outOfStockIng.map(i => (
-              <div key={i.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm">
-                <span className="text-gray-800 font-medium truncate pr-2">{i.name}</span>
-                <Badge variant="danger">Habis</Badge>
-              </div>
-            ))}
-            {lowStockIng.map(i => (
-              <div key={i.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm">
-                <span className="text-gray-800 font-medium truncate pr-2">{i.name} ({i.currentStock} {i.unit})</span>
-                <Badge variant="warning">Menipis</Badge>
-              </div>
-            ))}
-            {outOfStockProd.map(p => (
-              <div key={p.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm">
-                <span className="text-gray-800 font-medium truncate pr-2">{p.name}</span>
-                <Badge variant="danger">Stok Habis</Badge>
-              </div>
-            ))}
-            {lowStockProd.map(p => (
-              <div key={p.id} className="flex justify-between items-center text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100 shadow-sm">
-                <span className="text-gray-800 font-medium truncate pr-2">{p.name} ({productStocks[p.id]} unit)</span>
-                <Badge variant="warning">Menipis</Badge>
-              </div>
-            ))}
-          </div>
+          </details>
         )}
 
         <KatalogListClient 
@@ -122,6 +133,7 @@ export default async function KatalogPage() {
           productStocks={productStocks}
           showIngredientsSection={showIngredientsSection}
           ingredientsTitle={ingredientsTitle}
+          suppliers={suppliers}
         />
 
       </div>
@@ -129,5 +141,6 @@ export default async function KatalogPage() {
       {/* Spacer below before bottom nav */}
       <div className="h-8"></div>
     </div>
+    </AppShell>
   )
 }

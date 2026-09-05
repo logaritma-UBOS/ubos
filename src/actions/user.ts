@@ -23,3 +23,50 @@ export async function updateUserImage(formData: FormData) {
   revalidatePath("/")
   return { success: true, imageUrl: uploaded.secure_url }
 }
+
+
+export async function getUserProfile() {
+  const session = await auth()
+  if (!session?.user?.id) return null
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: { businesses: true }
+  })
+  
+  if (!user) return null
+  
+  return {
+    name: user.name || "",
+    phone: user.phone || "",
+    businessName: user.businesses?.[0]?.name || ""
+  }
+}
+
+export async function updateUserProfile(data: { name: string, phone: string, businessName: string }) {
+  const session = await auth()
+  if (!session?.user?.id) return { success: false, error: "Unauthorized" }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { 
+        name: data.name,
+        phone: data.phone 
+      },
+      include: { businesses: true }
+    })
+    
+    if (user.businesses && user.businesses.length > 0) {
+      await prisma.business.update({
+        where: { id: user.businesses[0].id },
+        data: { name: data.businessName }
+      })
+    }
+    
+    revalidatePath("/")
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "Gagal menyimpan data" }
+  }
+}

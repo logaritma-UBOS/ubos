@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-
-import { signOut } from "@/auth";
+import { auth, signOut } from "@/auth";
+import MidnightAutoLogout from "@/components/MidnightAutoLogout";
 
 export default async function PilotLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
   const ALLOWED_EMAILS = [
-    "logaritma.tim@gmail.com"
+    "logaritma.tim@gmail.com",
+    "tony@logaritma.id",
+    "reza@logaritma.id",
+    "bana@logaritma.id"
   ];
 
   if (!session?.user) {
@@ -18,6 +20,7 @@ export default async function PilotLayout({ children }: { children: React.ReactN
   if (!session?.user?.email || !ALLOWED_EMAILS.includes(session.user.email)) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <MidnightAutoLogout />
         <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border border-red-100">
           <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -48,6 +51,7 @@ export default async function PilotLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans text-slate-900">
+      <MidnightAutoLogout />
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto justify-between">
         <div className="p-6 border-b border-gray-100">
@@ -62,6 +66,16 @@ export default async function PilotLayout({ children }: { children: React.ReactN
         </div>
         
         <nav className="flex-1 p-4 space-y-6">
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Menu Utama</h3>
+            <div className="space-y-1">
+              <Link href="/admin/pilot" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-slate-900 hover:bg-slate-100">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 0120.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                Dashboard
+              </Link>
+            </div>
+          </div>
+          
           <div>
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Kelola</h3>
             <div className="space-y-1">
@@ -93,20 +107,33 @@ export default async function PilotLayout({ children }: { children: React.ReactN
             <div className="space-y-1">
               <Link href="/admin/pilot/promo" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Promo</Link>
               <Link href="/admin/pilot/marketing" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Marketing</Link>
-              <Link href="/admin/pilot/konten" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Konten</Link>
+              <Link href="/admin/pilot/konten" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Konten In-App</Link>
+              <Link href="/admin/pilot/kalender-konten" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Kalender Konten</Link>
+              <Link href="/admin/pilot/sosmed-feed" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Feed Sosmed</Link>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Performa</h3>
+            <div className="space-y-1">
+              <Link href="/admin/pilot/performa-tim" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Tim</Link>
+              <Link href="/admin/pilot/performa-trafik" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Trafik</Link>
+              <Link href="/admin/pilot/performa-konversi" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Konversi</Link>
+              <Link href="/admin/pilot/performa-relationship" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Relationship</Link>
             </div>
           </div>
         </nav>
 
         {/* User Info / Logout */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 mt-auto">
+        <div className="p-4 border-t border-gray-100 flex flex-col gap-3 bg-gray-50 mt-auto">
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
               {session?.user?.name?.charAt(0) || "U"}
             </div>
             <div className="truncate">
-              <p className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Admin UBOS"}</p>
-              <p className="text-[10px] text-slate-500 truncate">{session?.user?.email || "admin@ubos"}</p>
+              <p className="text-[10px] font-semibold text-slate-400">Selamat datang,</p>
+              <p className="text-xs font-bold text-slate-800 truncate">@{session?.user?.name || "Admin"}</p>
             </div>
           </div>
           <form action={async () => {
@@ -117,12 +144,13 @@ export default async function PilotLayout({ children }: { children: React.ReactN
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
             </button>
           </form>
+          </div>
         </div>
       </aside>
 
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 min-w-0 relative pb-[80px] lg:pb-0">
+      <main className="flex-1 min-w-0 relative pb-[80px] lg:pb-0" suppressHydrationWarning>
         {children}
       </main>
 

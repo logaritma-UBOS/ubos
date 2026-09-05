@@ -10,8 +10,11 @@ import { Card, CardContent } from "@/components/ui/Card"
 import { IconHome, IconCatalog, IconHistory, IconInsights, IconWarning, IconCash, IconTrendingUp } from "@/components/ui/Icons"
 import { trackEvent } from "@/actions/analytics"
 import ProfileMenu from "@/components/ProfileMenu"
+import NotificationBell from "@/components/NotificationBell"
 import LandingPage from "@/components/LandingPage"
 import UbosFeed from "@/components/dashboard/UbosFeed"
+import VipBannerWrapper from "@/components/dashboard/VipBannerWrapper"
+import AppShell from "@/components/layout/AppShell"
 
 // Maps recommendation type → contextual CTA label + destination
 function getContextualCTA(type: string | undefined): { label: string; href: string } {
@@ -107,26 +110,32 @@ export default async function Home() {
   const bannerSettingRow = await prisma.pilotError.findFirst({ where: { errorType: "GLOBAL_SETTING", path: "BANNER" }, orderBy: { createdAt: "desc" } })
   const notifSetting = notifSettingRow ? JSON.parse(notifSettingRow.message) : { text: "", active: "false" }
   const bannerSetting = bannerSettingRow ? JSON.parse(bannerSettingRow.message) : { imageUrl: "", linkUrl: "", active: "false" }
+  
+  
 
   return (
+    <AppShell businessName={business.name}>
     <div className="min-h-screen bg-gray-50 pb-32 overflow-x-hidden">
-      <div className="w-full max-w-md md:max-w-5xl lg:max-w-7xl mx-auto px-4 md:px-8 lg:px-10 py-4 md:py-8 box-border">
+      <div className="w-full max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-8 box-border">
 
         {/* HEADER */}
-        <div className="flex justify-between items-start pt-2 mb-5 md:mb-8 lg:mb-10">
+        <div className="flex justify-between items-start pt-2 mb-5 md:mb-8">
           <div>
             <div className="mb-2 flex items-center">
-              <Image src="/logo-ubos.png" alt="UBOS Logo" width={100} height={32} className="h-8 w-auto object-contain" priority />
+              <Image src="/logo-ubos.png" alt="UBOS Logo" width={100} height={32} className="h-8 w-auto object-contain lg:hidden" priority />
             </div>
             <h2 className="text-sm font-bold text-gray-700">{business.name}</h2>
             <p className="text-xs text-gray-400 font-medium">{greeting} 👋</p>
           </div>
 
-          <ProfileMenu userImage={business.user?.image} />
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <ProfileMenu userImage={business.user?.image} />
+          </div>
         </div>
 
+        <VipBannerWrapper />
         <UbosFeed position="top" />
-
 
         {/* GLOBAL NOTIFICATION */}
         {notifSetting.active === "true" && notifSetting.text && (
@@ -138,116 +147,8 @@ export default async function Home() {
           </div>
         )}
 
-        {/* DESKTOP/MOBILE 2-COLUMN LAYOUT */}
-        <div className="flex flex-col lg:flex-row lg:gap-8 items-start">
-
-          {/* ===== SIDEBAR NAVIGASI (Desktop Kiri, Mobile Stack Bawah) ===== */}
-          <div className="w-full lg:w-[220px] xl:w-60 shrink-0 order-2 lg:order-1 space-y-6 lg:space-y-4 mt-8 lg:mt-0 pb-12 lg:pb-0 lg:sticky lg:top-8">
-            
-            {/* JUALAN */}
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 lg:mb-2 px-1 lg:px-3">Jualan</p>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-1">
-                <Link href="/kasir" className="bg-white lg:bg-transparent hover:bg-emerald-50 lg:hover:bg-gray-100 border border-emerald-200 lg:border-transparent text-emerald-900 lg:text-gray-700 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-10 h-10 lg:w-8 lg:h-8 bg-emerald-100 lg:bg-gray-100 rounded-xl lg:rounded-lg flex items-center justify-center shrink-0">
-                    <IconCash className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-emerald-600 lg:text-gray-600" />
-                  </div>
-                  <span className="text-sm lg:text-[13px] font-black lg:font-semibold tracking-tight lg:tracking-normal">Kasir POS</span>
-                </Link>
-                <Link href="/riwayat" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 border border-gray-200 lg:border-transparent text-gray-800 lg:text-gray-700 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-10 h-10 lg:w-8 lg:h-8 bg-gray-100 lg:bg-gray-100 rounded-xl lg:rounded-lg flex items-center justify-center shrink-0">
-                    <IconHistory className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-600 lg:text-gray-600" />
-                  </div>
-                  <span className="text-sm lg:text-[13px] font-black lg:font-semibold tracking-tight lg:tracking-normal">Riwayat</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* KELOLA */}
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 lg:mb-2 px-1 lg:px-3">Kelola</p>
-              <div className="grid grid-cols-3 lg:grid-cols-1 gap-3 lg:gap-1">
-                <Link href="/katalog" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <IconCatalog className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600" />
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Katalog</span>
-                </Link>
-                <Link href="/pelanggan" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Pelanggan</span>
-                </Link>
-                <Link href="/pengeluaran" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal truncate lg:w-full">Pengeluaran</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* TUMBUH */}
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 lg:mb-2 px-1 lg:px-3">Tumbuh</p>
-              <div className="grid grid-cols-3 lg:grid-cols-1 gap-3 lg:gap-1">
-                <Link href="/promo" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" /></svg>
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Promo</span>
-                </Link>
-                <Link href="/marketing" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-3.102-.069m0-10.44c.253-.962.584-1.892.985-2.783.247-.55.06-1.21-.463-1.511l-.657-.38c-.551-.318-1.26-.117-1.527.461a20.845 20.845 0 00-1.44 4.282m3.102-.069a18.03 18.03 0 00-3.102.069" /></svg>
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Marketing</span>
-                </Link>
-                <Link href="/konten" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="lg:w-8 lg:h-8 lg:bg-gray-100 lg:rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 lg:w-4.5 lg:h-4.5 text-gray-500 lg:text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
-                  </div>
-                  <span className="text-[10px] lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Konten</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* PAHAMI BISNIS */}
-            <div id="menu-lainnya">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 lg:mb-2 px-1 lg:px-3">Pahami Bisnis</p>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-1">
-                <Link href="/wawasan-bisnis" className="col-span-2 lg:col-span-1 bg-white lg:bg-transparent hover:bg-blue-50 lg:hover:bg-gray-100 border border-blue-200 lg:border-transparent text-blue-900 lg:text-gray-700 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-8 h-8 lg:bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <IconInsights className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-blue-600 lg:text-gray-600" />
-                  </div>
-                  <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Analisis Bisnis</span>
-                </Link>
-                <Link href="/performa-produk" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-8 h-8 lg:bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <IconTrendingUp className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-gray-600" />
-                  </div>
-                  <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal">Performa</span>
-                </Link>
-                <Link href="/performa-aov" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-8 h-8 lg:bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  </div>
-                  <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal truncate lg:w-full">Rata-rata Belanja</span>
-                </Link>
-                <Link href="/laporan" className="bg-white lg:bg-transparent hover:bg-gray-50 lg:hover:bg-gray-100 p-4 lg:p-2.5 rounded-2xl lg:rounded-xl border border-gray-200 lg:border-transparent text-gray-700 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-2 lg:gap-3 shadow-sm lg:shadow-none transition-all active:scale-95 text-center lg:text-left">
-                  <div className="w-8 h-8 lg:bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-gray-600"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                  </div>
-                  <span className="text-xs lg:text-[13px] font-bold lg:font-medium tracking-tight lg:tracking-normal truncate lg:w-full">Laporan Keuangan</span>
-                </Link>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ===== MAIN CONTENT (Desktop Kanan, Mobile Atas) ===== */}
-          <div className="w-full lg:flex-1 order-1 lg:order-2 space-y-4 lg:space-y-6">
+        {/* MAIN CONTENT */}
+        <div className="space-y-4 lg:space-y-6">
 
             {/* ── SECTION 1: TARGET & HEALTH MONITOR ── */}
             {/* MOBILE VIEW (< lg) */}
@@ -458,7 +359,6 @@ export default async function Home() {
               </div>
             )}
           </div>
-        </div>
 
         <div className="mt-6 mb-2">
           <UbosFeed position="bottom" />
@@ -478,38 +378,10 @@ export default async function Home() {
             )}
           </div>
         )}
-
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION — safe area + full clearance */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm border-t border-gray-200 flex justify-around items-center h-[68px] z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <Link href="/" className="flex flex-col items-center justify-center w-[20%] h-full text-emerald-600">
-          <IconHome className="w-6 h-6" />
-          <span className="text-[10px] font-bold mt-0.5">Beranda</span>
-        </Link>
-        <Link href="/katalog" className="flex flex-col items-center justify-center w-[20%] h-full text-gray-400 hover:text-gray-700">
-          <IconCatalog className="w-6 h-6" />
-          <span className="text-[10px] font-semibold mt-0.5">Katalog</span>
-        </Link>
 
-        {/* KASIR — floating button */}
-        <div className="relative w-[20%] flex justify-center -mt-7">
-          <Link href="/kasir" className="w-14 h-14 bg-emerald-500 hover:bg-emerald-600 rounded-full flex flex-col items-center justify-center text-white shadow-xl shadow-emerald-500/30 border-[3px] border-white active:scale-95 transition-all">
-            <IconCash className="w-6 h-6" />
-          </Link>
-        </div>
-
-        <Link href="/riwayat" className="flex flex-col items-center justify-center w-[20%] h-full text-gray-400 hover:text-gray-700">
-          <IconHistory className="w-6 h-6" />
-          <span className="text-[10px] font-semibold mt-0.5">Riwayat</span>
-        </Link>
-        <a href="#menu-lainnya" className="flex flex-col items-center justify-center w-[20%] h-full text-gray-400 hover:text-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-          </svg>
-          <span className="text-[10px] font-semibold mt-0.5">Lainnya</span>
-        </a>
-      </div>
     </div>
+    </AppShell>
   )
 }

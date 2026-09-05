@@ -1,6 +1,7 @@
-﻿import { getPromos } from "@/actions/promo"
+import { getPromos } from "@/actions/promo"
 import PromoClient from "./PromoClient"
 import Link from "next/link"
+import AppShell from "@/components/layout/AppShell"
 
 export const dynamic = "force-dynamic"
 
@@ -8,6 +9,7 @@ export default async function PromoPage() {
   const { promos, error } = await getPromos()
 
   return (
+    <AppShell>
     <div className="min-h-screen bg-gray-50 max-w-5xl mx-auto p-4 md:p-8">
       <div className="mb-6">
         <Link href="/" className="text-sm text-gray-500 hover:text-primary-600 mb-1 inline-block">← Kembali ke Dashboard</Link>
@@ -21,5 +23,6 @@ export default async function PromoPage() {
         <PromoClient initialPromos={promos || []} />
       )}
     </div>
+    </AppShell>
   )
 }

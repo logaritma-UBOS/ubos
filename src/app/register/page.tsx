@@ -98,6 +98,23 @@ export default function RegisterPage() {
               />
             </div>
 
+
+            {/* WhatsApp */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Nomor WhatsApp Aktif
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                autoComplete="tel"
+                placeholder="Contoh: 081234567890"
+                className="block w-full px-4 py-3 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors bg-slate-50"
+              />
+            </div>
+
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">

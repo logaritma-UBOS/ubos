@@ -8,6 +8,7 @@ import {
   calculateTotalHPP, calculateExpenses, calculateGrossProfit,
   calculateNetProfit, calculateMargin
 } from "@/lib/engines/calculationEngine"
+import AppShell from "@/components/layout/AppShell"
 
 export const dynamic = "force-dynamic"
 
@@ -52,6 +53,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
   ]
 
   return (
+    <AppShell businessName={business.name}>
     <div className="min-h-screen bg-slate-50 pb-16">
 
       {/* ===== DESKTOP HEADER ===== */}
@@ -179,5 +181,6 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
         </div>
       </div>
     </div>
+    </AppShell>
   )
 }

@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const articles = await prisma.ubosFeedContent.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { createdAt: "desc" },
-      take: 5
+      take: 10
     });
 
     if (articles.length === 0) {

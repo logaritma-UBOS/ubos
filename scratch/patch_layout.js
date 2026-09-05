@@ -1,0 +1,1 @@
+const fs = require('fs'); const file = 'src/app/admin/pilot/(dashboard)/layout.tsx'; let code = fs.readFileSync(file, 'utf8'); code = code.replace(/const ALLOWED_EMAILS = \\[[\\s\\S]*?\\];/, 'const ALLOWED_EMAILS = [\\'logaritma.tim@gmail.com\\', \\'tony@logaritma.id\\', \\'reza@logaritma.id\\', \\'bana@logaritma.id\\'];'); fs.writeFileSync(file, code);

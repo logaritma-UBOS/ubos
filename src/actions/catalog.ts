@@ -16,6 +16,30 @@ async function getBusinessId() {
   return business.id
 }
 
+export async function bulkAssignSupplier(supplierId: string, itemIds: string[], type: 'PRODUCT' | 'INGREDIENT') {
+  try {
+    const businessId = await getBusinessId()
+    
+    if (type === 'PRODUCT') {
+      await prisma.product.updateMany({
+        where: { id: { in: itemIds }, businessId },
+        data: { supplierId: supplierId || null }
+      })
+    } else {
+      await prisma.ingredient.updateMany({
+        where: { id: { in: itemIds }, businessId },
+        data: { supplierId: supplierId || null }
+      })
+    }
+    
+    revalidatePath("/katalog", "layout")
+    revalidatePath("/stok", "layout")
+    return { success: true }
+  } catch (e: any) {
+    return { error: e.message }
+  }
+}
+
 export async function addIngredient(prevState: any, formData: FormData) {
   try {
     const businessId = await getBusinessId()
@@ -73,7 +97,7 @@ export async function addRecipeItem(formData: FormData) {
   } catch (e: any) {
     return { error: e.message }
   }
-  revalidatePath(`/katalog/produk/${formData.get("productId")}`)
+  revalidatePath(`/katalog/produk/${formData.get("productId")}`, "layout")
   return { success: true }
 }
 
@@ -253,7 +277,7 @@ export async function addProduct(prevState: any, formData: FormData) {
     logError("CATALOG_ERROR", e.message, undefined, e.stack, "/katalog/produk/tambah").catch(()=>{})
     return { error: e.message }
   }
-  revalidatePath("/katalog")
+  revalidatePath("/katalog", "layout")
   redirect("/katalog")
 }
 
@@ -277,6 +301,9 @@ export async function editProduct(prevState: any, formData: FormData) {
       updateData.purchaseCost = newCost;
       updateData.calculatedHpp = newCost;
       updateData.calculatedMargin = sellPrice > 0 ? ((sellPrice - newCost) / sellPrice) * 100 : 0;
+      
+      const supplierId = formData.get("supplierId") as string;
+      updateData.supplierId = supplierId || null;
     }
 
     // Process image
@@ -306,7 +333,7 @@ export async function editProduct(prevState: any, formData: FormData) {
   } catch (e: any) {
     return { error: e.message }
   }
-  revalidatePath("/katalog")
+  revalidatePath("/katalog", "layout")
   redirect("/katalog")
 }
 
@@ -333,7 +360,17 @@ export async function editIngredient(prevState: any, formData: FormData) {
     const existing = await prisma.ingredient.findFirst({ where: { id, businessId } })
     if (!existing) return { error: "Unauthorized" }
 
-    await prisma.ingredient.update({ where: { id }, data: { name, unit, costPerUnit, currentStock } })
+    const supplierId = formData.get("supplierId") as string;
+    await prisma.ingredient.update({ 
+      where: { id }, 
+      data: { 
+        name, 
+        unit, 
+        costPerUnit, 
+        currentStock,
+        supplierId: supplierId || null 
+      } 
+    })
     
     // Auto update HPP for all products using this ingredient
     const recipes = await prisma.recipe.findMany({ where: { ingredientId: id } })
@@ -343,20 +380,20 @@ export async function editIngredient(prevState: any, formData: FormData) {
   } catch (e: any) {
     return { error: e.message }
   }
-  revalidatePath("/katalog")
+  revalidatePath("/katalog", "layout")
   redirect("/katalog")
 }
 
 export async function deleteProductSecure(id: string) {
   const businessId = await getBusinessId()
   await prisma.product.deleteMany({ where: { id, businessId } })
-  revalidatePath("/katalog")
+  revalidatePath("/katalog", "layout")
 }
 
 export async function deleteIngredientSecure(id: string) {
   const businessId = await getBusinessId()
   await prisma.ingredient.deleteMany({ where: { id, businessId } })
-  revalidatePath("/katalog")
+  revalidatePath("/katalog", "layout")
 }
 
 export async function deleteRecipeItemSecure(id: string, productId: string) {
@@ -367,5 +404,5 @@ export async function deleteRecipeItemSecure(id: string, productId: string) {
     await prisma.recipe.deleteMany({ where: { id, productId: product.id } })
     await updateProductHpp(productId)
   }
-  revalidatePath(`/katalog/produk/${productId}`)
+  revalidatePath(`/katalog/produk/${productId}`, "layout")
 }

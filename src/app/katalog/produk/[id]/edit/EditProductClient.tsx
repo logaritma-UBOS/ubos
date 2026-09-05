@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { formatNumber, formatRupiah } from '@/lib/format'
 import { FormattedNumberInput } from '@/components/FormattedNumberInput'
 
@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useActionState, useState } from "react"
 
-export default function EditProductClient({ product }: { product: any }) {
+export default function EditProductClient({ product, suppliers }: { product: any, suppliers: any[] }) {
   const [state, action, pending] = useActionState(editProduct, null)
   
   // existing preview URL if available
@@ -77,14 +77,26 @@ export default function EditProductClient({ product }: { product: any }) {
         </div>
 
         {isRetail && (
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1.5">Harga Beli / Modal (HPP)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-              <FormattedNumberInput name="purchaseCost" step="any" defaultValue={product.purchaseCost} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+          <>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5">Harga Beli / Modal (HPP)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                <FormattedNumberInput name="purchaseCost" step="any" defaultValue={product.purchaseCost || product.calculatedHpp} required className="block w-full border border-gray-300 rounded-xl p-3 pl-10 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+              </div>
+              <p className="text-xs text-gray-500 mt-1.5">Mengubah HPP akan memperbarui margin keuntungan Anda.</p>
             </div>
-            <p className="text-xs text-gray-500 mt-1.5">Mengubah HPP akan memperbarui margin keuntungan Anda.</p>
-          </div>
+            
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5">Supplier (Opsional)</label>
+              <select name="supplierId" defaultValue={product.supplierId || ""} className="block w-full border border-gray-300 rounded-xl p-3 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all">
+                <option value="">-- Tanpa Supplier --</option>
+                {suppliers.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </>
         )}
 
         {isBom && (
