@@ -3,6 +3,17 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import MidnightAutoLogout from "@/components/MidnightAutoLogout";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "UBOS Pilot",
+  manifest: "/api/manifest-pilot",
+  appleWebApp: {
+    title: "UBOS Pilot",
+    statusBarStyle: "default",
+  },
+};
+
 export default async function PilotLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 

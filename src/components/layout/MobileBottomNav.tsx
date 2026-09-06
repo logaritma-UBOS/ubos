@@ -10,7 +10,7 @@ export default function MobileBottomNav() {
   
   // Don't show bottom nav on pages that have their own full-screen layouts
   // like /kasir or auth pages.
-  if (pathname === '/login' || pathname === '/register' || pathname === '/reset-sandi') {
+  if (pathname === '/login' || pathname === '/register' || pathname === '/reset-sandi' || pathname?.startsWith('/kasir')) {
     return null
   }
 

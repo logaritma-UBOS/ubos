@@ -597,8 +597,8 @@ export default function KasirClient({ products, customers }: { products: any[], 
         </div>
 
         {/* MOBILE BOTTOM BUTTON (Hidden on Desktop) */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 pb-safe bg-white border-t z-30 w-full max-w-md md:max-w-2xl mx-auto left-1/2 -translate-x-1/2" style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0px)'}}>
-          <div className="p-4 md:p-6">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30 shadow-lg">
+          <div className="p-4">
             <Button onClick={handleCheckout} disabled={isProcessing || !isCashValid} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg">
               {isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}
             </Button>
