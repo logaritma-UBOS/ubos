@@ -6,65 +6,80 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     const allDonors = [
-      { email: "iisyuarsih", amount: 10000 },
-      { email: "taufikirwans77", amount: 10000 },
-      { email: "tini07104", amount: 10000 },
-      { email: "cemae151", amount: 10000 },
-      { email: "napiahshe", amount: 10000 },
-      { email: "nengnia2409", amount: 25000 },
-      { email: "iyosrosida", amount: 25000 },
-      { email: "aisyahrah", amount: 10000 },
-      { email: "sutatadjan", amount: 10000 },
-      { email: "dwidianas", amount: 10000 },
-      { email: "suryadarmaa080", amount: 25000 },
-      { email: "suryadarma889", amount: 25000 },
-      { email: "parmianticutjuli", amount: 10000 },
-      { email: "nuraisyah.nr77", amount: 25000 },
-      { email: "sabrinann23", amount: 25000 },
-      { email: "naifimut059", amount: 25000 },
-      { email: "reza0809", amount: 50000 },
-      { email: "jubaharfadly", amount: 25000 },
-      { email: "bintangtory08", amount: 100000 },
-      { email: "mhariyadisaputra20", amount: 25000 },
-      { email: "rosadimanansite", amount: 25000 },
-      { email: "erikaagustini84", amount: 10000 },
-      { email: "prita.ambarsari", amount: 10000 },
-      { email: "thinkncreative74", amount: 10000 },
-      { email: "nhanhamiana", amount: 10000 },
-      { email: "qurrataaini047", amount: 10000 },
-      { email: "warunkarsi23", amount: 10000 },
-      { email: "logaritma.tim", amount: 10000 }
+      { name: "Moh Rosadi", email: "rosadimarunda@gmail.com", amount: 25000 },
+      { name: "M Hariyadi Saputra", email: "mhariyadisaputra20@gmail.com", amount: 25000 },
+      { name: "Iis", email: "iisyuarsih654@gmail.com", amount: 10000 },
+      { name: "Taufik Irwan Syarifudin", email: "taufikirwans77@gmail.com", amount: 10000 },
+      { name: "Hartini", email: "tini07104@gmail.com", amount: 10000 },
+      { name: "Maesaroh", email: "cemae151@gmail.com", amount: 10000 },
+      { name: "Napiah", email: "napiahshenap@gmail.com", amount: 10000 },
+      { name: "Neneng Kurniawati", email: "nengnia2409@gmail.com", amount: 25000 },
+      { name: "Rosidah", email: "iyosrosidah59@gmail.com", amount: 25000 },
+      { name: "ARF Food", email: "aisyahrahm@gmail.com", amount: 10000 },
+      { name: "Sutara", email: "sutatadjana@gmail.com", amount: 10000 },
+      { name: "Dwi diana", email: "dwidianas@gmail.com", amount: 10000 },
+      { name: "Suryadarma", email: "suryadarmaa080@gmail.com", amount: 25000 },
+      { name: "cut juli parmianti", email: "parmianticutjuli@gmail.com", amount: 10000 },
+      { name: "Aisyah Nur Rahmawita", email: "nuraisyah.nr77@gmail.com", amount: 25000 },
+      { name: "Sri Widiana", email: "sabrinann23@gmail.com", amount: 25000 },
+      { name: "Nany Kurnia", email: "naifimut059@gmail.com", amount: 25000 },
+      { name: "ERIKA AGUSTINI", email: "erikaagustini84@gmail.com", amount: 10000 },
+      { name: "Reza Triansyah", email: "reza0809@gmail.com", amount: 50000 },
+      { name: "Prita Ambarsari", email: "prita.ambarsari99@gmail.com", amount: 10000 },
+      { name: "Yeni Nurhayati", email: "thinkncreative74@gmail.com", amount: 10000 },
+      { name: "Maryana", email: "nhanhamiana@gmail.com", amount: 10000 },
+      { name: "Fadly", email: "jubaharfadly@gmail.com", amount: 25000 },
+      { name: "Qurrata Aini", email: "qurrataaini047@gmail.com", amount: 10000 },
+      { name: "warunk arsi", email: "warunkarsi23@gmail.com", amount: 10000 },
+      { name: "Baim", email: "logaritma.tim@gmail.com", amount: 10000 },
+      { name: "Tony Heryanto", email: "bintangtory08@gmail.com", amount: 100000 }
     ];
 
     const results = [];
     for (const u of allDonors) {
-      const user = await prisma.user.findFirst({ where: { email: { contains: u.email } } });
-      if (user) {
-        const existing = await prisma.ubosRevenue.findFirst({ where: { userId: user.id } });
-        if (existing) {
-          await prisma.ubosRevenue.update({
-            where: { id: existing.id },
-            data: { amount: u.amount }
-          });
-          results.push({ email: u.email, action: "updated" });
-        } else {
-          await prisma.ubosRevenue.create({
-            data: {
-              userId: user.id,
-              mayarTrxId: "manual_sync_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-              amount: u.amount,
-              paymentMethod: "MAYAR",
-              status: "PAID"
-            }
-          });
-          results.push({ email: u.email, action: "created" });
-        }
+      // Find user by matching start of email
+      let user = await prisma.user.findFirst({ where: { email: { contains: u.email.split('@')[0] } } });
+      
+      let action = "";
+      if (!user) {
+        // Create the user if they don't exist
+        user = await prisma.user.create({
+          data: {
+            name: u.name,
+            email: u.email,
+            role: "OWNER"
+          }
+        });
+        action = "user_created";
       } else {
-        results.push({ email: u.email, action: "not_found" });
+        action = "user_found";
       }
+
+      // Ensure UbosRevenue exists
+      const existingRev = await prisma.ubosRevenue.findFirst({ where: { userId: user.id } });
+      if (existingRev) {
+        await prisma.ubosRevenue.update({
+          where: { id: existingRev.id },
+          data: { amount: u.amount }
+        });
+        action += " + rev_updated";
+      } else {
+        await prisma.ubosRevenue.create({
+          data: {
+            userId: user.id,
+            mayarTrxId: "manual_sync_full_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+            amount: u.amount,
+            paymentMethod: "MAYAR",
+            status: "PAID"
+          }
+        });
+        action += " + rev_created";
+      }
+      
+      results.push({ name: u.name, action });
     }
     
-    return NextResponse.json({ success: true, results })
+    return NextResponse.json({ success: true, count: results.length, results })
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message })
   }
