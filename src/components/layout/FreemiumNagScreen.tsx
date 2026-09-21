@@ -61,8 +61,7 @@ export default function FreemiumNagScreen() {
 
   const triggerNag = () => {
     setIsOpen(true);
-    setCanClose(false);
-    setCountdown(20);
+    setCanClose(true);
     localStorage.setItem("ubos_last_nag", Date.now().toString());
 
     // Setup 3 min next trigger
@@ -72,21 +71,7 @@ export default function FreemiumNagScreen() {
   };
 
   useEffect(() => {
-    if (isOpen && !canClose) {
-      timerRef.current = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            setCanClose(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    // No more countdown logic needed
   }, [isOpen, canClose]);
 
   const handlePayment = async () => {
@@ -213,10 +198,9 @@ export default function FreemiumNagScreen() {
                 
                 <button 
                   onClick={() => setIsOpen(false)}
-                  disabled={!canClose}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all text-sm ${canClose ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' : 'text-slate-400 cursor-not-allowed'}`}
+                  className="w-full py-3 rounded-xl font-semibold transition-all text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                 >
-                  {canClose ? "Lain kali saja" : `Bisa ditutup dalam ${countdown} detik`}
+                  Lain kali saja
                 </button>
               </div>
             </>
