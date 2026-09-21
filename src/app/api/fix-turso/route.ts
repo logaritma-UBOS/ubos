@@ -6,12 +6,11 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     const updates = [
-      { name: "Aisyah Nur Rahmawita", amount: 25000 },
-      { name: "Reza Triansyah", amount: 50000 },
-      { name: "Fadly", amount: 25000 },
-      { name: "Sri Widiana", amount: 25000 },
-      { name: "Nany Kurniawati", amount: 25000 },
-      { name: "Nany Kurnia", amount: 25000 }
+      { name: "Moh Rosadi", amount: 25000 },
+      { name: "Neneng Kurniawati", amount: 25000 },
+      { name: "Rosidah", amount: 25000 },
+      { name: "Suryadarma", amount: 25000 },
+      { name: "Tony", amount: 100000 }
     ];
 
     const results = [];
