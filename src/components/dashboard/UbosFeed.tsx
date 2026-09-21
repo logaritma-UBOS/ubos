@@ -85,7 +85,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   if (position === "bottom" && articles.length > 0) {
     return (
       <div className="mt-8">
-        <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Mading In-App</h3>
+        <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Info & Panduan UBOS</h3>
         
         {articles.length === 1 ? (
           // Single article
