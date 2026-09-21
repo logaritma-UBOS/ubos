@@ -1,11 +1,53 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { IconCatalog, IconHistory, IconInsights, IconWarning, IconTrendingUp, IconCash } from "@/components/ui/Icons"
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
+      setIsStandalone(true);
+    }
+
+    // Detect iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(isIosDevice);
+
+    // Listen for Android/Desktop install prompt
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (isIOS) {
+      setShowIOSPrompt(true);
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert("Untuk install: Ketik menu (titik tiga) di browser lalu pilih 'Tambahkan ke Layar Utama' atau 'Install Aplikasi'.");
+    }
+  };
   
   // States for FAQ Accordion
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -114,9 +156,18 @@ export default function LandingPage() {
               <Link href="/register" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-7 py-3 rounded-full shadow-md shadow-blue-600/20 text-sm transition-all text-center">
                 Daftar Sekarang &rarr;
               </Link>
-              <Link href="/login" className="w-full sm:w-auto bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-full text-sm flex items-center justify-center gap-2 transition-all">
-                Demo Preview
-              </Link>
+              {!isStandalone ? (
+                <button 
+                  onClick={handleInstallClick}
+                  className="w-full sm:w-auto bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-full text-sm flex items-center justify-center gap-2 transition-all"
+                >
+                  Download UBOS
+                </button>
+              ) : (
+                <Link href="/login" className="w-full sm:w-auto bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-full text-sm flex items-center justify-center gap-2 transition-all">
+                  Masuk Aplikasi
+                </Link>
+              )}
             </div>
           </div>
           
@@ -322,6 +373,29 @@ export default function LandingPage() {
           <div>&copy; 2026 UBOS by Logaritma. Hak cipta dilindungi.</div>
         </div>
       </footer>
+
+      {/* iOS Install Instructions Modal */}
+      {showIOSPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowIOSPrompt(false)}>
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl mb-8 animate-in slide-in-from-bottom-8" onClick={e => e.stopPropagation()}>
+            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-blue-600">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25m6-2.25h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-xl text-slate-900 mb-2">Install di iPhone/iPad</h3>
+            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+              Ketuk tombol <strong>Share/Bagikan</strong> di bagian bawah layar Safari, lalu gulir ke bawah dan pilih <strong>"Tambahkan ke Layar Utama"</strong>.
+            </p>
+            <button 
+              onClick={() => setShowIOSPrompt(false)}
+              className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl active:scale-95 transition-all"
+            >
+              Saya Mengerti
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   )
