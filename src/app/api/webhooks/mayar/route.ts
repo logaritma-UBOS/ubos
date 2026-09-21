@@ -12,27 +12,31 @@ export async function POST(req: NextRequest) {
       // In sandbox/testing we might bypass if headers are messed up, but let's be strict if token is provided
     }
 
-    const payload = await req.json();
-    console.log("Mayar Webhook Received:", payload);
+    const rawPayload = await req.json();
+    console.log("Mayar Webhook Received:", rawPayload);
 
-    // Mayar webhook payload usually contains status, amount, id, customer.email
+    const payload = rawPayload.data || rawPayload;
+
     if (payload.status === "PAID" || payload.status === "SETTLED" || payload.status === "SUCCESS") {
        // Cari user berdasarkan email dari transaksi
        const email = payload.customer?.email || payload.email;
        if (email) {
           const user = await prisma.user.findUnique({ where: { email } });
           if (user) {
+             const trxId = payload.id || payload.trx_id || payload.reference || Date.now().toString();
+             const amount = Number(payload.amount || payload.total || payload.total_amount || 0);
              await prisma.ubosRevenue.upsert({
-               where: { mayarTrxId: payload.id || payload.trx_id || payload.reference || Date.now().toString() },
+               where: { mayarTrxId: trxId },
                create: {
                  userId: user.id,
-                 mayarTrxId: payload.id || payload.trx_id || payload.reference || Date.now().toString(),
-                 amount: Number(payload.amount || 0),
+                 mayarTrxId: trxId,
+                 amount: amount,
                  paymentMethod: payload.payment_method || "MAYAR",
                  status: "PAID"
                },
                update: {
-                 status: "PAID"
+                 status: "PAID",
+                 amount: amount > 0 ? amount : undefined // Update amount only if it's parsed correctly
                }
              });
           }
