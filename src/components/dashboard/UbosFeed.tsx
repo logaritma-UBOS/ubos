@@ -8,21 +8,8 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeArticle, setActiveArticle] = useState<any>(null);
   const [realDonors, setRealDonors] = useState<any[]>([]);
-  
-  // Fake Donors
-  const fakeDonors = [
-    { name: "Toko Mawar", amount: 50000 },
-    { name: "Warung Budi", amount: 100000 },
-    { name: "Kedai Kopi Senja", amount: 25000 },
-    { name: "Ayam Geprek Mas", amount: 150000 },
-    { name: "Berkah Grosir", amount: 50000 },
-    { name: "Toko Plastik Makmur", amount: 20000 },
-    { name: "Nasi Padang Sederhana", amount: 75000 },
-    { name: "Minimarket Barokah", amount: 200000 }
-  ];
-  
   const [currentDonor, setCurrentDonor] = useState(0);
-  const [allDonors, setAllDonors] = useState(fakeDonors);
+  const [allDonors, setAllDonors] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/user/status")
@@ -38,8 +25,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
           // Fetch real donors for ALL users (so VIPs can see the thank you feed too)
           fetch("/api/feed/donors").then(r => r.json()).then(rd => {
              if (rd && rd.length > 0) {
-               const merged = [...rd, ...fakeDonors];
-               setAllDonors(merged);
+               setAllDonors(rd);
              }
              setLoading(false);
           }).catch(() => setLoading(false));
@@ -58,8 +44,8 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
 
   if (loading) return null;
 
-  if (position === "top") {
-    const donor = allDonors[currentDonor];
+  if (position === "top" && allDonors.length > 0) {
+    const donor = allDonors[currentDonor] || allDonors[0];
     return (
       <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative mb-6" style={{ perspective: "1000px" }}>
         <style dangerouslySetInnerHTML={{__html: `
