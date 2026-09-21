@@ -35,34 +35,30 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
           const filtered = a.filter((item: any) => data.isVIP || item.audience === "ALL");
           setArticles(filtered);
           
-          if (!data.isVIP) {
-            // Fetch real donors for free users
-            fetch("/api/feed/donors").then(r => r.json()).then(rd => {
-               if (rd && rd.length > 0) {
-                 const merged = [...rd, ...fakeDonors];
-                 setAllDonors(merged);
-               }
-               setLoading(false);
-            }).catch(() => setLoading(false));
-          } else {
-            setLoading(false);
-          }
+          // Fetch real donors for ALL users (so VIPs can see the thank you feed too)
+          fetch("/api/feed/donors").then(r => r.json()).then(rd => {
+             if (rd && rd.length > 0) {
+               const merged = [...rd, ...fakeDonors];
+               setAllDonors(merged);
+             }
+             setLoading(false);
+          }).catch(() => setLoading(false));
         }).catch(() => setLoading(false));
       }).catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (!isVIP && !loading) {
+    if (!loading) {
       const interval = setInterval(() => {
         setCurrentDonor((prev) => (prev + 1) % allDonors.length);
       }, 4000);
       return () => clearInterval(interval);
     }
-  }, [isVIP, loading, allDonors.length]);
+  }, [loading, allDonors.length]);
 
   if (loading) return null;
 
-  if (position === "top" && !isVIP) {
+  if (position === "top") {
     const donor = allDonors[currentDonor];
     return (
       <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative mb-6" style={{ perspective: "1000px" }}>
@@ -77,12 +73,14 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
           }
         `}} />
         <div className="absolute top-0 right-0 flex items-center">
-          <button 
-            onClick={() => window.dispatchEvent(new Event('open-donate-modal'))}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg transition-colors"
-          >
-            DONASI
-          </button>
+          {!isVIP && (
+            <button 
+              onClick={() => window.dispatchEvent(new Event('open-donate-modal'))}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg transition-colors"
+            >
+              DONASI
+            </button>
+          )}
           <div className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1">Dukungan Komunitas</div>
         </div>
         <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-2">
