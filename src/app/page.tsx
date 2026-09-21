@@ -15,6 +15,7 @@ import LandingPage from "@/components/LandingPage"
 import UbosFeed from "@/components/dashboard/UbosFeed"
 import VipBannerWrapper from "@/components/dashboard/VipBannerWrapper"
 import AppShell from "@/components/layout/AppShell"
+import InstallAppButton from "@/components/InstallAppButton"
 
 // Maps recommendation type → contextual CTA label + destination
 function getContextualCTA(type: string | undefined): { label: string; href: string } {
@@ -133,6 +134,8 @@ export default async function Home() {
             <ProfileMenu userImage={business.user?.image} />
           </div>
         </div>
+
+        <InstallAppButton />
 
         <VipBannerWrapper />
         <UbosFeed position="top" />

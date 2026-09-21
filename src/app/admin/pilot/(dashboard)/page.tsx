@@ -6,6 +6,7 @@ import { runOwnerEngine } from "@/lib/engines/ownerEngine";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import DailyActivityForm from "./DailyActivityForm";
+import InstallAppButton from "@/components/InstallAppButton";
 
 export default async function AdminPilotPage() {
   const session = await auth();
@@ -75,6 +76,8 @@ export default async function AdminPilotPage() {
         {isInternalTeam && (
           <DailyActivityForm userName={userName} userEmail={userEmail} />
         )}
+
+        <InstallAppButton />
 
         {/* METRICS CARDS */}
         <div className="mb-8 lg:mb-10">
