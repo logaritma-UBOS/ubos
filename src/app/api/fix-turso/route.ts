@@ -47,7 +47,8 @@ export async function GET() {
           data: {
             name: u.name,
             email: u.email,
-            role: "OWNER"
+            role: "OWNER",
+            passwordHash: "dummy_hash_for_manual_sync"
           }
         });
         action = "user_created";
