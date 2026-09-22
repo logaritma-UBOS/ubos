@@ -127,7 +127,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
       }
 
       return (
-        <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style dangerouslySetInnerHTML={{__html: `
             .hide-scrollbar::-webkit-scrollbar { display: none; }
             @keyframes bounceRight {
@@ -146,7 +146,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
               <div 
                 key={item.id} 
                 onClick={() => setActiveArticle(item)}
-                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[42vw] max-w-[200px] h-44"
+                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[40vw] max-w-[200px] h-44"
               >
                 <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
@@ -169,7 +169,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
             ) : (
               <div 
                 key={item.id} 
-                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[42vw] max-w-[200px] h-44 relative"
+                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[40vw] max-w-[200px] h-44 relative"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`text-[8px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
