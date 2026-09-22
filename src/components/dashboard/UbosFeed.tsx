@@ -83,92 +83,114 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
   }
 
   if (position === "bottom" && articles.length > 0) {
-    return (
-      <div className="mt-8">
-        <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Info & Panduan UBOS</h3>
-        
-        {articles.length === 1 ? (
-          // Single article
-          articles[0].imageUrl ? (
-            <div 
-              onClick={() => setActiveArticle(articles[0])}
-              className="cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group"
-            >
-              <img src={articles[0].imageUrl} alt={articles[0].title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-              <div className="absolute bottom-3 left-3 flex gap-2">
-                <span className={`text-[10px] font-black px-2 py-1 rounded ${articles[0].audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
-                  {articles[0].audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
-                </span>
-              </div>
+    const vipArticles = articles.filter(a => a.audience === 'VIP_ONLY');
+    const freeArticles = articles.filter(a => a.audience === 'ALL');
+
+    const renderList = (list: any[]) => {
+      if (list.length === 0) return null;
+      if (list.length === 1) {
+        const item = list[0];
+        return item.imageUrl ? (
+          <div 
+            onClick={() => setActiveArticle(item)}
+            className="cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group"
+          >
+            <img src={item.imageUrl} alt={item.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+            <div className="absolute bottom-3 left-3 flex gap-2">
+              <span className={`text-[10px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
+                {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
+              </span>
             </div>
-          ) : (
-            <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white transition-all duration-300">
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`text-[10px] font-black px-2 py-1 rounded ${articles[0].audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
-                  {articles[0].audience === 'VIP_ONLY' ? 'VIP INSIGHT' : 'INFO'}
-                </span>
-                <span className="text-xs font-medium text-slate-300">{articles[0].category}</span>
-              </div>
-              <h3 className="font-bold text-lg mb-1 leading-tight">{articles[0].title}</h3>
-              <div 
-                className={`text-sm text-slate-300 whitespace-pre-line ${expandedId === articles[0].id ? '' : 'line-clamp-2'}`}
-                dangerouslySetInnerHTML={{ __html: articles[0].content }}
-              />
-              <button 
-                onClick={() => setExpandedId(expandedId === articles[0].id ? null : articles[0].id)}
-                className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors"
-              >
-                {expandedId === articles[0].id ? "TUTUP KONTEN \u2191" : "BACA SELENGKAPNYA \u2192"}
-              </button>
-            </div>
-          )
+          </div>
         ) : (
-          // Slider for multiple articles
-          <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <style dangerouslySetInnerHTML={{__html: `
-              .hide-scrollbar::-webkit-scrollbar { display: none; }
-            `}} />
-            {articles.map((item) => (
-              item.imageUrl ? (
-                <div 
-                  key={item.id} 
-                  onClick={() => setActiveArticle(item)}
-                  className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[38vw] max-w-[280px] md:w-[27%] h-36"
-                >
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                  <div className="absolute bottom-2 left-2 flex gap-1">
-                    <span className={`text-[8px] font-black px-2 py-0.5 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
-                      {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
-                    </span>
-                  </div>
+          <div className="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-5 shadow-lg text-white transition-all duration-300">
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`text-[10px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
+                {item.audience === 'VIP_ONLY' ? 'VIP INSIGHT' : 'INFO'}
+              </span>
+              <span className="text-xs font-medium text-slate-300">{item.category}</span>
+            </div>
+            <h3 className="font-bold text-lg mb-1 leading-tight">{item.title}</h3>
+            <div 
+              className={`text-sm text-slate-300 whitespace-pre-line ${expandedId === item.id ? '' : 'line-clamp-2'}`}
+              dangerouslySetInnerHTML={{ __html: item.content }}
+            />
+            <button 
+              onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+              className="mt-4 text-xs font-bold text-indigo-300 hover:text-white transition-colors"
+            >
+              {expandedId === item.id ? "TUTUP KONTEN \u2191" : "BACA SELENGKAPNYA \u2192"}
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style dangerouslySetInnerHTML={{__html: `
+            .hide-scrollbar::-webkit-scrollbar { display: none; }
+          `}} />
+          {list.map((item) => (
+            item.imageUrl ? (
+              <div 
+                key={item.id} 
+                onClick={() => setActiveArticle(item)}
+                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[38vw] max-w-[280px] md:w-[27%] h-36"
+              >
+                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                <div className="absolute bottom-2 left-2 flex gap-1">
+                  <span className={`text-[8px] font-black px-2 py-0.5 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
+                    {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
+                  </span>
                 </div>
-              ) : (
-                <div 
-                  key={item.id} 
-                  className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[38vw] max-w-[280px] md:w-[27%]"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-[8px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
-                      {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-400 truncate">{item.category}</span>
-                  </div>
-                  <h3 className="font-bold text-sm mb-2 leading-snug line-clamp-2">{item.title}</h3>
-                  <div 
-                    className={`text-xs text-slate-300 whitespace-pre-line ${expandedId === item.id ? '' : 'line-clamp-3'} flex-grow`}
-                    dangerouslySetInnerHTML={{ __html: item.content }}
-                  />
-                  <button 
-                    onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                    className="mt-3 text-[10px] font-bold text-indigo-300 hover:text-white transition-colors text-left"
-                  >
-                    {expandedId === item.id ? "TUTUP" : "BACA FULL"}
-                  </button>
+              </div>
+            ) : (
+              <div 
+                key={item.id} 
+                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[38vw] max-w-[280px] md:w-[27%]"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`text-[8px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
+                    {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-400 truncate">{item.category}</span>
                 </div>
-              )
-            ))}
+                <h3 className="font-bold text-sm mb-2 leading-snug line-clamp-2">{item.title}</h3>
+                <div 
+                  className={`text-xs text-slate-300 whitespace-pre-line ${expandedId === item.id ? '' : 'line-clamp-3'} flex-grow`}
+                  dangerouslySetInnerHTML={{ __html: item.content }}
+                />
+                <button 
+                  onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                  className="mt-3 text-[10px] font-bold text-indigo-300 hover:text-white transition-colors text-left"
+                >
+                  {expandedId === item.id ? "TUTUP" : "BACA FULL"}
+                </button>
+              </div>
+            )
+          ))}
+        </div>
+      );
+    };
+
+    return (
+      <div className="mt-8 space-y-8">
+        {isVIP && vipArticles.length > 0 && (
+          <div>
+            <div className="mb-4">
+              <h3 className="text-sm font-black text-amber-600 uppercase tracking-widest">Konten Feed Premium</h3>
+              <p className="text-xs text-slate-500">Wawasan bisnis premium eksklusif untuk tenant VIP.</p>
+            </div>
+            {renderList(vipArticles)}
+          </div>
+        )}
+
+        {freeArticles.length > 0 && (
+          <div>
+            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Info & Panduan UBOS</h3>
+            {renderList(freeArticles)}
           </div>
         )}
 
