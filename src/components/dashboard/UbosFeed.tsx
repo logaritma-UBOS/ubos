@@ -139,9 +139,6 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
             }
           `}} />
           {list.map((item, index) => {
-            const isSecond = index === 1;
-            const showSwipeIcon = isSecond && list.length > 2;
-
             return item.imageUrl ? (
               <div 
                 key={item.id} 
@@ -156,15 +153,6 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                     {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
                   </span>
                 </div>
-
-                {showSwipeIcon && (
-                  <div className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full animate-bounce-right shadow-md border border-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14"></path>
-                      <path d="m12 5 7 7-7 7"></path>
-                    </svg>
-                  </div>
-                )}
               </div>
             ) : (
               <div 
@@ -188,15 +176,6 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                 >
                   {expandedId === item.id ? "TUTUP" : "BACA FULL"}
                 </button>
-
-                {showSwipeIcon && (
-                  <div className="absolute top-2 right-2 bg-white/20 text-white p-1 rounded-full animate-bounce-right shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14"></path>
-                      <path d="m12 5 7 7-7 7"></path>
-                    </svg>
-                  </div>
-                )}
               </div>
             )
           })}
@@ -208,9 +187,16 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
       <div className="mt-8 space-y-8">
         {isVIP && vipArticles.length > 0 && (
           <div>
-            <div className="mb-4">
-              <h3 className="text-sm font-black text-amber-600 uppercase tracking-widest">Konten Feed Premium</h3>
-              <p className="text-xs text-slate-500">Wawasan bisnis premium eksklusif untuk tenant VIP.</p>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-sm font-black text-amber-600 uppercase tracking-widest">Konten Feed Premium</h3>
+                <p className="text-xs text-slate-500 mt-1">Wawasan bisnis premium eksklusif untuk tenant VIP.</p>
+              </div>
+              {vipArticles.length > 1 && (
+                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 animate-bounce-right mt-1 shrink-0">
+                  GESER <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </div>
+              )}
             </div>
             {renderList(vipArticles)}
           </div>
@@ -218,7 +204,14 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
 
         {freeArticles.length > 0 && (
           <div>
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Info & Panduan UBOS</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Info & Panduan UBOS</h3>
+              {freeArticles.length > 1 && (
+                <div className="flex items-center gap-1 text-[10px] font-bold text-blue-500 animate-bounce-right shrink-0">
+                  GESER <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </div>
+              )}
+            </div>
             {renderList(freeArticles)}
           </div>
         )}
