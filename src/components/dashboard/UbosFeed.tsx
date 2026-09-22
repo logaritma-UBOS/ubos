@@ -146,7 +146,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
               <div 
                 key={item.id} 
                 onClick={() => setActiveArticle(item)}
-                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[calc(50vw-24px)] max-w-[220px] h-44"
+                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[42vw] max-w-[200px] h-44"
               >
                 <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
@@ -158,8 +158,8 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                 </div>
 
                 {showSwipeIcon && (
-                  <div className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full animate-bounce-right shadow-md border border-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full animate-bounce-right shadow-md border border-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14"></path>
                       <path d="m12 5 7 7-7 7"></path>
                     </svg>
@@ -169,7 +169,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
             ) : (
               <div 
                 key={item.id} 
-                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[calc(50vw-24px)] max-w-[220px] h-44 relative"
+                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[42vw] max-w-[200px] h-44 relative"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`text-[8px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
@@ -179,19 +179,19 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                 </div>
                 <h3 className="font-bold text-sm mb-2 leading-snug line-clamp-2">{item.title}</h3>
                 <div 
-                  className={`text-xs text-slate-300 whitespace-pre-line ${expandedId === item.id ? '' : 'line-clamp-3'} flex-grow`}
+                  className={`text-[10px] text-slate-300 whitespace-pre-line ${expandedId === item.id ? '' : 'line-clamp-3'} flex-grow`}
                   dangerouslySetInnerHTML={{ __html: item.content }}
                 />
                 <button 
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                  className="mt-3 text-[10px] font-bold text-indigo-300 hover:text-white transition-colors text-left"
+                  className="mt-2 text-[9px] font-bold text-indigo-300 hover:text-white transition-colors text-left"
                 >
                   {expandedId === item.id ? "TUTUP" : "BACA FULL"}
                 </button>
 
                 {showSwipeIcon && (
-                  <div className="absolute top-2 right-2 bg-white/20 text-white p-1.5 rounded-full animate-bounce-right shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="absolute top-2 right-2 bg-white/20 text-white p-1 rounded-full animate-bounce-right shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14"></path>
                       <path d="m12 5 7 7-7 7"></path>
                     </svg>
