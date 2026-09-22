@@ -130,26 +130,46 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
         <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style dangerouslySetInnerHTML={{__html: `
             .hide-scrollbar::-webkit-scrollbar { display: none; }
+            @keyframes bounceRight {
+              0%, 100% { transform: translateX(0); }
+              50% { transform: translateX(4px); }
+            }
+            .animate-bounce-right {
+              animation: bounceRight 1s ease-in-out infinite;
+            }
           `}} />
-          {list.map((item) => (
-            item.imageUrl ? (
+          {list.map((item, index) => {
+            const isSecond = index === 1;
+            const showSwipeIcon = isSecond && list.length > 2;
+
+            return item.imageUrl ? (
               <div 
                 key={item.id} 
                 onClick={() => setActiveArticle(item)}
-                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[38vw] max-w-[280px] md:w-[27%] h-36"
+                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[calc(50vw-24px)] max-w-[220px] h-44"
               >
                 <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                
                 <div className="absolute bottom-2 left-2 flex gap-1">
                   <span className={`text-[8px] font-black px-2 py-0.5 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
                     {item.audience === 'VIP_ONLY' ? 'VIP' : 'INFO'}
                   </span>
                 </div>
+
+                {showSwipeIcon && (
+                  <div className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full animate-bounce-right shadow-md border border-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14"></path>
+                      <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                  </div>
+                )}
               </div>
             ) : (
               <div 
                 key={item.id} 
-                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[38vw] max-w-[280px] md:w-[27%]"
+                className="snap-start flex-shrink-0 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-white flex flex-col w-[calc(50vw-24px)] max-w-[220px] h-44 relative"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`text-[8px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-500 text-blue-50'}`}>
@@ -168,9 +188,18 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                 >
                   {expandedId === item.id ? "TUTUP" : "BACA FULL"}
                 </button>
+
+                {showSwipeIcon && (
+                  <div className="absolute top-2 right-2 bg-white/20 text-white p-1.5 rounded-full animate-bounce-right shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14"></path>
+                      <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                  </div>
+                )}
               </div>
             )
-          ))}
+          })}
         </div>
       );
     };
