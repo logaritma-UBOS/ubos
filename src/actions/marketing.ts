@@ -93,6 +93,23 @@ export async function createFeedContent(data: { title: string, content: string, 
   }
 }
 
+export async function updateFeedContent(id: string, data: { title: string, content: string, category: string, audience?: string, imageUrl?: string | null }) {
+  try {
+    await logPilotActivity("Edit Konten", `Mengubah konten feed: ${data.title}`);
+    await prisma.ubosFeedContent.update({
+      where: { id },
+      data: {
+        ...data,
+        audience: data.audience || "ALL",
+        imageUrl: data.imageUrl || null
+      }
+    });
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
 export async function deleteFeedContent(id: string) {
   try {
     await prisma.ubosFeedContent.delete({ where: { id } });

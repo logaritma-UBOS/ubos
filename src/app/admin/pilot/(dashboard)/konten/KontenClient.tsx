@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { createFeedContent, deleteFeedContent, uploadFeedBanner } from "@/actions/marketing"
+import { createFeedContent, deleteFeedContent, updateFeedContent, uploadFeedBanner } from "@/actions/marketing"
 import { useRouter } from "next/navigation"
 
 export default function KontenClient({ initialData, audienceType }: { initialData: any[], audienceType: string }) {
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [category, setCategory] = useState("TIPS")
@@ -29,14 +30,35 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
     setIsUploading(false)
   }
 
-  const handleCreate = async () => {
-    if (!title || !content) return alert("Judul dan Konten wajib diisi")
-    setIsLoading(true)
-    await createFeedContent({ title, content, category, status: "PUBLISHED", audience: audienceType, imageUrl: bannerUrl })
+  const handleEdit = (item: any) => {
+    setEditingId(item.id)
+    setTitle(item.title)
+    setContent(item.content)
+    setCategory(item.category)
+    setBannerUrl(item.imageUrl || "")
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
     setTitle("")
     setContent("")
+    setCategory("TIPS")
     setBannerUrl("")
     if (fileRef.current) fileRef.current.value = ""
+  }
+
+  const handleSave = async () => {
+    if (!title || !content) return alert("Judul dan Konten wajib diisi")
+    setIsLoading(true)
+    
+    if (editingId) {
+      await updateFeedContent(editingId, { title, content, category, audience: audienceType, imageUrl: bannerUrl })
+    } else {
+      await createFeedContent({ title, content, category, status: "PUBLISHED", audience: audienceType, imageUrl: bannerUrl })
+    }
+
+    handleCancelEdit()
     setIsLoading(false)
     router.refresh()
   }
@@ -50,7 +72,12 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
   return (
     <div className="space-y-6">
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <h2 className="text-xl font-bold mb-4">Buat Konten Baru</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">{editingId ? "Edit Konten" : "Buat Konten Baru"}</h2>
+          {editingId && (
+            <button onClick={handleCancelEdit} className="text-sm font-bold text-slate-500 hover:text-slate-700">Batal Edit</button>
+          )}
+        </div>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold mb-1">Kategori</label>
@@ -76,8 +103,8 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
             <label className="block text-sm font-semibold mb-1">Konten (Bisa pakai Markdown/HTML ringkas)</label>
             <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-xl min-h-[100px]" />
           </div>
-          <button onClick={handleCreate} disabled={isLoading || isUploading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl">
-            {isLoading ? "Menyimpan..." : "Publikasikan Konten"}
+          <button onClick={handleSave} disabled={isLoading || isUploading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl">
+            {isLoading ? "Menyimpan..." : (editingId ? "Simpan Perubahan" : "Publikasikan Konten")}
           </button>
         </div>
       </div>
@@ -89,7 +116,7 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
         ) : (
           <div className="space-y-4">
             {initialData.map((item, i) => (
-              <div key={i} className="p-4 border rounded-xl flex justify-between items-start">
+              <div key={i} className={`p-4 border rounded-xl flex justify-between items-start transition-colors ${editingId === item.id ? 'border-blue-500 bg-blue-50/50' : ''}`}>
                 <div>
                   <div className="flex gap-2">
                     <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{item.category}</span>
@@ -103,7 +130,10 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
                   <h3 className="font-bold text-lg mt-2">{item.title}</h3>
                   <p className="text-sm text-slate-600 line-clamp-2 mt-1">{item.content}</p>
                 </div>
-                <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700 text-sm font-bold">Hapus</button>
+                <div className="flex gap-3">
+                  <button onClick={() => handleEdit(item)} className="text-blue-500 hover:text-blue-700 text-sm font-bold">Edit</button>
+                  <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700 text-sm font-bold">Hapus</button>
+                </div>
               </div>
             ))}
           </div>

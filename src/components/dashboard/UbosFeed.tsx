@@ -95,7 +95,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
             onClick={() => setActiveArticle(item)}
             className="cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group"
           >
-            <img src={item.imageUrl} alt={item.title} className="w-full h-48 object-contain bg-slate-900 group-hover:scale-105 transition-transform duration-300" />
+            <img src={item.imageUrl} alt={item.title} className="w-full aspect-video h-auto object-cover group-hover:scale-105 transition-transform duration-300" />
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
             <div className="absolute bottom-3 left-3 flex gap-2">
               <span className={`text-[10px] font-black px-2 py-1 rounded ${item.audience === 'VIP_ONLY' ? 'bg-amber-500 text-amber-950' : 'bg-blue-600 text-white'}`}>
@@ -146,9 +146,9 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
               <div 
                 key={item.id} 
                 onClick={() => setActiveArticle(item)}
-                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[40vw] max-w-[200px] h-44"
+                className="snap-start flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group flex flex-col w-[75vw] max-w-[300px] aspect-video"
               >
-                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-contain bg-slate-900 group-hover:scale-105 transition-transform duration-300" />
+                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
                 
                 <div className="absolute bottom-2 left-2 flex gap-1">
@@ -246,7 +246,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
               {/* Body */}
               <div className="flex-1 overflow-y-auto bg-slate-50">
                 {activeArticle.imageUrl && (
-                  <img src={activeArticle.imageUrl} alt={activeArticle.title} className="w-full h-48 sm:h-64 object-contain bg-slate-900" />
+                  <img src={activeArticle.imageUrl} alt={activeArticle.title} className="w-full aspect-video h-auto object-cover" />
                 )}
                 <div className="p-5 sm:p-8">
                   <h2 className="text-2xl font-black text-slate-900 mb-6">{activeArticle.title}</h2>
