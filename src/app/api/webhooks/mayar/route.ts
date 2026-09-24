@@ -24,7 +24,9 @@ export async function POST(req: NextRequest) {
           const user = await prisma.user.findUnique({ where: { email } });
           if (user) {
              const trxId = payload.id || payload.trx_id || payload.reference || Date.now().toString();
-             const amount = Number(payload.amount || payload.total || payload.total_amount || 0);
+             // Prioritaskan net_amount (nominal bersih setelah dipotong fee Mayar/Channel)
+             // agar 100% sinkron dengan saldo riil di dashboard Mayar.
+             const amount = Number(payload.net_amount || payload.amount || payload.total || payload.total_amount || 0);
              await prisma.ubosRevenue.upsert({
                where: { mayarTrxId: trxId },
                create: {
