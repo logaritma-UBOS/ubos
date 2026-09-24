@@ -19,15 +19,20 @@ export default function KontenClient({ initialData, audienceType }: { initialDat
     const file = e.target.files?.[0]
     if (!file) return
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append("image", file)
-    const res = await uploadFeedBanner(formData)
-    if (res.success) {
-      setBannerUrl(res.url)
-    } else {
-      alert("Gagal upload gambar banner")
+    try {
+      const formData = new FormData()
+      formData.append("image", file)
+      const res = await uploadFeedBanner(formData)
+      if (res.success) {
+        setBannerUrl(res.url)
+      } else {
+        alert("Gagal upload gambar banner: " + (res.error || "Unknown error"))
+      }
+    } catch (err: any) {
+      alert("Terjadi kesalahan sistem saat upload gambar: " + err.message)
+    } finally {
+      setIsUploading(false)
     }
-    setIsUploading(false)
   }
 
   const handleEdit = (item: any) => {
