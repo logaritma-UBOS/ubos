@@ -55,10 +55,21 @@ export default async function KonversiPage() {
   const rateTrafikToFree = todayVisits > 0 ? ((todaySignups / todayVisits) * 100).toFixed(1) : "0.0";
   const rateFreeToPremium = todaySignups > 0 ? ((todayPremium / todaySignups) * 100).toFixed(1) : "0.0";
 
-  // Target Backward Mapping Konversi
-  const targetVisits = 10000;
-  const targetSignups = 500;
-  const targetPremium = 50; 
+  // Target Backward Mapping Konversi (Metode Logaritma)
+  const targetSetting = await prisma.systemSetting.findUnique({ where: { key: "MONTHLY_REVENUE_TARGET" } });
+  const targetRevenue = targetSetting ? parseInt(targetSetting.value, 10) : 10000000;
+  
+  // Asumsi langganan per user = Rp 99.000
+  const avgSubscriptionPrice = 99000;
+  
+  // 1. Goal Utama: Berapa Premium User yang dibutuhkan?
+  const targetPremium = Math.ceil(targetRevenue / avgSubscriptionPrice);
+  
+  // 2. Backward Map ke Signups: Asumsi konversi Free -> Premium = 10%
+  const targetSignups = targetPremium * 10;
+  
+  // 3. Backward Map ke Trafik: Asumsi konversi Visit -> Free = 5%
+  const targetVisits = targetSignups * 20; 
 
   const gapPremium = targetPremium - monthlyPremium;
 
@@ -86,10 +97,10 @@ export default async function KonversiPage() {
     include: {
       businesses: {
         include: {
-          products: { select: { id: true }, take: 1 },
-          sales: { select: { id: true }, take: 1 }
-        },
-        take: 1
+          _count: {
+            select: { products: true, sales: true }
+          }
+        }
       }
     },
     orderBy: { createdAt: 'desc' }
@@ -101,9 +112,19 @@ export default async function KonversiPage() {
   // Helper function untuk menentukan status aktivitas (Gap Analysis)
   const getActivityStatus = (u: any) => {
     if (!u.businesses || u.businesses.length === 0) return { label: "Baru Daftar (Pasif)", color: "bg-slate-100 text-slate-600 border-slate-200" };
-    const b = u.businesses[0];
-    if (b.sales && b.sales.length > 0) return { label: "Aktif Berjualan", color: "bg-emerald-100 text-emerald-700 border-emerald-200" };
-    if (b.products && b.products.length > 0) return { label: "Sedang Setup Katalog", color: "bg-blue-100 text-blue-700 border-blue-200" };
+    
+    let totalSales = 0;
+    let totalProducts = 0;
+    
+    u.businesses.forEach((b: any) => {
+      if (b._count) {
+        totalSales += b._count.sales || 0;
+        totalProducts += b._count.products || 0;
+      }
+    });
+
+    if (totalSales > 0) return { label: "Aktif Berjualan", color: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+    if (totalProducts > 0) return { label: "Sedang Setup Katalog", color: "bg-blue-100 text-blue-700 border-blue-200" };
     return { label: "Toko Dibuat (Belum Ada Produk)", color: "bg-yellow-100 text-yellow-700 border-yellow-200" };
   };
 
