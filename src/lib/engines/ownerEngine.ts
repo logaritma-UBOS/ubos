@@ -9,11 +9,20 @@ export async function runOwnerEngine() {
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   
-  // Hitung pendapatan bulan ini
-  const revenues = await prisma.ubosRevenue.findMany({
-    where: { status: "PAID", createdAt: { gte: firstDay } }
-  });
-  const currentRevenue = revenues.reduce((sum, r) => sum + r.amount, 0);
+  // FETCH REAL BALANCE FROM MAYAR TO ENSURE 100% SYNC ACROSS DASHBOARDS
+  let currentRevenue = 0;
+  try {
+    const MAYAR_API_KEY = process.env.MAYAR_API_KEY || "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NzExZTAxZi01ZjI4LTQ3MDgtYTc1Yy1iODE2ZjczZjM3YmQiLCJhY2NvdW50SWQiOiJjMTQyNmNkNi1lNTJiLTRmNzktYjlhNS1iMGY4ZmRjMjc2YzMiLCJjcmVhdGVkQXQiOiIxNzg4MDcwMjg2MDAxIiwicm9sZSI6ImRldmVsb3BlciIsInNjb3BlIjp7InJlYWQiOnRydWUsIndyaXRlIjp0cnVlfSwic3ViIjoibG9nYXJpdG1hLnRpbUBnbWFpbC5jb20iLCJuYW1lIjoiTG9nYXJpdG1hIiwibGluayI6ImxvZ2FyaXRtYS1wYXkiLCJpc1NlbGZEb21haW4iOmZhbHNlLCJpYXQiOjE3ODgwNzAyODZ9.i-0x6ok50c2ys7PpkbAEuLESGZHZ6glNpe-OjHnbnnXHjEAYgn2SkrhRxBUcWvDQvOaV8uIs9wo7La4aM0KtDcoHfbiH7jEtrSgEqLPG_50ZbUbhFN-alCT-_CUOUXMhbEbD3Xrh3L-QHOmwwI74-AqhUwius0d762VvF6tfQG8CHvabcn1GJHuYTikAAiKWNpiILDoyReoF2jcGn_vN4zrEoVb8Ma0oed2kBxYZRnEGytnDn45rrMt3TfP96hWBCcQZZO3Yo4UZfbSyiYem3QmT2iNTRw4quUONdcF73Hy7acaUqunIioy52p6PC3gHJVx1eKxsAbzalRZbYjKDLw";
+    const balanceRes = await fetch("https://api.mayar.id/hl/v1/balance", {
+      headers: { "Authorization": `Bearer ${MAYAR_API_KEY}` },
+      next: { revalidate: 60 }
+    });
+    const balanceData = await balanceRes.json();
+    if (balanceData && balanceData.data && balanceData.data.balance) {
+      currentRevenue = balanceData.data.balance;
+    }
+  } catch(e) {}
+
   
   // Hitung jumlah user
   const totalUsers = await prisma.user.count();
