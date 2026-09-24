@@ -23,7 +23,10 @@ export async function GET() {
     }
 
     // Filter successful transactions
-    const successfulTrx = allTransactions.filter(t => t.status === "PAID" || t.status === "SETTLED" || t.status === "SUCCESS");
+    const successfulTrx = allTransactions.filter(t => {
+      const status = (t.status || "").toUpperCase();
+      return status === "PAID" || status === "SETTLED" || status === "SUCCESS";
+    });
 
     // Fetch existing revenues to avoid duplicates
     const revenues = await prisma.ubosRevenue.findMany();
