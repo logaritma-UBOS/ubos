@@ -12,72 +12,19 @@ export async function GET() {
     const data = await res.json();
     const transactions = data.data || [];
 
-    // Fetch existing revenues to avoid duplicates
+    // Fetch existing revenues
     const revenues = await prisma.ubosRevenue.findMany();
-    const existingTrxIds = new Set(revenues.map(r => r.mayarTrxId));
-
-    // Get missing transactions
-    const missingTrx = transactions.filter((t: any) => 
-      (t.status === "PAID" || t.status === "SETTLED" || t.status === "SUCCESS") &&
-      !existingTrxIds.has(t.id) && 
-      !existingTrxIds.has(t.reference) && 
-      !existingTrxIds.has(t.invoice_id)
-    );
-
-    // Fetch all users
-    const users = await prisma.user.findMany();
     
-    const results = [];
-    let fixedCount = 0;
-
-    for (const trx of missingTrx) {
-      const trxName = (trx.customer?.name || trx.name || "").toLowerCase().trim();
-      const trxEmail = (trx.customer?.email || trx.email || "").toLowerCase().trim();
-      
-      let matchedUser = null;
-
-      // 1. Exact Email match (maybe webhook failed for other reasons)
-      if (trxEmail) {
-        matchedUser = users.find(u => u.email?.toLowerCase() === trxEmail);
-      }
-
-      // 2. Name Match (Loose)
-      if (!matchedUser && trxName) {
-        matchedUser = users.find(u => {
-          const uName = (u.name || "").toLowerCase().trim();
-          if (!uName) return false;
-          // Match if name includes trxName or trxName includes uName (for partials like "Reza" vs "Reza Triansyah")
-          return uName.includes(trxName) || trxName.includes(uName);
-        });
-      }
-
-      if (matchedUser) {
-        // Create revenue record for them
-        const trxId = trx.id || trx.reference || trx.invoice_id;
-        const amount = Number(trx.amount || trx.total || trx.total_amount || 0);
-        
-        await prisma.ubosRevenue.create({
-          data: {
-            userId: matchedUser.id,
-            mayarTrxId: trxId,
-            amount: amount,
-            paymentMethod: trx.payment_method || "MAYAR",
-            status: "PAID"
-          }
-        });
-        
-        fixedCount++;
-        results.push({ trxId, matched: matchedUser.name || matchedUser.email, amount });
-      } else {
-        results.push({ trxId: trx.id, matched: null, name: trxName, email: trxEmail });
-      }
-    }
-
+    // Return raw counts
     return NextResponse.json({ 
-      success: true, 
-      missingCount: missingTrx.length, 
-      fixedCount, 
-      results 
+      mayarTotalCount: transactions.length,
+      mayarSuccessCount: transactions.filter((t: any) => t.status === "PAID" || t.status === "SETTLED" || t.status === "SUCCESS").length,
+      dbTotalCount: revenues.length,
+      dbPaidCount: revenues.filter(r => r.status === "PAID").length,
+      // Sample of what's in mayar
+      mayarSample: transactions.slice(0, 5).map((t: any) => ({ id: t.id, status: t.status, amount: t.amount })),
+      // Sample of what's in db
+      dbSample: revenues.slice(0, 5).map(r => ({ mayarTrxId: r.mayarTrxId, status: r.status, amount: r.amount }))
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message });
