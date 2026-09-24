@@ -6,14 +6,23 @@ export async function GET() {
     const rawDonors = await prisma.ubosRevenue.findMany({
       where: { status: "PAID" },
       orderBy: { createdAt: "desc" },
-      take: 10,
       select: {
         userId: true,
         amount: true
       }
     });
     
-    const donors = await Promise.all(rawDonors.map(async (d) => {
+    // Group and sum amounts by user
+    const userDonations = new Map<string, number>();
+    for (const d of rawDonors) {
+      const current = userDonations.get(d.userId) || 0;
+      userDonations.set(d.userId, current + d.amount);
+    }
+    
+    // Convert back to array
+    const uniqueDonors = Array.from(userDonations.entries()).map(([userId, amount]) => ({ userId, amount }));
+    
+    const donors = await Promise.all(uniqueDonors.map(async (d) => {
       const user = await prisma.user.findUnique({ where: { id: d.userId } });
       return {
         name: user?.name || user?.email?.split('@')[0] || "Hamba Allah",
