@@ -300,7 +300,7 @@ export default function KasirClient({ products, customers }: { products: any[], 
           <div className="w-full border-t border-dashed border-gray-200 py-4 mb-4">
             <div className="flex justify-between text-sm text-gray-500 mb-1">
               <span>Waktu</span>
-              <span>{formatNumber(transactionSummary.date)}</span>
+              <span>{new Date(transactionSummary.date).toLocaleString("id-ID")}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-500 mb-3">
               <span>Metode</span>
