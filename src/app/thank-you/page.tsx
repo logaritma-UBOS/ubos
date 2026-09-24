@@ -8,21 +8,8 @@ export default async function ThankYouPage() {
   try {
     const session = await auth();
     if (!session?.user?.email) return (<div>Loading...</div>);
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-    if (user) {
-      const existing = await prisma.ubosRevenue.findFirst({ where: { userId: user.id, status: "PAID" }});
-      if (!existing) {
-        await prisma.ubosRevenue.create({
-          data: {
-            userId: user.id,
-            mayarTrxId: "trx_direct_" + Date.now(),
-            amount: 50000,
-            paymentMethod: "MAYAR",
-            status: "PAID"
-          }
-        });
-      }
-    }
+    // Kita tidak lagi membuat data dummy di sini.
+    // Semua status VIP akan murni bersumber dari Webhook Mayar untuk menjamin keakuratan 100%.
   } catch(e) {}
 
   return (

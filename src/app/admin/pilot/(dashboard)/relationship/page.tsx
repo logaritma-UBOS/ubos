@@ -20,6 +20,11 @@ export default async function RelationshipPage() {
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 
+  // CLEANUP: Hapus semua data dummy 'trx_direct_' yang terlanjur tercatat dari thank-you page
+  await prisma.ubosRevenue.deleteMany({
+    where: { mayarTrxId: { startsWith: "trx_direct_" } }
+  });
+
   // Ambil Data Revenue & Relasi Premium
   const allPremiumRevenues = await prisma.ubosRevenue.findMany({
     where: { status: "PAID" },
