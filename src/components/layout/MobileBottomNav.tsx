@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -23,6 +23,7 @@ export default function MobileBottomNav() {
     `flex flex-col items-center justify-center w-[20%] h-full ${isActive(path) ? 'text-emerald-600' : 'text-gray-400 hover:text-gray-700'}`
 
   const moreMenuLinks = [
+    { label: 'Studio AI', href: '/studio', icon: '🤖' },
     { label: "Stok & Supplier", href: "/stok", icon: "📦" },
     { label: "Toko Online", href: "/toko-online", icon: "🌐" },
     { label: "Pelanggan", href: "/pelanggan", icon: "👥" },
