@@ -26,6 +26,7 @@ type Sale = {
 export default function RiwayatClient() {
   const [sales, setSales] = useState<Sale[]>([])
   const [loading, setLoading] = useState(true)
+  const [dateFilter, setDateFilter] = useState("today")
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,8 +66,29 @@ export default function RiwayatClient() {
     fetchData()
   }, [])
 
+  // Filter berdasarkan tanggal
+  const filteredSales = sales.filter(sale => {
+    const saleDate = new Date(sale.createdAt);
+    const now = new Date();
+    
+    if (dateFilter === "today") {
+      return saleDate.getDate() === now.getDate() && 
+             saleDate.getMonth() === now.getMonth() && 
+             saleDate.getFullYear() === now.getFullYear();
+    } else if (dateFilter === "7d") {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      return saleDate >= sevenDaysAgo;
+    } else if (dateFilter === "30d") {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      return saleDate >= thirtyDaysAgo;
+    }
+    return true;
+  });
+
   // Delegasikan perhitungan bisnis ke Engine (Single Source of Truth)
-  const metrics = calculateHistoryMetrics(sales)
+  const metrics = calculateHistoryMetrics(filteredSales)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-7xl mx-auto">
@@ -80,7 +102,11 @@ export default function RiwayatClient() {
           <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
         </div>
         <div className="flex gap-2">
-          <select className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2">
+          <select 
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+          >
             <option value="today">Hari Ini</option>
             <option value="7d">7 Hari Terakhir</option>
             <option value="30d">30 Hari Terakhir</option>
@@ -108,7 +134,7 @@ export default function RiwayatClient() {
           <p className="text-center text-gray-500 mt-10">Memuat data...</p>
         ) : (
           <div className="space-y-3">
-            {sales.map(sale => (
+            {filteredSales.map(sale => (
               <details key={sale.id} className="bg-white rounded-xl shadow-sm border border-gray-200 group overflow-hidden">
                 <summary className="p-4 lg:px-6 flex flex-col lg:flex-row justify-between lg:items-center cursor-pointer list-none hover:bg-gray-50 transition-colors gap-3">
                   <div className="flex items-center gap-4 min-w-[250px]">
@@ -148,10 +174,10 @@ export default function RiwayatClient() {
                 </div>
               </details>
             ))}
-            {sales.length === 0 && (
+            {filteredSales.length === 0 && (
               <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
                 <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                <p className="text-gray-500 font-medium">Belum ada transaksi hari ini.</p>
+                <p className="text-gray-500 font-medium">Belum ada transaksi di periode ini.</p>
               </div>
             )}
           </div>
