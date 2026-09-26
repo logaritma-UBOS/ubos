@@ -91,7 +91,7 @@ export class NotificationEngine {
   async processQueue() {
     const readyNotifications = await prisma.ownerNotification.findMany({
       where: { status: "READY" },
-      take: 50 // process in batches
+      take: 200 // process in larger batches since cron is only daily on Hobby
     });
 
     for (const notif of readyNotifications) {
