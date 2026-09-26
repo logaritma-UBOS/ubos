@@ -94,7 +94,7 @@ export async function recordStockMovement(data: {
         }
       })
 
-      // 2. Update actual stock in Ingredient
+      // 2. Update actual stock
       if (data.ingredientId) {
         const item = await tx.ingredient.findUnique({ where: { id: data.ingredientId } })
         if (!item) throw new Error("Bahan tidak ditemukan")
@@ -109,6 +109,25 @@ export async function recordStockMovement(data: {
 
         await tx.ingredient.update({
           where: { id: data.ingredientId },
+          data: { 
+             currentStock: newStock,
+             ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+          }
+        })
+      } else if (data.productId) {
+        const item = await tx.product.findUnique({ where: { id: data.productId } })
+        if (!item) throw new Error("Barang tidak ditemukan")
+
+        let newStock = item.currentStock
+        if (data.type === "IN") {
+          newStock += data.quantity
+        } else if (data.type === "OUT" || data.type === "RETURN" || data.type === "WASTE") {
+          newStock -= data.quantity
+          if (newStock < 0) newStock = 0
+        }
+
+        await tx.product.update({
+          where: { id: data.productId },
           data: { 
              currentStock: newStock,
              ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
@@ -170,7 +189,7 @@ export async function recordBulkStockMovement(data: {
         })
         movements.push(movement)
 
-        // 2. Update actual stock in Ingredient if applicable
+        // 2. Update actual stock
         if (itemData.ingredientId) {
           const item = await tx.ingredient.findUnique({ where: { id: itemData.ingredientId } })
           if (!item) throw new Error("Bahan tidak ditemukan")
@@ -191,11 +210,26 @@ export async function recordBulkStockMovement(data: {
                ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
             }
           })
-        } else if (itemData.productId && data.supplierId && data.type === "IN") {
-           await tx.product.update({
-              where: { id: itemData.productId },
-              data: { supplierId: data.supplierId }
-           })
+        } else if (itemData.productId) {
+          const item = await tx.product.findUnique({ where: { id: itemData.productId } })
+          if (!item) throw new Error("Barang tidak ditemukan")
+
+          let newStock = item.currentStock
+          if (data.type === "IN") {
+            newStock += itemData.quantity
+          } else {
+            newStock -= itemData.quantity
+          }
+
+          if (newStock < 0) newStock = 0
+
+          await tx.product.update({
+            where: { id: item.id },
+            data: { 
+               currentStock: newStock,
+               ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+            }
+          })
         }
       }
       return movements
