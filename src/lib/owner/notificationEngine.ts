@@ -44,6 +44,7 @@ export class WhatsappProvider extends NotificationProvider {
       const params = new URLSearchParams();
       params.append("target", targetPhone);
       params.append("message", payload.message);
+      params.append("delay", "3-10"); // Anti-spam delay natively handled by Fonnte
 
       const res = await fetch("https://api.fonnte.com/send", {
         method: "POST",
