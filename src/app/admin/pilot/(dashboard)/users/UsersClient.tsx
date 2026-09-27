@@ -1,8 +1,7 @@
 "use client"
 import { useState } from "react"
 import { delegateToBana } from "@/actions/superAdminActions"
-import { formatDistanceToNow } from "date-fns"
-import { id } from "date-fns/locale"
+// removed date-fns
 
 export default function UsersClient({ users }: { users: any[] }) {
     const [filter, setFilter] = useState("ALL");
@@ -98,7 +97,7 @@ export default function UsersClient({ users }: { users: any[] }) {
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-xs text-gray-600">
-                                    {formatDistanceToNow(new Date(u.lastLogin), { addSuffix: true, locale: id })}
+                                    {new Date(u.lastLogin).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                 </td>
                                 <td className="px-4 py-3">
                                     {u.phone ? (
