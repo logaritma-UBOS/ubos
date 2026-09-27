@@ -43,7 +43,7 @@ export default function RiwayatClient() {
         const pendingSales: Sale[] = queue.map((q: any) => ({
           id: q.clientTransactionId,
           clientTransactionId: q.clientTransactionId,
-          totalAmount: q.total,
+          totalAmount: q.totalAmount || 0,
           createdAt: new Date(q.timestamp),
           saleItems: q.cart.map((c: any) => ({
             id: Math.random().toString(),
