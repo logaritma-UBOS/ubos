@@ -43,7 +43,7 @@ export default async function Home() {
   const session = await auth()
   
   const business = await prisma.business.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: session?.user?.id as string },
     include: { goals: true, user: true }
   })
 

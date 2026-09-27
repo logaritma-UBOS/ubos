@@ -63,8 +63,17 @@ export async function addIngredient(prevState: any, formData: FormData) {
 
     if (!name || !unit) return { error: "Nama dan satuan wajib diisi" }
 
+    const supplierId = formData.get("supplierId") as string;
+
     await prisma.ingredient.create({
-      data: { businessId, name, unit, costPerUnit, currentStock }
+      data: { 
+        businessId, 
+        name, 
+        unit, 
+        costPerUnit, 
+        currentStock,
+        supplierId: supplierId || null
+      }
     })
     trackEvent(businessId, "catalog_updated", { type: "ingredient_created" }).catch(()=>{})
   } catch (e: any) {
@@ -159,6 +168,7 @@ export async function addProduct(prevState: any, formData: FormData) {
           calculatedMargin,
           imageUrl,
           imagePublicId,
+          supplierId: (formData.get("supplierId") as string) || null,
         }
       })
 
@@ -294,16 +304,17 @@ export async function editProduct(prevState: any, formData: FormData) {
     if (!existing) return { error: "Unauthorized" }
 
     const isRetail = !existing.hasBOM && existing.trackInventory;
-    const updateData: any = { name, sellPrice };
+    const updateData: any = { 
+      name, 
+      sellPrice,
+      supplierId: (formData.get("supplierId") as string) || null
+    };
 
     if (isRetail) {
       const newCost = parseFloat(formData.get("purchaseCost") as string) || 0;
       updateData.purchaseCost = newCost;
       updateData.calculatedHpp = newCost;
       updateData.calculatedMargin = sellPrice > 0 ? ((sellPrice - newCost) / sellPrice) * 100 : 0;
-      
-      const supplierId = formData.get("supplierId") as string;
-      updateData.supplierId = supplierId || null;
     }
 
     // Process image

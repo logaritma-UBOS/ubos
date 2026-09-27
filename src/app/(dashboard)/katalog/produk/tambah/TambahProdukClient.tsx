@@ -97,7 +97,7 @@ export default function TambahProdukClient({ businessType }: { businessType: str
   }
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8 md:max-w-2xl lg:max-w-3xl mx-auto rounded-xl shadow-sm my-4 border border-gray-100">
+    <div className="min-h-screen bg-white p-4 pb-32 md:p-8 md:max-w-2xl lg:max-w-3xl mx-auto rounded-xl shadow-sm my-4 border border-gray-100">
       <Link href="/katalog" className="text-sm text-gray-500 font-semibold mb-6 inline-block hover:text-gray-900 transition-colors">&larr; Batal</Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Tambah Produk</h1>
       

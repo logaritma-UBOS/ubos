@@ -190,7 +190,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
 
       {/* MODAL TRANSAKSI STOK */}
       {showStockModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm pb-[80px]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm pb-[80px]">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
               <h2 className="font-bold text-lg text-gray-900">Catat Transaksi Stok</h2>
