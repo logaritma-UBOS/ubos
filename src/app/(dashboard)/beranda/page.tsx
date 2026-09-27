@@ -16,7 +16,7 @@ import UbosFeed from "@/components/dashboard/UbosFeed"
 import VipBannerWrapper from "@/components/dashboard/VipBannerWrapper"
 import InstallAppButton from "@/components/InstallAppButton"
 
-// Maps recommendation type → contextual CTA label + destination
+// Maps recommendation type  contextual CTA label + destination
 function getContextualCTA(type: string | undefined): { label: string; href: string } {
   switch (type) {
     case "AOV":       return { label: "Buka Kasir & Up-Sell", href: "/kasir" }
@@ -36,7 +36,7 @@ function getProgressMessage(pct: number, masihKurang: number): string {
   if (pct < 60)    return `Berjalan baik. Sudah separuh jalan, tinggal ${formatRupiah(masihKurang)}.`
   if (pct < 80)    return `Hampir sampai! Tinggal ${formatRupiah(masihKurang)} lagi.`
   if (pct < 100)   return `Sangat dekat! Kurang ${formatRupiah(masihKurang)} untuk mencapai target.`
-  return "🎉 Target hari ini tercapai. Pertahankan!"
+  return " Target hari ini tercapai. Pertahankan!"
 }
 
 export default async function Home() {
@@ -121,7 +121,7 @@ export default async function Home() {
               <Image src="/logo-ubos.png" alt="UBOS Logo" width={100} height={32} className="h-8 w-auto object-contain lg:hidden" priority />
             </div>
             <h2 className="text-sm font-bold text-gray-700">{business.name}</h2>
-            <p className="text-xs text-gray-400 font-medium">{greeting} 👋</p>
+            <p className="text-xs text-gray-400 font-medium">{greeting} </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -148,7 +148,7 @@ export default async function Home() {
         {/* MAIN CONTENT */}
         <div className="space-y-4 lg:space-y-6">
 
-            {/* ── SECTION 1: TARGET & HEALTH MONITOR ── */}
+            {/*  SECTION 1: TARGET & HEALTH MONITOR  */}
             {/* MOBILE VIEW (< lg) */}
             <div className="lg:hidden bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm">
               <div className="flex justify-between items-center mb-3">
@@ -236,7 +236,7 @@ export default async function Home() {
                 <div>
                   <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.12em] mb-2">Kekurangan (Gap)</p>
                   <p className={`text-2xl font-black tabular-nums ${masihKurang > 0 ? "text-red-600" : "text-success-600"}`}>
-                    {masihKurang > 0 ? `-${formatRupiah(masihKurang)}` : "✓ Tercapai"}
+                    {masihKurang > 0 ? `-${formatRupiah(masihKurang)}` : " Tercapai"}
                   </p>
                 </div>
                 {masihKurang > 0 ? (
@@ -251,7 +251,7 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* ── CARD 2: PERINGATAN STOK ── */}
+            {/*  CARD 2: PERINGATAN STOK  */}
             {lowStockItems && lowStockItems.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
                 <IconWarning className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -263,7 +263,7 @@ export default async function Home() {
               </div>
             )}
 
-            {/* ── CARD 3: PRIORITAS HARI INI (Diagnosis → Evidence → Action) ── */}
+            {/*  CARD 3: PRIORITAS HARI INI (Diagnosis  Evidence  Action)  */}
             {rekomendasiUtama && (
               <div className={`rounded-3xl p-6 relative overflow-hidden ${
                 rekomendasiUtama.type === "SUCCESS"
@@ -279,7 +279,7 @@ export default async function Home() {
                   {/* Header row */}
                   <div className="flex items-start justify-between gap-3 mb-5">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{rekomendasiUtama.type === "SUCCESS" ? "✅" : "🔥"}</span>
+                      <span className="text-base">{rekomendasiUtama.type === "SUCCESS" ? "" : ""}</span>
                       <p className="text-[10px] font-black text-blue-700 uppercase tracking-[0.12em]">Prioritas Hari Ini</p>
                     </div>
                     {/* Contextual confidence badge */}
@@ -289,12 +289,12 @@ export default async function Home() {
                     </div>
                   </div>
 
-                  {/* Action text — DOMINANT */}
+                  {/* Action text  DOMINANT */}
                   <h3 className="text-xl font-black text-gray-900 leading-snug mb-5">
                     {rekomendasiUtama.actionText}
                   </h3>
 
-                  {/* Evidence block — "Kenapa?" as supporting proof */}
+                  {/* Evidence block  "Kenapa?" as supporting proof */}
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 lg:p-5 border border-white shadow-sm mb-5">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-2 lg:mb-3">Kenapa?</p>
                     <p className="text-sm lg:text-base font-medium text-gray-700 leading-relaxed mb-3 lg:mb-4">
@@ -312,7 +312,7 @@ export default async function Home() {
                       </div>
                       <div className="text-center lg:text-left">
                         <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">Gap</p>
-                        <p className={`text-xs lg:text-sm font-black tabular-nums ${masihKurang > 0 ? "text-red-600" : "text-success-600"}`}>{masihKurang > 0 ? `-${formatRupiah(masihKurang)}` : "✓ Tercapai"}</p>
+                        <p className={`text-xs lg:text-sm font-black tabular-nums ${masihKurang > 0 ? "text-red-600" : "text-success-600"}`}>{masihKurang > 0 ? `-${formatRupiah(masihKurang)}` : " Tercapai"}</p>
                       </div>
                     </div>
 

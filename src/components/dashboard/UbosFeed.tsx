@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 
 export default function UbosFeed({ position = "bottom" }: { position?: "top" | "bottom" }) {
@@ -70,7 +70,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
           <div className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1">Dukungan Komunitas</div>
         </div>
         <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-2">
-          <span className="text-xl">ðŸ™Œ</span>
+          <span className="text-xl flex items-center justify-center text-blue-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="m17 7-5-5-5 5"/><path d="m17 17-5 5-5-5"/></svg></span>
         </div>
         <div className="flex-1 overflow-hidden mt-2" style={{ perspective: "1000px" }}>
           <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
@@ -232,7 +232,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                   onClick={() => setActiveArticle(null)}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
                 >
-                  âœ•
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
               </div>
               
