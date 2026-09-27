@@ -1,13 +1,14 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import RiwayatClient from "./RiwayatClient"
-import AppShell from "@/components/layout/AppShell"
+import BusinessInsightsClient from "./BusinessInsightsClient"
 
 export const dynamic = "force-dynamic"
 
-export default async function RiwayatPage() {
+export default async function BusinessInsightsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   
-  return <AppShell><RiwayatClient /></AppShell>
+  return (
+          <BusinessInsightsClient />
+      )
 }

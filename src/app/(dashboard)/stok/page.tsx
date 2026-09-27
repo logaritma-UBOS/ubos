@@ -1,7 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import AppShell from "@/components/layout/AppShell"
 import StokClient from "./StokClient"
 
 import { Suspense } from "react"
@@ -39,8 +38,7 @@ export default async function StokPage() {
   ])
 
   return (
-    <AppShell businessName={business.name}>
-      <Suspense fallback={<div className="p-8 text-center">Memuat data...</div>}>
+          <Suspense fallback={<div className="p-8 text-center">Memuat data...</div>}>
         <StokClient 
           products={products}
           ingredients={ingredients}
@@ -48,6 +46,5 @@ export default async function StokPage() {
           movements={movements}
         />
       </Suspense>
-    </AppShell>
-  )
+      )
 }

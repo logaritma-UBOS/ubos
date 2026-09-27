@@ -9,7 +9,6 @@ import { revalidatePath } from "next/cache"
 import { Badge } from "@/components/ui/Badge"
 import { Card } from "@/components/ui/Card"
 import KatalogListClient from "./KatalogListClient"
-import AppShell from "@/components/layout/AppShell"
 
 function stockBadge(currentStock: number, minStock: number) {
   if (currentStock <= 0) return <Badge variant="danger">HABIS</Badge>
@@ -70,8 +69,7 @@ export default async function KatalogPage() {
   const ingredientsTitle = isFnB ? "Bahan Baku" : "Komponen / Material"
 
   return (
-    <AppShell businessName={business.name}>
-    <div className="min-h-screen bg-gray-50 pb-24 max-w-7xl mx-auto">
+        <div className="min-h-screen bg-gray-50 pb-24 max-w-7xl mx-auto">
       {/* HEADER FLAT STANDAR */}
       <div className="bg-white px-4 lg:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200">
         <div className="flex items-center gap-4">
@@ -141,6 +139,5 @@ export default async function KatalogPage() {
       {/* Spacer below before bottom nav */}
       <div className="h-8"></div>
     </div>
-    </AppShell>
-  )
+      )
 }

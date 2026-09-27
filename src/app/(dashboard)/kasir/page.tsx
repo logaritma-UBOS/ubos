@@ -3,7 +3,6 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import KasirClient from "./KasirClient"
-import AppShell from "@/components/layout/AppShell"
 
 export default async function KasirPage() {
   const session = await auth()
@@ -40,5 +39,4 @@ export default async function KasirPage() {
     return { ...p, stock }
   })
 
-  return <AppShell businessName={business.name}><KasirClient products={productsWithStock as any} customers={customers} /></AppShell>
-}
+  return <KasirClient products={productsWithStock as any} customers={customers} />}

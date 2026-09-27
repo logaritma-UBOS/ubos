@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import TokoClient from "./TokoClient"
 import Link from "next/link"
-import AppShell from "@/components/layout/AppShell"
 
 export const dynamic = "force-dynamic"
 
@@ -18,8 +17,7 @@ export default async function TokoOnlineSettings() {
   if (!business) redirect("/onboarding")
 
   return (
-    <AppShell businessName={business.name}>
-    <main className="min-h-screen bg-gray-50 pb-24 lg:pb-8">
+        <main className="min-h-screen bg-gray-50 pb-24 lg:pb-8">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 p-4 sticky top-0 z-20 lg:static lg:bg-transparent lg:border-none lg:pt-8 lg:px-8">
         <div className="max-w-xl lg:max-w-5xl mx-auto flex items-center justify-between">
@@ -46,6 +44,5 @@ export default async function TokoOnlineSettings() {
         />
       </div>
     </main>
-    </AppShell>
-  )
+      )
 }
