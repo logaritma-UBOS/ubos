@@ -31,9 +31,9 @@ export default async function developerChecklist() {
   if (teamMember.role !== "DEVELOPER" && teamMember.role !== "SUPER_ADMIN") redirect("/admin/pilot");
 
   return (
-    <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-6 pb-24 lg:pb-8">
+    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 pb-24 lg:pb-8 flex flex-col">
       
-      <div className="hidden lg:block">
+      <div className="hidden lg:block mb-2">
         <h2 className="text-2xl font-black text-gray-900">Halo, Reza!</h2>
         <p className="text-gray-500 text-sm">Lead Software Developer</p>
       </div>
@@ -43,7 +43,7 @@ export default async function developerChecklist() {
       <SaldoWidget balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
 
       
-      <div className="pt-2">
+      <div className="pt-2 w-full">
         <ChecklistHarian teamMemberId={teamMember.id} tasks={teamMember.tasks} />
       </div>
     </div>

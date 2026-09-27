@@ -3,7 +3,7 @@ import { formatRupiah } from "@/lib/format"
 
 export default function SaldoWidget({ balance, totalEarned, ledgers }: { balance: number, totalEarned: number, ledgers: any[] }) {
     return (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl shadow-lg text-white mb-6">
+        <div className="w-full bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl shadow-lg text-white mb-6">
             <div className="flex justify-between items-start mb-6">
                 <div>
                     <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Saldo Tersedia</p>
