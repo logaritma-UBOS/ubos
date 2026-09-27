@@ -35,9 +35,12 @@ export default async function MethodologyPage() {
     <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-8 max-w-7xl mx-auto pb-24 lg:pb-8">
       {/* Kolom Kiri: Identitas & Job Desk (Mobile di atas) */}
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-        <div>
+        <div className="hidden lg:block">
           <h2 className="text-2xl font-black text-gray-900">Halo, Tony!</h2>
           <p className="text-gray-500 text-sm">Methodology & Knowledge Architect</p>
+        </div>
+        <div className="lg:hidden mb-2">
+          <h2 className="text-lg font-black text-gray-900">Methodology & Knowledge Architect</h2>
         </div>
         
         <SaldoWidget balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
