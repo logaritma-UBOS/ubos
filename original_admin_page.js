@@ -1,28 +1,25 @@
-import { formatRupiah } from '@/lib/format';
+﻿import { formatRupiah } from '@/lib/format';
 export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { runOwnerEngine } from "@/lib/engines/ownerEngine";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import DailyActivityForm from "./DailyActivityForm";
 import InstallAppButton from "@/components/InstallAppButton";
-import RoyaltyForm from "./RoyaltyForm";
 
 export default async function AdminPilotPage() {
   const session = await auth();
   const userEmail = session?.user?.email || "";
   const userName = session?.user?.name || "Admin";
   
-  const teamMember = await prisma.teamMember.findUnique({
-    where: { email: userEmail }
-  });
-
-  if (!teamMember) redirect("/login");
-  if (teamMember.role === "METHODOLOGY") redirect("/admin/pilot/methodology");
-  if (teamMember.role === "DEVELOPER") redirect("/admin/pilot/developer");
-  if (teamMember.role === "OPERATIONS") redirect("/admin/pilot/operations");
+  const TARGET_EMAILS = [
+    "logaritma.tim@gmail.com",
+    "tony@logaritma.id",
+    "reza@logaritma.id",
+    "bana@logaritma.id"
+  ];
+  const isInternalTeam = TARGET_EMAILS.includes(userEmail);
 
   async function updateTarget(formData: FormData) {
     "use server";
@@ -46,113 +43,44 @@ export default async function AdminPilotPage() {
       ? "Sedikit lagi menuju target. Terus dorong konversi!" 
       : "Fokus tingkatkan pendaftaran & konversi user premium.";
 
-  // TEAM OS DATA
-  const members = await prisma.teamMember.findMany();
-  const totalReserve = await prisma.teamLedger.aggregate({
-    where: { type: "RESERVE_ALLOCATION" },
-    _sum: { amount: true }
-  });
-
   return (
-    <div className="w-full font-sans pb-10">
+    <div className="w-full font-sans">
+      {/* MOBILE ONLY HEADER (Mirrors tenant UI top part) */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-black text-lg">U</span>
+          </div>
+          <div>
+            <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none">UBOS<span className="text-blue-600">Pilot</span></h1>
+            <p className="text-[10px] text-gray-500">Dashboard Owner</p>
+          </div>
+        </div>
+        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
         
-        {/* TEAM OS FINANCE PANEL (SUPER ADMIN) */}
-        <div className="mb-10">
-          <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-            Distribusi Keuangan & Royalti
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm shadow-blue-50 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5">
-                <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div> Kas Cadangan Bisnis (20%)
-              </h3>
-              <p className="text-3xl font-black text-blue-600 mb-6">{formatRupiah(totalReserve._sum.amount || 0)}</p>
-              <RoyaltyForm />
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Status Saldo Tim (80%)
-              </h3>
-              <div className="space-y-4">
-                {members.map(m => (
-                  <div key={m.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <div>
-                      <p className="font-bold text-sm text-gray-900">{m.name}</p>
-                      <p className="text-xs text-gray-500">{m.role} ({m.sharePercentage}%)</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-emerald-600">{formatRupiah(m.walletBalance)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* DESKTOP HEADER */}
+        <div className="hidden md:flex justify-between items-end mb-8 border-b border-gray-100 pb-6">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Dashboard Owner</h1>
+            <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+              Pantau matrik kunci & operasional SaaS Anda.
+            </p>
           </div>
         </div>
 
-        {/* LOGARITMA ENGINE (PRIORITAS HARI INI) */}
+        {isInternalTeam && (
+          <DailyActivityForm userName={userName} userEmail={userEmail} />
+        )}
+
+        <InstallAppButton />
+
+        {/* METRICS CARDS */}
         <div className="mb-8 lg:mb-10">
-          <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            <span className="text-2xl">≡ƒöÑ</span> Prioritas Engine AI
-          </h2>
-          <div className="w-full relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25"></div>
-            <div className="relative bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100/50 rounded-2xl p-5 lg:p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg lg:text-2xl font-black text-slate-800 leading-tight lg:w-11/12">
-                  {recommendation.actionText}
-                </h3>
-                <div className="flex items-center gap-1.5 bg-white/60 px-2 py-1 rounded-full border border-blue-100 shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-success-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-                  <span className="text-[10px] font-bold text-success-700 uppercase tracking-wider hidden sm:inline-block">Engine Aktif</span>
-                </div>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 lg:p-5 border border-white shadow-sm mb-5">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-2 lg:mb-3">Kenapa?</p>
-                <p className="text-sm lg:text-base font-medium text-gray-700 leading-relaxed mb-3 lg:mb-4">
-                  {recommendation.reason}
-                </p>
-                
-                <div className="grid grid-cols-3 gap-2 lg:gap-4 pt-3 lg:pt-4 border-t border-gray-100">
-                  <div className="text-center lg:text-left">
-                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">Total User</p>
-                    <p className="text-xs lg:text-sm font-black text-gray-700 tabular-nums">{metrics.totalUsers}</p>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">User Gratis (FREE)</p>
-                    <p className="text-xs lg:text-sm font-black text-gray-700 tabular-nums">{metrics.freeUsers}</p>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">User VIP</p>
-                    <p className="text-xs lg:text-sm font-black text-blue-600 tabular-nums">{metrics.premiumUsers}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3">
-                <Link
-                  href={recommendation.ctaHref}
-                  className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-all whitespace-nowrap"
-                >
-                  {recommendation.ctaLabel}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ORIGINAL METRICS CARDS */}
-        <div>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            Target & Pendapatan SaaS
-          </h2>
           {/* MOBILE VIEW (< lg) */}
           <div className="lg:hidden bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm mb-6">
             <div className="flex justify-between items-center mb-3">
@@ -238,6 +166,62 @@ export default async function AdminPilotPage() {
           </div>
         </div>
 
+        {/* LOGARITMA ENGINE (PRIORITAS HARI INI) */}
+        <div className="mt-6 mb-8 lg:mb-10 lg:grid lg:grid-cols-[200px_1fr] lg:gap-8 items-start">
+          <div className="hidden lg:block pt-2">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Prioritas</h2>
+            <p className="text-xs text-gray-500 font-medium">Analisa AI berdasarkan metrik *funnel* SaaS.</p>
+          </div>
+
+          <div className="w-full relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25"></div>
+            <div className="relative bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100/50 rounded-2xl p-5 lg:p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">≡ƒöÑ</span>
+                <h2 className="text-sm font-black text-blue-900 tracking-wide uppercase">Prioritas Hari Ini</h2>
+                <div className="ml-auto flex items-center gap-1.5 bg-white/60 px-2 py-1 rounded-full border border-blue-100">
+                  <div className="w-2 h-2 rounded-full bg-success-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                  <span className="text-[10px] font-bold text-success-700 uppercase tracking-wider">Engine Aktif</span>
+                </div>
+              </div>
+
+              <h3 className="text-lg lg:text-2xl font-black text-slate-800 leading-tight mb-4 lg:w-11/12">
+                {recommendation.actionText}
+              </h3>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 lg:p-5 border border-white shadow-sm mb-5">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-2 lg:mb-3">Kenapa?</p>
+                <p className="text-sm lg:text-base font-medium text-gray-700 leading-relaxed mb-3 lg:mb-4">
+                  {recommendation.reason}
+                </p>
+                
+                <div className="grid grid-cols-3 gap-2 lg:gap-4 pt-3 lg:pt-4 border-t border-gray-100">
+                  <div className="text-center lg:text-left">
+                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">Total User</p>
+                    <p className="text-xs lg:text-sm font-black text-gray-700 tabular-nums">{metrics.totalUsers}</p>
+                  </div>
+                  <div className="text-center lg:text-left">
+                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">User Gratis</p>
+                    <p className="text-xs lg:text-sm font-black text-gray-700 tabular-nums">{metrics.freeUsers}</p>
+                  </div>
+                  <div className="text-center lg:text-left">
+                    <p className="text-[9px] text-gray-400 font-semibold uppercase lg:mb-1">User Premium</p>
+                    <p className="text-xs lg:text-sm font-black text-blue-600 tabular-nums">{metrics.premiumUsers}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <Link
+                  href={recommendation.ctaHref}
+                  className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-all whitespace-nowrap"
+                >
+                  {recommendation.ctaLabel}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export default async function MethodologyPage() {
     <div className="p-4 md:p-8 space-y-6">
       <div>
         <h2 className="text-2xl font-black text-gray-900">Methodology (Tony)</h2>
-        <p className="text-gray-500">Ruang kerja dan observasi metodologi.</p>
+        <p className="text-gray-500">Menganalisa, merancang, dan memvalidasi SOP atau alur kerja sistem SaaS.</p>
       </div>
 
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

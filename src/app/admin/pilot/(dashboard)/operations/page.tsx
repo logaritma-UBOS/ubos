@@ -25,7 +25,7 @@ export default async function OperationsPage() {
     <div className="p-4 md:p-8 space-y-6">
       <div>
         <h2 className="text-2xl font-black text-gray-900">Operations (Bana)</h2>
-        <p className="text-gray-500">Mini CRM & Tiket Kendala.</p>
+        <p className="text-gray-500">Berinteraksi langsung dengan user, merawat hubungan, dan mengelola CRM.</p>
       </div>
 
       <OperationsClient users={users} />

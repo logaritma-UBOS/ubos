@@ -24,7 +24,7 @@ export default async function DeveloperPage() {
     <div className="p-4 md:p-8 space-y-6">
       <div>
         <h2 className="text-2xl font-black text-gray-900">Developer (Reza)</h2>
-        <p className="text-gray-500">Antrean Tiket Bug Teknis.</p>
+        <p className="text-gray-500">Mengeksekusi kode, mengatasi bug teknis, dan menjaga stabilitas server. (Antrean Tiket Bug Teknis)</p>
       </div>
 
       <DeveloperClient tickets={tickets} />
