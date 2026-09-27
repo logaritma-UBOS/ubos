@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 
 export default function UbosFeed({ position = "bottom" }: { position?: "top" | "bottom" }) {
@@ -70,7 +70,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
           <div className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1">Dukungan Komunitas</div>
         </div>
         <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-2">
-          <span className="text-xl">🙌</span>
+          <span className="text-xl">ðŸ™Œ</span>
         </div>
         <div className="flex-1 overflow-hidden mt-2" style={{ perspective: "1000px" }}>
           <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
@@ -232,7 +232,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                   onClick={() => setActiveArticle(null)}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
                 >
-                  ✕
+                  âœ•
                 </button>
               </div>
               
@@ -245,9 +245,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
                   <h2 className="text-2xl font-black text-slate-900 mb-6">{activeArticle.title}</h2>
                   <div 
                     className="text-slate-700 leading-relaxed text-sm sm:text-base [&>a]:text-blue-600 [&>a:hover]:text-blue-500 [&>a]:font-bold [&>a]:underline whitespace-pre-line"
-                    dangerouslySetInnerHTML={{ __html: activeArticle.content }}
-                  />
-                </div>
+                    dangerouslySetInnerHTML={{ __html: activeArticle.content }} /> {activeArticle.ctaUrl && <div className="mt-8"><a href={activeArticle.ctaUrl} target="_blank" className="inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-xl">Akses Tautan</a></div>} </div>
               </div>
             </div>
           </div>
@@ -258,3 +256,4 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
 
   return null;
 }
+

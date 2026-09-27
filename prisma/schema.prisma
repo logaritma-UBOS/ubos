@@ -17,6 +17,7 @@ model User {
   passwordHash  String? // made optional since OAuth users won't have one
   role          String    @default("OWNER")
   crmStatus     String    @default("PASIF")
+  lastLogin     DateTime  @default(now())
   createdAt     DateTime  @default(now())
 
   accounts   Account[]
@@ -571,8 +572,9 @@ model UbosFeedContent {
   author    String   @default("Logaritma Team")
   category  String   @default("TIPS")
   status    String   @default("PUBLISHED")
-  audience  String   @default("ALL") // "ALL" | "VIP_ONLY"
+  audience  String   @default("ALL") // "ALL" | "VIP_ONLY" | "FREE_ONLY"
   imageUrl  String?
+  ctaUrl    String?
   createdAt DateTime @default(now())
 }
 
