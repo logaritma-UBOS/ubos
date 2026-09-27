@@ -97,7 +97,7 @@ export default function UsersClient({ users }: { users: any[] }) {
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-xs text-gray-600">
-                                    {new Date(u.lastLogin).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                    {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
                                 </td>
                                 <td className="px-4 py-3">
                                     {u.phone ? (
