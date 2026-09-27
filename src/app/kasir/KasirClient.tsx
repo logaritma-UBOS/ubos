@@ -95,6 +95,20 @@ export default function KasirClient({ products, customers }: { products: any[], 
 
   useEffect(() => {
     setSyncCount(getPendingCount())
+    
+    const handleOnline = () => {
+      console.log("Device is online, attempting to sync pending transactions...")
+      syncTransactions()
+    }
+    
+    window.addEventListener("online", handleOnline)
+    
+    // Initial check if we're online and have pending tx
+    if (navigator.onLine) {
+      handleOnline()
+    }
+    
+    return () => window.removeEventListener("online", handleOnline)
   }, [])
 
   const updateSyncCount = () => setSyncCount(getPendingCount())
