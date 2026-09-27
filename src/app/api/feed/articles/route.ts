@@ -6,14 +6,30 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userEmail = session?.user?.email;
-    let userRole = "OWNER";
+    let isVip = false;
     
     if (userEmail) {
-        const u = await prisma.user.findUnique({ where: { email: userEmail }});
-        if (u) userRole = u.role;
-    }
+        const user = await prisma.user.findUnique({ where: { email: userEmail }});
+        if (user) {
+            const userRole = user.role;
+            const PERMANENT_VIPS = ["warunkarsi23@gmail.com"];
+            
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const payment = await prisma.ubosRevenue.findFirst({
+              where: { 
+                userId: user.id, 
+                status: "PAID",
+                createdAt: {
+                  gte: firstDayOfMonth
+                }
+              }
+            });
 
-    const isVip = userRole === "VIP" || userRole === "PREMIUM" || userRole === "SUPER_ADMIN";
+            isVip = userRole === "VIP" || userRole === "PREMIUM" || userRole === "SUPER_ADMIN" || PERMANENT_VIPS.includes(user.email) || !!payment;
+        }
+    }
     
     const audienceFilter = isVip 
         ? { in: ["ALL", "VIP_ONLY"] }

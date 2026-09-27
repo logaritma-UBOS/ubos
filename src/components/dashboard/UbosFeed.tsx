@@ -19,8 +19,7 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
         
         fetch("/api/feed/articles").then(r => r.json()).then(a => {
           // Filter articles based on VIP status
-          const filtered = a.filter((item: any) => data.isVIP || item.audience === "ALL");
-          setArticles(filtered);
+          setArticles(a);
           
           // Fetch real donors for ALL users (so VIPs can see the thank you feed too)
           fetch("/api/feed/donors").then(r => r.json()).then(rd => {
