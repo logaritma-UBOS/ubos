@@ -38,7 +38,8 @@ async function migrate() {
   '20260902100000_author_campaign',
   '20260903000000_supplier',
   '20260903195000_feed_audience',
-  '20260904104500_feed_image_url'
+  '20260904104500_feed_image_url',
+  '20260927000000_team_os'
     ];
 
     for (const m of migs) {
@@ -65,6 +66,23 @@ async function migrate() {
             }
         }
     }
-    console.log('Done.');
+    console.log('Done migrations. Seeding Team OS...');
+    const members = [
+        { email: "logaritma.tim@gmail.com", name: "Baim", role: "SUPER_ADMIN", sharePercentage: 40 },
+        { email: "tony@logaritma.id", name: "Tony", role: "METHODOLOGY", sharePercentage: 25 },
+        { email: "reza@logaritma.id", name: "Reza", role: "DEVELOPER", sharePercentage: 20 },
+        { email: "bana@logaritma.id", name: "Bana", role: "OPERATIONS", sharePercentage: 15 },
+    ];
+    for (const m of members) {
+        try {
+            await client.execute({
+                sql: `INSERT INTO "TeamMember" (id, email, name, role, sharePercentage, walletBalance, totalEarned, updatedAt) VALUES (?, ?, ?, ?, ?, 0, 0, CURRENT_TIMESTAMP)`,
+                args: [Math.random().toString(36).slice(2), m.email, m.name, m.role, m.sharePercentage]
+            });
+        } catch (e) {
+            // Might already exist
+        }
+    }
+    console.log('Seeding done.');
 }
 migrate().catch(console.error);
