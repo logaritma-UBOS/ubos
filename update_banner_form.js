@@ -1,77 +1,82 @@
-"use client"
-import { useState } from "react"
-import { sendNotification, createFeed, updateFeed, deleteFeed, toggleFeedStatus } from "@/actions/superAdminActions"
+const fs = require('fs');
 
-export default function ContentClient({ notifications, feeds }: { notifications: any[], feeds: any[] }) {
-    const [isSending, setIsSending] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [editingFeed, setEditingFeed] = useState<any>(null);
+const actionsFile = 'src/actions/superAdminActions.ts';
+let actionsCode = fs.readFileSync(actionsFile, 'utf8');
 
-    const handleSendNotif = async (e: any) => {
-        e.preventDefault();
-        setIsSending(true);
-        const fd = new FormData(e.target);
-        await sendNotification(fd);
-        setIsSending(false);
-        e.target.reset();
-        alert("Notifikasi Terkirim!");
+actionsCode = `import { uploadImage } from "@/lib/cloudinary";\n` + actionsCode;
+
+actionsCode = actionsCode.replace(/export async function createFeed.*?revalidatePath\("\/admin\/pilot\/content"\);\n}/s, `
+export async function createFeed(formData: FormData) {
+    const title = formData.get("title")?.toString() || "";
+    let imageUrl = formData.get("imageUrl")?.toString();
+    const ctaUrl = formData.get("ctaUrl")?.toString();
+    const audience = formData.get("audience")?.toString() || "ALL";
+    const status = formData.get("status")?.toString() || "PUBLISHED";
+    const content = formData.get("content")?.toString() || "Banner/Info";
+
+    const imageFile = formData.get("imageFile") as File | null;
+    if (imageFile && imageFile.size > 0) {
+        const uploaded = await uploadImage(imageFile);
+        if (uploaded) imageUrl = uploaded.secure_url;
     }
 
-    const handleSaveFeed = async (e: any) => {
-        e.preventDefault();
-        setIsSaving(true);
-        const fd = new FormData(e.target);
-        if (editingFeed) {
-            await updateFeed(editingFeed.id, fd);
-            alert("Banner berhasil diperbarui!");
-        } else {
-            await createFeed(fd);
-            alert("Banner berhasil dipublish!");
+    if (!title) return;
+
+    await prisma.ubosFeedContent.create({
+        data: {
+            title,
+            content,
+            imageUrl,
+            ctaUrl,
+            audience,
+            status
         }
-        setIsSaving(false);
-        setEditingFeed(null);
-        e.target.reset();
+    });
+
+    revalidatePath("/admin/pilot/content");
+}
+
+export async function updateFeed(id: string, formData: FormData) {
+    const title = formData.get("title")?.toString() || "";
+    let imageUrl = formData.get("imageUrl")?.toString();
+    const ctaUrl = formData.get("ctaUrl")?.toString();
+    const audience = formData.get("audience")?.toString() || "ALL";
+    const status = formData.get("status")?.toString() || "PUBLISHED";
+    const content = formData.get("content")?.toString() || "Banner/Info";
+
+    const imageFile = formData.get("imageFile") as File | null;
+    if (imageFile && imageFile.size > 0) {
+        const uploaded = await uploadImage(imageFile);
+        if (uploaded) imageUrl = uploaded.secure_url;
     }
 
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* NOTIFICATION MANAGER */}
-            <div className="space-y-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                        In-App Notification
-                    </h3>
-                    <form onSubmit={handleSendNotif} className="space-y-4">
-                        <input type="text" name="title" required placeholder="Judul Notifikasi" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                        <textarea name="message" required placeholder="Isi pesan (mendukung promo atau pembaruan sistem)..." className="w-full h-24 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                        <input type="url" name="ctaUrl" placeholder="URL Link (Opsional)" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                        <select name="segment" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
-                            <option value="ALL">Kirim ke: Semua Pengguna</option>
-                            <option value="FREE_ONLY">Kirim ke: Free Member Saja</option>
-                            <option value="VIP_ONLY">Kirim ke: VIP Member Saja</option>
-                        </select>
-                        <button type="submit" disabled={isSending} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50">
-                            {isSending ? "Mengirim..." : "Kirim Notifikasi"}
-                        </button>
-                    </form>
-                </div>
+    if (!title) return;
 
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3">Riwayat Notifikasi</p>
-                    <div className="space-y-2">
-                        {notifications.map((n: any) => (
-                            <div key={n.id} className="p-3 bg-gray-50 rounded-lg text-xs">
-                                <p className="font-bold text-gray-900">{n.title}</p>
-                                <p className="text-gray-500 truncate">{n.message}</p>
-                                <p className="text-[10px] text-blue-500 font-bold mt-1">To: {n.segment}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+    await prisma.ubosFeedContent.update({
+        where: { id },
+        data: { title, content, imageUrl, ctaUrl, audience, status }
+    });
 
-            {/* BANNER / FEED MANAGER */}
+    revalidatePath("/admin/pilot/content");
+}
+
+export async function deleteFeed(id: string) {
+    await prisma.ubosFeedContent.delete({ where: { id } });
+    revalidatePath("/admin/pilot/content");
+}
+`);
+fs.writeFileSync(actionsFile, actionsCode);
+
+const clientFile = 'src/app/admin/pilot/(dashboard)/content/ContentClient.tsx';
+let clientCode = fs.readFileSync(clientFile, 'utf8');
+
+clientCode = clientCode.replace(
+    'import { sendNotification, createFeed, toggleFeedStatus } from "@/actions/superAdminActions"',
+    'import { sendNotification, createFeed, updateFeed, deleteFeed, toggleFeedStatus } from "@/actions/superAdminActions"'
+);
+
+const feedManagerRegex = /\{\/\* BANNER \/ FEED MANAGER \*\/\}.*?(?=\s*<\/div>\s*\)\s*\})/s;
+const feedManagerCode = `{/* BANNER / FEED MANAGER */}
             <div className="space-y-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
@@ -127,7 +132,7 @@ export default function ContentClient({ notifications, feeds }: { notifications:
                                 <div className="flex flex-wrap gap-2 shrink-0">
                                     <button 
                                         onClick={() => toggleFeedStatus(f.id, f.status)}
-                                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg ${f.status === 'PUBLISHED' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}
+                                        className={\`text-[10px] font-bold px-3 py-1.5 rounded-lg \${f.status === 'PUBLISHED' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'}\`}
                                     >
                                         {f.status === 'PUBLISHED' ? 'Aktif' : 'Nonaktif'}
                                     </button>
@@ -149,7 +154,32 @@ export default function ContentClient({ notifications, feeds }: { notifications:
                         ))}
                     </div>
                 </div>
-            </div>
-        </div>
-    )
-}
+            </div>`;
+
+clientCode = clientCode.replace(feedManagerRegex, feedManagerCode);
+
+// Add editingFeed state
+clientCode = clientCode.replace(
+    'const [isSaving, setIsSaving] = useState(false);',
+    'const [isSaving, setIsSaving] = useState(false);\n    const [editingFeed, setEditingFeed] = useState<any>(null);'
+);
+
+// Update handleSaveFeed
+clientCode = clientCode.replace(/const handleSaveFeed = async \(e: any\) => \{.*?\}/s, `const handleSaveFeed = async (e: any) => {
+        e.preventDefault();
+        setIsSaving(true);
+        const fd = new FormData(e.target);
+        if (editingFeed) {
+            await updateFeed(editingFeed.id, fd);
+            alert("Banner berhasil diperbarui!");
+        } else {
+            await createFeed(fd);
+            alert("Banner berhasil dipublish!");
+        }
+        setIsSaving(false);
+        setEditingFeed(null);
+        e.target.reset();
+    }`);
+
+fs.writeFileSync(clientFile, clientCode);
+console.log("Updated actions and ContentClient");

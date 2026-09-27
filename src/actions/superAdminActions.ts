@@ -1,4 +1,5 @@
 "use server"
+import { uploadImage } from "@/lib/cloudinary";
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
@@ -63,19 +64,27 @@ export async function sendNotification(formData: FormData) {
 }
 
 // 3. BANNER/FEED
+
 export async function createFeed(formData: FormData) {
     const title = formData.get("title")?.toString() || "";
-    const imageUrl = formData.get("imageUrl")?.toString();
+    let imageUrl = formData.get("imageUrl")?.toString();
     const ctaUrl = formData.get("ctaUrl")?.toString();
     const audience = formData.get("audience")?.toString() || "ALL";
     const status = formData.get("status")?.toString() || "PUBLISHED";
+    const content = formData.get("content")?.toString() || "Banner/Info";
+
+    const imageFile = formData.get("imageFile") as File | null;
+    if (imageFile && imageFile.size > 0) {
+        const uploaded = await uploadImage(imageFile);
+        if (uploaded) imageUrl = uploaded.secure_url;
+    }
 
     if (!title) return;
 
     await prisma.ubosFeedContent.create({
         data: {
             title,
-            content: "Banner/Info",
+            content,
             imageUrl,
             ctaUrl,
             audience,
@@ -85,6 +94,36 @@ export async function createFeed(formData: FormData) {
 
     revalidatePath("/admin/pilot/content");
 }
+
+export async function updateFeed(id: string, formData: FormData) {
+    const title = formData.get("title")?.toString() || "";
+    let imageUrl = formData.get("imageUrl")?.toString();
+    const ctaUrl = formData.get("ctaUrl")?.toString();
+    const audience = formData.get("audience")?.toString() || "ALL";
+    const status = formData.get("status")?.toString() || "PUBLISHED";
+    const content = formData.get("content")?.toString() || "Banner/Info";
+
+    const imageFile = formData.get("imageFile") as File | null;
+    if (imageFile && imageFile.size > 0) {
+        const uploaded = await uploadImage(imageFile);
+        if (uploaded) imageUrl = uploaded.secure_url;
+    }
+
+    if (!title) return;
+
+    await prisma.ubosFeedContent.update({
+        where: { id },
+        data: { title, content, imageUrl, ctaUrl, audience, status }
+    });
+
+    revalidatePath("/admin/pilot/content");
+}
+
+export async function deleteFeed(id: string) {
+    await prisma.ubosFeedContent.delete({ where: { id } });
+    revalidatePath("/admin/pilot/content");
+}
+
 
 export async function toggleFeedStatus(feedId: string, currentStatus: string) {
     await prisma.ubosFeedContent.update({
