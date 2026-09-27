@@ -4,16 +4,12 @@ import { auth } from "@/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { runOwnerEngine } from "@/lib/engines/ownerEngine";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import DailyActivityForm from "./DailyActivityForm";
-import InstallAppButton from "@/components/InstallAppButton";
 import RoyaltyForm from "./RoyaltyForm";
 
 export default async function AdminPilotPage() {
   const session = await auth();
   const userEmail = session?.user?.email || "";
-  const userName = session?.user?.name || "Admin";
   
   const teamMember = await prisma.teamMember.findUnique({
     where: { email: userEmail }
@@ -24,82 +20,44 @@ export default async function AdminPilotPage() {
   if (teamMember.role === "DEVELOPER") redirect("/admin/pilot/developer");
   if (teamMember.role === "OPERATIONS") redirect("/admin/pilot/operations");
 
-  async function updateTarget(formData: FormData) {
-    "use server";
-    const newTarget = formData.get("target")?.toString();
-    if (newTarget) {
-      await prisma.systemSetting.upsert({
-        where: { key: "MONTHLY_REVENUE_TARGET" },
-        update: { value: newTarget },
-        create: { key: "MONTHLY_REVENUE_TARGET", value: newTarget }
-      });
-      revalidatePath("/admin/pilot");
-    }
-  }
-
-  const { target, actual, gap, recommendation, metrics } = await runOwnerEngine();
-
-  const progressPct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
-  const progressMsg = progressPct >= 100 
-    ? "Luar biasa! Target bulan ini telah terlampaui." 
-    : progressPct >= 50 
-      ? "Sedikit lagi menuju target. Terus dorong konversi!" 
-      : "Fokus tingkatkan pendaftaran & konversi user premium.";
+  const { recommendation, metrics } = await runOwnerEngine();
 
   // TEAM OS DATA
-  const members = await prisma.teamMember.findMany();
+  const members = await prisma.teamMember.findMany({
+      include: {
+          tasks: {
+              where: {
+                  date: {
+                      gte: new Date(new Date().setHours(0,0,0,0)),
+                      lt: new Date(new Date().setHours(23,59,59,999))
+                  }
+              }
+          }
+      }
+  });
+
   const totalReserve = await prisma.teamLedger.aggregate({
     where: { type: "RESERVE_ALLOCATION" },
     _sum: { amount: true }
   });
+  
+  const totalDistributed = await prisma.teamLedger.aggregate({
+    where: { type: "ROYALTY_DISTRIBUTION" },
+    _sum: { amount: true }
+  });
+
+  const activeUsers = await prisma.user.count({ where: { crmStatus: "AKTIF" } });
+  const passiveUsers = await prisma.user.count({ where: { crmStatus: "PASIF" } });
+  const totalUsers = await prisma.user.count();
 
   return (
     <div className="w-full font-sans pb-10">
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
-        
-        {/* TEAM OS FINANCE PANEL (SUPER ADMIN) */}
-        <div className="mb-10">
-          <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-            Distribusi Keuangan & Royalti
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm shadow-blue-50 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5">
-                <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div> Kas Cadangan Bisnis (20%)
-              </h3>
-              <p className="text-3xl font-black text-blue-600 mb-6">{formatRupiah(totalReserve._sum.amount || 0)}</p>
-              <RoyaltyForm />
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Status Saldo Tim (80%)
-              </h3>
-              <div className="space-y-4">
-                {members.map(m => (
-                  <div key={m.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <div>
-                      <p className="font-bold text-sm text-gray-900">{m.name}</p>
-                      <p className="text-xs text-gray-500">{m.role} ({m.sharePercentage}%)</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-emerald-600">{formatRupiah(m.walletBalance)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* LOGARITMA ENGINE (PRIORITAS HARI INI) */}
         <div className="mb-8 lg:mb-10">
           <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            <span className="text-2xl">≡ƒöÑ</span> Prioritas Engine AI
+            <span className="text-2xl">🎯</span> Prioritas Engine AI
           </h2>
           <div className="w-full relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25"></div>
@@ -147,95 +105,79 @@ export default async function AdminPilotPage() {
             </div>
           </div>
         </div>
+        
+        {/* SECTION 1: QUICK STATS CARDS */}
+        <div className="mb-8">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Overview Bisnis</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Total User</p>
+                    <p className="text-2xl font-black text-gray-900">{totalUsers}</p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Aktif / Pasif</p>
+                    <p className="text-2xl font-black text-gray-900">
+                        <span className="text-emerald-500">{activeUsers}</span> <span className="text-gray-300">/</span> <span className="text-gray-400">{passiveUsers}</span>
+                    </p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-blue-100 bg-blue-50/30 shadow-sm">
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-2">Kas Cadangan</p>
+                    <p className="text-2xl font-black text-blue-600">{formatRupiah(totalReserve._sum.amount || 0)}</p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-emerald-100 bg-emerald-50/30 shadow-sm">
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-wider mb-2">Total Terdistribusi</p>
+                    <p className="text-2xl font-black text-emerald-600">{formatRupiah(totalDistributed._sum.amount || 0)}</p>
+                </div>
+            </div>
+        </div>
 
-        {/* ORIGINAL METRICS CARDS */}
-        <div>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4 flex items-center gap-2">
-            Target & Pendapatan SaaS
-          </h2>
-          {/* MOBILE VIEW (< lg) */}
-          <div className="lg:hidden bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.12em]">Kondisi Bisnis Bulan Ini</p>
+        {/* SECTION 2: GRID 2 KOLOM (MONITORING & FINANSIAL) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* KOLOM KIRI: STATUS EKSEKUSI TIM */}
+            <div id="monitoring" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> Status Eksekusi Tim Hari Ini
+                </h3>
+                <div className="space-y-4">
+                    {members.filter(m => m.role !== 'SUPER_ADMIN').map(m => {
+                        const completed = m.tasks.filter(t => t.isCompleted).length;
+                        const total = m.tasks.length;
+                        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+                        
+                        return (
+                            <div key={m.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                                <div className="flex justify-between items-center mb-3">
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900">{m.name}</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-semibold">{m.role}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs font-bold text-gray-700">{completed} / {total} Selesai</p>
+                                    </div>
+                                </div>
+                                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${pct === 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} style={{ width: `${pct}%` }}></div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* KOLOM KANAN: DISTRIBUSI FINANSIAL */}
+            <div id="finance" className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm shadow-blue-50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 relative z-10">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Distribusi Finansial
+                </h3>
+                <div className="relative z-10">
+                    <RoyaltyForm />
+                </div>
             </div>
             
-            <div className="pb-3 border-b border-gray-100 flex flex-col gap-2">
-              <div className="flex justify-between items-baseline">
-                <p className="text-xs font-semibold text-gray-400">Target Bulanan</p>
-                <p className="text-sm font-bold text-gray-600">{formatRupiah(target)}</p>
-              </div>
-              <form action={updateTarget} className="flex gap-2 w-full mt-1">
-                <input type="number" name="target" defaultValue={target} placeholder="Ubah target..." className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 bg-gray-50" required />
-                <button type="submit" className="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 text-xs px-3 py-1.5 rounded-lg font-bold shrink-0">Simpan</button>
-              </form>
-            </div>
-
-            <div className="py-3 md:py-4">
-              <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.12em] mb-1">Tercapai</p>
-              <h2 className="text-3xl font-black text-gray-900 tracking-tight tabular-nums">{formatRupiah(actual)}</h2>
-              
-              <div className="mt-3 space-y-1.5">
-                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ${progressPct >= 100 ? "bg-success-500" : progressPct >= 60 ? "bg-blue-500" : progressPct >= 1 ? "bg-warning-500" : "bg-gray-200"}`}
-                    style={{ width: `${Math.max(progressPct, 0)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 font-medium leading-relaxed">{progressMsg}</p>
-              </div>
-            </div>
-
-            {gap > 0 && (
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <div className="flex-1 bg-red-50 rounded-xl p-3 border border-red-100">
-                  <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.12em] mb-1">Kekurangan (GAP)</p>
-                  <p className="text-base font-black text-red-600 tabular-nums">-{formatRupiah(gap)}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* DESKTOP VIEW (>= lg) */}
-          <div className="hidden lg:grid grid-cols-3 gap-5">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.12em]">Target Bulanan</p>
-                </div>
-                <form action={updateTarget} className="flex gap-2 mb-3">
-                  <input type="number" name="target" defaultValue={target} placeholder="Ubah target..." className="w-full text-sm px-3 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 bg-gray-50" required />
-                  <button type="submit" className="bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-100 text-sm px-4 py-1.5 rounded-lg font-bold shrink-0 transition-colors">Simpan</button>
-                </form>
-                <p className="text-2xl font-black text-gray-900 tabular-nums">{formatRupiah(target)}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-              <div>
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.12em] mb-2">Tercapai</p>
-                <p className="text-2xl font-black text-gray-900 tabular-nums">{formatRupiah(actual)} <span className="text-sm font-bold text-gray-400">({progressPct}%)</span></p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ${progressPct >= 100 ? "bg-success-500" : progressPct >= 60 ? "bg-blue-500" : progressPct >= 1 ? "bg-warning-500" : "bg-gray-200"}`}
-                    style={{ width: `${Math.max(progressPct, 0)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 font-medium">{progressMsg}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-              <div>
-                <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.12em] mb-2">Kekurangan (Gap)</p>
-                <p className="text-2xl font-black text-red-600 tabular-nums">-{formatRupiah(gap)}</p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500 font-medium">Fokus dorong pendapatan bulan ini</p>
-              </div>
-            </div>
-          </div>
         </div>
 
       </div>

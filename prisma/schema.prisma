@@ -16,6 +16,7 @@ model User {
   phone         String?
   passwordHash  String? // made optional since OAuth users won't have one
   role          String    @default("OWNER")
+  crmStatus     String    @default("PASIF")
   createdAt     DateTime  @default(now())
 
   accounts   Account[]

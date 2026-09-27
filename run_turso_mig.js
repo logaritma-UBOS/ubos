@@ -39,7 +39,8 @@ async function migrate() {
   '20260903000000_supplier',
   '20260903195000_feed_audience',
   '20260904104500_feed_image_url',
-  '20260927000000_team_os'
+  '20260927000000_team_os',
+  '20260927000001_crm_status'
     ];
 
     for (const m of migs) {

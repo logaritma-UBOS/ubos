@@ -71,55 +71,30 @@ export default async function PilotLayout({ children }: { children: React.ReactN
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
           <div>
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Dashboard Role</h3>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Dashboard Utama</h3>
             <div className="space-y-1">
-              {isSuperAdmin && (
-                <Link href="/admin/pilot" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">Master Admin</Link>
-              )}
-              {(isSuperAdmin || teamMember.role === "METHODOLOGY") && (
-                <Link href="/admin/pilot/methodology" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-purple-600 hover:bg-purple-50">Methodology (Tony)</Link>
-              )}
-              {(isSuperAdmin || teamMember.role === "DEVELOPER") && (
-                <Link href="/admin/pilot/developer" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-amber-600 hover:bg-amber-50">Developer (Reza)</Link>
-              )}
-              {(isSuperAdmin || teamMember.role === "OPERATIONS") && (
-                <Link href="/admin/pilot/operations" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-emerald-600 hover:bg-emerald-50">Operations (Bana)</Link>
+              {isSuperAdmin ? (
+                <>
+                  <Link href="/admin/pilot" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> Overview Bisnis
+                  </Link>
+                  <Link href="/admin/pilot/operations" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> Manajemen 100 User
+                  </Link>
+                  <Link href="/admin/pilot#monitoring" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> Monitoring Tim
+                  </Link>
+                  <Link href="/admin/pilot#finance" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Distribusi Finansial
+                  </Link>
+                </>
+              ) : (
+                <Link href={`/admin/pilot/${teamMember.role.toLowerCase()}`} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> Dashboard Saya
+                </Link>
               )}
             </div>
           </div>
-
-          {isSuperAdmin && (
-            <>
-              <div>
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Kebutuhan User</h3>
-                <div className="space-y-1">
-                  <Link href="/admin/pilot/feedback" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-amber-600 hover:bg-amber-50">Masukan / Saran</Link>
-                  <Link href="/admin/pilot/feed" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-amber-600 hover:bg-amber-50">Konten Feed Premium</Link>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Tumbuh</h3>
-                <div className="space-y-1">
-                  <Link href="/admin/pilot/promo" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Promo</Link>
-                  <Link href="/admin/pilot/marketing" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Marketing</Link>
-                  <Link href="/admin/pilot/konten" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Konten In-App</Link>
-                  <Link href="/admin/pilot/kalender-konten" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Kalender Konten</Link>
-                  <Link href="/admin/pilot/sosmed-feed" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50">Feed Sosmed</Link>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3 px-2">Performa</h3>
-                <div className="space-y-1">
-                  <Link href="/admin/pilot/performa-tim" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Tim</Link>
-                  <Link href="/admin/pilot/performa-trafik" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Trafik</Link>
-                  <Link href="/admin/pilot/performa-konversi" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Konversi</Link>
-                  <Link href="/admin/pilot/performa-relationship" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-cyan-600 hover:bg-cyan-50">Performa Relationship</Link>
-                </div>
-              </div>
-            </>
-          )}
         </nav>
 
         {/* User Info / Logout */}

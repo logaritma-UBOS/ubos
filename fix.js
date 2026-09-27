@@ -1,16 +1,4 @@
 const fs = require('fs');
-let act = fs.readFileSync('src/app/admin/pilot/activation/page.tsx', 'utf8');
-
-let occurrences = 0;
-while (act.includes('style={{ width: ${}% }}')) {
-    occurrences++;
-    let rep = '';
-    if (occurrences === 1) rep = "style={{ width: '100%' }}";
-    if (occurrences === 2) rep = "style={{ width: `${rateBusiness}%` }}";
-    if (occurrences === 3) rep = "style={{ width: `${rateData}%` }}";
-    if (occurrences === 4) rep = "style={{ width: `${rateCore}%` }}";
-    act = act.replace('style={{ width: ${}% }}', rep);
-}
-
-fs.writeFileSync('src/app/admin/pilot/activation/page.tsx', act);
-console.log('Fixed');
+let page = fs.readFileSync('src/app/admin/pilot/(dashboard)/page.tsx', 'utf8');
+page = page.replace(/<span className="text-2xl">.*?<\/span>\s*Prioritas/g, '<span className="text-2xl">🎯</span> Prioritas');
+fs.writeFileSync('src/app/admin/pilot/(dashboard)/page.tsx', page, 'utf8');
