@@ -20,6 +20,19 @@ export default async function UsersPage() {
         orderBy: { createdAt: 'desc' }
     });
 
+    const revenues = await prisma.ubosRevenue.findMany({
+        where: { status: "PAID" },
+        select: { userId: true }
+    });
+    
+    const vipUserIds = new Set(revenues.map(r => r.userId));
+
+    // inject isVip flag
+    const usersWithVip = users.map(u => ({
+        ...u,
+        isVIP: vipUserIds.has(u.id)
+    }));
+
     return (
         <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
             <div>
@@ -27,7 +40,7 @@ export default async function UsersPage() {
                 <p className="text-gray-500">Filter, pantau, dan delegasikan eksekusi harian ke tim Operations.</p>
             </div>
             
-            <UsersClient users={users} />
+            <UsersClient users={usersWithVip} />
         </div>
     )
 }

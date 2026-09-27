@@ -10,8 +10,8 @@ export default function UsersClient({ users }: { users: any[] }) {
 
     // Filters: [Semua] | [VIP Aktif] | [Free Aktif] | [Free Pasif >7 Hari]
     const filteredUsers = users.filter(u => {
-        const isVIP = u.role === "VIP" || u.role === "PREMIUM";
-        const isFree = u.role === "OWNER" || u.role === "FREE";
+        const isVIP = u.isVIP;
+        const isFree = !u.isVIP;
         
         const daysSinceLogin = (new Date().getTime() - new Date(u.lastLogin).getTime()) / (1000 * 3600 * 24);
 
@@ -87,8 +87,8 @@ export default function UsersClient({ users }: { users: any[] }) {
                                     <p className="text-[10px] text-gray-500">{u.businesses?.[0]?.name || "Belum ada usaha"}</p>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${u.role === 'VIP' || u.role === 'PREMIUM' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
-                                        {u.role === 'VIP' || u.role === 'PREMIUM' ? 'VIP' : 'FREE'}
+                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${u.isVIP ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        {u.isVIP ? 'VIP' : 'FREE'}
                                     </span>
                                 </td>
                                 <td className="px-4 py-3">

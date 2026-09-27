@@ -79,8 +79,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const { logPilotActivityRaw } = await import("./lib/pilotAudit");
             await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
           }
+          
+          if (dbUser) {
+              await prisma.user.update({
+                  where: { email: user.email },
+                  data: { lastLogin: new Date() }
+              });
+          }
         } catch (e) {
-          console.error("Failed to log pilot login:", e);
+          console.error("Failed to track login:", e);
         }
       }
       return true;
