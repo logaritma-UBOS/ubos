@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import StokClient from "./StokClient"
+import { checkIsVIP } from "@/lib/vip"
 
 import { Suspense } from "react"
 
@@ -43,6 +44,7 @@ export default async function StokPage() {
           products={products}
           ingredients={ingredients}
           suppliers={suppliers}
+          isVIP={await checkIsVIP(session.user.id)}
           movements={movements}
         />
       </Suspense>

@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useActionState, useState } from "react"
 
-export default function EditProductClient({ product, suppliers }: { product: any, suppliers: any[] }) {
+export default function EditProductClient({ product, suppliers, isVIP = false }: { product: any, suppliers: any[], isVIP?: boolean }) {
   const [state, action, pending] = useActionState(editProduct, null)
   
   // existing preview URL if available
@@ -88,8 +88,8 @@ export default function EditProductClient({ product, suppliers }: { product: any
             </div>
             
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1.5">Supplier (Opsional)</label>
-              <select name="supplierId" defaultValue={product.supplierId || ""} className="block w-full border border-gray-300 rounded-xl p-3 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all">
+              <div className="flex justify-between items-center mb-1.5"><label className="block text-sm font-bold text-gray-700">Supplier (Opsional)</label>{!isVIP && <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Fitur VIP</span>}</div>
+              <select name="supplierId" disabled={!isVIP} defaultValue={product.supplierId || ""} className={`block w-full border ${!isVIP ? "bg-gray-100 opacity-70 cursor-not-allowed" : ""} border-gray-300 rounded-xl p-3 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all`}>
                 <option value="">-- Tanpa Supplier --</option>
                 {suppliers.map((s: any) => (
                   <option key={s.id} value={s.id}>{s.name}</option>

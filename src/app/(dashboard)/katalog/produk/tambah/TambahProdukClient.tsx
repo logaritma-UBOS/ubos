@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useActionState, useState } from "react"
 
-export default function TambahProdukClient({ businessType }: { businessType: string }) {
+export default function TambahProdukClient({ businessType, isVIP = false }: { businessType: string, isVIP?: boolean }) {
   const [state, action, pending] = useActionState(addProduct, null)
   
   // Default logic: F&B gets BOM, RETAIL gets RETAIL, others get SERVICE/BOM
