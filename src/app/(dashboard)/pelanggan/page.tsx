@@ -2,6 +2,8 @@ import { formatNumber, formatRupiah } from '@/lib/format';
 export const dynamic = "force-dynamic"
 import { getCustomerIntelligence } from "@/actions/customer"
 import { redirect } from "next/navigation"
+import { getUserPlan } from "@/lib/plan"
+import FreemiumLock from "@/components/layout/FreemiumLock"
 import Link from "next/link"
 import AddCustomerButton from "./AddCustomerButton"
 

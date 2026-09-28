@@ -1,12 +1,16 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import { getUserPlan } from "@/lib/plan"
+import FreemiumLock from "@/components/layout/FreemiumLock"
 import StokClient from "./StokClient"
 
 import { Suspense } from "react"
 
 export default async function StokPage() {
   const session = await auth()
+  const plan = await getUserPlan()
+  if (plan === "STARTER") return <AppShell><FreemiumLock featureName="Stok & Supplier" /></AppShell>
   if (!session?.user?.id) redirect("/login")
 
   const business = await prisma.business.findFirst({ where: { userId: session.user.id } })

@@ -23,7 +23,7 @@ type Sale = {
   status: "SYNCED" | "PENDING"
 }
 
-export default function RiwayatClient() {
+export default function RiwayatClient({ plan }: { plan?: string }) {
   const [sales, setSales] = useState<Sale[]>([])
   const [loading, setLoading] = useState(true)
   const [dateFilter, setDateFilter] = useState("today")
