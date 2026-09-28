@@ -4,7 +4,7 @@ import { useState } from "react"
 import { addSupplier, recordStockMovement, recordBulkStockMovement } from "@/actions/inventory"
 import { useRouter, useSearchParams } from "next/navigation"
 
-export default function StokClient({ products, ingredients, suppliers, movements, isVIP = false }: any) {
+export default function StokClient({ products, ingredients, suppliers, movements }: any) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const autoOpenItemId = searchParams.get("addId")
@@ -112,10 +112,10 @@ export default function StokClient({ products, ingredients, suppliers, movements
             Riwayat Stok
           </button>
           <button 
-            className={`pb-3 text-sm font-bold border-b-2 px-1 ${activeTab === "SUPPLIER" && isVIP ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+            className={`pb-3 text-sm font-bold border-b-2 px-1 ${activeTab === "SUPPLIER" ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             onClick={() => setActiveTab("SUPPLIER")}
           >
-            Data Supplier {!isVIP && <span className="ml-1 text-[8px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded">VIP</span>}
+            Data Supplier
           </button>
         </div>
 
@@ -163,18 +163,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
           </div>
         )}
 
-        {activeTab === "SUPPLIER" && !isVIP && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center max-w-lg mx-auto mt-8">
-            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
-            <h3 className="font-bold text-gray-900 text-lg mb-2">Fitur VIP: Manajemen Supplier</h3>
-            <p className="text-gray-500 text-sm mb-6">Tingkatkan akun Anda ke VIP untuk mulai mencatat dan mengelola data supplier untuk bisnis Anda.</p>
-            <button onClick={() => window.dispatchEvent(new Event("open-donate-modal"))} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 px-6 rounded-xl w-full hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-200 transition-all">
-              Tingkatkan ke VIP
-            </button>
-          </div>
-        )}
-        
-        {activeTab === "SUPPLIER" && isVIP && (
+        {activeTab === "SUPPLIER" && (
           <div>
             <div className="flex justify-end mb-4">
               <button 
@@ -232,7 +221,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Pilih Supplier (Opsional / Filter)</label>
-                <select disabled={!isVIP} className={!isVIP ? "bg-gray-100 opacity-70 cursor-not-allowed" : ""} value={supplierId} onChange={e => {
+                <select value={supplierId} onChange={e => {
                   setSupplierId(e.target.value);
                   setBulkQuantities({});
                 }} className="w-full border-gray-200 rounded-xl bg-gray-50 py-3 px-4 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white text-sm">

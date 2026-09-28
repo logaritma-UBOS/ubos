@@ -2,7 +2,6 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import EditProductClient from "./EditProductClient"
-import { checkIsVIP } from "@/lib/vip"
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -22,6 +21,5 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   
   if (!product || product.business.userId !== session.user.id) redirect("/katalog")
   
-  const isVIP = await checkIsVIP(session.user.id);
-  return <EditProductClient product={product} suppliers={suppliers} isVIP={isVIP} />
+  return <EditProductClient product={product} suppliers={suppliers} />
 }
