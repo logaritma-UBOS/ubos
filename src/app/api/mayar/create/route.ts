@@ -6,7 +6,11 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const { amount } = await req.json();
+    const body = await req.json();
+    const amount = body.amount;
+    const planName = body.planName || "Dukungan VIP UBOS";
+    const planDesc = body.planDesc || "Pembayaran seikhlasnya untuk dukungan pengembangan UBOS";
+
     if (!amount || isNaN(amount) || amount < 10000) {
       return NextResponse.json({ error: "Invalid amount. Minimum Rp 10.000" }, { status: 400 });
     }
@@ -25,13 +29,13 @@ export async function POST(req: NextRequest) {
         email: session.user.email,
         mobile: "08000000000",
         amount: Number(amount),
-        description: "Dukungan Pembayaran UBOS",
+        description: planName,
         redirectUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/thank-you` : "https://ubos.logaritma.id/thank-you",
         expiredAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         items: [
           {
-            name: "Dukungan VIP UBOS",
-            description: "Pembayaran seikhlasnya untuk dukungan pengembangan UBOS",
+            name: planName,
+            description: planDesc,
             quantity: 1,
             rate: Number(amount)
           }

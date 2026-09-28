@@ -89,7 +89,7 @@ export default function LandingPage() {
             <Link href="/login" className="hidden md:inline-flex items-center px-4 py-2 text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">
               Masuk
             </Link>
-            <Link href="/register" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-full shadow-sm transition-all hover:-translate-y-0.5">
+            <Link href="/founder" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-full shadow-sm transition-all hover:-translate-y-0.5">
               Ambil Promo Founder
             </Link>
             
@@ -112,7 +112,6 @@ export default function LandingPage() {
               <a href="#masalah" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-emerald-600">Masalah</a>
               <a href="#cara-kerja" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-emerald-600">Cara Kerja</a>
               <a href="#fitur" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-emerald-600">Fitur</a>
-                <a href="#harga" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-emerald-600">Harga</a>
               <a href="#harga" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-emerald-600">Harga</a>
               <div className="pt-4 mt-2 border-t border-slate-100">
                 <Link href="/login" className="flex items-center justify-center w-full px-4 py-3 mb-2 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all">
@@ -378,6 +377,7 @@ export default function LandingPage() {
               <h3 className="text-2xl font-bold mb-2">Paket Founder Pass</h3>
               <p className="text-emerald-200 text-sm mb-4 font-medium uppercase tracking-wide">Terlaris</p>
               <div className="flex flex-col mb-6">
+                <span className="text-xl text-emerald-300/70 line-through font-medium">Rp1.500.000</span>
                 <span className="text-4xl font-black">Rp399.000</span>
                 <span className="text-emerald-200 text-sm mt-1">Sekali bayar seumur hidup, tanpa biaya langganan lagi</span>
               </div>
@@ -403,7 +403,7 @@ export default function LandingPage() {
                   <span className="text-white">Free Update Fitur Baru UBOS</span>
                 </li>
               </ul>
-              <Link href="/register?plan=founder" className="w-full py-4 rounded-xl font-bold text-center bg-white text-emerald-900 hover:bg-emerald-50 transition-colors shadow-lg">
+              <Link href="/founder" className="w-full py-4 rounded-xl font-bold text-center bg-white text-emerald-900 hover:bg-emerald-50 transition-colors shadow-lg">
                 Kunci Akses Founder Sekarang
               </Link>
             </div>
@@ -447,7 +447,7 @@ export default function LandingPage() {
               <p className="text-emerald-100 text-lg mb-8 max-w-2xl mx-auto">
                 Tinggalkan cara lama yang membingungkan. Bergabung dengan ekosistem UBOS untuk mendiagnosis masalah bisnis secara otomatis.
               </p>
-              <Link href="/register" className="inline-flex items-center justify-center rounded-full px-10 py-4 text-base font-bold text-emerald-700 bg-white hover:bg-emerald-50 shadow-lg transition-all hover:-translate-y-1">
+              <Link href="/founder" className="inline-flex items-center justify-center rounded-full px-10 py-4 text-base font-bold text-emerald-700 bg-white hover:bg-emerald-50 shadow-lg transition-all hover:-translate-y-1">
                 Daftar Akun Gratis &rarr;
               </Link>
             </div>
