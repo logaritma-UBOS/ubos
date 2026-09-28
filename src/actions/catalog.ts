@@ -307,8 +307,10 @@ export async function editProduct(prevState: any, formData: FormData) {
     const updateData: any = { 
       name, 
       sellPrice,
-      supplierId: (formData.get("supplierId") as string) || null
     };
+    if (formData.has("supplierId")) {
+      updateData.supplierId = (formData.get("supplierId") as string) || null;
+    }
 
     if (isRetail) {
       const newCost = parseFloat(formData.get("purchaseCost") as string) || 0;
@@ -371,16 +373,13 @@ export async function editIngredient(prevState: any, formData: FormData) {
     const existing = await prisma.ingredient.findFirst({ where: { id, businessId } })
     if (!existing) return { error: "Unauthorized" }
 
-    const supplierId = formData.get("supplierId") as string;
+    const updateData: any = { name, unit, costPerUnit, currentStock };
+    if (formData.has("supplierId")) {
+      updateData.supplierId = (formData.get("supplierId") as string) || null;
+    }
     await prisma.ingredient.update({ 
       where: { id }, 
-      data: { 
-        name, 
-        unit, 
-        costPerUnit, 
-        currentStock,
-        supplierId: supplierId || null 
-      } 
+      data: updateData 
     })
     
     // Auto update HPP for all products using this ingredient
