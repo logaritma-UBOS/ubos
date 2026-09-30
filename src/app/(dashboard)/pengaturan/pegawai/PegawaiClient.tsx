@@ -56,24 +56,24 @@ export default function PegawaiClient() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Manajemen Pegawai</h1>
           <p className="text-slate-500 text-sm mt-1">Buat akun untuk kasir atau manajer toko Anda</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 w-full sm:w-auto shadow-sm"
         >
           <PlusIcon className="w-5 h-5" /> Tambah Pegawai
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
         {staffs.length === 0 ? (
           <div className="p-12 text-center text-slate-500">Belum ada pegawai yang didaftarkan.</div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-600">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[600px]">
             <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-xs border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4">Nama</th>
