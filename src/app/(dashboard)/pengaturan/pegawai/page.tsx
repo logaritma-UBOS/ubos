@@ -1,7 +1,5 @@
-import AppShell from "@/components/layout/AppShell"
 import PegawaiClient from "./PegawaiClient"
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 
 export default async function PegawaiPage() {
@@ -16,12 +14,7 @@ export default async function PegawaiPage() {
     redirect("/beranda")
   }
 
-  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
-  const business = await prisma.business.findFirst({ where: whereClause })
-
   return (
-    <AppShell businessName={business?.name}>
-      <PegawaiClient />
-    </AppShell>
+    <PegawaiClient />
   )
 }
