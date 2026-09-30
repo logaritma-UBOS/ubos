@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         isAuthenticated: true, 
         isVIP: true,
         tier: "Lifetime",
-        hasPhone: !!user.phone
+        hasPhone: !!user.phone || user.role === "KASIR" || user.role === "MANAGER"
       });
     }
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       isAuthenticated: true, 
       isVIP: isVIP,
       tier: tier,
-      hasPhone: !!user.phone
+      hasPhone: !!user.phone || user.role === "KASIR" || user.role === "MANAGER"
     });
   } catch (error) {
     return NextResponse.json({ isAuthenticated: false, isVIP: false, tier: "Starter", hasPhone: false });
