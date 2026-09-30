@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const settings = await prisma.businessSetting.findFirst({
-    where: { storeSlug: "warunkarsi" },
-    include: { business: true }
+  await prisma.product.updateMany({
+    where: { supplierId: "NONE" },
+    data: { supplierId: null }
   });
-  return NextResponse.json(settings);
+  await prisma.ingredient.updateMany({
+    where: { supplierId: "NONE" },
+    data: { supplierId: null }
+  });
+  return NextResponse.json({ success: true, message: "Fixed NONE supplierIds" });
 }

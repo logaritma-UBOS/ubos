@@ -35,6 +35,38 @@ export async function registerUser(prevState: any, formData: FormData) {
       data: { name, email, passwordHash, role: "OWNER", phone }
     })
   }
+
+  // BEGIN SEND WA WELCOME
+  const registeredUser = await prisma.user.findUnique({ where: { email } });
+  if (registeredUser && phone) {
+    let tier = "Starter (Gratis)";
+    if (email === "warunkarsi23@gmail.com") {
+      tier = "Lifetime";
+    } else {
+      const revenues = await prisma.ubosRevenue.findFirst({ where: { userId: registeredUser.id, status: "PAID" } });
+      if (revenues) tier = "Pro Bulanan";
+    }
+
+    let target = phone.replace(/[^0-9]/g, '');
+    if (target.startsWith('0')) target = '62' + target.substring(1);
+
+    const message = `Halo *${registeredUser.name || name}*! 🎉\n\nSelamat datang dan terima kasih sudah mendaftar di *UBOS* (Universal Business Operating System).\n\nBerikut adalah detail akun pendaftaran Anda:\n👤 Nama: ${registeredUser.name || name}\n📧 Email: ${email}\n💼 Paket Saat Ini: *${tier}*\n📱 Kontak: ${phone}\n\nKami siap mendampingi perjalanan bisnis digital Anda. Jika ada pertanyaan, jangan ragu untuk membalas pesan ini!\n\nSalam sukses,\nTim UBOS`;
+
+    try {
+      fetch("https://api.fonnte.com/send", {
+        method: "POST",
+        headers: { "Authorization": "yR1HdhH9wfPVVoKu2G4e" },
+        body: new URLSearchParams({
+          target: target,
+          message: message,
+          countryCode: "62"
+        })
+      }).catch(err => console.error("Fonnte trigger error:", err));
+    } catch (e) {
+      console.error("Gagal kirim pesan WA selamat datang:", e);
+    }
+  }
+  // END SEND WA WELCOME
   
   try {
     await signIn("credentials", {

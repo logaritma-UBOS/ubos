@@ -10,6 +10,16 @@ export default function OnboardingPage() {
   const [state, action, pending] = useActionState(createBusiness, null)
   const [step, setStep] = useState(1)
   const [businessType, setBusinessType] = useState("")
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file))
+    } else {
+      setPreviewUrl(null)
+    }
+  }
 
   const businessTypes = [
     { id: "F&B", label: "F&B", desc: "Makanan & Minuman", icon: "🍔" },
@@ -153,6 +163,23 @@ export default function OnboardingPage() {
               <p className="text-sm text-slate-500 mb-6">Anda bisa menambahkan lebih banyak produk nanti di Katalog.</p>
               
               <div className="space-y-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 border-dashed text-center relative overflow-hidden group">
+                  {previewUrl ? (
+                    <div className="relative w-32 h-32 mx-auto mb-3">
+                      <Image src={previewUrl} alt="Preview" fill className="object-cover rounded-xl shadow-sm border border-slate-200" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 mx-auto bg-slate-200 rounded-full flex items-center justify-center mb-3">
+                      <span className="text-2xl text-slate-400">📷</span>
+                    </div>
+                  )}
+                  <label className="block text-sm font-bold text-emerald-700 cursor-pointer hover:underline">
+                    {previewUrl ? "Ganti Foto" : "Upload Foto Produk"}
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImageChange} />
+                  </label>
+                  <p className="text-xs text-slate-500 mt-1">Format JPG, PNG, WebP (Max 5MB)</p>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Nama Produk</label>
                   <input name="productName" type="text" placeholder="Contoh: Kopi Susu Aren" className={inputClass} />
@@ -165,6 +192,16 @@ export default function OnboardingPage() {
                       <span className="text-slate-500 font-medium">Rp</span>
                     </div>
                     <FormattedNumberInput name="sellPrice" placeholder="20.000" className={`${inputClass} pl-12 pr-4`} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Harga Beli / Modal (HPP)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-500 font-medium">Rp</span>
+                    </div>
+                    <FormattedNumberInput name="purchaseCost" placeholder="10.000" className={`${inputClass} pl-12 pr-4`} />
                   </div>
                 </div>
               </div>

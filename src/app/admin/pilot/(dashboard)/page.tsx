@@ -5,7 +5,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { runOwnerEngine } from "@/lib/engines/ownerEngine";
 import { prisma } from "@/lib/prisma";
+import UserActivityLog from "./UserActivityLog";
 import RoyaltyForm from "./RoyaltyForm";
+import ControlTowerForms from "./ControlTowerForms";
+import MayarBalanceWidget from "@/components/team/MayarBalanceWidget";
+import LeadPoolWidget from "@/components/team/LeadPoolWidget";
 
 export default async function AdminPilotPage() {
   const session = await auth();
@@ -49,6 +53,46 @@ export default async function AdminPilotPage() {
   const activeUsers = await prisma.user.count({ where: { crmStatus: "AKTIF" } });
   const passiveUsers = await prisma.user.count({ where: { crmStatus: "PASIF" } });
   const totalUsers = await prisma.user.count();
+
+  // LEAD POOL DATA for Baim
+  const manualLeads = await prisma.manualLead.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+          source: { select: { name: true, role: true } },
+          assignedTo: { select: { name: true } }
+      }
+  });
+
+  // Tier breakdown based on UbosRevenue (synced with frontend subscription logic)
+  const allRevenues = await prisma.ubosRevenue.findMany({
+    where: { status: "PAID" },
+    select: { userId: true, amount: true }
+  });
+  // Get max payment per user
+  const maxAmountByUser: Record<string, number> = {};
+  for (const r of allRevenues) {
+    if (!maxAmountByUser[r.userId] || r.amount > maxAmountByUser[r.userId]) {
+      maxAmountByUser[r.userId] = r.amount;
+    }
+  }
+  
+  const warunkArsi = await prisma.user.findUnique({ where: { email: "warunkarsi23@gmail.com" } });
+  const paidUserIds = [...new Set(allRevenues.map(r => r.userId))];
+  
+  let countLifetime = 0;
+  let countProBulanan = 0;
+  
+  for (const id of paidUserIds) {
+    if (warunkArsi && id === warunkArsi.id) continue;
+    countProBulanan++;
+  }
+  if (warunkArsi) {
+    countLifetime = 1;
+  }
+
+  const totalPaidOrLifetime = countProBulanan + countLifetime;
+  const countStarter = Math.max(0, totalUsers - totalPaidOrLifetime);
+  const countProTahunan = 0;
 
   return (
     <div className="w-full font-sans pb-10">
@@ -129,55 +173,109 @@ export default async function AdminPilotPage() {
                     <p className="text-2xl font-black text-emerald-600">{formatRupiah(totalDistributed._sum.amount || 0)}</p>
                 </div>
             </div>
+
+            {/* TIER BREAKDOWN — synced with frontend subscription system */}
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Starter (Gratis)</p>
+                    <p className="text-xl font-black text-gray-700">{countStarter}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">Rp 0 / bulan</p>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-1">Pro Bulanan</p>
+                    <p className="text-xl font-black text-blue-700">{countProBulanan}</p>
+                    <p className="text-[10px] text-blue-400 mt-1">Rp 49.000 / bulan</p>
+                </div>
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <p className="text-[10px] font-black text-purple-500 uppercase tracking-wider mb-1">Pro Tahunan</p>
+                    <p className="text-xl font-black text-purple-700">{countProTahunan}</p>
+                    <p className="text-[10px] text-purple-400 mt-1">Rp 349.000 / tahun</p>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-wider mb-1">Lifetime</p>
+                    <p className="text-xl font-black text-amber-700">{countLifetime}</p>
+                    <p className="text-[10px] text-amber-400 mt-1">Rp 499.000 sekali bayar</p>
+                </div>
+            </div>
         </div>
 
-        {/* SECTION 2: GRID 2 KOLOM (MONITORING & FINANSIAL) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* KOLOM KIRI: STATUS EKSEKUSI TIM */}
-            <div id="monitoring" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> Status Eksekusi Tim Hari Ini
-                </h3>
-                <div className="space-y-4">
-                    {members.filter(m => m.role !== 'SUPER_ADMIN').map(m => {
-                        const completed = m.tasks.filter(t => t.isCompleted).length;
-                        const total = m.tasks.length;
-                        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-                        
-                        return (
-                            <div key={m.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
-                                <div className="flex justify-between items-center mb-3">
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-900">{m.name}</p>
-                                        <p className="text-[10px] text-gray-500 uppercase font-semibold">{m.role}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-bold text-gray-700">{completed} / {total} Selesai</p>
-                                    </div>
-                                </div>
-                                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full ${pct === 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} style={{ width: `${pct}%` }}></div>
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
+        
+      
+        {/* LEAD POOL */}
+        <div id="lead-pool" className="mb-8 pt-4">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Kolam Prospek Tim (Lead Pool)</h2>
+            <LeadPoolWidget leads={manualLeads} />
+        </div>
 
-            {/* KOLOM KANAN: DISTRIBUSI FINANSIAL */}
-            <div id="finance" className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm shadow-blue-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                </div>
-                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 relative z-10">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Distribusi Finansial
-                </h3>
-                <div className="relative z-10">
-                    <RoyaltyForm />
+        {/* TEAM PERFORMANCE MATRIX */}
+        <div id="monitoring" className="mb-8 pt-4">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Team Performance Matrix</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Anggota Tim</th>
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Progress Hari Ini</th>
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status Checklist</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {members.filter(m => m.role !== "SUPER_ADMIN").map(member => {
+                                const total = member.tasks.length;
+                                const completed = member.tasks.filter(t => t.isCompleted).length;
+                                const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+                                
+                                return (
+                                    <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="p-4">
+                                            <div className="font-bold text-gray-900">{member.name}</div>
+                                            <div className="text-xs text-gray-500">{member.email}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                                                {member.role}
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="text-sm font-bold text-gray-900">{percentage}%</span>
+                                                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="text-xs font-medium text-gray-600">
+                                                {completed} / {total} Tugas Selesai
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                            {members.filter(m => m.role !== "SUPER_ADMIN").length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-8 text-center text-gray-400 text-sm italic">Belum ada tim yang terdaftar.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
+        </div>
+
+        {/* DISTRIBUSI FINANSIAL */}
+        <div id="finance" className="mb-8 pt-4">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Distribusi Finansial (Payout)</h2>
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm max-w-xl">
+                <RoyaltyForm />
+            </div>
+        </div>
+
+
+        <div className="mt-6">
+          <UserActivityLog />
         </div>
 
       </div>

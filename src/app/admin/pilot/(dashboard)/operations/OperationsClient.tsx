@@ -1,14 +1,33 @@
 "use client"
 
 import { useState } from "react"
-import { createTicket } from "@/actions/teamOs"
-import { updateCrmStatus } from "@/actions/crmActions"
+import ManualLeadForm from "../ManualLeadForm"
+import { createTicket, sendWaBana } from "@/actions/teamOs"
 
 export default function OperationsClient({ users }: { users: any[] }) {
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [notes, setNotes] = useState("")
   const [isTechBug, setIsTechBug] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Search
+  const [search, setSearch] = useState("");
+  const [loadingWa, setLoadingWa] = useState<string | null>(null);
+
+  const usersWithStatus = users.map(u => {
+    const daysSinceLogin = u.lastLogin ? (new Date().getTime() - new Date(u.lastLogin).getTime()) / (1000 * 3600 * 24) : 999;
+    let computedStatus = "PASIF";
+    if (daysSinceLogin <= 7) computedStatus = "AKTIF";
+    if (!u.lastLogin && (new Date().getTime() - new Date(u.createdAt).getTime()) / (1000 * 3600 * 24) <= 1) computedStatus = "NEW";
+    return { ...u, computedStatus, daysSinceLogin };
+  });
+
+  const filteredUsers = usersWithStatus.filter(u => {
+    if (!search) return true;
+    return (u.name && u.name.toLowerCase().includes(search.toLowerCase())) || 
+           (u.email && u.email.toLowerCase().includes(search.toLowerCase())) || 
+           (u.phone && u.phone.includes(search));
+  });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -27,13 +46,30 @@ export default function OperationsClient({ users }: { users: any[] }) {
     alert("Tiket berhasil disimpan!");
   }
 
-  const handleStatusChange = async (userId: string, newStatus: string) => {
-    await updateCrmStatus(userId, newStatus);
+  const handleFollowUpFonnte = async (user: any) => {
+    if (!user.phone) return alert("User tidak memiliki nomor WA");
+    
+    let autoMsg = `Halo kak ${user.name || 'Pebisnis'},`;
+    if (user.computedStatus === "PASIF") {
+      autoMsg += ` kami dari UBOS melihat kakak sudah lebih dari seminggu tidak login ke sistem. Apakah ada kendala atau butuh bantuan kami?`;
+    } else if (user.computedStatus === "NEW") {
+      autoMsg += ` selamat datang di UBOS! Kami siap mendampingi kakak membangun ekosistem bisnis digital.`;
+    } else {
+      autoMsg += ` semoga harinya menyenangkan! Kami lihat kakak sangat aktif menggunakan UBOS. Jika butuh upgrade atau bantuan, kabari kami ya.`;
+    }
+
+    if (!confirm(`Kirim pesan via Fonnte (089662345427)?\n\nPesan:\n${autoMsg}`)) return;
+
+    setLoadingWa(user.id);
+    const res = await sendWaBana(user.phone, autoMsg);
+    setLoadingWa(null);
+
+    if (res?.error) alert(res.error);
+    else alert("Berhasil di-Follow Up via Fonnte!");
   }
 
   return (
     <div className="space-y-6">
-      {/* Create Ticket Form */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <h3 className="font-bold text-gray-900 mb-4">Buat Catatan / Tiket Kendala</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,59 +111,66 @@ export default function OperationsClient({ users }: { users: any[] }) {
         </form>
       </div>
 
-      {/* Mini CRM Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">Database User</h3>
+        <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h3 className="font-bold text-gray-900">List Lead Manual</h3>
+          <input 
+            type="search" 
+            placeholder="Cari Nama/Email/Nomor..." 
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-4 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+          />
         </div>
-        <div className="overflow-x-auto">
+        <ManualLeadForm />
+      <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Nama Lead</th>
                 <th className="px-4 py-3">Status CRM</th>
                 <th className="px-4 py-3">Kontak WA</th>
                 <th className="px-4 py-3">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {users.map(u => (
+              {filteredUsers.map(u => (
                 <tr key={u.id} className="hover:bg-gray-50/50">
                   <td className="px-4 py-3">
                     <p className="font-bold text-gray-900">{u.name || "Tanpa Nama"}</p>
                     <p className="text-[10px] text-gray-500">{u.email}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <select 
-                      defaultValue={u.crmStatus || "PASIF"} 
-                      onChange={(e) => handleStatusChange(u.id, e.target.value)}
-                      className={`text-xs font-bold rounded px-2 py-1 outline-none cursor-pointer border ${u.crmStatus === 'AKTIF' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : u.crmStatus === 'TERKENDALA' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}
-                    >
-                      <option value="PASIF">Pasif</option>
-                      <option value="AKTIF">Aktif</option>
-                      <option value="TERKENDALA">Terkendala</option>
-                    </select>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${u.computedStatus === 'AKTIF' ? 'bg-emerald-100 text-emerald-700' : u.computedStatus === 'NEW' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                      {u.computedStatus}
+                    </span>
                   </td>
-                  <td className="px-4 py-3">
-                    {u.phone ? (
-                      <a href={`https://wa.me/${u.phone.replace(/^0/, '62')}`} target="_blank" className="inline-flex items-center gap-1.5 text-[10px] text-white font-bold bg-emerald-500 px-3 py-1.5 rounded-lg shadow-sm hover:bg-emerald-600 transition-colors tracking-wide uppercase">
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        Chat WA
-                      </a>
-                    ) : <span className="text-gray-400">-</span>}
+                  <td className="px-4 py-3 font-semibold text-gray-700">
+                    {u.phone || "-"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 flex gap-2">
                     <button 
                       onClick={() => setSelectedUser(u)}
-                      className="text-blue-600 font-semibold text-[10px] uppercase border border-blue-200 bg-white px-3 py-1.5 rounded-lg hover:bg-blue-50"
+                      className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100"
                     >
-                      Buat Tiket
+                      Pilih (Kendala)
+                    </button>
+                    <button 
+                      onClick={() => handleFollowUpFonnte(u)}
+                      disabled={loadingWa === u.id || !u.phone}
+                      className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.898-4.45 9.898-9.898 0-5.45-4.449-9.898-9.896-9.898-5.45 0-9.898 4.448-9.898 9.898 0 1.956.49 3.633 1.517 5.205l1.011 1.536-1.127 4.12 4.225-1.11.98.555zm11.751-6.195c-.482-1.206-2.42-1.875-3.08-1.875-.662 0-1.066.86-1.166 1.002-.1.14-.144.382-.424.524-.282.14-1.258.463-2.408-.56-.893-.794-1.498-1.77-1.673-2.072-.175-.3-.021-.462.115-.595.127-.123.275-.316.415-.472.138-.158.183-.267.275-.444.092-.178.046-.334-.022-.475-.068-.142-.614-1.478-.84-2.023-.222-.533-.448-.46-.614-.468-.157-.008-.337-.01-.518-.01-.183 0-.48.067-.732.34-.25.27-1.218 1.192-1.218 2.906 0 1.713 1.25 3.37 1.42 3.593.172.223 2.453 3.743 5.94 5.2 3.488 1.458 3.488.971 4.103.902.615-.069 1.98-.808 2.259-1.588.278-.779.278-1.448.194-1.588z"/></svg>
+                      {loadingWa === u.id ? "Memproses..." : "Follow-Up Fonnte"}
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {filteredUsers.length === 0 && (
+            <div className="text-center p-8 text-gray-500 font-medium">Tidak ada user ditemukan.</div>
+          )}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { createCampaign, updateCampaignStatus } from "@/actions/campaign"
 
-export default function MarketingClient({ initialCampaigns, contentPlans, promos }: any) {
+export default function MarketingClient({ initialCampaigns, contentPlans, promos, isVip }: any) {
   const [campaigns, setCampaigns] = useState(initialCampaigns)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -31,8 +31,12 @@ export default function MarketingClient({ initialCampaigns, contentPlans, promos
   }
 
   const handleUpdateStatus = async (id: string, status: string) => {
-    await updateCampaignStatus(id, status)
-    window.location.reload()
+    const res = await updateCampaignStatus(id, status)
+    if (res?.error) {
+      alert(res.error)
+    } else {
+      window.location.reload()
+    }
   }
 
   return (
@@ -43,13 +47,13 @@ export default function MarketingClient({ initialCampaigns, contentPlans, promos
         <p className="text-blue-100 text-sm mb-4">Ubah konten menjadi transaksi nyata melalui WhatsApp Blast tersistem.</p>
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
           <span className="bg-white/20 px-3 py-1.5 rounded-full">1. Konten</span>
-          <span>→</span>
+          <span>➔</span>
           <span className="bg-white/20 px-3 py-1.5 rounded-full">2. WA Blast</span>
-          <span>→</span>
+          <span>➔</span>
           <span className="bg-white/20 px-3 py-1.5 rounded-full">3. Promo</span>
-          <span>→</span>
+          <span>➔</span>
           <span className="bg-white/20 px-3 py-1.5 rounded-full">4. Transaksi (POS)</span>
-          <span>→</span>
+          <span>➔</span>
           <span className="bg-white/20 px-3 py-1.5 rounded-full">5. Repeat Order</span>
         </div>
       </div>
@@ -135,14 +139,14 @@ export default function MarketingClient({ initialCampaigns, contentPlans, promos
                 <p className="text-sm text-gray-600 max-w-2xl">{c.message}</p>
                 <div className="flex flex-wrap gap-3 mt-3 text-xs">
                   {c.contentPlan && <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">📱 Konten: {c.contentPlan.title}</span>}
-                  {c.promo && <span className="bg-orange-50 text-orange-700 border border-orange-100 px-2 py-1 rounded">🎉 Promo: {c.promo.code}</span>}
+                  {c.promo && <span className="bg-orange-50 text-orange-700 border border-orange-100 px-2 py-1 rounded">🎟️ Promo: {c.promo.code}</span>}
                   <span className="bg-purple-50 text-purple-700 border border-purple-100 px-2 py-1 rounded">🎯 Segment: {c.targetSegment}</span>
                 </div>
               </div>
               
               <div className="flex flex-col gap-2 min-w-[120px]">
                 {c.status === 'DRAFT' && <button onClick={() => handleUpdateStatus(c.id, 'SIAP_DIKIRIM')} className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2 rounded-lg border border-blue-200">Tandai Siap</button>}
-                {c.status === 'SIAP_DIKIRIM' && <button onClick={() => handleUpdateStatus(c.id, 'TERKIRIM')} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 rounded-lg border border-indigo-200">Kirim Blast WA</button>}
+                {c.status === 'SIAP_DIKIRIM' && <button onClick={() => isVip ? handleUpdateStatus(c.id, 'TERKIRIM') : alert("Fitur Kirim WA Blast otomatis ini eksklusif untuk pengguna paket Pro Tahunan & Lifetime. Silakan upgrade paket Anda.")} className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 rounded-lg border border-indigo-200">Kirim Blast WA</button>}
                 {c.status === 'TERKIRIM' && <button onClick={() => handleUpdateStatus(c.id, 'SELESAI')} className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2 rounded-lg border border-emerald-200">Selesaikan</button>}
               </div>
             </div>
@@ -181,3 +185,8 @@ export default function MarketingClient({ initialCampaigns, contentPlans, promos
     </div>
   )
 }
+
+
+
+
+

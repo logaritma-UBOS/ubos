@@ -41,7 +41,9 @@ async function migrate() {
   '20260904104500_feed_image_url',
   '20260927000000_team_os',
   '20260927000001_crm_status',
-  '20260927000002_crm_traffic'
+  '20260927000002_crm_traffic',
+  '20260929000000_team_os_control_tower',
+  '20260930000000_manual_lead'
     ];
 
     for (const m of migs) {
@@ -68,7 +70,42 @@ async function migrate() {
             }
         }
     }
-    console.log('Done migrations. Seeding Team OS...');
+        try {
+        await client.execute(`CREATE TABLE IF NOT EXISTS "TeamIdea" ("id" TEXT NOT NULL PRIMARY KEY, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "TeamIdea_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "TeamMember" ("id") ON DELETE CASCADE)`);
+        console.log('Created TeamIdea');
+    } catch(e) { if (e.message && !e.message.includes('already exists')) console.error('TeamIdea err:', e.message); else console.log('TeamIdea already exists'); }
+    try {
+        await client.execute(`CREATE TABLE IF NOT EXISTS "SupportMessage" ("id" TEXT NOT NULL PRIMARY KEY, "userId" TEXT NOT NULL, "senderRole" TEXT NOT NULL, "message" TEXT NOT NULL, "isRead" INTEGER NOT NULL DEFAULT 0, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "SupportMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE)`);
+        console.log('Created SupportMessage');
+    } catch(e) { if (e.message && !e.message.includes('already exists')) console.error('SupportMessage err:', e.message); else console.log('SupportMessage already exists'); }
+    try {
+        await client.execute(`ALTER TABLE "TeamMember" ADD COLUMN "profilePicture" TEXT`);
+        console.log('Added profilePicture to TeamMember');
+    } catch(e) { if (e.message && !e.message.includes('duplicate column')) console.error('TeamMember alter err:', e.message); }
+    try {
+        await client.execute(`CREATE TABLE IF NOT EXISTS "TeamIdeaComment" ("id" TEXT NOT NULL PRIMARY KEY, "ideaId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "TeamIdeaComment_ideaId_fkey" FOREIGN KEY ("ideaId") REFERENCES "TeamIdea" ("id") ON DELETE CASCADE, CONSTRAINT "TeamIdeaComment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "TeamMember" ("id") ON DELETE CASCADE)`);
+        console.log('Created TeamIdeaComment');
+    } catch(e) { if (e.message && !e.message.includes('already exists')) console.error('TeamIdeaComment err:', e.message); }
+
+    try {
+        await client.execute('ALTER TABLE "TeamMember" ADD COLUMN "bankName" TEXT');
+        await client.execute('ALTER TABLE "TeamMember" ADD COLUMN "bankAccount" TEXT');
+        await client.execute('ALTER TABLE "TeamMember" ADD COLUMN "bankAccountName" TEXT');
+        console.log("Added bank fields to TeamMember");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column") && !e.message.includes("unrecognized token")) console.error("Bank alter err:", e.message);
+    }
+
+
+    try {
+        await client.execute('ALTER TABLE "User" ADD COLUMN "staffBusinessId" TEXT');
+        console.log("Added staffBusinessId to User");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column") && !e.message.includes("unrecognized token")) console.error("User alter err:", e.message);
+    }
+
+console.log('Done migrations. Seeding Team OS...');
+
     const members = [
         { email: "logaritma.tim@gmail.com", name: "Baim", role: "SUPER_ADMIN", sharePercentage: 40 },
         { email: "tony@logaritma.id", name: "Tony", role: "METHODOLOGY", sharePercentage: 25 },

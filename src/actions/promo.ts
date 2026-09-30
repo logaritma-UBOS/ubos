@@ -9,7 +9,8 @@ export async function getPromos() {
   const session = await auth()
   if (!session?.user?.id) return { error: "Unauthorized" }
   
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   if (!business) return { error: "Business not found" }
 
   const promos = await prisma.promo.findMany({
@@ -25,7 +26,8 @@ export async function createPromo(data: any) {
     const session = await auth()
     if (!session?.user?.id) return { error: "Unauthorized" }
     
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (!business) return { error: "Business not found" }
 
     const existing = await prisma.promo.findUnique({
@@ -62,7 +64,8 @@ export async function togglePromoActive(promoId: string, isActive: boolean) {
     const session = await auth()
     if (!session?.user?.id) return { error: "Unauthorized" }
     
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (!business) return { error: "Business not found" }
 
     // SECURITY: Verify ownership before update
@@ -87,7 +90,8 @@ export async function validatePromoCode(promoCode: string, serverTotal: number, 
     const session = await auth()
     if (!session?.user?.id) return { error: "Unauthorized" }
     
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (!business) return { error: "Business not found" }
 
     const promo = await prisma.promo.findUnique({

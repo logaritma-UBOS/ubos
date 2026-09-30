@@ -5,6 +5,13 @@ import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic";
 
+// Helper: determine tier from UbosRevenue records
+function getTier(email: string, revenues: { amount: number }[]): string {
+  if (email === "warunkarsi23@gmail.com") return "LIFETIME";
+  if (revenues.length > 0) return "PRO_BULANAN";
+  return "STARTER";
+}
+
 export default async function UsersPage() {
     const session = await auth();
     const teamMember = await prisma.teamMember.findUnique({
@@ -17,20 +24,25 @@ export default async function UsersPage() {
         include: {
             businesses: true
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: "desc" }
     });
 
-    const revenues = await prisma.ubosRevenue.findMany({
+    const allRevenues = await prisma.ubosRevenue.findMany({
         where: { status: "PAID" },
-        select: { userId: true }
+        select: { userId: true, amount: true }
     });
-    
-    const vipUserIds = new Set(revenues.map(r => r.userId));
 
-    // inject isVip flag
-    const usersWithVip = users.map(u => ({
+    // Group revenues by userId
+    const revenueMap: Record<string, { amount: number }[]> = {};
+    for (const r of allRevenues) {
+        if (!revenueMap[r.userId]) revenueMap[r.userId] = [];
+        revenueMap[r.userId].push({ amount: r.amount });
+    }
+
+    // inject tier flag
+    const usersWithTier = users.map(u => ({
         ...u,
-        isVIP: vipUserIds.has(u.id)
+        tier: getTier(u.email, revenueMap[u.id] || [])
     }));
 
     return (
@@ -40,7 +52,7 @@ export default async function UsersPage() {
                 <p className="text-gray-500">Filter, pantau, dan delegasikan eksekusi harian ke tim Operations.</p>
             </div>
             
-            <UsersClient users={usersWithVip} />
+            <UsersClient users={usersWithTier} />
         </div>
     )
 }

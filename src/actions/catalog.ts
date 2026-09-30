@@ -11,7 +11,8 @@ import { uploadImage, destroyImage } from "@/lib/cloudinary"
 async function getBusinessId() {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   if (!business) throw new Error("Business not found")
   return business.id
 }
@@ -23,12 +24,12 @@ export async function bulkAssignSupplier(supplierId: string, itemIds: string[], 
     if (type === 'PRODUCT') {
       await prisma.product.updateMany({
         where: { id: { in: itemIds }, businessId },
-        data: { supplierId: supplierId || null }
+        data: { supplierId: supplierId === "NONE" || supplierId === "" ? null : supplierId }
       })
     } else {
       await prisma.ingredient.updateMany({
         where: { id: { in: itemIds }, businessId },
-        data: { supplierId: supplierId || null }
+        data: { supplierId: supplierId === "NONE" || supplierId === "" ? null : supplierId }
       })
     }
     
@@ -72,7 +73,7 @@ export async function addIngredient(prevState: any, formData: FormData) {
         unit, 
         costPerUnit, 
         currentStock,
-        supplierId: supplierId || null
+        supplierId: supplierId === "NONE" || supplierId === "" ? null : supplierId
       }
     })
     trackEvent(businessId, "catalog_updated", { type: "ingredient_created" }).catch(()=>{})
@@ -309,7 +310,8 @@ export async function editProduct(prevState: any, formData: FormData) {
       sellPrice,
     };
     if (formData.has("supplierId")) {
-      updateData.supplierId = (formData.get("supplierId") as string) || null;
+      const val = formData.get("supplierId") as string;
+        updateData.supplierId = (val === "NONE" || val === "") ? null : val;
     }
 
     if (isRetail) {
@@ -375,7 +377,8 @@ export async function editIngredient(prevState: any, formData: FormData) {
 
     const updateData: any = { name, unit, costPerUnit, currentStock };
     if (formData.has("supplierId")) {
-      updateData.supplierId = (formData.get("supplierId") as string) || null;
+      const val = formData.get("supplierId") as string;
+        updateData.supplierId = (val === "NONE" || val === "") ? null : val;
     }
     await prisma.ingredient.update({ 
       where: { id }, 
@@ -416,3 +419,4 @@ export async function deleteRecipeItemSecure(id: string, productId: string) {
   }
   revalidatePath(`/katalog/produk/${productId}`, "layout")
 }
+

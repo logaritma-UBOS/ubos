@@ -8,7 +8,8 @@ export default async function KasirPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   if (!business) redirect("/")
 
   const [products, customers] = await Promise.all([

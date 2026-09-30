@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SaldoWidget from "@/components/team/SaldoWidget";
 import ChecklistHarian from "@/components/team/ChecklistHarian";
+import RadarProspekForm from "@/components/team/RadarProspekForm";
 export default async function developerChecklist() {
   
   const session = await auth();
+  const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, phone: true, crmStatus: true, lastLogin: true, createdAt: true } });
   const teamMember = await prisma.teamMember.findUnique({
     where: { email: session?.user?.email || "" },
     include: {
@@ -40,11 +42,13 @@ export default async function developerChecklist() {
       <div className="lg:hidden mb-2">
         <h2 className="text-lg font-black text-gray-900">Lead Software Developer</h2>
       </div>
-      <SaldoWidget balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
+      <SaldoWidget teamMember={teamMember} balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
 
       
+      <RadarProspekForm />
+
       <div className="pt-2 w-full">
-        <ChecklistHarian teamMemberId={teamMember.id} tasks={teamMember.tasks} />
+        <ChecklistHarian teamMemberId={teamMember.id} tasks={teamMember.tasks} users={users} />
       </div>
     </div>
   );

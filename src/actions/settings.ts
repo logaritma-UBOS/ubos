@@ -8,8 +8,10 @@ import { redirect } from "next/navigation"
 export async function updateMonthlyTarget(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
+  if ((session.user as any).role === "KASIR") throw new Error("Kasir tidak memiliki akses ke data ini")
 
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   if (!business) throw new Error("Business not found")
 
   const targetOmzet = parseFloat(formData.get("targetOmzet") as string) || 0

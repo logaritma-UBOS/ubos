@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
@@ -10,14 +10,9 @@ export default function TrackerScript() {
     const isPublic = pathname === "/" || pathname?.startsWith("/login") || pathname?.startsWith("/register");
     if (!isPublic) return;
 
-    // Hitung 1 device = 1 kunjungan per hari (Daily Unique Visitor)
     const today = new Date().toDateString();
     const lastTracked = localStorage.getItem("ubos_device_tracked_date");
     
-    if (lastTracked === today) {
-      return; // Sudah dihitung hari ini untuk device ini
-    }
-
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -26,8 +21,7 @@ export default function TrackerScript() {
         referrer: document.referrer
       })
     }).then(res => {
-      if (res.ok) {
-        // Tandai device ini sudah terekam hari ini
+      if (res.ok && lastTracked !== today) {
         localStorage.setItem("ubos_device_tracked_date", today);
       }
     }).catch(() => {});
@@ -35,3 +29,4 @@ export default function TrackerScript() {
 
   return null;
 }
+

@@ -49,9 +49,6 @@ export async function getCampaigns() {
     const omzet = c.sales.reduce((sum, s) => sum + s.totalAmount, 0);
     const uniqueCustomers = new Set(c.sales.filter(s => s.customerId).map(s => s.customerId)).size;
     
-    // Repeat order = transactions from customers who purchased more than once using this campaign
-    // (Or customers who purchased through this campaign who had previous purchases, but simple logic is fine)
-
     return {
       ...c,
       metrics: {
@@ -105,40 +102,64 @@ export async function updateCampaignStatus(id: string, status: string) {
     
     // If sending blast, try to use WA integration
     if (status === "TERKIRIM") {
+      let isVip = false;
+      if (session.user.email === "warunkarsi23@gmail.com") {
+        isVip = true;
+      } else {
+        const payment = await prisma.ubosRevenue.findFirst({
+          where: { userId: session.user.id, status: "PAID", amount: { gt: 100000 } }
+        });
+        if (payment) isVip = true;
+      }
+
+      if (!isVip) return { error: "Fitur Kirim WA Blast otomatis ini eksklusif untuk pengguna paket Pro Tahunan & Lifetime." }
+
       const campaign = await prisma.campaign.findUnique({
         where: { id },
         include: { business: { include: { settings: true } } }
       })
       
-      if (campaign && campaign.business?.settings?.fonnteToken && campaign.business.settings.waStatus === "CONNECTED") {
-        // Fetch customers to blast
-        let customers = await prisma.customer.findMany({
-          where: { businessId: campaign.businessId }
+      if (!campaign) return { error: "Campaign tidak ditemukan" }
+      
+      const hasWa = campaign.business?.settings?.fonnteToken && campaign.business.settings.waStatus === "CONNECTED";
+      if (!hasWa) {
+        return { error: "WhatsApp belum terhubung. Silakan integrasi WA di pengaturan terlebih dahulu." }
+      }
+      
+      let customers = await prisma.customer.findMany({
+        where: { businessId: campaign.businessId },
+        include: { sales: true }
+      })
+      
+      if (campaign.targetSegment !== "SEMUA") {
+        customers = customers.filter(c => calculateCustomerSegment(c.sales).marketingSegment === campaign.targetSegment)
+      }
+      
+      const phones = customers.map(c => c.phone).filter(p => p && p.length > 5).join(",")
+      
+      if (!phones) {
+        return { error: `Tidak ada nomor WA valid untuk segmen ${campaign.targetSegment.replace(/_/g, " ")}` }
+      }
+
+      try {
+        const res = await fetch("https://api.fonnte.com/send", {
+          method: "POST",
+          headers: { 
+            "Authorization": campaign.business.settings.fonnteToken,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            target: phones,
+            message: campaign.message + "\n\n- Dikirim otomatis oleh UBOS"
+          })
         })
-        
-        if (campaign.targetSegment !== "SEMUA") {
-          customers = customers.filter(c => c.category === campaign.targetSegment)
+        const result = await res.json()
+        if (!result.status) {
+          return { error: "Gagal mengirim via API WA: " + (result.reason || "Token tidak valid") }
         }
-        
-        const phones = customers.map(c => c.phone).filter(p => p && p.length > 5).join(",")
-        
-        if (phones) {
-          try {
-            await fetch("https://api.fonnte.com/send", {
-              method: "POST",
-              headers: { 
-                "Authorization": campaign.business.settings.fonnteToken,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                target: phones,
-                message: campaign.message + "\n\n- Dikirim otomatis oleh UBOS"
-              })
-            })
-          } catch(err) {
-            console.error("Fonnte Blast Error:", err)
-          }
-        }
+      } catch(err) {
+        console.error("Fonnte Blast Error:", err)
+        return { error: "Terjadi kesalahan jaringan saat mengirim WA Blast." }
       }
     }
     
@@ -153,3 +174,4 @@ export async function updateCampaignStatus(id: string, status: string) {
     return { error: "Gagal update status" }
   }
 }
+

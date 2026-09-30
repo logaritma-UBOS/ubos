@@ -48,8 +48,12 @@ export default function ContentClient({ notifications, feeds }: { notifications:
                         <input type="url" name="ctaUrl" placeholder="URL Link (Opsional)" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                         <select name="segment" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
                             <option value="ALL">Kirim ke: Semua Pengguna</option>
-                            <option value="FREE_ONLY">Kirim ke: Free Member Saja</option>
-                            <option value="VIP_ONLY">Kirim ke: VIP Member Saja</option>
+                            <option value="STARTER_ONLY">Kirim ke: Starter (Gratis) Saja</option>
+                            <option value="PRO_BULANAN">Kirim ke: Pro Bulanan Saja</option>
+                            <option value="PRO_TAHUNAN">Kirim ke: Pro Tahunan Saja</option>
+                            <option value="LIFETIME">Kirim ke: Lifetime Saja</option>
+                            <option value="VIP_ONLY">Kirim ke: Pro Tahunan + Lifetime</option>
+                            <option value="PAID_ONLY">Kirim ke: Semua Berbayar</option>
                         </select>
                         <button type="submit" disabled={isSending} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50">
                             {isSending ? "Mengirim..." : "Kirim Notifikasi"}

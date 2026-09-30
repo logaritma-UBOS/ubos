@@ -9,10 +9,6 @@ export default function VipBannerWrapper() {
 
   useEffect(() => {
     loadBanner()
-    const interval = setInterval(() => {
-      loadBanner()
-    }, 5000)
-    return () => clearInterval(interval)
   }, [])
 
   async function loadBanner() {

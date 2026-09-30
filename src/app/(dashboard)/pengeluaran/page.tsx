@@ -3,8 +3,6 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getUserPlan } from "@/lib/plan"
-import FreemiumLock from "@/components/layout/FreemiumLock"
 import { deleteExpense } from "@/actions/finance"
 import { revalidatePath } from "next/cache"
 
@@ -12,11 +10,11 @@ export const dynamic = "force-dynamic"
 
 export default async function PengeluaranPage() {
   const session = await auth()
-  const plan = await getUserPlan()
-  if (plan === "STARTER") return <AppShell><FreemiumLock featureName="Manajemen Pengeluaran" /></AppShell>
+  const plan = "Pro"
   if (!session?.user?.id) redirect("/login")
   
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   if (!business) redirect("/")
 
   const expenses = await prisma.expense.findMany({

@@ -33,14 +33,45 @@ export async function sendNotification(formData: FormData) {
 
     if (!message) return;
 
-    let userQuery = {};
-    if (segment === "VIP_ONLY") {
-        userQuery = { role: { in: ["VIP", "PREMIUM"] } };
-    } else if (segment === "FREE_ONLY") {
-        userQuery = { role: { in: ["FREE", "OWNER"] } };
+    // Build tier-based user list
+    let userIds: string[] | null = null;
+
+    if (segment !== "ALL") {
+        const allRevenues = await prisma.ubosRevenue.findMany({
+            where: { status: "PAID" },
+            select: { userId: true, amount: true }
+        });
+
+        // Group revenues by userId, find max amount
+        const maxAmountByUser: Record<string, number> = {};
+        for (const r of allRevenues) {
+            if (!maxAmountByUser[r.userId] || r.amount > maxAmountByUser[r.userId]) {
+                maxAmountByUser[r.userId] = r.amount;
+            }
+        }
+
+        const paidUserIds = Object.keys(maxAmountByUser);
+        const allUserIds = (await prisma.user.findMany({ select: { id: true } })).map(u => u.id);
+
+        if (segment === "STARTER_ONLY") {
+            // Users who never paid
+            userIds = allUserIds.filter(id => !paidUserIds.includes(id));
+        } else if (segment === "PRO_BULANAN") {
+            userIds = paidUserIds.filter(id => maxAmountByUser[id] >= 49000 && maxAmountByUser[id] < 349000);
+        } else if (segment === "PRO_TAHUNAN") {
+            userIds = paidUserIds.filter(id => maxAmountByUser[id] >= 349000 && maxAmountByUser[id] < 499000);
+        } else if (segment === "LIFETIME") {
+            userIds = paidUserIds.filter(id => maxAmountByUser[id] >= 499000);
+        } else if (segment === "VIP_ONLY") {
+            // Pro Tahunan + Lifetime
+            userIds = paidUserIds.filter(id => maxAmountByUser[id] >= 349000);
+        } else if (segment === "PAID_ONLY") {
+            userIds = paidUserIds;
+        }
     }
 
-    const users = await prisma.user.findMany({ where: userQuery });
+    const userWhere = userIds ? { id: { in: userIds } } : {};
+    const users = await prisma.user.findMany({ where: userWhere });
     
     // Batch insert for all matched users
     const notifs = users.map(u => ({

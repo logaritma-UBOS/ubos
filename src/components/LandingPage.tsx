@@ -342,69 +342,106 @@ export default function LandingPage() {
             <p className="text-lg text-slate-400">Sistem kasir cerdas yang dirancang untuk membantu Anda menghemat waktu dan meningkatkan omzet.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Starter */}
-            <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col relative">
-              <h3 className="text-2xl font-bold mb-2">Paket Starter</h3>
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-4xl font-black">Gratis</span>
-                <span className="text-slate-400">/ Rp0</span>
+            <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col relative opacity-90">
+              <h3 className="text-xl font-bold mb-2">Starter</h3>
+              <p className="text-slate-400 text-sm mb-6 min-h-10">Sangat cukup untuk warung pemula.</p>
+              <div className="mb-6">
+                <span className="text-4xl font-black">Rp0</span>
+                <span className="text-slate-400">/ selamanya</span>
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
                   <span className="text-slate-300">Kasir POS dasar</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-slate-300">Maksimal 15 katalog menu</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-slate-300">Maksimal 15 katalog produk</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-slate-300">Kontrol stok dasar</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-slate-300">Riwayat mutasi 7 hari terakhir</span>
                 </li>
               </ul>
-              <Link href="/register" className="w-full py-4 rounded-xl font-bold text-center bg-slate-700 text-white hover:bg-slate-600 transition-colors">
-                Coba Gratis Sekarang
+              <Link href="/register" className="w-full py-3 rounded-xl font-bold text-center bg-slate-700 text-white hover:bg-slate-600 transition-colors">
+                Mulai Gratis
               </Link>
             </div>
             
-            {/* Founder Pass */}
-            <div className="bg-gradient-to-b from-emerald-600 to-emerald-900 rounded-3xl p-8 border border-emerald-500 flex flex-col relative transform md:-translate-y-4 shadow-2xl shadow-emerald-900/50 mt-8 md:mt-0">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-400 text-amber-950 font-black px-4 py-1.5 rounded-full text-sm shadow-lg whitespace-nowrap">
-                🔥 Khusus 100 Pemilik Usaha Pertama
+            {/* PRO */}
+            <div className="bg-emerald-600 rounded-3xl p-8 border border-emerald-500 flex flex-col relative transform md:-translate-y-4 shadow-2xl shadow-emerald-900/50 mt-8 md:mt-0">
+              <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-950 font-black px-4 py-1.5 rounded-bl-xl text-xs uppercase tracking-wider">
+                Populer
               </div>
-              <h3 className="text-2xl font-bold mb-2">Paket Founder Pass</h3>
-              <p className="text-emerald-200 text-sm mb-4 font-medium uppercase tracking-wide">Terlaris</p>
+              <h3 className="text-xl font-bold mb-2">Pro / UMKM Naik Kelas</h3>
+              <p className="text-emerald-100 text-sm mb-6 min-h-10">Fitur komplit untuk ekspansi usaha.</p>
               <div className="flex flex-col mb-6">
-                <span className="text-xl text-emerald-300/70 line-through font-medium">Rp1.500.000</span>
-                <span className="text-4xl font-black">Rp399.000</span>
-                <span className="text-emerald-200 text-sm mt-1">Sekali bayar seumur hidup, tanpa biaya langganan lagi</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black">Rp49rb</span><span className="text-emerald-200">/bln</span>
+                </div>
+                <span className="text-emerald-200 text-xs mt-1">atau Rp349.000 / tahun</span>
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-white">Akses Semua Modul Tanpa Batas (Unlimited Menu & Transaksi)</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Unlimited katalog & transaksi</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-white">Modul Marketing Engine & Template Konten Traffic</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Modul Stok & Supplier</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-white">Integrasi WhatsApp Struk & Database Pelanggan Tanpa Batas</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Database Pelanggan</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-white">Rekomendasi AI Harian (Tutup Gap Omzet Otomatis)</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Modul Pengeluaran</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  <span className="text-white">Free Update Fitur Baru UBOS</span>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white font-bold">Insight Rekomendasi Harian</span>
                 </li>
               </ul>
-              <Link href="/founder" className="w-full py-4 rounded-xl font-bold text-center bg-white text-emerald-900 hover:bg-emerald-50 transition-colors shadow-lg">
-                Kunci Akses Founder Sekarang
+              <Link href="/register" className="w-full py-3 rounded-xl font-bold text-center bg-white text-emerald-900 hover:bg-emerald-50 transition-colors shadow-lg">
+                Langganan Pro
+              </Link>
+            </div>
+
+            {/* Founder Pass */}
+            <div className="bg-gradient-to-b from-blue-900 to-slate-900 rounded-3xl p-8 border border-blue-800 flex flex-col relative mt-8 md:mt-0">
+              <div className="absolute top-0 right-0 bg-red-500 text-white font-black px-4 py-1.5 rounded-bl-xl text-xs uppercase tracking-wider">
+                Batas 100 Orang
+              </div>
+              <h3 className="text-xl font-bold mb-2">Lifetime Founder Pass</h3>
+              <p className="text-slate-400 text-sm mb-6 min-h-10">Sekali bayar, nikmati selamanya.</p>
+              <div className="flex flex-col mb-6">
+                <span className="text-lg text-blue-300/70 line-through font-medium">Rp1.500.000</span>
+                <span className="text-4xl font-black">Rp499.000</span>
+                <span className="text-blue-200 text-xs mt-1">Tanpa biaya bulanan/tahunan lagi</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-grow">
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Akses seumur hidup seluruh modul</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white font-bold">Fitur Marketing (Segera)</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white font-bold">Fitur Konten (Segera)</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                  <span className="text-white">Free Update Fitur Baru</span>
+                </li>
+              </ul>
+              <Link href="/register" className="w-full py-3 rounded-xl font-bold text-center bg-blue-600 text-white hover:bg-blue-500 transition-colors shadow-lg">
+                Ambil Founder Pass
               </Link>
             </div>
           </div>

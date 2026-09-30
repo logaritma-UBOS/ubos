@@ -16,6 +16,8 @@ model User {
   phone         String?
   passwordHash  String? // made optional since OAuth users won't have one
   role          String    @default("OWNER")
+  staffBusinessId String?
+  staffBusiness   Business? @relation("BusinessStaffs", fields: [staffBusinessId], references: [id], onDelete: SetNull)
   crmStatus     String    @default("PASIF")
   lastLogin     DateTime  @default(now())
   createdAt     DateTime  @default(now())
@@ -23,6 +25,7 @@ model User {
   accounts   Account[]
   sessions   Session[]
   businesses Business[]
+    supportMessages SupportMessage[]
 }
 
 model Account {
@@ -71,6 +74,7 @@ model Business {
   createdAt     DateTime @default(now())
 
   settings        BusinessSetting?
+  staffs          User[]    @relation("BusinessStaffs")
   auditLogs       AuditLog[]
   categories      ProductCategory[]
   products        Product[]
@@ -623,14 +627,24 @@ model TeamMember {
   name            String
   role            TeamRole
   sharePercentage Float
+  bankName      String?   // e.g. BCA, MANDIRI, BNI
+  bankAccount   String?   // Account number
+  bankAccountName String? // Name on the account
   walletBalance   Float    @default(0)
   totalEarned     Float    @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  profilePicture  String?
 
   ledgers         TeamLedger[]
   tasks           TeamTask[]
+  ideas           TeamIdea[]
+  ideaComments    TeamIdeaComment[]
   assignedTickets TeamTicket[] @relation("DeveloperAssigned")
+  createdTickets  TeamTicket[] @relation("TicketSource")
+  sourceLeads ManualLead[] @relation("LeadSource")
+  assignedLeads ManualLead[] @relation("LeadAssigned")
+  fundRequests TeamFundRequest[]
 }
 
 model TeamLedger {
@@ -658,9 +672,70 @@ model TeamTicket {
   userId        String?    
   notes         String     
   isTechBug     Boolean    @default(false)
-  status        String     @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED
+  status        String     @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
   assignedToId  String?
   assignedTo    TeamMember? @relation("DeveloperAssigned", fields: [assignedToId], references: [id])
+  sourceId      String?
+  source        TeamMember? @relation("TicketSource", fields: [sourceId], references: [id])
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
+
+
+model TeamFundRequest {
+  id            String     @id @default(uuid())
+  requesterId   String
+  requester     TeamMember @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  amount        Float
+  reason        String
+  status        String     @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model TeamIdea {
+  id        String   @id @default(uuid())
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  author TeamMember @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments TeamIdeaComment[]
+}
+
+model SupportMessage {
+  id         String   @id @default(uuid())
+  userId     String   
+  senderRole String   
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model TeamIdeaComment {
+  id        String   @id @default(uuid())
+  ideaId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  idea   TeamIdea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  author TeamMember @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model ManualLead {
+  id           String   @id @default(uuid())
+  name         String
+  phone        String
+  status       String   @default("NEW") // NEW, DELEGATED, FOLLOWED_UP, CONVERTED
+  sourceId     String
+  assignedToId String?
+  createdAt    DateTime @default(now())
+
+  source       TeamMember  @relation("LeadSource", fields: [sourceId], references: [id])
+  assignedTo   TeamMember? @relation("LeadAssigned", fields: [assignedToId], references: [id])
+}
+

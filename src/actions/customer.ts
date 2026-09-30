@@ -9,7 +9,8 @@ export async function quickAddCustomer(name: string, phone: string) {
     const session = await auth()
     if (!session?.user?.id) return { error: "Unauthorized" }
 
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (!business) return { error: "Business not found" }
 
     if (phone) {
@@ -42,7 +43,8 @@ export async function getCustomerIntelligence() {
     const session = await auth();
     if (!session?.user?.id) return { error: "Unauthorized" };
   
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } });
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause });
     if (!business) return { error: "Business not found" };
   
     const customers = await prisma.customer.findMany({

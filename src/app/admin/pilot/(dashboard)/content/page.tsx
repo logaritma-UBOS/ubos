@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import ContentClient from "./ContentClient"
+import IdeaRepositoryClient from "../methodology/tools/IdeaRepositoryClient"
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,11 @@ export default async function ContentPage() {
         take: 10
     });
 
+    const ideas = await prisma.teamIdea.findMany({
+        include: { author: true },
+        orderBy: { createdAt: "desc" }
+    });
+
     const feeds = await prisma.ubosFeedContent.findMany({
         orderBy: { createdAt: 'desc' },
         take: 10
@@ -33,6 +39,9 @@ export default async function ContentPage() {
             </div>
             
             <ContentClient notifications={notifications} feeds={feeds} />
+            <div className="pt-8">
+                <IdeaRepositoryClient ideas={ideas} readOnly={true} />
+            </div>
         </div>
     )
 }

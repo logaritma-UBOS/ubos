@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import AppShell from "@/components/layout/AppShell"
+import LiveChatWidget from "@/components/chat/LiveChatWidget"
 import { redirect } from "next/navigation"
 
 export default async function DashboardLayout({
@@ -15,9 +16,8 @@ export default async function DashboardLayout({
   }
 
   let businessName = "UBOS"
-  const business = await prisma.business.findFirst({ 
-    where: { userId: session.user.id } 
-  })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   
   if (business) {
     businessName = business.name
@@ -26,6 +26,7 @@ export default async function DashboardLayout({
   return (
     <AppShell businessName={businessName}>
       {children}
+      <LiveChatWidget userId={session.user.id} />
     </AppShell>
   )
 }

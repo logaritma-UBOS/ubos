@@ -1,4 +1,4 @@
-﻿"use server"
+"use server"
 import { formatNumber, formatRupiah } from '@/lib/format';
 
 import { auth } from "@/auth"
@@ -19,7 +19,8 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
     const session = await auth()
     if (!session?.user?.id) return { error: "Unauthorized" }
     
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (!business) return { error: "Business not found" }
 
     const validPaymentMethods = ["CASH", "QRIS", "TRANSFER", "DEBIT_CREDIT"]
@@ -71,6 +72,23 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
         
         if (promo.maxUsage && promo.usageCount >= promo.maxUsage) {
           return { error: "Kuota promo sudah habis" }
+        }
+
+        // SEGMENT VALIDATION
+        if (promo.targetSegment && promo.targetSegment !== "SEMUA") {
+          if (!customerId) {
+            return { error: `Promo ini khusus pelanggan segmen: ${promo.targetSegment.replace(/_/g, " ")}. Pilih nama pelanggan.` }
+          }
+          const cust = await prisma.customer.findUnique({
+            where: { id: customerId },
+            include: { sales: true }
+          })
+          if (!cust) return { error: "Pelanggan tidak valid" }
+          
+          const segment = calculateCustomerSegment(cust.sales).marketingSegment;
+          if (segment !== promo.targetSegment) {
+            return { error: `Promo ini khusus segmen ${promo.targetSegment.replace(/_/g, " ")}. Status pelanggan ini: ${segment.replace(/_/g, " ")}` }
+          }
         }
   
         if (promo.discountType === "FIXED") {
@@ -227,3 +245,4 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
     return { error: e.message }
   }
 }
+

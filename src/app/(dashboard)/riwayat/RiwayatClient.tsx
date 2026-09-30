@@ -27,11 +27,19 @@ export default function RiwayatClient({ plan }: { plan?: string }) {
   const [sales, setSales] = useState<Sale[]>([])
   const [loading, setLoading] = useState(true)
   const [dateFilter, setDateFilter] = useState("today")
+  const [tier, setTier] = useState<string>("Starter")
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getTransactionHistory()
+        const [res, tierData] = await Promise.all([
+          getTransactionHistory(),
+          fetch("/api/user/status").then(r => r.json()).catch(() => ({ tier: "Starter" }))
+        ])
+        
+        const fetchedTier = tierData.tier || "Starter"
+        setTier(fetchedTier)
+
         if (!res.data) return
 
         const dbSales: Sale[] = res.data.map((s: any) => ({
@@ -55,7 +63,15 @@ export default function RiwayatClient({ plan }: { plan?: string }) {
         }))
 
         // Merge and sort
-        const merged = [...pendingSales, ...dbSales].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        let merged = [...pendingSales, ...dbSales].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        
+        const tier = tierData.tier || "Starter"
+        if (tier === "Starter") {
+          const sevenDaysAgo = new Date()
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+          merged = merged.filter(m => new Date(m.createdAt) >= sevenDaysAgo)
+        }
+        
         setSales(merged)
       } catch (e) {
         console.error(e)
@@ -92,6 +108,11 @@ export default function RiwayatClient({ plan }: { plan?: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-20 max-w-7xl mx-auto">
+      {tier === "Starter" && (
+        <div className="bg-amber-100 text-amber-800 text-xs font-bold text-center px-4 py-2 border-b border-amber-200">
+          Paket Starter: Riwayat dibatasi 7 hari terakhir. Upgrade ke Pro/Lifetime untuk akses riwayat tanpa batas.
+        </div>
+      )}
       {/* HEADER FLAT STANDAR */}
       <div className="bg-white px-4 lg:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200">
         <div className="mb-4 md:mb-0">
@@ -109,7 +130,7 @@ export default function RiwayatClient({ plan }: { plan?: string }) {
           >
             <option value="today">Hari Ini</option>
             <option value="7d">7 Hari Terakhir</option>
-            <option value="30d">30 Hari Terakhir</option>
+            <option value="30d" disabled={tier === "Starter"}>{tier === "Starter" ? "30 Hari (Terkunci)" : "30 Hari Terakhir"}</option>
           </select>
         </div>
       </div>

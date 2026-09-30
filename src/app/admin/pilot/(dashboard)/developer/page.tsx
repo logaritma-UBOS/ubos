@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import UserActivityLog from "../UserActivityLog";
 import SaldoWidget from "@/components/team/SaldoWidget";
 export default async function developerBeranda() {
   
@@ -39,10 +40,10 @@ export default async function developerBeranda() {
       <div className="lg:hidden mb-2">
         <h2 className="text-lg font-black text-gray-900">Lead Software Developer</h2>
       </div>
-      <SaldoWidget balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
+      <SaldoWidget teamMember={teamMember} balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
 
       
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
+      <div className="flex flex-col gap-6 w-full">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full">
           <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
             <h3 className="font-bold text-blue-900 text-sm flex items-center gap-2">
@@ -79,6 +80,7 @@ export default async function developerBeranda() {
           </div>
         </div>
       </div>
+      <UserActivityLog />
     </div>
   );
 }

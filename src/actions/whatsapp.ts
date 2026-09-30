@@ -22,14 +22,17 @@ export async function getWaStatus() {
       return { success: true, status: "DISCONNECTED_NO_TOKEN" }
     }
 
+    const cleanToken = setting.fonnteToken.replace(/[\r\n\s]+/g, "");
+
     const res = await fetch("https://api.fonnte.com/device", {
       method: "POST",
       headers: {
-        "Authorization": setting.fonnteToken
+        "Authorization": cleanToken
       }
     })
 
     const data = await res.json()
+
 
     if (data.status) {
       if (data.device_status === "connect") {
@@ -52,10 +55,10 @@ export async function getWaStatus() {
     } else {
       return { success: true, status: "INVALID_TOKEN", error: data.reason }
     }
-  } catch (error) {
-    console.error("WA Status Error:", error)
-    return { success: false, error: "Failed to connect to WA gateway" }
-  }
+  } catch (error: any) {
+      console.error("WA Status Error:", error)
+      return { success: false, error: error.message || "Failed to connect to WA gateway" }
+    }
 }
 
 export async function saveActivationCode(code: string) {
@@ -69,15 +72,17 @@ export async function saveActivationCode(code: string) {
     
     if (!business) return { error: "Business not found" }
 
+    const cleanCode = code.replace(/[\r\n\s]+/g, "");
+
     await prisma.businessSetting.upsert({
       where: { businessId: business.id },
       create: {
         businessId: business.id,
-        fonnteToken: code,
+        fonnteToken: cleanCode,
         waStatus: "DISCONNECTED"
       },
       update: {
-        fonnteToken: code,
+        fonnteToken: cleanCode,
         waStatus: "DISCONNECTED"
       }
     })
@@ -125,3 +130,5 @@ export async function disconnectWa() {
     return { error: "Gagal memutuskan koneksi" }
   }
 }
+
+

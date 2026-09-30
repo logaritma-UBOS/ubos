@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from "@/components/ui/Badge"
@@ -28,6 +28,13 @@ export default function KatalogListClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [tier, setTier] = useState<string>("Starter");
+
+  useEffect(() => {
+    fetch("/api/user/status").then(r => r.json()).then(d => {
+      setTier(d.tier || "Starter")
+    }).catch(() => {})
+  }, [])
 
   const filteredMaterials = useMemo(() => {
     if (!searchQuery.trim()) return ingredients;
@@ -146,7 +153,18 @@ export default function KatalogListClient({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                   <span className="hidden sm:inline">Import</span>
                 </button>
-                <Link href="/katalog/produk/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ Tambah</Link>
+                {tier === "Starter" && products.length >= 15 ? (
+                  <button 
+                    onClick={() => alert("Batas Starter 15 Produk telah tercapai. Silakan upgrade ke Pro/Lifetime untuk katalog unlimited.")}
+                    className="text-gray-400 text-sm font-bold bg-gray-100 px-3 py-1 rounded-lg cursor-not-allowed"
+                  >
+                    + Tambah (Maks 15)
+                  </button>
+                ) : (
+                  <Link href="/katalog/produk/tambah" className="text-primary-700 text-sm font-bold bg-primary-50 px-3 py-1 rounded-lg hover:bg-primary-100 transition-colors">
+                    + Tambah
+                  </Link>
+                )}
               </div>
             </div>
 

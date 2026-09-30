@@ -23,8 +23,7 @@ export const metadata: Metadata = {
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import FeedbackButton from "@/components/FeedbackButton"
-import FreemiumNagScreen from "@/components/layout/FreemiumNagScreen"
+
 import RequireWhatsappModal from "@/components/layout/RequireWhatsappModal"
 import TrackerScript from "@/components/layout/TrackerScript"
 
@@ -36,7 +35,8 @@ export default async function RootLayout({
   const session = await auth()
   let businessId = null
   if (session?.user?.id) {
-    const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+    const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
     if (business) businessId = business.id
   }
 
@@ -44,9 +44,8 @@ export default async function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className={`${poppins.className} bg-gray-50 antialiased`} suppressHydrationWarning>
         {children}
-        <FeedbackButton businessId={businessId} />
+        
         <RequireWhatsappModal />
-        <FreemiumNagScreen />
         <TrackerScript />
       </body>
     </html>

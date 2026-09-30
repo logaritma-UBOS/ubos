@@ -14,16 +14,10 @@ export async function GET(req: NextRequest) {
             const userRole = user.role;
             const PERMANENT_VIPS = ["warunkarsi23@gmail.com"];
             
-            const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            
             const payment = await prisma.ubosRevenue.findFirst({
               where: { 
                 userId: user.id, 
-                status: "PAID",
-                createdAt: {
-                  gte: firstDayOfMonth
-                }
+                status: "PAID"
               }
             });
 

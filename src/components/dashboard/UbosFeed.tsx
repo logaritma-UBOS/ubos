@@ -43,44 +43,26 @@ export default function UbosFeed({ position = "bottom" }: { position?: "top" | "
 
   if (loading) return null;
 
-  if (position === "top" && allDonors.length > 0) {
-    const donor = allDonors[currentDonor] || allDonors[0];
-    return (
-      <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 relative mb-6" style={{ perspective: "1000px" }}>
-        <style dangerouslySetInnerHTML={{__html: `
-          @keyframes flipUp {
-            0% { transform: rotateX(-90deg); opacity: 0; }
-            100% { transform: rotateX(0deg); opacity: 1; }
-          }
-          .animate-flip {
-            animation: flipUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            transform-origin: bottom center;
-          }
-        `}} />
-        <div className="absolute top-0 right-0 flex items-center">
-          {!isVIP && (
-            <button 
-              onClick={() => window.dispatchEvent(new Event('open-donate-modal'))}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg transition-colors"
-            >
-              DONASI
-            </button>
-          )}
-          <div className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1">Dukungan Komunitas</div>
+  if (position === "top") {
+    if (!isVIP) {
+      return (
+        <div className="bg-gradient-to-r from-amber-100 to-amber-50 rounded-2xl p-4 mb-6 border border-amber-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="flex-shrink-0 mt-1">
+              <span className="text-xl">⭐</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-amber-900 text-sm">Paket Starter (Batas 15 Produk)</h3>
+              <p className="text-amber-800 text-xs mt-1">Buka Kuota Unlimited Katalog & Rekomendasi AI Bisnis Harian seharga Rp49rb/bulan.</p>
+            </div>
+          </div>
+          <a href="/upgrade" className="flex-shrink-0 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-lg text-center transition-colors">
+            Tingkatkan Sekarang
+          </a>
         </div>
-        <div className="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center flex-shrink-0 mt-2">
-          <span className="text-xl flex items-center justify-center text-pink-500">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-          </span>
-        </div>
-        <div className="flex-1 overflow-hidden mt-2" style={{ perspective: "1000px" }}>
-          <p className="text-xs text-slate-500 font-bold mb-1">Terima Kasih!</p>
-          <p className="text-sm font-medium text-slate-800 animate-flip" key={currentDonor}>
-            {donor.name} <span className="text-blue-600 font-bold">berdonasi Rp {donor.amount.toLocaleString('id-ID')}</span>
-          </p>
-        </div>
-      </div>
-    );
+      );
+    }
+    return null;
   }
 
   if (position === "bottom" && articles.length > 0) {

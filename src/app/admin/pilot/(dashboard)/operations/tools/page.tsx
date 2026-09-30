@@ -31,8 +31,9 @@ export default async function operationsTools() {
   if (teamMember.role !== "OPERATIONS" && teamMember.role !== "SUPER_ADMIN") redirect("/admin/pilot");
   
   const users = await prisma.user.findMany({
+    where: { role: "LEAD" },
     take: 100,
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" }
   });
 
   return (
@@ -45,7 +46,7 @@ export default async function operationsTools() {
       <div className="lg:hidden mb-2">
         <h2 className="text-lg font-black text-gray-900">Operations, QA & User Care</h2>
       </div>
-      <SaldoWidget balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
+      <SaldoWidget teamMember={teamMember} balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
 
       
       <div className="w-full">

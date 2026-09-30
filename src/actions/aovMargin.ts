@@ -11,7 +11,8 @@ export async function fetchAOVMarginData(period: AOVMarginPeriodFilter) {
   if (!session?.user?.id) return { error: "Unauthorized" }
 
   const businessSetting = await prisma.businessSetting.findFirst({ where: { business: { userId: session.user.id } } })
-  const business = await prisma.business.findFirst({ where: { userId: session.user.id } })
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+  const business = await prisma.business.findFirst({ where: whereClause })
   
   if (!business) return { error: "Business not found" }
 

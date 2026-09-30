@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic";
+import AutoRefresh from "./AutoRefresh";
 
 export default async function TrafficPage() {
     const session = await auth();
@@ -10,7 +11,7 @@ export default async function TrafficPage() {
         where: { email: session?.user?.email || "" }
     });
 
-    if (!teamMember || teamMember.role !== "SUPER_ADMIN") redirect("/admin/pilot");
+    if (!teamMember) redirect("/login");
 
     const todayStart = new Date(new Date().setHours(0,0,0,0));
 

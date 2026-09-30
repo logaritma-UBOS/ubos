@@ -2,15 +2,12 @@ export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { getUserPlan } from "@/lib/plan"
-import FreemiumLock from "@/components/layout/FreemiumLock"
 import ContentClient from "./ContentClient"
 import Link from "next/link"
 
 export default async function ContentPage() {
   const session = await auth()
-  const plan = await getUserPlan()
-  if (plan === "STARTER") return <AppShell><FreemiumLock featureName="Mesin Konten" /></AppShell>
+  const plan = "Pro"
   if (!session?.user?.id) redirect("/login")
 
   const business = await prisma.business.findFirst({
