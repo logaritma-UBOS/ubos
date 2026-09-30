@@ -42,8 +42,9 @@ function getProgressMessage(pct: number, masihKurang: number): string {
 export default async function Home() {
   const session = await auth()
   
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user?.id as string };
   const business = await prisma.business.findFirst({
-    where: { userId: session?.user?.id as string },
+    where: whereClause,
     include: { goals: true, user: true }
   })
 

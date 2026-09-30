@@ -24,7 +24,7 @@ export async function registerUser(prevState: any, formData: FormData) {
       const passwordHash = await bcrypt.hash(password, 10)
       await prisma.user.update({
         where: { id: existing.id },
-        data: { passwordHash, name: existing.name || name, phone }
+        data: { passwordHash, name: existing.name || name, phone, emailVerified: new Date() }
       })
     } else {
       return { error: "Email sudah terdaftar. Silakan masuk (Login)." }
@@ -32,7 +32,7 @@ export async function registerUser(prevState: any, formData: FormData) {
   } else {
     const passwordHash = await bcrypt.hash(password, 10)
     await prisma.user.create({
-      data: { name, email, passwordHash, role: "OWNER", phone }
+      data: { name, email, passwordHash, role: "OWNER", phone, emailVerified: new Date() }
     })
   }
 

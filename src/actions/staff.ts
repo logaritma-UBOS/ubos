@@ -18,7 +18,7 @@ export async function getStaffList() {
   }
 
   const staffs = await prisma.user.findMany({
-    where: { staffBusinessId: business.id }
+    where: { staffBusinessId: business.id, emailVerified: new Date() }
   })
 
   return staffs
@@ -58,7 +58,7 @@ export async function createStaff(formData: FormData) {
       email,
       passwordHash: hashedPassword,
       role,
-      staffBusinessId: business.id
+      staffBusinessId: business.id, emailVerified: new Date()
     }
   })
 
