@@ -14,7 +14,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       include: { business: true }
     }),
     prisma.supplier.findMany({
-      where: { business: { userId: session.user.id } },
+      where: (session.user as any).staffBusinessId ? { businessId: (session.user as any).staffBusinessId } : { business: { userId: session.user.id } },
       orderBy: { name: 'asc' }
     })
   ])

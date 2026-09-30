@@ -10,8 +10,9 @@ export default async function TokoOnlineSettings() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
+  const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
   const business = await prisma.business.findFirst({
-    where: { userId: session.user.id },
+    where: whereClause,
     include: { settings: true }
   })
   if (!business) redirect("/onboarding")
