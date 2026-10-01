@@ -1,5 +1,6 @@
 ﻿"use client"
 import Link from "next/link"
+import { logoutUser } from "@/actions/auth"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -206,6 +207,18 @@ export default function DesktopSidebar({ businessName, role = "OWNER" }: { busin
         ))}
       </nav>
 
+      
+      {/* LOGOUT */}
+      <div className="px-3 mt-auto mb-2">
+        <form action={logoutUser}>
+          <button type="submit" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 shrink-0">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+            </svg>
+            Keluar
+          </button>
+        </form>
+      </div>
       {/* Footer version */}
       <div className="px-5 py-3 border-t border-gray-100">
         <p className="text-[10px] text-gray-400 font-medium">UBOS Â© 2026</p>

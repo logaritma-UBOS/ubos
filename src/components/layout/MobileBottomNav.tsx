@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -88,7 +88,7 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
 
   return (
     <>
-      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm border-t border-gray-200 flex justify-around items-center h-[68px] z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-safe">
+      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200/50 flex justify-around items-center h-[72px] z-[60] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] pb-safe rounded-t-2xl">
         {role === "OWNER" && (<Link href="/beranda" className={navItemClass("/beranda")}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -104,12 +104,12 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
 
         {/* KASIR */}
         <div className="flex flex-col items-center justify-center w-[20%] h-full relative -top-3">
-          <Link href="/kasir" className="bg-emerald-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 transition-transform active:scale-95 border-4 border-white">
+          <Link href="/kasir" className="bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white w-[60px] h-[60px] rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(16,185,129,0.4)] hover:scale-105 transition-transform active:scale-95 border-[4px] border-white">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </Link>
-          <span className="text-[10px] font-bold text-gray-700 mt-1">Kasir</span>
+          <span className="text-[11px] font-black text-emerald-600 mt-1.5 tracking-tight">KASIR</span>
         </div>
 
         <Link href="/riwayat" className={navItemClass("/riwayat")}>
@@ -179,6 +179,16 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200 pb-4">
+                <form action={logoutUser} className="w-full">
+                  <button type="submit" className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-3 rounded-xl font-bold hover:bg-red-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Keluar (Logout)
+                  </button>
+                </form>
               </div>
             </div>
           </div>

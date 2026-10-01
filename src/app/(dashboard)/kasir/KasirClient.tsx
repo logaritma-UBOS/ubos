@@ -623,7 +623,7 @@ export default function KasirClient({ products, customers }: { products: any[], 
         </div>
 
         {/* MOBILE BOTTOM BUTTON (Hidden on Desktop) */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30 shadow-lg">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 pb-[76px] bg-white border-t border-gray-100 z-30 shadow-lg">
           <div className="p-4">
             <Button onClick={handleCheckout} disabled={isProcessing || !isCashValid} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg">
               {isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}
@@ -929,23 +929,8 @@ export default function KasirClient({ products, customers }: { products: any[], 
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto bg-white border-t border-gray-100 flex justify-around py-2 md:py-3 z-20 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] left-1/2 -translate-x-1/2">
-        <Link href="/" className="flex flex-col items-center text-gray-400 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
-          <IconHome className="w-6 h-6 md:w-7 md:h-7" />
-          <span className="text-[10px] md:text-xs font-semibold mt-1">Beranda</span>
-        </Link>
-        <Link href="/katalog" className="flex flex-col items-center text-gray-400 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
-          <IconCatalog className="w-6 h-6 md:w-7 md:h-7" />
-          <span className="text-[10px] md:text-xs font-semibold mt-1">Katalog</span>
-        </Link>
-        <Link href="/kasir" className="flex flex-col items-center text-primary-700 min-w-[56px] md:min-w-[72px] py-1 hover:bg-gray-50 rounded-lg transition-colors">
-          <IconCash className="w-6 h-6 md:w-7 md:h-7" />
-          <span className="text-[10px] md:text-xs font-bold mt-1">Kasir</span>
-        </Link>
       </div>
-      </div>
-
+    )
     </div>
   )
 }

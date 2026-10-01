@@ -10,9 +10,25 @@ export async function GET(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ isAuthenticated: true, isVIP: false, tier: "Starter", hasPhone: false });
 
+    
+    
+    let targetUserId = user.id;
+    let targetEmail = user.email;
+
+    if ((session.user as any).staffBusinessId) {
+       const business = await prisma.business.findUnique({
+          where: { id: (session.user as any).staffBusinessId },
+          include: { user: true }
+       });
+       if (business && business.user) {
+          targetUserId = business.user.id;
+          targetEmail = business.user.email;
+       }
+    }
+
     // Pengecualian Khusus (Permanent VIP / Lifetime)
     const PERMANENT_VIPS = ["warunkarsi23@gmail.com"];
-    if (PERMANENT_VIPS.includes(user.email)) {
+    if (PERMANENT_VIPS.includes(targetEmail)) {
       return NextResponse.json({ 
         isAuthenticated: true, 
         isVIP: true,
@@ -22,9 +38,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payment = await prisma.ubosRevenue.findFirst({
-      where: { 
-        userId: user.id, 
-        status: "PAID"
+      where: { userId: targetUserId, status: "PAID"
       }
     });
 
