@@ -104,6 +104,21 @@ async function migrate() {
         if (e.message && !e.message.includes("duplicate column") && !e.message.includes("unrecognized token")) console.error("User alter err:", e.message);
     }
 
+
+    try {
+        await client.execute('ALTER TABLE "Product" ADD COLUMN "currentStock" REAL DEFAULT 0');
+        console.log("Added currentStock to Product");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (currentStock):", e.message);
+    }
+
+    try {
+        await client.execute('ALTER TABLE "Product" ADD COLUMN "minStock" REAL DEFAULT 0');
+        console.log("Added minStock to Product");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (minStock):", e.message);
+    }
+
 console.log('Done migrations. Seeding Team OS...');
 
     const members = [

@@ -8,24 +8,24 @@ datasource db {
 
 // 1. Core, Auth & Settings
 model User {
-  id            String    @id @default(uuid()) // standard NextAuth wants cuid, but uuid is fine too
-  name          String? // made optional for NextAuth standard
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  phone         String?
-  passwordHash  String? // made optional since OAuth users won't have one
-  role          String    @default("OWNER")
+  id              String    @id @default(uuid()) // standard NextAuth wants cuid, but uuid is fine too
+  name            String? // made optional for NextAuth standard
+  email           String    @unique
+  emailVerified   DateTime?
+  image           String?
+  phone           String?
+  passwordHash    String? // made optional since OAuth users won't have one
+  role            String    @default("OWNER")
   staffBusinessId String?
   staffBusiness   Business? @relation("BusinessStaffs", fields: [staffBusinessId], references: [id], onDelete: SetNull)
-  crmStatus     String    @default("PASIF")
-  lastLogin     DateTime  @default(now())
-  createdAt     DateTime  @default(now())
+  crmStatus       String    @default("PASIF")
+  lastLogin       DateTime  @default(now())
+  createdAt       DateTime  @default(now())
 
-  accounts   Account[]
-  sessions   Session[]
-  businesses Business[]
-    supportMessages SupportMessage[]
+  accounts        Account[]
+  sessions        Session[]
+  businesses      Business[]
+  supportMessages SupportMessage[]
 }
 
 model Account {
@@ -74,7 +74,7 @@ model Business {
   createdAt     DateTime @default(now())
 
   settings        BusinessSetting?
-  staffs          User[]    @relation("BusinessStaffs")
+  staffs          User[]                   @relation("BusinessStaffs")
   auditLogs       AuditLog[]
   categories      ProductCategory[]
   products        Product[]
@@ -154,6 +154,8 @@ model Product {
   showInStore      Boolean          @default(true) // TOKO ONLINE VISIBILITY
 
   // Phase 1: Unified Item Behavior Flags
+  currentStock   Float     @default(0)
+  minStock       Float     @default(0)
   isSellable     Boolean   @default(true)
   supplierId     String?
   supplier       Supplier? @relation(fields: [supplierId], references: [id])
@@ -627,8 +629,8 @@ model TeamMember {
   name            String
   role            TeamRole
   sharePercentage Float
-  bankName      String?   // e.g. BCA, MANDIRI, BNI
-  bankAccount   String?   // Account number
+  bankName        String? // e.g. BCA, MANDIRI, BNI
+  bankAccount     String? // Account number
   bankAccountName String? // Name on the account
   walletBalance   Float    @default(0)
   totalEarned     Float    @default(0)
@@ -640,57 +642,56 @@ model TeamMember {
   tasks           TeamTask[]
   ideas           TeamIdea[]
   ideaComments    TeamIdeaComment[]
-  assignedTickets TeamTicket[] @relation("DeveloperAssigned")
-  createdTickets  TeamTicket[] @relation("TicketSource")
-  sourceLeads ManualLead[] @relation("LeadSource")
-  assignedLeads ManualLead[] @relation("LeadAssigned")
-  fundRequests TeamFundRequest[]
+  assignedTickets TeamTicket[]      @relation("DeveloperAssigned")
+  createdTickets  TeamTicket[]      @relation("TicketSource")
+  sourceLeads     ManualLead[]      @relation("LeadSource")
+  assignedLeads   ManualLead[]      @relation("LeadAssigned")
+  fundRequests    TeamFundRequest[]
 }
 
 model TeamLedger {
-  id            String      @id @default(uuid())
-  type          String      // e.g. BUSINESS_REVENUE, BUSINESS_EXPENSE, RESERVE_ALLOCATION, ROYALTY, WITHDRAWAL
-  amount        Float
-  description   String
-  teamMemberId  String?
-  teamMember    TeamMember? @relation(fields: [teamMemberId], references: [id])
-  createdAt     DateTime    @default(now())
+  id           String      @id @default(uuid())
+  type         String // e.g. BUSINESS_REVENUE, BUSINESS_EXPENSE, RESERVE_ALLOCATION, ROYALTY, WITHDRAWAL
+  amount       Float
+  description  String
+  teamMemberId String?
+  teamMember   TeamMember? @relation(fields: [teamMemberId], references: [id])
+  createdAt    DateTime    @default(now())
 }
 
 model TeamTask {
-  id            String     @id @default(uuid())
-  teamMemberId  String
-  teamMember    TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
-  taskName      String
-  isCompleted   Boolean    @default(false)
-  completedAt   DateTime?
-  date          DateTime   @default(now()) // DB date
+  id           String     @id @default(uuid())
+  teamMemberId String
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  taskName     String
+  isCompleted  Boolean    @default(false)
+  completedAt  DateTime?
+  date         DateTime   @default(now()) // DB date
 }
 
 model TeamTicket {
-  id            String     @id @default(uuid())
-  userId        String?    
-  notes         String     
-  isTechBug     Boolean    @default(false)
-  status        String     @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
-  assignedToId  String?
-  assignedTo    TeamMember? @relation("DeveloperAssigned", fields: [assignedToId], references: [id])
-  sourceId      String?
-  source        TeamMember? @relation("TicketSource", fields: [sourceId], references: [id])
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id           String      @id @default(uuid())
+  userId       String?
+  notes        String
+  isTechBug    Boolean     @default(false)
+  status       String      @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
+  assignedToId String?
+  assignedTo   TeamMember? @relation("DeveloperAssigned", fields: [assignedToId], references: [id])
+  sourceId     String?
+  source       TeamMember? @relation("TicketSource", fields: [sourceId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
-
 model TeamFundRequest {
-  id            String     @id @default(uuid())
-  requesterId   String
-  requester     TeamMember @relation(fields: [requesterId], references: [id], onDelete: Cascade)
-  amount        Float
-  reason        String
-  status        String     @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String     @id @default(uuid())
+  requesterId String
+  requester   TeamMember @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  amount      Float
+  reason      String
+  status      String     @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model TeamIdea {
@@ -699,21 +700,20 @@ model TeamIdea {
   content   String
   createdAt DateTime @default(now())
 
-  author TeamMember @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author   TeamMember        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments TeamIdeaComment[]
 }
 
 model SupportMessage {
   id         String   @id @default(uuid())
-  userId     String   
-  senderRole String   
+  userId     String
+  senderRole String
   message    String
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 
 model TeamIdeaComment {
   id        String   @id @default(uuid())
@@ -735,7 +735,6 @@ model ManualLead {
   assignedToId String?
   createdAt    DateTime @default(now())
 
-  source       TeamMember  @relation("LeadSource", fields: [sourceId], references: [id])
-  assignedTo   TeamMember? @relation("LeadAssigned", fields: [assignedToId], references: [id])
+  source     TeamMember  @relation("LeadSource", fields: [sourceId], references: [id])
+  assignedTo TeamMember? @relation("LeadAssigned", fields: [assignedToId], references: [id])
 }
-

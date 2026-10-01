@@ -1,16 +1,22 @@
 const fs = require('fs');
 let code = fs.readFileSync('run_turso_mig.js', 'utf8');
 
-const injection = `
+const additionalSql = `
     try {
-        await client.execute('ALTER TABLE "User" ADD COLUMN "staffBusinessId" TEXT');
-        console.log("Added staffBusinessId to User");
+        await client.execute('ALTER TABLE "Product" ADD COLUMN "currentStock" REAL DEFAULT 0');
+        console.log("Added currentStock to Product");
     } catch (e) {
-        if (e.message && !e.message.includes("duplicate column") && !e.message.includes("unrecognized token")) console.error("User alter err:", e.message);
+        if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (currentStock):", e.message);
     }
 
-console.log('Done migrations. Seeding Team OS...');
+    try {
+        await client.execute('ALTER TABLE "Product" ADD COLUMN "minStock" REAL DEFAULT 0');
+        console.log("Added minStock to Product");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (minStock):", e.message);
+    }
 `;
 
-code = code.replace("console.log('Done migrations. Seeding Team OS...');", injection);
+code = code.replace("console.log('Done migrations. Seeding Team OS...');", additionalSql + "\nconsole.log('Done migrations. Seeding Team OS...');");
+
 fs.writeFileSync('run_turso_mig.js', code);

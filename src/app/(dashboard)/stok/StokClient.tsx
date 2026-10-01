@@ -256,7 +256,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
                         <div>
                           <p className="font-bold text-sm text-gray-900">{item.name}</p>
                           <p className="text-xs text-gray-500">
-                            {stockItemType === "PRODUCT" ? `Rp ${item.sellPrice.toLocaleString('id-ID')}` : `Stok: ${item.currentStock} ${item.unit}`}
+                            {stockItemType === "PRODUCT" ? `Stok: ${item.currentStock || 0} • Rp ${item.sellPrice.toLocaleString('id-ID')}` : `Stok: ${item.currentStock} ${item.unit}`}
                           </p>
                         </div>
                       </div>
