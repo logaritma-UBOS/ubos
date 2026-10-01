@@ -15,7 +15,7 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
     }).catch(() => {})
   }, [])
   
-  if (pathname === '/login' || pathname === '/register' || pathname === '/reset-sandi' || pathname?.startsWith('/kasir')) {
+  if (pathname === '/login' || pathname === '/register' || pathname === '/reset-sandi') {
     return null
   }
 

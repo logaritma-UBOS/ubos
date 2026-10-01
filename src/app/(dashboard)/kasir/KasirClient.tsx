@@ -858,7 +858,7 @@ export default function KasirClient({ products, customers }: { products: any[], 
       {/* MOBILE CART & BOTTOM NAV (Hidden on Desktop) */}
       <div className="lg:hidden">
       {/* Cart Bottom Sheet */}
-      <div className="fixed bottom-[56px] md:bottom-[72px] left-0 right-0 w-full max-w-md md:max-w-3xl mx-auto px-4 md:px-6 z-10 left-1/2 -translate-x-1/2">
+      <div className="fixed bottom-[80px] md:bottom-[80px] left-0 right-0 w-full max-w-md md:max-w-3xl mx-auto px-4 md:px-6 z-10 left-1/2 -translate-x-1/2">
         <div className="bg-white rounded-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.12)] border border-gray-200">
           
           {/* Cart Detail (Expandable) */}
