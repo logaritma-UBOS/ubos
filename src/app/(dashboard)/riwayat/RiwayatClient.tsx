@@ -173,7 +173,7 @@ export default function RiwayatClient({ plan }: { plan?: string }) {
                   </div>
                   
                   <div className="hidden lg:block flex-1 text-sm text-gray-600 truncate px-4">
-                    {sale.saleItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')}
+                    {sale.saleItems && sale.saleItems.length > 0 ? sale.saleItems.map(item => `${item.quantity}x ${item.product?.name || "Terhapus"}`).join(', ') : "Item tidak tersedia"}
                   </div>
 
                   <div className="text-right flex justify-between lg:justify-end items-center gap-4 min-w-[150px]">
