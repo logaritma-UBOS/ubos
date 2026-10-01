@@ -19,6 +19,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
   const [stockItemType, setStockItemType] = useState<"PRODUCT" | "INGREDIENT">(autoOpenItemType as any || "PRODUCT")
   
   const [supplierId, setSupplierId] = useState("")
+    const [searchQuery, setSearchQuery] = useState("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -244,7 +245,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
               <div className="space-y-3 bg-gray-50/50 p-2 rounded-xl border border-gray-100">
                 <label className="block text-xs font-bold text-gray-500 uppercase px-2 pt-1 mb-1">Daftar Barang (Isi Jumlahnya)</label>
                 {(stockItemType === "PRODUCT" ? products : ingredients)
-                  .filter((item: any) => !supplierId || item.supplierId === supplierId)
+                  .filter((item: any) => (!supplierId || item.supplierId === supplierId) && (!searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase())))
                   .map((item: any) => (
                     <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
                       <div className="flex items-center gap-3">
@@ -281,7 +282,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
                     </div>
                 ))}
                 
-                {(stockItemType === "PRODUCT" ? products : ingredients).filter((item: any) => !supplierId || item.supplierId === supplierId).length === 0 && (
+                {(stockItemType === "PRODUCT" ? products : ingredients).filter((item: any) => (!supplierId || item.supplierId === supplierId) && (!searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase()))).length === 0 && (
                   <p className="text-sm text-gray-400 text-center py-6">Tidak ada barang untuk kategori/supplier ini.</p>
                 )}
               </div>

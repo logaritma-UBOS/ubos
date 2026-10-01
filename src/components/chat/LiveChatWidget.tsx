@@ -22,6 +22,12 @@ export default function LiveChatWidget({ userId }: { userId: string }) {
     };
 
     useEffect(() => {
+        const handleOpenChat = () => handleOpen();
+        window.addEventListener('open-live-chat', handleOpenChat);
+        return () => window.removeEventListener('open-live-chat', handleOpenChat);
+    }, []);
+
+    useEffect(() => {
         // Poll for unread when closed, poll messages when open
         if (isOpen) {
             fetchMessages();
@@ -60,7 +66,7 @@ export default function LiveChatWidget({ userId }: { userId: string }) {
     };
 
     return (
-        <div className="fixed bottom-24 right-4 z-[9999] md:bottom-6 md:right-6">
+        <div className={`fixed bottom-24 right-4 z-[9999] md:bottom-6 md:right-6 ${!isOpen ? 'hidden md:block' : ''}`}>
             {isOpen ? (
                 <div className="w-80 h-[420px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
                     {/* Header */}
@@ -113,7 +119,7 @@ export default function LiveChatWidget({ userId }: { userId: string }) {
             ) : (
                 <button
                     onClick={handleOpen}
-                    className="relative w-12 h-12 bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white hover:bg-indigo-700 hover:scale-105 transition-all"
+                    className="hidden md:flex relative w-12 h-12 bg-indigo-600 rounded-full shadow-lg items-center justify-center text-white hover:bg-indigo-700 hover:scale-105 transition-all"
                 >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                     {unreadCount > 0 && (
