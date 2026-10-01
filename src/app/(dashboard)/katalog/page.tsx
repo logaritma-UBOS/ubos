@@ -25,6 +25,7 @@ function marginBadge(margin: number) {
 export default async function KatalogPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
+  if (session.user.role === "KASIR") redirect("/kasir")
 
   const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
   const business = await prisma.business.findFirst({ where: whereClause })

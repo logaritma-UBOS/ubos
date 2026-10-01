@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic"
 export default async function LaporanPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
+  if (session.user.role === "KASIR") redirect("/kasir")
 
   const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
   const business = await prisma.business.findFirst({ where: whereClause })

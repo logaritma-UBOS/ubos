@@ -159,8 +159,13 @@ export default function DesktopSidebar({ businessName, role = "OWNER" }: { busin
             <div className="space-y-0.5">
 
               {group.items.map((item) => {
-                const restrictedManager = ["/beranda", "/laporan", "/pengeluaran", "/wawasan-bisnis", "/performa-produk", "/performa-aov", "/pengaturan/target", "/pengaturan/whatsapp", "/pengaturan/pegawai"];
-                if ((role === 'KASIR' || role === 'MANAGER') && restrictedManager.includes(item.href)) return null;
+                if (role === 'KASIR') {
+                  const allowedKasir = ["/kasir"];
+                  if (!allowedKasir.includes(item.href)) return null;
+                } else if (role === 'MANAGER') {
+                  const allowedManager = ["/kasir", "/stok", "/katalog"];
+                  if (!allowedManager.includes(item.href)) return null;
+                }
 
                 const active = isActive(item.href)
                 const locked = isLocked(item.label)
