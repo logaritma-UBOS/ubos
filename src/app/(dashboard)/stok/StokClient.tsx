@@ -56,6 +56,17 @@ export default function StokClient({ products, ingredients, suppliers, movements
     setIsSubmitting(false)
   }
 
+  const getSupplierName = (m: any) => {
+    if (m.supplier?.name) return m.supplier.name;
+    const finalSupplierId = m.productId 
+      ? products.find((p: any) => p.id === m.productId)?.supplierId 
+      : ingredients.find((i: any) => i.id === m.ingredientId)?.supplierId;
+    if (finalSupplierId) {
+      return suppliers.find((s: any) => s.id === finalSupplierId)?.name || "-";
+    }
+    return "-";
+  };
+
   const handleSaveStock = async () => {
     if (stockType === "RETURN" && !supplierId) return alert("Retur stok wajib memilih Supplier")
 
@@ -154,7 +165,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
                       <td className="p-4 font-bold">
                         {m.type === "IN" ? "+" : "-"}{m.quantity} <span className="text-xs font-normal text-gray-500">{m.ingredient?.unit || "unit"}</span>
                       </td>
-                      <td className="p-4 text-gray-600">{m.supplier?.name || "-"}</td>
+                      <td className="p-4 text-gray-600">{getSupplierName(m)}</td>
                       <td className="p-4 text-gray-500 truncate max-w-[200px]">{m.notes || "-"}</td>
                     </tr>
                   ))}
