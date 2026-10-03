@@ -111,7 +111,7 @@ export async function recordStockMovement(data: {
           where: { id: data.ingredientId },
           data: { 
              currentStock: newStock,
-             ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+             ...(data.supplierId && data.type === "IN" && !item.supplierId ? { supplierId: data.supplierId } : {})
           }
         })
       } else if (data.productId) {
@@ -130,7 +130,7 @@ export async function recordStockMovement(data: {
           where: { id: data.productId },
           data: { 
              currentStock: newStock,
-             ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+             ...(data.supplierId && data.type === "IN" && !item.supplierId ? { supplierId: data.supplierId } : {})
           }
         })
       }
@@ -207,7 +207,7 @@ export async function recordBulkStockMovement(data: {
             where: { id: item.id },
             data: { 
                currentStock: newStock,
-               ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+               ...(data.supplierId && data.type === "IN" && !item.supplierId ? { supplierId: data.supplierId } : {})
             }
           })
         } else if (itemData.productId) {
@@ -227,7 +227,7 @@ export async function recordBulkStockMovement(data: {
             where: { id: item.id },
             data: { 
                currentStock: newStock,
-               ...(data.supplierId && data.type === "IN" ? { supplierId: data.supplierId } : {})
+               ...(data.supplierId && data.type === "IN" && !item.supplierId ? { supplierId: data.supplierId } : {})
             }
           })
         }
