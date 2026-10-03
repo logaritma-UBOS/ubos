@@ -33,8 +33,8 @@ export default async function StokPage() {
       orderBy: { date: 'desc' },
       take: 100,
       include: {
-        product: { select: { name: true } },
-        ingredient: { select: { name: true, unit: true } },
+        product: { select: { name: true, supplierId: true } },
+        ingredient: { select: { name: true, unit: true, supplierId: true } },
         supplier: { select: { name: true } }
       }
     })

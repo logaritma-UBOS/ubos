@@ -205,8 +205,8 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
               data: {
                 businessId: business.id,
                 ingredientId: r.ingredientId,
-                type: "OUT",
-                quantity: -qtyToReduce,
+                type: "SALE",
+                  quantity: -qtyToReduce,
                 referenceType: "SALE",
                 referenceId: clientTransactionId
               }
@@ -220,8 +220,8 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
             data: {
               businessId: business.id,
               productId: p.id,
-              type: "OUT",
-              quantity: -item.quantity,
+              type: "SALE",
+                quantity: -item.quantity,
               referenceType: "SALE",
               referenceId: clientTransactionId
             }

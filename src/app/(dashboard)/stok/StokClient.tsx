@@ -58,9 +58,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
 
   const getSupplierName = (m: any) => {
     if (m.supplier?.name) return m.supplier.name;
-    const finalSupplierId = m.productId 
-      ? products.find((p: any) => p.id === m.productId)?.supplierId 
-      : ingredients.find((i: any) => i.id === m.ingredientId)?.supplierId;
+    const finalSupplierId = m.product?.supplierId || m.ingredient?.supplierId;
     if (finalSupplierId) {
       return suppliers.find((s: any) => s.id === finalSupplierId)?.name || "-";
     }
@@ -163,7 +161,7 @@ export default function StokClient({ products, ingredients, suppliers, movements
                         {m.product?.name || m.ingredient?.name}
                       </td>
                       <td className="p-4 font-bold">
-                        {m.type === "IN" ? "+" : "-"}{m.quantity} <span className="text-xs font-normal text-gray-500">{m.ingredient?.unit || "unit"}</span>
+                        {m.type === "IN" ? "+" : "-"}{Math.abs(m.quantity)} <span className="text-xs font-normal text-gray-500">{m.ingredient?.unit || "unit"}</span>
                       </td>
                       <td className="p-4 text-gray-600">{getSupplierName(m)}</td>
                       <td className="p-4 text-gray-500 truncate max-w-[200px]">{m.notes || "-"}</td>
