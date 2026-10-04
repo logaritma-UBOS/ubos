@@ -42,8 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         throw err;
       }
     }
-  })
-    },
   },
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "ubos_secret_key_logaritma_2026_supersecure_auth_token_xyz99",
   session: {
