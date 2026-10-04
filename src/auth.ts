@@ -62,31 +62,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       
-      if (account?.provider === "google" && user?.email) {
-        try {
-          const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
-          if (dbUser) {
-            const linked = await prisma.account.findFirst({ where: { userId: dbUser.id, provider: "google" } });
-            if (!linked) {
-              await prisma.account.create({
-                data: {
-                  userId: dbUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  access_token: account.access_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token,
-                }
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Manual link failed:", e);
-        }
-      }
+      
 
       const ALLOWED_EMAILS = [
         "logaritma.tim@gmail.com",
@@ -149,15 +125,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // 2. Atau token ini dari sesi lama (sebelum ada fitur loginDateStr)
       if (!token.loginDateStr || token.loginDateStr !== currentDayStr) {
          // Hari berganti atau token tidak valid! Logout otomatis
-         return {} as any; // Return empty token
+         return { _expired: true } as any; // Return explicitly expired token
       }
       
       return token
     },
     async session({ session, token }) {
       // Jika token dikosongkan (karena kedaluwarsa tengah malam)
-      if (!token || !token.email) {
-        return {} as any;
+      if (!token || !token.email || token._expired) {
+        return { expires: new Date(0).toISOString() } as any;
       }
       
       if (session.user && token) {
