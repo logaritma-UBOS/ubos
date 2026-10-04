@@ -12,9 +12,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return prisma.user.create({
         data: {
           ...data,
-          passwordHash: "", // Inject empty string to bypass SQLite NOT NULL constraint for OAuth users
+          passwordHash: "",
         },
       })
+    },
+    linkAccount: async (account) => {
+      try {
+        if (account.expires_at && typeof account.expires_at === 'number') {
+          // Ensure it fits in 32-bit int
+          if (account.expires_at > 2147483647) {
+            account.expires_at = Math.floor(account.expires_at / 1000);
+          }
+        }
+        
+        // Manual linking check to prevent P2002
+        const existing = await prisma.account.findUnique({
+           where: {
+             provider_providerAccountId: {
+               provider: account.provider,
+               providerAccountId: account.providerAccountId
+             }
+           }
+        });
+        if (existing) return existing;
+        
+        return await prisma.account.create({ data: account });
+      } catch (err) {
+        console.error("PrismaAdapter linkAccount Error:", err);
+        throw err;
+      }
+    }
+  })
     },
   },
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "ubos_secret_key_logaritma_2026_supersecure_auth_token_xyz99",
