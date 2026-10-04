@@ -34,101 +34,117 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        try {
+          if (!credentials?.email || !credentials?.password) return null
 
-        const email = (credentials.email as string).trim().toLowerCase()
-        const user = await prisma.user.findUnique({
-          where: { email }
-        })
+          const email = (credentials.email as string).trim().toLowerCase()
+          const user = await prisma.user.findUnique({
+            where: { email }
+          })
 
-        if (!user || !user.passwordHash) {
-          console.log("[AUTH DEBUG] User not found or no password hash for email:", email);
-          return null
+          if (!user || !user.passwordHash) {
+            console.log("[AUTH DEBUG] User not found or no password hash for email:", email);
+            return null
+          }
+
+          let passwordsMatch = false;
+          try {
+            passwordsMatch = await bcrypt.compare(
+              credentials.password as string,
+              user.passwordHash
+            )
+          } catch (bcryptErr) {
+            console.error("Bcrypt compare error:", bcryptErr);
+            return null;
+          }
+
+          console.log("[AUTH DEBUG] Passwords match?", passwordsMatch);
+
+          if (!passwordsMatch) return null
+
+          return { id: user.id, email: user.email, name: user.name, role: user.role }
+        } catch (err) {
+          console.error("Authorize error:", err);
+          return null; // Return null instead of throwing to prevent redirect to /api/auth/error
         }
-
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        )
-
-        console.log("[AUTH DEBUG] Passwords match?", passwordsMatch);
-
-        if (!passwordsMatch) return null
-
-        return { id: user.id, email: user.email, name: user.name, role: user.role }
       }
     })
   ],
   callbacks: {
     async signIn({ user, account }) {
-      
-      
-
-      const ALLOWED_EMAILS = [
-        "logaritma.tim@gmail.com",
-        "tony@logaritma.id",
-        "reza@logaritma.id",
-        "bana@logaritma.id",
-        "baim@logaritma.id"
-      ];
-      
-      if (user?.email) {
-        try {
-          const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
-          const userEmailLower = user.email.toLowerCase();
-          const isPilot = ALLOWED_EMAILS.includes(userEmailLower);
-          
-          if (isPilot) {
-            const { logPilotActivityRaw } = await import("./lib/pilotAudit");
-            await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
+      try {
+        const ALLOWED_EMAILS = [
+          "logaritma.tim@gmail.com",
+          "tony@logaritma.id",
+          "reza@logaritma.id",
+          "bana@logaritma.id",
+          "baim@logaritma.id"
+        ];
+        
+        if (user?.email) {
+          try {
+            const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+            const userEmailLower = user.email.toLowerCase();
+            const isPilot = ALLOWED_EMAILS.includes(userEmailLower);
+            
+            if (isPilot) {
+              const { logPilotActivityRaw } = await import("./lib/pilotAudit");
+              await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
+            }
+            
+            if (dbUser) {
+                await prisma.user.update({
+                    where: { email: user.email },
+                    data: { lastLogin: new Date() }
+                });
+            }
+          } catch (e) {
+            console.error("Failed to track login:", e);
           }
-          
-          if (dbUser) {
-              await prisma.user.update({
-                  where: { email: user.email },
-                  data: { lastLogin: new Date() }
-              });
-          }
-        } catch (e) {
-          console.error("Failed to track login:", e);
         }
+        return true;
+      } catch (fatalErr) {
+        console.error("Fatal error in signIn callback:", fatalErr);
+        return true; // Still allow login even if audit crashes
       }
-      return true;
     },
     async jwt({ token, user, account }) {
-      const currentDayStr = new Intl.DateTimeFormat("id-ID", {
-        timeZone: "Asia/Jakarta",
-        year: "numeric", month: "numeric", day: "numeric"
-      }).format(new Date());
+      try {
+        const currentDayStr = new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Jakarta",
+          year: "numeric", month: "numeric", day: "numeric"
+        }).format(new Date());
 
-      if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.role = user.role
-        token.staffBusinessId = (user as any).staffBusinessId || null
-        
-        // Coba ambil dari DB jika oauth
-        if (!(user as any).staffBusinessId) {
-          const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-          if (dbUser) {
-            token.role = dbUser.role
-            token.staffBusinessId = dbUser.staffBusinessId
+        if (user) {
+          token.id = user.id
+          token.email = user.email
+          token.role = user.role
+          token.staffBusinessId = (user as any).staffBusinessId || null
+          
+          try {
+            if (!(user as any).staffBusinessId && user.id) {
+              const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
+              if (dbUser) {
+                token.role = dbUser.role
+                token.staffBusinessId = dbUser.staffBusinessId
+              }
+            }
+          } catch (dbErr) {
+            console.error("JWT DB Lookup Error:", dbErr);
           }
+          
+          token.loginDateStr = currentDayStr;
         }
         
-        // Simpan hari login untuk fitur "Wajib login tiap hari" (Reset tengah malam)
-        token.loginDateStr = currentDayStr;
+        if (!token.loginDateStr || token.loginDateStr !== currentDayStr) {
+           return { _expired: true } as any;
+        }
+        
+        return token
+      } catch (err) {
+        console.error("JWT Callback Fatal Error:", err);
+        return token;
       }
-      
-      // Paksa logout jika:
-      // 1. Tanggal login di token berbeda dengan tanggal hari ini (sudah ganti hari)
-      // 2. Atau token ini dari sesi lama (sebelum ada fitur loginDateStr)
-      if (!token.loginDateStr || token.loginDateStr !== currentDayStr) {
-         // Hari berganti atau token tidak valid! Logout otomatis
-         return { _expired: true } as any; // Return explicitly expired token
-      }
-      
-      return token
     },
     async session({ session, token }) {
       // Jika token dikosongkan (karena kedaluwarsa tengah malam)
