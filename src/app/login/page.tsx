@@ -3,14 +3,29 @@
 import { loginUser } from "@/actions/auth"
 import Link from "next/link"
 import Image from "next/image"
-import { useActionState, useState } from "react"
+import { useActionState, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
 
-export default function LoginPage() {
+import { Suspense } from 'react';
+
+function LoginContent() {
   const [state, action, pending] = useActionState(loginUser, null)
   const [showPassword, setShowPassword] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  
+  const searchParams = useSearchParams()
+  const errorParam = searchParams?.get("error")
+  const [clientError, setClientError] = useState<string | null>(null)
+  
+  useEffect(() => {
+    if (errorParam === "OAuthAccountNotLinked") {
+      setClientError("Email ini sudah terdaftar menggunakan metode login lain. Silakan gunakan password.");
+    } else if (errorParam) {
+      setClientError("Google Login dibatalkan atau terjadi kesalahan (" + errorParam + ")");
+    }
+  }, [errorParam])
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-5 sm:px-6 lg:px-8">
@@ -65,9 +80,9 @@ export default function LoginPage() {
           <form className="space-y-5" action={action}>
 
             {/* Error */}
-            {state?.error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm border border-red-100 font-medium">
-                {state.error}
+            {(state?.error || clientError) && (
+              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm border border-red-100 font-medium mb-4">
+                {state?.error || clientError}
               </div>
             )}
 
@@ -139,5 +154,14 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-5 sm:px-6 lg:px-8"><div className="sm:mx-auto sm:w-full sm:max-w-md text-center">Memuat...</div></div>}>
+      <LoginContent />
+    </Suspense>
   )
 }
