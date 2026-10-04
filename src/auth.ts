@@ -9,12 +9,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: {
     ...PrismaAdapter(prisma),
     createUser: async (data) => {
-      return prisma.user.create({
-        data: {
-          ...data,
-          passwordHash: "",
-        },
-      })
+      try {
+        return await prisma.user.create({
+          data: {
+            id: data.id,
+            name: data.name || null,
+            email: data.email,
+            emailVerified: typeof data.emailVerified === 'boolean' ? (data.emailVerified ? new Date() : null) : (data.emailVerified ? new Date(data.emailVerified) : null),
+            image: data.image || null,
+            passwordHash: "",
+          },
+        })
+      } catch (err) {
+        console.error("PrismaAdapter createUser Error:", err);
+        throw err;
+      }
     },
     linkAccount: async (account) => {
       try {
@@ -36,7 +45,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
         if (existing) return existing;
         
-        return await prisma.account.create({ data: account });
+        const accountData = {
+          userId: account.userId,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          refresh_token: account.refresh_token || null,
+          access_token: account.access_token || null,
+          expires_at: account.expires_at || null,
+          token_type: account.token_type || null,
+          scope: account.scope || null,
+          id_token: account.id_token || null,
+          session_state: account.session_state || null,
+        };
+        return await prisma.account.create({ data: accountData });
       } catch (err) {
         console.error("PrismaAdapter linkAccount Error:", err);
         throw err;
