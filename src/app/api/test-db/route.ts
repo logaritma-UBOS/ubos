@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const sales = await prisma.sale.findMany({
+  const sales = await prisma.user.findUnique({ where: { email: 'logaritma.tim@gmail.com' } })({
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: {
@@ -16,3 +16,4 @@ export async function GET() {
 
   return NextResponse.json({ sales });
 }
+
