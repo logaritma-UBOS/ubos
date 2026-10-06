@@ -30,12 +30,12 @@ export default function FonnteWaButton({
       msg += `Kami perhatikan Kakak baru bergabung tapi belum melengkapi toko. Butuh panduan langkah pertama dari tim kami?`;
     }
     
-    if (!confirm(`Kirim pesan WA Blast ke ${phone} via Fonnte?\n\nPesan:\n${msg}`)) return;
+    if (!confirm(`Kirim pesan WA Blast ke ${phone} via WA Engine?\n\nPesan:\n${msg}`)) return;
     
     setIsLoading(true);
     try {
       await sendWaBlastFonnte(phone, msg);
-      alert("Pesan berhasil dikirim via Fonnte!");
+      alert("Pesan berhasil dikirim via Private Engine!");
     } catch (error: any) {
       alert("Gagal: " + error.message);
     } finally {

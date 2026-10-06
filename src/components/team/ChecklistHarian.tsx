@@ -54,21 +54,21 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
         setLoadingWa(null);
 
         if (res?.error) alert(res.error);
-        else alert("Berhasil di-Follow Up via Fonnte!");
+        else alert("Berhasil di-Follow Up via Private Engine!");
     }
 
     // Follow-up untuk CALON USER (prospek baru, belum terdaftar)
     const handleFollowUpCalonUser = async (taskId: string, name: string, phone: string) => {
         const autoMsg = `Halo kak ${name}! 👋\n\nPerkenalkan, saya dari tim UBOS (Usaha Bisnis Online System) — platform digital yang membantu pemilik usaha mengelola penjualan, stok, dan laporan keuangan dalam satu sistem.\n\nKami mendapat rekomendasi bahwa kakak sedang mengelola usaha dan mungkin butuh sistem yang lebih rapi.\n\nApakah kakak ada 5 menit untuk kami tunjukkan bagaimana UBOS bisa membantu bisnis kakak berkembang lebih cepat? 🚀\n\nGratis coba 14 hari, tanpa kartu kredit.`;
         
-        if (!confirm(`Kirim penawaran UBOS ke ${name} via Fonnte?\n\nNo WA: ${phone}\n\nPesan:\n${autoMsg}`)) return;
+        if (!confirm(`Kirim penawaran UBOS ke ${name} via Private Engine?\n\nNo WA: ${phone}\n\nPesan:\n${autoMsg}`)) return;
 
         setLoadingWa(taskId);
         const res = await sendWaBana(phone, autoMsg);
         setLoadingWa(null);
 
         if (res?.error) alert(res.error);
-        else alert(`Berhasil kirim penawaran UBOS ke ${name} via Fonnte!`);
+        else alert(`Berhasil kirim penawaran UBOS ke ${name} via Private Engine!`);
     }
 
     const completed = optimisticTasks.filter(t => t.isCompleted).length;
@@ -171,4 +171,5 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
         </div>
     )
 }
+
 
