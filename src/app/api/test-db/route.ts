@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     
     if (user) {
-      await prisma.business.deleteMany({ where: { ownerId: user.id } });
+      await prisma.business.deleteMany({ where: { userId: user.id } });
       const hash = await bcrypt.hash('adminlog2026', 10);
       await prisma.user.update({
         where: { id: user.id },
