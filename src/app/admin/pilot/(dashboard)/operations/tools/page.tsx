@@ -30,10 +30,29 @@ export default async function operationsTools() {
 
   if (teamMember.role !== "OPERATIONS" && teamMember.role !== "SUPER_ADMIN") redirect("/admin/pilot");
   
+  const paidRevenues = await prisma.ubosRevenue.findMany({
+    where: { status: "PAID" },
+    select: { userId: true }
+  });
+  const paidUserIds = paidRevenues.map(r => r.userId);
+
+  const excludedEmails = [
+    "bana@logaritma.id", "baimwarunkarsi@gmail.com", "reza@logaritma.id",
+    "sabarali.syabana20@gmail.com", "rezatriansyah06@gmail.com", "tony@logaritma.id",
+    "arsi@warunkarsi.com", "akuntest@logaritma.id", "smoke@logaritma.id",
+    "smoke2@logaritma.id", "smoke3@logaritma.id", "eugeo.kirito2203@gmail.com",
+    "warsi.waroengarsi@gmail.com", "adm.gadingprinting@gmail.com", "jukjeruk@gmail.com",
+    "rumpunrasaofficial@gmail.com", "darus113@gmail.com", "good4project@gmail.com",
+    "baim@logaritma.id"
+  ];
+
   const users = await prisma.user.findMany({
-    where: { role: "LEAD" },
+    where: {
+      id: { notIn: paidUserIds },
+      email: { notIn: excludedEmails }
+    },
     take: 100,
-    orderBy: { createdAt: "desc" }
+    orderBy: { lastLogin: "desc" }
   });
 
   return (
@@ -72,3 +91,4 @@ export default async function operationsTools() {
     </div>
   );
 }
+

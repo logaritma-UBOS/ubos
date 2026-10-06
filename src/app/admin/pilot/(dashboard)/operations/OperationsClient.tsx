@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import ManualLeadForm from "../ManualLeadForm"
+import { recordFollowUp } from "@/actions/teamOs"
 import { createTicket, sendWaBana } from "@/actions/teamOs"
 
 export default function OperationsClient({ users }: { users: any[] }) {
@@ -62,6 +62,10 @@ export default function OperationsClient({ users }: { users: any[] }) {
 
     setLoadingWa(user.id);
     const res = await sendWaBana(user.phone, autoMsg);
+    if (!res?.error) {
+      await recordFollowUp(user.id);
+      user.followUpCount = (user.followUpCount || 0) + 1;
+    }
     setLoadingWa(null);
 
     if (res?.error) alert(res.error);
@@ -113,7 +117,7 @@ export default function OperationsClient({ users }: { users: any[] }) {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h3 className="font-bold text-gray-900">List Lead Manual</h3>
+          <h3 className="font-bold text-gray-900">List Follow Up User Starter</h3>
           <input 
             type="search" 
             placeholder="Cari Nama/Email/Nomor..." 
@@ -122,13 +126,14 @@ export default function OperationsClient({ users }: { users: any[] }) {
             className="w-full md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-4 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
           />
         </div>
-        <ManualLeadForm />
+        
       <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3">Nama Lead</th>
                 <th className="px-4 py-3">Status CRM</th>
+                <th className="px-4 py-3 text-center">Tanda Follow Up</th>
                 <th className="px-4 py-3">Kontak WA</th>
                 <th className="px-4 py-3">Aksi</th>
               </tr>
@@ -143,6 +148,11 @@ export default function OperationsClient({ users }: { users: any[] }) {
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-[10px] font-bold ${u.computedStatus === 'AKTIF' ? 'bg-emerald-100 text-emerald-700' : u.computedStatus === 'NEW' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
                       {u.computedStatus}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black ${u.followUpCount >= 3 ? "bg-emerald-100 text-emerald-700" : u.followUpCount === 2 ? "bg-blue-100 text-blue-700" : u.followUpCount === 1 ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-500"}`}>
+                      FU {u.followUpCount || 0} / 3
                     </span>
                   </td>
                   <td className="px-4 py-3 font-semibold text-gray-700">
@@ -176,3 +186,5 @@ export default function OperationsClient({ users }: { users: any[] }) {
     </div>
   )
 }
+
+

@@ -58,7 +58,8 @@ export async function GET(req: NextRequest) {
         dailyTasks = [
           "Riset & Input minimal 1 Studi Kasus / Formula Bisnis ke Repository",
           "Review metrik Conversion Rate dari funnel marketing",
-          "Cek Inbox Pengajuan Dana (Approve/Reject jika ada)"
+          "Cek Inbox Pengajuan Dana (Approve/Reject jika ada)",
+          "Input lead manual minimal 2 nama & 2 nomor whatsapp"
         ];
       } else if (member.role === "DEVELOPER") {
         dailyTasks = [
@@ -72,15 +73,15 @@ export async function GET(req: NextRequest) {
           "Filter keluhan dari tim dan ubah jadi Tiket Bug untuk Reza"
         ];
         
-        // FASE OTOMATISASI DELEGASI: Ambil 5 user "STARTER" secara acak untuk di-follow up Bana
+        // FASE OTOMATISASI DELEGASI: Ambil 10 user pasif/LEAD secara acak untuk di-follow up Bana
         const starters = await prisma.user.findMany({
           where: { role: "LEAD" }, // Asumsi STARTER adalah default role LEAD di sistem ini
-          take: 50,
+          take: 100,
           orderBy: { createdAt: "desc" } // Ambil yang terbaru
         });
         
-        // Ambil 5 teratas yang punya nomor telepon
-        const validStarters = starters.filter(u => !!u.phone).slice(0, 5);
+        // Ambil 10 teratas yang punya nomor telepon
+        const validStarters = starters.filter(u => !!u.phone).slice(0, 10);
         
         validStarters.forEach(user => {
             // Gunakan format "Follow up user: [Name]" agar ChecklistHarian.tsx bisa menampilkan tombol WA Fonnte!
@@ -90,7 +91,7 @@ export async function GET(req: NextRequest) {
         
         // Jika tidak ada user baru, beri tugas opsional
         if (validStarters.length === 0) {
-            dailyTasks.push("Cari minimal 5 leads baru via cold prospecting hari ini");
+            dailyTasks.push("Cari minimal 10 leads baru via cold prospecting hari ini");
         }
       }
 

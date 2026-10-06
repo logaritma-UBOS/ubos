@@ -211,45 +211,41 @@ export async function delegateTask(formData: FormData) {
 
 // --- FONNTE BANA FOLLOW-UP ---
 export async function sendWaBana(phone: string, message: string) {
-  try {
-    const session = await auth();
-    if (!session?.user?.email) throw new Error("Unauthorized");
-    const member = await prisma.teamMember.findUnique({ where: { email: session.user.email } });
-    if (!member || (member.role !== "OPERATIONS" && member.role !== "SUPER_ADMIN")) {
-      throw new Error("Forbidden");
+    try {
+      const session = await auth();
+      if (!session?.user?.email) throw new Error("Unauthorized");
+      const member = await prisma.teamMember.findUnique({ where: { email: session.user.email } });
+      if (!member || (member.role !== "OPERATIONS" && member.role !== "SUPER_ADMIN")) {
+        throw new Error("Forbidden");
+      }
+  
+      if (!phone) throw new Error("Nomor HP tidak tersedia");
+      
+      // Format phone to 62...
+      let target = phone.replace(/[^0-9]/g, '');
+      if (target.startsWith('0')) target = '62' + target.substring(1);
+      
+      const res = await fetch("http://202.155.94.170:3000/send-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          phone: target,
+          text: message
+        })
+      });
+      
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        return { error: result.error || "Gagal mengirim pesan" };
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      return { error: error.message };
     }
-
-    if (!phone) throw new Error("Nomor HP tidak tersedia");
-    
-    // Format phone to 62...
-    let target = phone.replace(/[^0-9]/g, '');
-    if (target.startsWith('0')) target = '62' + target.substring(1);
-    
-    // Get Bana's dynamic token or use the default one if the user provides it in .env
-    const token = process.env.BANA_FONNTE_TOKEN || "y7nsYwvkMBwfQZtTS2DV";
-    
-    const res = await fetch("https://api.fonnte.com/send", {
-      method: "POST",
-      headers: {
-        "Authorization": token
-      },
-      body: new URLSearchParams({
-        target: target,
-        message: message,
-        countryCode: "62"
-      })
-    });
-    
-    const result = await res.json();
-    if (!result.status) {
-      return { error: result.reason || "Gagal mengirim pesan" };
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
   }
-}
 
 export async function requestWithdrawal(formData: FormData) {
   try {
@@ -376,3 +372,21 @@ export async function updateBankDetails(formData: FormData) {
     return { error: error.message };
   }
 }
+
+export async function recordFollowUp(userId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) throw new Error("Unauthorized");
+    const member = await prisma.teamMember.findUnique({ where: { email: session.user.email } });
+    if (!member || (member.role !== "OPERATIONS" && member.role !== "SUPER_ADMIN")) throw new Error("Forbidden");
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { followUpCount: { increment: 1 } }
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import MidnightAutoLogout from "@/components/MidnightAutoLogout";
 import ProfileUploader from "@/components/ProfileUploader";
+import TeamAgentChat from "@/components/chat/TeamAgentChat";
 import { prisma } from "@/lib/prisma";
 
 import { Metadata } from "next";
@@ -174,6 +175,7 @@ export default async function PilotLayout({ children }: { children: React.ReactN
         </div>
 
         {children}
+        <TeamAgentChat />
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION */}

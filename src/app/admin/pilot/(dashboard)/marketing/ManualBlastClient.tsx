@@ -8,6 +8,7 @@ export default function ManualBlastClient() {
   const [phoneList, setPhoneList] = useState("")
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [progress, setProgress] = useState<{current: number, total: number, phone: string, countdown: number} | null>(null)
   const [result, setResult] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -26,18 +27,29 @@ export default function ManualBlastClient() {
     setResult(null)
     
     let successCount = 0;
+    
     // Sequential blast
-    for (const phone of validPhones) {
+    for (let i = 0; i < validPhones.length; i++) {
+      const phone = validPhones[i];
+      setProgress({ current: i + 1, total: validPhones.length, phone, countdown: 0 });
+      
       try {
         await sendWaBlastFonnte(phone, message);
         successCount++;
-        // Delay to respect API limits
-        await new Promise(r => setTimeout(r, 1000));
+        
+        // Delay to respect API limits (30 seconds) EXCEPT for the last message
+        if (i < validPhones.length - 1) {
+            for (let c = 30; c > 0; c--) {
+                setProgress(prev => prev ? { ...prev, countdown: c } : null);
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
       } catch (e) {
         console.error("Failed to send to", phone);
       }
     }
 
+    setProgress(null);
     setResult({ success: true, count: successCount, total: validPhones.length })
     await logManualBlastAudit(successCount, validPhones.length)
     setIsLoading(false)
@@ -62,9 +74,6 @@ export default function ManualBlastClient() {
     reader.onload = (evt) => {
       const text = evt.target?.result as string
       if (!text) return
-      
-      const lines = text.split('\n')
-      const phones: string[] = []
       
       // Basic CSV parser (assumes phone is in first or second column)
       // We just regex extract everything that looks like a phone number
@@ -103,7 +112,8 @@ export default function ManualBlastClient() {
           <textarea 
             value={phoneList} 
             onChange={e => setPhoneList(e.target.value)}
-            className="w-full p-3 border rounded-xl min-h-[120px] font-mono text-sm"
+            disabled={isLoading}
+            className="w-full p-3 border rounded-xl min-h-[120px] font-mono text-sm disabled:opacity-50"
             placeholder="6281234567890\n085175150408\n(pisahkan dengan Enter atau Koma)"
           />
         </div>
@@ -113,17 +123,36 @@ export default function ManualBlastClient() {
           <textarea 
             value={message} 
             onChange={e => setMessage(e.target.value)}
-            className="w-full p-3 border rounded-xl min-h-[150px]"
+            disabled={isLoading}
+            className="w-full p-3 border rounded-xl min-h-[150px] disabled:opacity-50"
             placeholder="Ketik pesan promosi kustom Anda di sini..."
           />
         </div>
+        
+        {progress && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4 text-center">
+             <p className="text-sm text-blue-800 font-bold mb-1">
+                Mengirim Pesan {progress.current} dari {progress.total}
+             </p>
+             <p className="text-xs text-blue-600 font-mono mb-3">Target: {progress.phone}</p>
+             
+             {progress.countdown > 0 && (
+                <div className="flex flex-col items-center">
+                    <p className="text-xs text-slate-500 mb-2">Jeda anti-banned sebelum pesan berikutnya:</p>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100 text-blue-800 font-bold text-lg ring-4 ring-blue-50">
+                        {progress.countdown}s
+                    </div>
+                </div>
+             )}
+          </div>
+        )}
         
         <button 
           onClick={handleBlast} 
           disabled={isLoading || !phoneList || !message}
           className="w-full bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
         >
-          {isLoading ? "Sedang Mengirim..." : "Kirim Manual Blast"}
+          {isLoading ? "Memproses Blast..." : "Kirim Manual Blast"}
         </button>
         
         {result && (

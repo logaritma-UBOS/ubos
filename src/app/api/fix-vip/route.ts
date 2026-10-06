@@ -70,12 +70,18 @@ export async function GET() {
         const trxId = trx.id || trx.reference || trx.invoice_id;
         const amount = Number(trx.amount || trx.total || trx.total_amount || 0);
         
+        // Deteksi TAHUNAN
+        const productDesc = (trx.description || trx.productName || trx.name || "").toUpperCase();
+        const isTahunan = productDesc.includes("TAHUNAN") || productDesc.includes("YEARLY");
+        const defaultMethod = trx.payment_method || "MAYAR";
+        const methodToSave = isTahunan ? `PRO_TAHUNAN_${defaultMethod}` : `PRO_BULANAN_${defaultMethod}`;
+
         await prisma.ubosRevenue.create({
           data: {
             userId: matchedUser.id,
             mayarTrxId: trxId,
             amount: amount,
-            paymentMethod: trx.payment_method || "MAYAR",
+            paymentMethod: methodToSave,
             status: "PAID"
           }
         });

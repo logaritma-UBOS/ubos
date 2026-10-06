@@ -1,14 +1,24 @@
 "use client"
 import { toggleTeamTask, createTeamTask } from "@/actions/crmActions"
-import { useState } from "react"
+import { useState, useOptimistic, useTransition } from "react"
 import { sendWaBana } from "@/actions/teamOs"
 
 export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMemberId: string, tasks: any[], users?: any[] }) {
     const [newTask, setNewTask] = useState("");
     const [loadingWa, setLoadingWa] = useState<string | null>(null);
 
-    const handleToggle = async (id: string, currentStatus: boolean) => {
-        await toggleTeamTask(id, !currentStatus);
+    const [optimisticTasks, toggleOptimisticTask] = useOptimistic(
+        tasks,
+        (state: any[], taskId: string) => state.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t)
+    );
+
+    const [isPending, startTransition] = useTransition();
+
+    const handleToggle = (id: string, currentStatus: boolean) => {
+        startTransition(async () => {
+            toggleOptimisticTask(id);
+            await toggleTeamTask(id, !currentStatus);
+        });
     }
 
     const handleAdd = async (e: any) => {
@@ -61,8 +71,8 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
         else alert(`Berhasil kirim penawaran UBOS ke ${name} via Fonnte!`);
     }
 
-    const completed = tasks.filter(t => t.isCompleted).length;
-    const total = tasks.length;
+    const completed = optimisticTasks.filter(t => t.isCompleted).length;
+    const total = optimisticTasks.length;
 
     return (
         <div className="bg-white p-5 lg:p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
@@ -77,7 +87,7 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
             </div>
             
             <div className="space-y-2 mb-4">
-                {tasks.map(t => {
+                {optimisticTasks.map(t => {
                     // Deteksi jenis tugas
                     const isFollowUpUser = users && t.taskName.startsWith("Follow up user: ");
                     const isFollowUpCalonUser = t.taskName.startsWith("Follow up CALON USER: ");
@@ -151,7 +161,7 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
                         </div>
                     );
                 })}
-                {tasks.length === 0 && <p className="text-sm text-slate-400 text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">Keren! Semua checklist hari ini sudah selesai.</p>}
+                {optimisticTasks.length === 0 && <p className="text-sm text-slate-400 text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">Keren! Semua checklist hari ini sudah selesai.</p>}
             </div>
 
             <form onSubmit={handleAdd} className="flex gap-2">
@@ -161,3 +171,4 @@ export default function ChecklistHarian({ teamMemberId, tasks, users }: { teamMe
         </div>
     )
 }
+

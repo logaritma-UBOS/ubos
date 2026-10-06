@@ -9,43 +9,99 @@ export async function POST(req: NextRequest) {
     // Simple auth check
     if (authHeader !== `Bearer ${WEBHOOK_TOKEN}` && authHeader !== WEBHOOK_TOKEN) {
       // return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      // In sandbox/testing we might bypass if headers are messed up, but let's be strict if token is provided
     }
 
     const rawPayload = await req.json();
-    console.log("Mayar Webhook Received:", rawPayload);
+    console.log("Mayar Webhook Received:", JSON.stringify(rawPayload));
+
+    // Tolak event "testing" dari Mayar, cukup balas received:true
+    if (rawPayload.event === "testing") {
+      console.log("Mayar Test Webhook - OK");
+      return NextResponse.json({ received: true });
+    }
 
     const payload = rawPayload.data || rawPayload;
+    
+    const paymentStatus = (payload.status || "").toUpperCase();
 
-    if (payload.status === "PAID" || payload.status === "SETTLED" || payload.status === "SUCCESS") {
-       // Cari user berdasarkan email dari transaksi
-       const email = payload.customer?.email || payload.email;
-       if (email) {
-          const user = await prisma.user.findUnique({ where: { email } });
+    if (paymentStatus === "PAID" || paymentStatus === "SETTLED" || paymentStatus === "SUCCESS") {
+       // FIX: Mayar mengirim email di berbagai field tergantung tipe event:
+       // - invoice/payment: payload.customer.email
+       // - membership: payload.customerEmail
+       // - fallback: payload.email
+       const email = (
+         payload.customer?.email ||
+         payload.customerEmail ||
+         payload.email ||
+         ""
+       ).toLowerCase().trim();
+
+       console.log("Mayar Webhook - Email parsed:", email);
+
+       const explicitUserId = payload.reference || (payload.metadata && payload.metadata.userId);
+
+       if (email || explicitUserId) {
+          let user = null;
+
+          if (explicitUserId) {
+            user = await prisma.user.findUnique({ where: { id: explicitUserId } });
+            console.log("Mayar Webhook - User found via reference/metadata:", explicitUserId);
+          }
+
+          if (!user && email) {
+            // SQLite tidak support mode: 'insensitive' di Prisma
+            // Jadi kita cari exact match dulu, kalau gagal, cari manual
+            user = await prisma.user.findFirst({
+              where: { email: email }
+            });
+
+            if (!user) {
+               const allUsers = await prisma.user.findMany({ select: { id: true, email: true } });
+               const matched = allUsers.find(u => u.email?.toLowerCase() === email);
+               if (matched) {
+                  user = await prisma.user.findUnique({ where: { id: matched.id } });
+               }
+            }
+          }
+
+          console.log("Mayar Webhook - User found:", user ? user.id : "NOT FOUND");
+
           if (user) {
              const trxId = payload.id || payload.trx_id || payload.reference || Date.now().toString();
              // Prioritaskan net_amount (nominal bersih setelah dipotong fee Mayar/Channel)
              // agar 100% sinkron dengan saldo riil di dashboard Mayar.
              const existingRev = await prisma.ubosRevenue.findUnique({ where: { mayarTrxId: trxId } });
              const amount = Number(payload.net_amount || payload.amount || payload.total || payload.total_amount || 0);
+
+             // Deteksi nama paket untuk membedakan Pro Bulanan dan Pro Tahunan
+             const productDesc = (payload.description || payload.productName || payload.name || "").toUpperCase();
+             const isTahunan = productDesc.includes("TAHUNAN") || productDesc.includes("YEARLY");
+             
+             // Kita simpan flag TAHUNAN di paymentMethod karena field ini string dan bisa dipakai untuk flag
+             const defaultMethod = payload.payment_method || "MAYAR";
+             const methodToSave = isTahunan ? `PRO_TAHUNAN_${defaultMethod}` : `PRO_BULANAN_${defaultMethod}`;
+
              await prisma.ubosRevenue.upsert({
                where: { mayarTrxId: trxId },
                create: {
                  userId: user.id,
                  mayarTrxId: trxId,
                  amount: amount,
-                 paymentMethod: payload.payment_method || "MAYAR",
+                 paymentMethod: methodToSave,
                  status: "PAID"
                },
                update: {
                  status: "PAID",
-                 amount: amount > 0 ? amount : undefined // Update amount only if it's parsed correctly
+                 paymentMethod: methodToSave, // Timpa method jika upgrade
+                 amount: amount > 0 ? amount : undefined
                }
              });
              
+             console.log("Mayar Webhook - Revenue upserted for trxId:", trxId);
+
              if (!existingRev && amount > 0) {
                // FASE 5: FINTECH AUTO-SPLIT PAYROLL
-               const netProfit = amount; // Asumsi net amount Mayar adalah netProfit
+               const netProfit = amount;
                const reserveAmount = netProfit * 0.2;
                const poolAmount = netProfit * 0.8;
                
@@ -83,7 +139,11 @@ export async function POST(req: NextRequest) {
                  }
                });
              }
+          } else {
+            console.log("Mayar Webhook - User NOT FOUND for email:", email);
           }
+       } else {
+         console.log("Mayar Webhook - No email found in payload");
        }
     }
 

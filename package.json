@@ -10,11 +10,14 @@
         "postinstall": "prisma generate"
     },
     "dependencies": {
+        "@ai-sdk/google": "^4.0.88",
+        "@ai-sdk/react": "^4.0.131",
         "@auth/prisma-adapter": "^2.11.3",
         "@heroicons/react": "^2.2.0",
         "@libsql/client": "^0.17.4",
         "@prisma/adapter-libsql": "^7.9.1",
         "@prisma/client": "^7.9.1",
+        "ai": "^7.0.128",
         "bcryptjs": "^3.0.3",
         "framer-motion": "^13.1.1",
         "glob": "^13.0.6",
@@ -23,6 +26,7 @@
         "next-auth": "^5.0.0-beta.32",
         "react": "19.2.8",
         "react-dom": "19.2.8",
+        "react-markdown": "^10.1.0",
         "resend": "^6.22.1"
     },
     "devDependencies": {

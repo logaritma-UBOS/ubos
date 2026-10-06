@@ -37,13 +37,20 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const payment = await prisma.ubosRevenue.findFirst({
-      where: { userId: targetUserId, status: "PAID"
-      }
+    // Cari status VIP dengan memprioritaskan yang tahunan jika ada banyak
+    const payments = await prisma.ubosRevenue.findMany({
+      where: { userId: targetUserId, status: "PAID" },
+      orderBy: { createdAt: "desc" }
     });
 
-    const isVIP = !!payment;
-    const tier = isVIP ? "Pro Bulanan" : "Starter";
+    const isVIP = payments.length > 0;
+    let tier = "Starter";
+    
+    if (isVIP) {
+      // Jika ada salah satu riwayat pembayaran yang mengandung TAHUNAN
+      const hasTahunan = payments.some(p => p.paymentMethod && p.paymentMethod.includes("PRO_TAHUNAN"));
+      tier = hasTahunan ? "Pro Tahunan" : "Pro Bulanan";
+    }
 
     return NextResponse.json({ 
       isAuthenticated: true, 

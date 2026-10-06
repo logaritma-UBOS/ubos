@@ -119,6 +119,18 @@ async function migrate() {
         if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (minStock):", e.message);
     }
 
+    try {
+        await client.execute('ALTER TABLE "User" ADD COLUMN "followUpCount" INTEGER NOT NULL DEFAULT 0');
+        console.log("Added followUpCount to User");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column")) console.error("User alter err (followUpCount):", e.message);
+    }
+    try {
+        await client.execute('ALTER TABLE "Product" ADD COLUMN "purchaseCost" REAL NOT NULL DEFAULT 0');
+        console.log("Added purchaseCost to Product");
+    } catch (e) {
+        if (e.message && !e.message.includes("duplicate column")) console.error("Product alter err (purchaseCost):", e.message);
+    }
 console.log('Done migrations. Seeding Team OS...');
 
     const members = [
@@ -140,3 +152,4 @@ console.log('Done migrations. Seeding Team OS...');
     console.log('Seeding done.');
 }
 migrate().catch(console.error);
+

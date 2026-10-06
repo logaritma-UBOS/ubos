@@ -6,9 +6,14 @@ import { redirect } from "next/navigation"
 export const dynamic = "force-dynamic";
 
 // Helper: determine tier from UbosRevenue records
-function getTier(email: string, revenues: { amount: number }[]): string {
+function getTier(email: string, revenues: { amount: number, paymentMethod: string | null }[]): string {
   if (email === "warunkarsi23@gmail.com") return "LIFETIME";
-  if (revenues.length > 0) return "PRO_BULANAN";
+  
+  if (revenues.length > 0) {
+    const isTahunan = revenues.some(r => r.paymentMethod && r.paymentMethod.includes("PRO_TAHUNAN"));
+    return isTahunan ? "PRO_TAHUNAN" : "PRO_BULANAN";
+  }
+  
   return "STARTER";
 }
 
@@ -29,14 +34,14 @@ export default async function UsersPage() {
 
     const allRevenues = await prisma.ubosRevenue.findMany({
         where: { status: "PAID" },
-        select: { userId: true, amount: true }
+        select: { userId: true, amount: true, paymentMethod: true }
     });
 
     // Group revenues by userId
-    const revenueMap: Record<string, { amount: number }[]> = {};
+    const revenueMap: Record<string, { amount: number, paymentMethod: string | null }[]> = {};
     for (const r of allRevenues) {
         if (!revenueMap[r.userId]) revenueMap[r.userId] = [];
-        revenueMap[r.userId].push({ amount: r.amount });
+        revenueMap[r.userId].push({ amount: r.amount, paymentMethod: r.paymentMethod });
     }
 
     // inject tier flag

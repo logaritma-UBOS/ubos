@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
         mobile: "08000000000",
         amount: Number(amount),
         description: planName,
+        reference: session.user.id,
+        metadata: { userId: session.user.id },
         redirectUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/thank-you` : "https://ubos.logaritma.id/thank-you",
         expiredAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         items: [

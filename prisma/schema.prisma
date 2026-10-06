@@ -19,6 +19,7 @@ model User {
   staffBusinessId String?
   staffBusiness   Business? @relation("BusinessStaffs", fields: [staffBusinessId], references: [id], onDelete: SetNull)
   crmStatus       String    @default("PASIF")
+  followUpCount   Int       @default(0)
   lastLogin       DateTime  @default(now())
   createdAt       DateTime  @default(now())
 
@@ -738,3 +739,4 @@ model ManualLead {
   source     TeamMember  @relation("LeadSource", fields: [sourceId], references: [id])
   assignedTo TeamMember? @relation("LeadAssigned", fields: [assignedToId], references: [id])
 }
+

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { GET as syncVip } from "@/app/api/user/sync-vip/route";
 
 export default async function ThankYouPage() {
   // Ensure the user is immediately marked as VIP upon returning from checkout
@@ -8,9 +9,12 @@ export default async function ThankYouPage() {
   try {
     const session = await auth();
     if (!session?.user?.email) return (<div>Loading...</div>);
-    // Kita tidak lagi membuat data dummy di sini.
-    // Semua status VIP akan murni bersumber dari Webhook Mayar untuk menjamin keakuratan 100%.
-  } catch(e) {}
+    
+    // Auto-sync VIP status directly from Mayar API untuk mengantisipasi webhook gagal (misal transaksi Rp 0)
+    await syncVip();
+  } catch(e) {
+    console.error("Auto-sync VIP failed:", e);
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 text-center">

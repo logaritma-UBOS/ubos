@@ -140,43 +140,41 @@ export async function clearFreeBroadcasts() {
 // ==========================================
 
 export async function sendWaBlastFonnte(phone: string, message: string) {
-  if (!phone) throw new Error("Nomor HP tidak tersedia");
-  
-  // Format phone to 62...
-  let target = phone.replace(/[^0-9]/g, '');
-  if (target.startsWith('0')) target = '62' + target.substring(1);
-  
-  const token = "yR1HdhH9wfPVVoKu2G4e";
-  
-  try {
-    const res = await fetch("https://api.fonnte.com/send", {
-      method: "POST",
-      headers: {
-        "Authorization": token
-      },
-      body: new URLSearchParams({
-        target: target,
-        message: message,
-        countryCode: "62"
-      })
-    });
+    if (!phone) throw new Error("Nomor HP tidak tersedia");
     
-    const data = await res.json();
-    if (!data.status) {
-      throw new Error(data.reason || "Gagal mengirim pesan");
-    }
+    // Format phone to 62...
+    let target = phone.replace(/[^0-9]/g, '');
+    if (target.startsWith('0')) target = '62' + target.substring(1);
     
-    // LOG AUDIT
     try {
-      const { logPilotActivity } = await import("@/lib/pilotAudit");
-      await logPilotActivity("Kirim WA Blast (Personal)", `Mengirim broadcast manual via Fonnte ke nomor target ${target}`);
-    } catch(e) {
-      console.error(e);
+      const res = await fetch("http://202.155.94.170:3000/send-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          phone: target,
+          text: message
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Gagal mengirim pesan via Private Gateway");
+      }
+      
+      // LOG AUDIT
+      try {
+        const { logPilotActivity } = await import("@/lib/pilotAudit");
+        await logPilotActivity("Kirim WA Blast (Personal)", `Mengirim broadcast manual via Private Engine ke nomor target ${target}`);
+      } catch(e) {
+        console.error(e);
+      }
+      
+      return { success: true };
+    } catch (err: any) {
+      console.error("Gateway Blast Error:", err);
+      throw new Error(err.message || "Terjadi kesalahan saat menghubungi Gateway");
     }
-    
-    return { success: true };
-  } catch (err: any) {
-    console.error("Fonnte Blast Error:", err);
-    throw new Error(err.message || "Terjadi kesalahan saat menghubungi Fonnte");
   }
-}
+
