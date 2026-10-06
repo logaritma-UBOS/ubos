@@ -398,7 +398,7 @@ export async function getTeamWaStatus() {
 
   try {
     const GATEWAY_URL = "http://202.155.94.170:3000";
-    const res = await fetch("${GATEWAY_URL}/status?session=team_${member.id}&t=${Date.now()}", { cache: 'no-store' });
+    const res = await fetch(`${GATEWAY_URL}/status?session=team_${member.id}&t=${Date.now()}`, { cache: 'no-store' });
     const data = await res.json();
     if (data.status === 'connected') return { success: true, status: 'CONNECTED', device: data.user?.id };
     if (data.status === 'waiting_for_scan') return { success: true, status: 'DISCONNECTED', qr: data.qr };
@@ -416,10 +416,11 @@ export async function disconnectTeamWa() {
 
   try {
     const GATEWAY_URL = "http://202.155.94.170:3000";
-    await fetch("${GATEWAY_URL}/disconnect?session=team_${member.id}", { method: 'POST' });
+    await fetch(`${GATEWAY_URL}/disconnect?session=team_${member.id}`, { method: 'POST' });
     return { success: true };
   } catch(e) {
     return { error: 'Gateway Error' };
   }
 }
+
 
