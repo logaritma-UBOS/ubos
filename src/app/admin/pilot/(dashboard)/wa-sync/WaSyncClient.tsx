@@ -15,7 +15,7 @@ export function MasterWaSyncClient() {
   
   const fetchStatus = async () => {
     try {
-      const res = await getTeamWaStatus()
+      const res = await getTeamWaStatus(Date.now())
       if (res.success) {
         setStatus(res.status || "ERROR")
         setQrCode(res.qr || null)
@@ -132,4 +132,5 @@ export function MasterWaSyncClient() {
     </div>
   )
 }
+
 

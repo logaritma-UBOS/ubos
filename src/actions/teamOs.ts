@@ -1,4 +1,5 @@
 "use server"
+import { unstable_noStore as noStore } from 'next/cache';
 
 import { prisma } from "@/lib/prisma"
 import { disburseMayar } from "@/lib/mayar"
@@ -390,7 +391,8 @@ export async function recordFollowUp(userId: string) {
   }
 }
 
-export async function getTeamWaStatus() {
+export async function getTeamWaStatus(timestamp?: number) {
+  noStore();
   const session = await auth();
   if (!session?.user?.email) return { success: false, error: 'Unauthorized' };
   const member = await prisma.teamMember.findUnique({ where: { email: session.user.email } });
@@ -422,5 +424,8 @@ export async function disconnectTeamWa() {
     return { error: 'Gateway Error' };
   }
 }
+
+
+
 
 

@@ -1,4 +1,5 @@
 "use server"
+import { unstable_noStore as noStore } from 'next/cache';
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -6,7 +7,8 @@ import { revalidatePath } from "next/cache"
 
 const GATEWAY_URL = "http://202.155.94.170:3000"
 
-export async function getWaStatus() {
+export async function getWaStatus(timestamp?: number) {
+  noStore();
   try {
     const session = await auth()
     if (!session?.user?.id) return { success: false, error: "Unauthorized" }
@@ -78,4 +80,7 @@ export async function disconnectWa() {
     return { error: "Gagal memutuskan koneksi" }
   }
 }
+
+
+
 
