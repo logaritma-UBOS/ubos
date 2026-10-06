@@ -7,9 +7,12 @@ export const metadata: Metadata = {
   description: "Integrasi WhatsApp Gateway untuk Toko",
 }
 
+import Script from "next/script"
+
 export default function WhatsAppSettingsPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
+      <Script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js" strategy="lazyOnload" />
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         <div className="mb-2">
           <Link href="/marketing" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">

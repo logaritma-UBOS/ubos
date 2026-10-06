@@ -121,7 +121,7 @@ export async function updateCampaignStatus(id: string, status: string) {
       
       if (!campaign) return { error: "Campaign tidak ditemukan" }
       
-      const hasWa = campaign.business?.settings?.fonnteToken && campaign.business.settings.waStatus === "CONNECTED";
+      const hasWa = campaign.business?.settings?.waStatus === "CONNECTED";
       if (!hasWa) {
         return { error: "WhatsApp belum terhubung. Silakan integrasi WA di pengaturan terlebih dahulu." }
       }
@@ -135,28 +135,19 @@ export async function updateCampaignStatus(id: string, status: string) {
         customers = customers.filter(c => calculateCustomerSegment(c.sales).marketingSegment === campaign.targetSegment)
       }
       
-      const phones = customers.map(c => c.phone).filter(p => p && p.length > 5).join(",")
-      
-      if (!phones) {
-        return { error: `Tidak ada nomor WA valid untuk segmen ${campaign.targetSegment.replace(/_/g, " ")}` }
-      }
-
-      try {
-        const res = await fetch("https://api.fonnte.com/send", {
-          method: "POST",
-          headers: { 
-            "Authorization": campaign.business.settings.fonnteToken,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            target: phones,
-            message: campaign.message + "\n\n- Dikirim otomatis oleh UBOS"
-          })
-        })
-        const result = await res.json()
-        if (!result.status) {
-          return { error: "Gagal mengirim via API WA: " + (result.reason || "Token tidak valid") }
+      const phonesArr = customers.map(c => c.phone).filter(p => p && p.length > 5)
+        
+        if (phonesArr.length === 0) {
+          return { error: "Tidak ada nomor WA valid untuk segmen target" }
         }
+  
+        try {
+          for (const phone of phonesArr) {
+            let target = phone.replace(/[^0-9]/g, '');
+            if (target.startsWith('0')) target = '62' + target.substring(1);
+            await fetch("http://202.155.94.170:3000/send-message?session=" + campaign.businessId, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: target, text: campaign.message }) });
+            await new Promise(r => setTimeout(r, 2000)); // 2s delay between blasts
+          }
       } catch(err) {
         console.error("Fonnte Blast Error:", err)
         return { error: "Terjadi kesalahan jaringan saat mengirim WA Blast." }
@@ -174,4 +165,7 @@ export async function updateCampaignStatus(id: string, status: string) {
     return { error: "Gagal update status" }
   }
 }
+
+
+
 
