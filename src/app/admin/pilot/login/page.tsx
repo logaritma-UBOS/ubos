@@ -129,7 +129,7 @@ export default function AdminPilotLoginPage() {
           </form>
           <div className="mt-4 text-center">
             <p className="text-sm text-slate-500 mb-2">Atau masuk dengan akun Google internal:</p>
-            <Button type="button" variant="outline" className="w-full" onClick={() => signIn('google', { callbackUrl: '/admin/pilot/wa-sync' })}>Login via Google</Button>
+            <button type="button" variant="outline" className="w-full" onClick={() => signIn('google', { callbackUrl: '/admin/pilot/wa-sync' })}>Login via Google</button>
           </div>
           
           <div className="mt-6 text-center">
@@ -143,4 +143,5 @@ export default function AdminPilotLoginPage() {
     </div>
   )
 }
+
 
