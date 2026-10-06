@@ -17,7 +17,7 @@ export function MasterWaSyncClient() {
   const fetchStatus = async () => {
     try {
       // "master" is the default session ID for internal Team OS
-      const res = await fetch(`${GATEWAY_URL}/status?session=master`, { cache: "no-store" })
+      const res = await fetch(`${GATEWAY_URL}/status?session=master&t=${Date.now()}`, { cache: "no-store" })
       const data = await res.json()
 
       if (data.status === "connected") {
@@ -154,3 +154,4 @@ export function MasterWaSyncClient() {
     </div>
   )
 }
+

@@ -21,7 +21,7 @@ export async function getWaStatus() {
     })
 
     // Hit our Private Gateway with the business ID as the session
-    const res = await fetch(`${GATEWAY_URL}/status?session=${business.id}`, { cache: "no-store" })
+    const res = await fetch(`${GATEWAY_URL}/status?session=${business.id}&t=${Date.now()}`, { cache: "no-store" })
     const data = await res.json()
 
     if (data.status === "connected") {
@@ -78,3 +78,4 @@ export async function disconnectWa() {
     return { error: "Gagal memutuskan koneksi" }
   }
 }
+
