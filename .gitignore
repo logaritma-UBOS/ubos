@@ -44,7 +44,7 @@ next-env.d.ts
 dev.db 
 baseline.sql 
 pushToTurso.mjs 
-auth 
-auth-wal 
+/auth
+/auth-wal
 .vercel
 .env*
