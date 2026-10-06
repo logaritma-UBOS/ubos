@@ -82,7 +82,10 @@ export function WaSettingsClient() {
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-6"></div>
             <h3 className="text-lg font-bold text-slate-800 mb-2">Menyiapkan Engine...</h3>
-            <p className="text-sm text-slate-500">Sistem sedang menyiapkan instance WhatsApp khusus untuk toko Anda.</p>
+            <p className="text-sm text-slate-500 mb-4">Sistem sedang menyiapkan instance WhatsApp khusus untuk toko Anda.</p>
+            <Button onClick={handleDisconnect} disabled={isSaving} variant="outline" size="sm" className="text-red-500 hover:text-red-600 border-red-200">
+              {isSaving ? "Mereset..." : "Reset Sesi (Jika Macet)"}
+            </Button>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
