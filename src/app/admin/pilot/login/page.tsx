@@ -127,6 +127,10 @@ export default function AdminPilotLoginPage() {
               {pending ? "Memverifikasi..." : "Autentikasi Sistem"}
             </button>
           </form>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-slate-500 mb-2">Atau masuk dengan akun Google internal:</p>
+            <Button type="button" variant="outline" className="w-full" onClick={() => signIn('google', { callbackUrl: '/admin/pilot/wa-sync' })}>Login via Google</Button>
+          </div>
           
           <div className="mt-6 text-center">
             <Link href="/" className="text-sm font-semibold text-slate-500 hover:text-slate-400 transition-colors">
@@ -139,3 +143,4 @@ export default function AdminPilotLoginPage() {
     </div>
   )
 }
+
