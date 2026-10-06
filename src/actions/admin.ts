@@ -140,6 +140,9 @@ export async function clearFreeBroadcasts() {
 // ==========================================
 
 export async function sendWaBlastFonnte(phone: string, message: string) {
+    const session = await auth();
+    const member = session?.user?.email ? await prisma.teamMember.findUnique({ where: { email: session.user.email } }) : null;
+    const gatewaySessionId = member ? "team_" + member.id : "master";
     if (!phone) throw new Error("Nomor HP tidak tersedia");
     
     // Format phone to 62...
@@ -147,7 +150,7 @@ export async function sendWaBlastFonnte(phone: string, message: string) {
     if (target.startsWith('0')) target = '62' + target.substring(1);
     
     try {
-      const res = await fetch("http://202.155.94.170:3000/send-message", {
+      const res = await fetch("http://202.155.94.170:3000/send-message?session=" + gatewaySessionId, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -177,4 +180,5 @@ export async function sendWaBlastFonnte(phone: string, message: string) {
       throw new Error(err.message || "Terjadi kesalahan saat menghubungi Gateway");
     }
   }
+
 

@@ -123,7 +123,15 @@ export default async function AdminMenuPage() {
           </div>
         )}
 
-        {/* LOGOUT */}
+                  <div className="pt-2 pb-2">
+            <Link href="/admin/pilot/wa-sync" className="w-full flex items-center gap-4 bg-emerald-50 p-4 rounded-xl shadow-sm border border-emerald-100 active:scale-95 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              </div>
+              <span className="font-bold text-emerald-700 text-sm">Integrasi WhatsApp Pribadi</span>
+            </Link>
+          </div>
+          {/* LOGOUT */}
         <div className="pt-2">
           <form action={async () => {
             "use server";
@@ -142,3 +150,4 @@ export default async function AdminMenuPage() {
     </div>
   );
 }
+
