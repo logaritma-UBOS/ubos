@@ -16,7 +16,7 @@ export default function FeatureGuard({ children }: { children: React.ReactNode }
         const tier = d.tier || "Starter"
 
         if (tier === "Starter") {
-          const lockedRoutes = ["/pelanggan", "/pengeluaran", "/stok", "/promo", "/marketing", "/konten", "/wawasan-bisnis"]
+          const lockedRoutes = ["/pelanggan", "/pengeluaran", "/stok", "/promo", "/marketing", "/konten", "/wawasan-bisnis", "/pengaturan/whatsapp"]
           if (lockedRoutes.some(route => pathname.startsWith(route))) {
             setAllowed(false)
             router.push("/upgrade")
@@ -37,3 +37,4 @@ export default function FeatureGuard({ children }: { children: React.ReactNode }
   
   return <>{children}</>
 }
+

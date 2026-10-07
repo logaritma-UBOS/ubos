@@ -21,7 +21,7 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
 
   const isLocked = (label: string) => {
     if (tier === "Starter") {
-      const lockedFeatures = ["Pelanggan", "Pengeluaran", "Stok & Supplier", "Promo", "Marketing", "Konten"]
+      const lockedFeatures = ["Pelanggan", "Pengeluaran", "Stok & Supplier", "Promo", "Marketing", "Konten", "Integrasi WA"]
       return lockedFeatures.includes(label)
     }
     return false
@@ -216,3 +216,4 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
     </>
   )
 }
+
