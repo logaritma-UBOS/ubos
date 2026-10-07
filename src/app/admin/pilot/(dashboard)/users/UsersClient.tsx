@@ -11,7 +11,7 @@ const TIER_CONFIG: Record<string, { label: string; color: string }> = {
   LIFETIME:    { label: "Lifetime",    color: "bg-amber-100 text-amber-700" },
 };
 
-export default function UsersClient({ users, currentUser }: { users: any[], currentUser?: any }) {
+export default function UsersClient({ users, currentUserEmail }: { users: any[], currentUserEmail?: string }) {
     const [filter, setFilter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -20,8 +20,8 @@ export default function UsersClient({ users, currentUser }: { users: any[], curr
 
     
     const canFollowUp = (u) => {
-        if (!currentUser) return true;
-        const email = (currentUser.email || '').toLowerCase();
+        if (!currentUserEmail) return true;
+        const email = currentUserEmail.toLowerCase();
         if (email.includes('bana')) return u.tier === 'STARTER';
         if (email.includes('baim') || email === 'logaritma.tim@gmail.com') return u.tier === 'PRO_BULANAN' || u.tier === 'PRO_TAHUNAN' || u.tier === 'LIFETIME';
         if (email.includes('tony') || email.includes('reza')) return false;
