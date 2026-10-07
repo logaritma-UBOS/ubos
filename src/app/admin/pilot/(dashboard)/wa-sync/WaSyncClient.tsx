@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef } from "react"
 import { disconnectTeamWa } from "@/actions/teamOs"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 export function MasterWaSyncClient() {
   const [status, setStatus] = useState<string>("LOADING")
