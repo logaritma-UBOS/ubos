@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     try {
         const teamMembers = await prisma.teamMember.findMany();
         
-        const baim = teamMembers.find(m => m.name.toLowerCase().includes("baim"));
+        const baim = teamMembers.find(m => m.name.toLowerCase().includes("baim") || m.email === "logaritma.tim@gmail.com");
         const tony = teamMembers.find(m => m.name.toLowerCase().includes("tony"));
 
         const baimSession = baim ? "team_" + baim.id : "master";
