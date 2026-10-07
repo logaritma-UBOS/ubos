@@ -137,7 +137,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             
             if (isPilot) {
               const { logPilotActivityRaw } = await import("./lib/pilotAudit");
-              await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
+                              await logPilotActivityRaw(dbUser?.name || user.name || "Admin", user.email, "Login ke Dasbor Pilot", "Sesi otorisasi kokpit baru saja dimulai via " + (account?.provider === "google" ? "Google" : "Kredensial") + ".");
+                
+                
             }
             
             if (dbUser) {
@@ -223,3 +225,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   debug: true,
 })
+
