@@ -32,7 +32,9 @@ export async function quickAddCustomer(name: string, phone: string) {
       }
     })
 
-    revalidatePath("/pelanggan")`n    revalidatePath("/marketing")`n    return { success: true, customer }
+    revalidatePath("/pelanggan");
+    revalidatePath("/marketing");
+    return { success: true, customer }
   } catch (e: any) {
     console.error(e)
     return { error: "Terjadi kesalahan sistem" }
