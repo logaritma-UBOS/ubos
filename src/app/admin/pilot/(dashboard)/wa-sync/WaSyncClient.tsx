@@ -1,30 +1,33 @@
 "use client"
-
-import { useState, useEffect, useRef } from "react"
-import Script from "next/script"
-import { Button } from "@/components/ui/Button"
-import { getTeamWaStatus, disconnectTeamWa } from "@/actions/teamOs"
+import React, { useState, useEffect, useRef } from "react"
+import { disconnectTeamWa } from "@/actions/teamOs"
+import { Button } from "@/components/ui/button"
 
 export function MasterWaSyncClient() {
   const [status, setStatus] = useState<string>("LOADING")
   const [qrCode, setQrCode] = useState<string | null>(null)
-  const [deviceInfo, setDeviceInfo] = useState<string | null>(null)
+  const [deviceInfo, setDeviceInfo] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
-  
+  const [rawDebug, setRawDebug] = useState<any>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  
+
   const fetchStatus = async () => {
     try {
-      const res = await getTeamWaStatus(Date.now())
-      if (res.success) {
-        setStatus(res.status || "ERROR")
-        setQrCode(res.qr || null)
-        setDeviceInfo(res.device || null)
+      const res = await fetch('/api/wa/status?t=' + Date.now(), { cache: 'no-store' });
+      const data = await res.json();
+      
+      if (data.success) {
+        setStatus(data.status || "ERROR")
+        setQrCode(data.qr || null)
+        setDeviceInfo(data.device || null)
+        if (data.raw) setRawDebug(data.raw)
       } else {
         setStatus("ERROR")
+        setRawDebug(data.error)
       }
-    } catch (e) {
+    } catch (e: any) {
       setStatus("ERROR")
+      setRawDebug(e.message)
     }
   }
 
@@ -46,34 +49,36 @@ export function MasterWaSyncClient() {
   }, [qrCode])
 
   const handleDisconnect = async () => {
-    if (!confirm("Yakin ingin memutuskan koneksi WhatsApp pribadi Anda?")) return
     setIsSaving(true)
-    await disconnectTeamWa()
-    setIsSaving(false)
-    fetchStatus()
+    try {
+      await disconnectTeamWa()
+      await fetchStatus()
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <Script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js" strategy="lazyOnload" />
-      
-      {/* KIRI - Status Koneksi */}
-      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col">
-        <h2 className="text-lg font-bold text-slate-800 mb-6">Status Koneksi WA Pribadi</h2>
-        
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 flex flex-col h-full min-h-[400px]">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          Status Koneksi WA Pribadi
+        </h2>
+
         {status === "LOADING" ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-12 text-slate-500 animate-pulse">
-            Memuat status gateway...
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-slate-100 border-t-slate-400 rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-400">Memeriksa status...</p>
           </div>
         ) : status === "CONNECTED" ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 ring-8 ring-emerald-50">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-2">WhatsApp Terhubung</h3>
-            <p className="text-slate-500 mb-8 max-w-sm">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">WhatsApp Pribadi Terhubung</h3>
+            <p className="text-slate-500 mb-8 max-w-sm mx-auto">
               Sistem telah terhubung dengan nomor <strong className="text-slate-800">{deviceInfo?.split(':')[0]}</strong>.
             </p>
             <Button onClick={handleDisconnect} disabled={isSaving} variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
@@ -85,6 +90,7 @@ export function MasterWaSyncClient() {
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-6"></div>
             <h3 className="text-lg font-bold text-slate-800 mb-2">Menyiapkan Sesi WA...</h3>
             <p className="text-sm text-slate-500 mb-4">Mohon tunggu, sedang menyiapkan ruang khusus untuk akun Anda...</p>
+            {rawDebug && <pre className="text-xs bg-slate-100 p-2 rounded text-left w-full overflow-auto mb-4">{JSON.stringify(rawDebug, null, 2)}</pre>}
             <Button onClick={handleDisconnect} disabled={isSaving} variant="outline" size="sm" className="text-red-500 hover:text-red-600 border-red-200">
               {isSaving ? "Mereset..." : "Reset Sesi (Jika Macet)"}
             </Button>
@@ -92,6 +98,7 @@ export function MasterWaSyncClient() {
         ) : status === "ERROR" ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="text-red-500 mb-4">Gagal terhubung ke Engine Gateway</div>
+            {rawDebug && <pre className="text-xs bg-slate-100 p-2 rounded text-left w-full overflow-auto mb-4 text-slate-700">{typeof rawDebug === 'string' ? rawDebug : JSON.stringify(rawDebug, null, 2)}</pre>}
             <Button onClick={fetchStatus}>Coba Ulang</Button>
           </div>
         ) : (
@@ -113,7 +120,6 @@ export function MasterWaSyncClient() {
         )}
       </div>
 
-      {/* KANAN - Info */}
       <div className="bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm text-white h-full border border-slate-800 relative overflow-hidden">
         <h2 className="text-xl font-bold mb-4 relative z-10">Informasi WA Pribadi</h2>
         <p className="text-slate-300 text-sm leading-relaxed mb-6 relative z-10">
@@ -132,5 +138,3 @@ export function MasterWaSyncClient() {
     </div>
   )
 }
-
-
