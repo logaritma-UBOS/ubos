@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { calculateCustomerSegment } from "@/lib/marketing"
+import { revalidatePath } from "next/cache"
 
 export async function quickAddCustomer(name: string, phone: string) {
   try {
@@ -31,7 +32,7 @@ export async function quickAddCustomer(name: string, phone: string) {
       }
     })
 
-    return { success: true, customer }
+    revalidatePath("/pelanggan")`n    revalidatePath("/marketing")`n    return { success: true, customer }
   } catch (e: any) {
     console.error(e)
     return { error: "Terjadi kesalahan sistem" }
@@ -73,3 +74,4 @@ export async function getCustomerIntelligence() {
     return { error: "Gagal mengambil data pelanggan" };
   }
 }
+
