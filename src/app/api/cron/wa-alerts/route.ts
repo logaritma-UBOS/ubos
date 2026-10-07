@@ -52,6 +52,9 @@ export async function GET(req: Request) {
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
             
+            // Menggabungkan duplikat nama (Group by Name)
+            const groupedTasks = new Map();
+            
             for (const member of teamMembers) {
                 const tasks = await prisma.teamTask.findMany({
                     where: {
@@ -59,14 +62,20 @@ export async function GET(req: Request) {
                         date: { gte: startOfDay }
                     }
                 });
-                
                 if (tasks.length === 0) continue;
                 
-                const completed = tasks.filter(t => t.isCompleted).length;
-                const total = tasks.length;
-                const percentage = Math.round((completed / total) * 100);
-                
-                reportMsg += "?? *" + member.name + "*: " + completed + "/" + total + " Selesai (" + percentage + "%)\n";
+                const normalizedName = member.name.trim().charAt(0).toUpperCase() + member.name.trim().slice(1).toLowerCase();
+                if (!groupedTasks.has(normalizedName)) {
+                    groupedTasks.set(normalizedName, { completed: 0, total: 0 });
+                }
+                const data = groupedTasks.get(normalizedName);
+                data.completed += tasks.filter(t => t.isCompleted).length;
+                data.total += tasks.length;
+            }
+            
+            for (const [name, data] of groupedTasks.entries()) {
+                const percentage = Math.round((data.completed / data.total) * 100);
+                reportMsg += "? *" + name + "*: " + data.completed + "/" + data.total + " Selesai (" + percentage + "%)\n";
             }
             
             reportMsg += "\nTetap semangat dan persiapkan diri untuk besok! ??";
