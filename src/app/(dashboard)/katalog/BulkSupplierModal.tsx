@@ -58,12 +58,12 @@ export default function BulkSupplierModal({
       setIsSubmitting(false)
       alert(res.error)
     } else {
-      // Beri waktu 1.5 detik agar database replica Turso tersinkronisasi
-      // sebelum me-refresh tampilan UI
-      setTimeout(() => {
+      
+      
+      
         router.refresh()
         onClose()
-      }, 1500)
+      
     }
   }
 
