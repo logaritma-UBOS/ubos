@@ -50,7 +50,7 @@ export default async function UsersPage() {
                 <p className="text-gray-500">Filter, pantau, dan delegasikan eksekusi harian ke tim Operations.</p>
             </div>
             
-            <UsersClient users={usersWithTier} currentUserEmail={teamMember.email} />
+            <UsersClient users={usersWithTier} currentUserEmail={teamMember.email} currentUserName={teamMember.name} />
         </div>
     )
 }

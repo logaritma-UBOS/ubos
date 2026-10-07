@@ -11,7 +11,7 @@ const TIER_CONFIG: Record<string, { label: string; color: string }> = {
   LIFETIME:    { label: "Lifetime",    color: "bg-amber-100 text-amber-700" },
 };
 
-export default function UsersClient({ users, currentUserEmail }: { users: any[], currentUserEmail?: string }) {
+export default function UsersClient({ users, currentUserEmail, currentUserName }: { users: any[], currentUserEmail?: string, currentUserName?: string }) {
     const [filter, setFilter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -71,16 +71,19 @@ export default function UsersClient({ users, currentUserEmail }: { users: any[],
         alert("Berhasil didelegasikan ke Bana!");
     }
 
-    const handleFollowUpWA = async (user: any) => {
+        const handleFollowUpWA = async (user: any) => {
         if (!user.phone) return alert("User tidak memiliki nomor WA");
         
-        let autoMsg = `Halo kak ,`;
-        if (user.computedStatus === "PASIF") {
-          autoMsg += ` kami dari UBOS melihat kakak sudah lebih dari seminggu tidak login ke sistem. Apakah ada kendala atau butuh bantuan kami?`;
-        } else if (user.computedStatus === "NEW") {
-          autoMsg += ` selamat datang di UBOS! Kami siap mendampingi kakak membangun ekosistem bisnis digital.`;
+        const sender = currentUserName ? currentUserName.split(' ')[0] : 'Tim';
+        const userName = user.name || 'Pebisnis';
+        
+        let autoMsg = "Halo kak " + userName + ", saya " + sender + " dari UBOS. ";
+        if (user.crmStatus === "PASIF") {
+          autoMsg += "Kami melihat kakak sudah beberapa waktu tidak login ke sistem. Apakah ada kendala atau butuh bantuan kami untuk mengembangkan bisnis kakak hari ini?";
+        } else if (user.crmStatus === "NEW") {
+          autoMsg += "Selamat datang di UBOS! Kami siap mendampingi kakak membangun ekosistem bisnis digital. Jika ada pertanyaan, jangan ragu untuk balas pesan ini ya.";
         } else {
-          autoMsg += ` semoga harinya menyenangkan! Kami lihat kakak sangat aktif menggunakan UBOS. Jika butuh upgrade atau bantuan, kabari kami ya.`;
+          autoMsg += "Semoga harinya menyenangkan! Kami lihat kakak sangat aktif menggunakan UBOS. Jika butuh panduan fitur atau bantuan lainnya, kabari kami ya.";
         }
     
         if (!confirm(`Kirim pesan via Private Engine?\n\nPesan:\n`)) return;
@@ -218,3 +221,4 @@ export default function UsersClient({ users, currentUserEmail }: { users: any[],
         </div>
     )
 }
+
