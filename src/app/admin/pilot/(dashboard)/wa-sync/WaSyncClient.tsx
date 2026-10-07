@@ -1,4 +1,5 @@
 "use client"
+import Script from "next/script"
 import React, { useState, useEffect, useRef } from "react"
 import { disconnectTeamWa } from "@/actions/teamOs"
 import { Button } from "@/components/ui/Button"
@@ -60,6 +61,7 @@ export function MasterWaSyncClient() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js" strategy="lazyOnload" />
       <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 flex flex-col h-full min-h-[400px]">
         <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
           Status Koneksi WA Pribadi
@@ -138,3 +140,4 @@ export function MasterWaSyncClient() {
     </div>
   )
 }
+
