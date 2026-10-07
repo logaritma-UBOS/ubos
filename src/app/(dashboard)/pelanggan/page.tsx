@@ -6,6 +6,7 @@ import { getUserPlan } from "@/lib/plan";
 import FreemiumLock from "@/components/layout/FreemiumLock";
 import Link from "next/link";
 import AddCustomerButton from "./AddCustomerButton";
+import ImportContactsModal from "./ImportContactsModal";
 
 export default async function PelangganPage() {
   const { intelligence, error } = await getCustomerIntelligence();
@@ -50,7 +51,10 @@ export default async function PelangganPage() {
             Analisis perilaku pelanggan berdasarkan histori transaksi.
           </p>
         </div>
-        <AddCustomerButton />
+        <div className="flex items-center gap-2">
+<AddCustomerButton />
+<ImportContactsModal />
+</div>
       </div>
 
       <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -170,3 +174,4 @@ export default async function PelangganPage() {
     </div>
   );
 }
+
