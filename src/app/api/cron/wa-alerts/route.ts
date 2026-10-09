@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type"); // morning, afternoon, night
+    const type = searchParams.get("type");
     const secret = searchParams.get("secret");
 
     if (secret !== process.env.CRON_SECRET && secret !== "ubos123") {
@@ -29,30 +29,23 @@ export async function GET(req: Request) {
         };
 
         if (type === "morning") {
-            for (const member of teamMembers) {
-                if (!member.whatsapp) continue;
-                const msg = "Halo " + member.name + "! ??\n\nChecklist harian kamu sudah terbit dan siap dikerjakan di dasbor UBOS Pilot. Semangat!";
-                await sendWA(baimSession, member.whatsapp, msg);
-            }
+            const msg = "Halo Tim! 🌄\n\nChecklist harian kalian sudah terbit dan siap dikerjakan di dasbor UBOS Pilot. Semangat!";
+            await sendWA(baimSession, groupId, msg);
             return NextResponse.json({ success: true, type: "morning" });
         }
 
         if (type === "afternoon") {
-            for (const member of teamMembers) {
-                if (!member.whatsapp) continue;
-                const msg = "Sore " + member.name + "! ?\n\nJangan lupa update dan selesaikan checklist harianmu ya, agar progresnya tercatat 100%.";
-                await sendWA(tonySession, member.whatsapp, msg);
-            }
+            const msg = "Sore Tim! ☕\n\nJangan lupa update dan selesaikan checklist harian kalian ya, agar progresnya tercatat 100%.";
+            await sendWA(tonySession, groupId, msg);
             return NextResponse.json({ success: true, type: "afternoon" });
         }
 
         if (type === "night") {
-            let reportMsg = "?? *Laporan Progres Ceklis Harian*\nTanggal: " + new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }) + "\n\n";
+            let reportMsg = "📊 *Laporan Progres Ceklis Harian*\nTanggal: " + new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }) + "\n\n";
             
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
             
-            // Menggabungkan duplikat nama (Group by Name)
             const groupedTasks = new Map();
             
             for (const member of teamMembers) {
@@ -75,10 +68,10 @@ export async function GET(req: Request) {
             
             for (const [name, data] of groupedTasks.entries()) {
                 const percentage = Math.round((data.completed / data.total) * 100);
-                reportMsg += "? *" + name + "*: " + data.completed + "/" + data.total + " Selesai (" + percentage + "%)\n";
+                reportMsg += "✅ *" + name + "*: " + data.completed + "/" + data.total + " Selesai (" + percentage + "%)\n";
             }
             
-            reportMsg += "\nTetap semangat dan persiapkan diri untuk besok! ??";
+            reportMsg += "\nTetap semangat dan persiapkan diri untuk besok! 🔥";
             
             await sendWA(baimSession, groupId, reportMsg);
             
