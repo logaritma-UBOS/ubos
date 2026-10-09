@@ -1,32 +1,35 @@
-﻿"use client";
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+"use client"
+import { useEffect } from "react"
+import { usePathname } from "next/navigation"
 
-export default function TrackerScript() {
-  const pathname = usePathname();
+export function TrackerScript() {
+  const pathname = usePathname()
 
+  // Track page views
   useEffect(() => {
-    // Hanya lacak halaman publik
-    const isPublic = pathname === "/" || pathname?.startsWith("/login") || pathname?.startsWith("/register");
-    if (!isPublic) return;
+    if (pathname && !pathname.startsWith('/admin')) {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: pathname,
+          referrer: document.referrer || null,
+        })
+      }).catch(e => console.error("Track error", e))
+    }
+  }, [pathname])
 
-    const today = new Date().toDateString();
-    const lastTracked = localStorage.getItem("ubos_device_tracked_date");
+  // Heartbeat / Online Tracker
+  useEffect(() => {
+    const pingServer = () => {
+        fetch('/api/ping', { method: 'POST' }).catch(() => {});
+    };
     
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: pathname,
-        referrer: document.referrer
-      })
-    }).then(res => {
-      if (res.ok && lastTracked !== today) {
-        localStorage.setItem("ubos_device_tracked_date", today);
-      }
-    }).catch(() => {});
-  }, [pathname]);
+    pingServer(); // Ping on load
+    const interval = setInterval(pingServer, 60000); // Ping every 60 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
 
-  return null;
+  return null
 }
-

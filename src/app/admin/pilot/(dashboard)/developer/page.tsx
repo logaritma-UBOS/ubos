@@ -1,86 +1,112 @@
-export const dynamic = "force-dynamic";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import UserActivityLog from "../UserActivityLog";
-import SaldoWidget from "@/components/team/SaldoWidget";
-export default async function developerBeranda() {
-  
-  const session = await auth();
-  const teamMember = await prisma.teamMember.findUnique({
-    where: { email: session?.user?.email || "" },
-    include: {
-      tasks: {
-        where: {
-          date: {
-            gte: new Date(new Date().setHours(0,0,0,0)),
-            lt: new Date(new Date().setHours(23,59,59,999))
-          }
-        },
-        orderBy: { date: 'asc' }
-      },
-      ledgers: {
-        orderBy: { createdAt: 'desc' },
-        take: 3
-      }
+import React from 'react';
+import { fastDb } from '@/lib/fast-lane';
+import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
+
+export default async function DeveloperPage() {
+    // 1. Ambil data Online Users dari Fast Lane (bukan Prisma)
+    let onlineUsers = [];
+    try {
+        const res = await fastDb.execute(`
+            SELECT * FROM _FastOnlineUsers 
+            WHERE lastActive >= datetime('now', '-5 minutes')
+            ORDER BY lastActive DESC
+        `);
+        onlineUsers = res.rows;
+    } catch (e) {
+        console.error("Gagal baca FastLane:", e);
     }
-  });
+    
+    // 2. Ambil statistik cepat dari Turso (Bypass Prisma untuk Count agar ngebut)
+    let totalVisitors = 0;
+    try {
+        const res = await fastDb.execute(`SELECT COUNT(*) as count FROM VisitorAnalytics`);
+        totalVisitors = res.rows[0].count;
+    } catch (e) {}
 
-  if (!teamMember) redirect("/login");
+    return (
+        <div className="space-y-6">
+            <div className="bg-slate-900 rounded-3xl p-8 text-white">
+                <h1 className="text-2xl font-bold flex items-center gap-2 mb-2">
+                    ??? Developer Command Center
+                </h1>
+                <p className="text-slate-400">
+                    Jalur Cepat (Fast Lane) untuk memantau aktivitas server, koneksi WA, dan status Online secara Real-Time tanpa membebani Database Utama (Prisma).
+                </p>
+            </div>
 
-  if (teamMember.role !== "DEVELOPER" && teamMember.role !== "SUPER_ADMIN") redirect("/admin/pilot");
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Modul 1: Live Online Users */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="font-bold text-lg flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                            Live Online Users
+                        </h2>
+                        <span className="text-sm bg-gray-100 px-3 py-1 rounded-full font-semibold">{onlineUsers.length} Aktif</span>
+                    </div>
+                    
+                    {onlineUsers.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400 text-sm">Belum ada user yang terdeteksi aktif dalam 5 menit terakhir.</div>
+                    ) : (
+                        <ul className="space-y-4">
+                            {onlineUsers.map((u: any, idx) => (
+                                <li key={idx} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                            {String(u.name).charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-sm text-gray-800">{u.name}</p>
+                                            <p className="text-xs text-gray-500">{u.email} • {u.role}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs font-bold text-green-600">Online</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
 
-  return (
-    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 pb-24 lg:pb-8 flex flex-col">
-      
-      <div className="hidden lg:block mb-2">
-        <h2 className="text-2xl font-black text-gray-900">Halo, Reza!</h2>
-        <p className="text-gray-500 text-sm">Lead Software Developer</p>
-      </div>
-      <div className="lg:hidden mb-2">
-        <h2 className="text-lg font-black text-gray-900">Lead Software Developer</h2>
-      </div>
-      <SaldoWidget teamMember={teamMember} balance={teamMember.walletBalance} totalEarned={teamMember.totalEarned} ledgers={teamMember.ledgers} />
+                {/* Modul 2: Server Health & Fast Stats */}
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">? Fast Lane Analytics</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p className="text-xs text-gray-500 font-bold mb-1">Total Hits Pengunjung</p>
+                                <p className="text-2xl font-black text-gray-800">{totalVisitors.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p className="text-xs text-gray-500 font-bold mb-1">DB Connection</p>
+                                <p className="text-2xl font-black text-green-500">Turso Edge</p>
+                            </div>
+                        </div>
+                    </div>
 
-      
-      <div className="flex flex-col gap-6 w-full">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full">
-          <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
-            <h3 className="font-bold text-blue-900 text-sm flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clipRule="evenodd" /></svg>
-              Fokus Utama
-            </h3>
-          </div>
-          <div className="p-5">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Menjaga stabilitas infrastruktur web aplikasi, menyelesaikan perbaikan sistem (bug), dan mengeksekusi fitur baru secara cepat.
-            </p>
-          </div>
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">??? System Tools</h2>
+                        <div className="flex flex-col gap-3">
+                            <Link href="/api/cron/wa-alerts?type=morning&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
+                                Trigger Pagi (Manual)
+                                <span>??</span>
+                            </Link>
+                            <Link href="/api/cron/wa-alerts?type=afternoon&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
+                                Trigger Sore (Manual)
+                                <span>??</span>
+                            </Link>
+                            <Link href="/api/cron/wa-alerts?type=night&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
+                                Trigger Malam (Manual)
+                                <span>??</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full">
-          <div className="bg-slate-50 px-4 py-3 border-b border-slate-100">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-              Tanggung Jawab Harian & Mingguan
-            </h3>
-          </div>
-          <div className="p-5 space-y-4">
-            <div>
-              <p className="text-sm font-bold text-slate-800">1. Stabilitas & Kecepatan</p>
-              <p className="text-xs text-slate-500 mt-1 leading-snug">Memastikan website frontend dan backend ringan dibuka, aman, serta tidak ada kendala koneksi database.</p>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">2. Antrean Perbaikan (Bug Fixing)</p>
-              <p className="text-xs text-slate-500 mt-1 leading-snug">Menyelesaikan tiket kendala teknis yang dilaporkan oleh Bana dari temuan lapangan.</p>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">3. Implementasi Fitur</p>
-              <p className="text-xs text-slate-500 mt-1 leading-snug">Menerjemahkan alur sistem dan formula dari Tony & Baim menjadi antarmuka web yang rapi dan mudah dipakai pengguna di HP.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <UserActivityLog />
-    </div>
-  );
+    );
 }
