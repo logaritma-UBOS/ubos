@@ -240,7 +240,9 @@ export default function KasirClient({ products, customers }: { products: any[], 
       paymentMethod,
       paidAmount: paymentMethod === "CASH" ? paidAmount : total,
       change: paymentMethod === "CASH" ? paidAmount - total : 0,
-      customerPhone: selectedCustomerId ? localCustomers.find((c: any) => c.id === selectedCustomerId)?.phone : null
+      customerPhone: selectedCustomerId ? localCustomers.find((c: any) => c.id === selectedCustomerId)?.phone : null,
+      customerName: selectedCustomerId ? localCustomers.find((c: any) => c.id === selectedCustomerId)?.name : null,
+      discount: promoDiscount
     }
 
     try {
@@ -368,7 +370,7 @@ export default function KasirClient({ products, customers }: { products: any[], 
               Cetak Struk
             </Link>
             <a 
-              href={`https://wa.me/${transactionSummary.customerPhone ? transactionSummary.customerPhone.replace(/\D/g, "").replace(/^0/, "62") : ""}?text=${encodeURIComponent(`Halo! Terima kasih telah berbelanja.\n\nTotal Tagihan: ${formatRupiah(transactionSummary.total)}\nMetode Pembayaran: ${transactionSummary.paymentMethod}\n\nLihat e-struk Anda di sini:\n${typeof window !== 'undefined' ? window.location.origin : ''}/kasir/struk/${transactionSummary.clientTransactionId}`)}`} 
+              href={`https://wa.me/${transactionSummary.customerPhone ? transactionSummary.customerPhone.replace(/\D/g, "").replace(/^0/, "62") : ""}?text=${encodeURIComponent(`Halo${transactionSummary.customerName ? \` ${transactionSummary.customerName}\` : ''}! Terima kasih telah berbelanja.\n\nRincian Pesanan:\n` + (transactionSummary.items || []).map((item: any) => \`- ${item.quantity}x ${item.name} = ${formatRupiah(item.quantity * item.sellPrice)}\`).join('\n') + \`\n\nTotal Tagihan: ${formatRupiah(transactionSummary.total)}\` + (transactionSummary.discount > 0 ? \`\nDiskon Promo: -${formatRupiah(transactionSummary.discount)}\` : '') + \`\nMetode Pembayaran: ${transactionSummary.paymentMethod}\n\nLihat e-struk Anda di sini:\n${typeof window !== 'undefined' ? window.location.origin : ''}/kasir/struk/${transactionSummary.clientTransactionId}\`)}`} 
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-4 text-lg rounded-xl text-center font-semibold bg-[#25D366] text-white hover:bg-[#1ebd5a] flex items-center justify-center gap-2"
