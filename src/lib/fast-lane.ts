@@ -1,6 +1,8 @@
 import { createClient } from "@libsql/client";
 
-const url = process.env.DATABASE_URL || "file:./dev.db";
+// Ensure URL is strictly valid or fallback to local SQLite during Vercel build
+const envUrl = process.env.DATABASE_URL;
+const url = (envUrl && envUrl.startsWith("libsql")) ? envUrl : "file:./dev.db";
 const authToken = process.env.DATABASE_AUTH_TOKEN;
 
 export const fastDb = createClient({
@@ -8,7 +10,6 @@ export const fastDb = createClient({
   authToken
 });
 
-// Inisialisasi tabel tanpa Prisma (Fast Lane)
 let initialized = false;
 export async function initFastLane() {
   if (initialized) return;

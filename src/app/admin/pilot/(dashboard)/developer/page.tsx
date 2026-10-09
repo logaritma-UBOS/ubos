@@ -6,7 +6,6 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function DeveloperPage() {
-    // 1. Ambil data Online Users dari Fast Lane (bukan Prisma)
     let onlineUsers = [];
     try {
         const res = await fastDb.execute(`
@@ -19,7 +18,6 @@ export default async function DeveloperPage() {
         console.error("Gagal baca FastLane:", e);
     }
     
-    // 2. Ambil statistik cepat dari Turso (Bypass Prisma untuk Count agar ngebut)
     let totalVisitors = 0;
     try {
         const res = await fastDb.execute(`SELECT COUNT(*) as count FROM VisitorAnalytics`);
@@ -30,7 +28,7 @@ export default async function DeveloperPage() {
         <div className="space-y-6">
             <div className="bg-slate-900 rounded-3xl p-8 text-white">
                 <h1 className="text-2xl font-bold flex items-center gap-2 mb-2">
-                    ??? Developer Command Center
+                    🛡️ Developer Command Center
                 </h1>
                 <p className="text-slate-400">
                     Jalur Cepat (Fast Lane) untuk memantau aktivitas server, koneksi WA, dan status Online secara Real-Time tanpa membebani Database Utama (Prisma).
@@ -38,7 +36,6 @@ export default async function DeveloperPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Modul 1: Live Online Users */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="font-bold text-lg flex items-center gap-2">
@@ -60,7 +57,7 @@ export default async function DeveloperPage() {
                                         </div>
                                         <div>
                                             <p className="font-bold text-sm text-gray-800">{u.name}</p>
-                                            <p className="text-xs text-gray-500">{u.email} � {u.role}</p>
+                                            <p className="text-xs text-gray-500">{u.email} � {u.role}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -72,10 +69,9 @@ export default async function DeveloperPage() {
                     )}
                 </div>
 
-                {/* Modul 2: Server Health & Fast Stats */}
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">? Fast Lane Analytics</h2>
+                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">⚡ Fast Lane Analytics</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <p className="text-xs text-gray-500 font-bold mb-1">Total Hits Pengunjung</p>
@@ -89,19 +85,19 @@ export default async function DeveloperPage() {
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">??? System Tools</h2>
+                        <h2 className="font-bold text-lg mb-4 flex items-center gap-2">🛠️ System Tools</h2>
                         <div className="flex flex-col gap-3">
                             <Link href="/api/cron/wa-alerts?type=morning&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
                                 Trigger Pagi (Manual)
-                                <span>??</span>
+                                <span>🚀</span>
                             </Link>
                             <Link href="/api/cron/wa-alerts?type=afternoon&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
                                 Trigger Sore (Manual)
-                                <span>??</span>
+                                <span>🚀</span>
                             </Link>
                             <Link href="/api/cron/wa-alerts?type=night&secret=ubos123" target="_blank" className="bg-gray-50 hover:bg-gray-100 border border-gray-200 p-3 rounded-xl text-sm font-bold flex justify-between items-center transition-colors">
                                 Trigger Malam (Manual)
-                                <span>??</span>
+                                <span>🚀</span>
                             </Link>
                         </div>
                     </div>
