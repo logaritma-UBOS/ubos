@@ -2,7 +2,7 @@
 import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 
-export function TrackerScript() {
+export default function TrackerScript() {
   const pathname = usePathname()
 
   // Track page views
