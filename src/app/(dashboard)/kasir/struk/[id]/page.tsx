@@ -24,7 +24,8 @@ export default async function StrukPage({ params }: { params: Promise<{ id: stri
     include: {
       saleItems: {
         include: { product: true }
-      }
+      },
+      customer: true
     }
   })
 
