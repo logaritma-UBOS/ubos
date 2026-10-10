@@ -249,7 +249,7 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
 
 
 
-export async function saveDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string) {
+export async function saveDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string, draftPhone: string | null = null) {
     try {
       const session = await auth()
       if (!session?.user?.id) return { error: "Unauthorized" }
@@ -261,7 +261,7 @@ export async function saveDraftSale(cart: CartItem[], clientTransactionId: strin
       // Prevent duplicate via clientTransactionId
       const existing = await prisma.sale.findUnique({ where: { clientTransactionId } })
       if (existing) {
-          return updateDraftSale(cart, clientTransactionId, draftName);
+          return updateDraftSale(cart, clientTransactionId, draftName, draftPhone);
       }
   
       const productIds = cart.map(c => c.productId)
@@ -294,6 +294,8 @@ export async function saveDraftSale(cart: CartItem[], clientTransactionId: strin
           changeAmount: 0,
           status: "DRAFT",
           draftName: draftName,
+                    draftPhone: draftPhone,
+          draftPhone: draftPhone,
           saleItems: {
             create: itemsToCreate
           }
@@ -307,7 +309,7 @@ export async function saveDraftSale(cart: CartItem[], clientTransactionId: strin
     }
 }
 
-export async function updateDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string) {
+export async function updateDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string, draftPhone: string | null = null) {
     try {
         const session = await auth()
         if (!session?.user?.id) return { error: "Unauthorized" }

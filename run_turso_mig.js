@@ -41,6 +41,7 @@ async function migrate() {
     // Draft Order Support
     try { await client.execute('ALTER TABLE "Sale" ADD COLUMN "status" TEXT NOT NULL DEFAULT \'COMPLETED\''); } catch(e) {}
     try { await client.execute('ALTER TABLE "Sale" ADD COLUMN "draftName" TEXT'); } catch(e) {}
+    try { await client.execute('ALTER TABLE "Sale" ADD COLUMN "draftPhone" TEXT'); } catch(e) {}
 
     console.log('Safe migrations done.');
 }

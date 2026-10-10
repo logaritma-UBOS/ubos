@@ -241,6 +241,7 @@ model Sale {
   campaignId          String?
   status              String     @default("COMPLETED") // DRAFT, COMPLETED
   draftName           String?
+  draftPhone          String?
   campaign            Campaign?  @relation(fields: [campaignId], references: [id])
   syncStatus          String     @default("SYNCED") // LOCAL, PENDING, SYNCED, FAILED
   createdAt           DateTime   @default(now())
