@@ -57,6 +57,7 @@ export default function MobileBottomNav({ role = "OWNER" }: { role?: string }) {
         { label: "Konten", href: "/konten", icon: "📝" },
         { label: "Promo", href: "/promo", icon: "🎟️" },
         { label: "Marketing", href: "/marketing", icon: "📱" },
+        { label: "Integrasi WA", href: "/pengaturan/whatsapp", icon: "💬" },
       ]
     },
     {
