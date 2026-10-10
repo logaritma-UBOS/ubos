@@ -839,6 +839,8 @@ export default function KasirClient({ products, customers }: { products: any[], 
             </Button>
           </div>
         </div>
+      
+        {renderModals()}
       </div>
     )
   }
@@ -1143,7 +1145,6 @@ export default function KasirClient({ products, customers }: { products: any[], 
                     <p className="text-xs md:text-sm text-gray-500 font-medium">{totalItems} item dipilih</p>
                     <p className="text-base md:text-lg font-bold text-gray-900">{formatRupiah(total)}</p>
                   
-      {renderModals()}
       </>
                 )}
               </div>
@@ -1165,6 +1166,8 @@ export default function KasirClient({ products, customers }: { products: any[], 
     
       
 
-</div>
+
+      {renderModals()}
+    </div>
   )
 }
