@@ -247,3 +247,166 @@ export async function checkoutSale(cart: CartItem[], clientTransactionId: string
 }
 
 
+
+
+export async function saveDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string) {
+    try {
+      const session = await auth()
+      if (!session?.user?.id) return { error: "Unauthorized" }
+      
+      const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+      const business = await prisma.business.findFirst({ where: whereClause })
+      if (!business) return { error: "Business not found" }
+  
+      // Prevent duplicate via clientTransactionId
+      const existing = await prisma.sale.findUnique({ where: { clientTransactionId } })
+      if (existing) {
+          return updateDraftSale(cart, clientTransactionId, draftName);
+      }
+  
+      const productIds = cart.map(c => c.productId)
+      const products = await prisma.product.findMany({ where: { id: { in: productIds }, businessId: business.id } })
+      if (products.length !== productIds.length) return { error: "Terjadi kesalahan: Produk tidak valid." }
+      const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+  
+      let serverTotal = 0;
+      const itemsToCreate = cart.map(c => {
+        const p = productMap[c.productId];
+        serverTotal += (p.sellPrice * c.quantity);
+        return {
+          businessId: business.id,
+          productId: c.productId,
+          quantity: c.quantity,
+          priceAtSale: p.sellPrice,
+          hppAtSale: p.calculatedHpp || 0
+        };
+      });
+  
+      await prisma.sale.create({
+        data: {
+          businessId: business.id,
+          clientTransactionId,
+          receiptNumber: null,
+          totalAmount: serverTotal,
+          discount: 0,
+          paymentMethod: "DRAFT", // special marker
+          cashReceived: 0,
+          changeAmount: 0,
+          status: "DRAFT",
+          draftName: draftName,
+          saleItems: {
+            create: itemsToCreate
+          }
+        }
+      });
+  
+      return { success: true }
+    } catch (e: any) {
+      console.error(e)
+      return { error: e.message }
+    }
+}
+
+export async function updateDraftSale(cart: CartItem[], clientTransactionId: string, draftName: string) {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) return { error: "Unauthorized" }
+        
+        const existing = await prisma.sale.findUnique({ where: { clientTransactionId }, include: { saleItems: true } })
+        if (!existing) return { error: "Draft tidak ditemukan" }
+        if (existing.status !== "DRAFT") return { error: "Pesanan ini sudah bukan draft" }
+
+        const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+        const business = await prisma.business.findFirst({ where: whereClause })
+        if (!business) return { error: "Business not found" }
+
+        const productIds = cart.map(c => c.productId)
+        const products = await prisma.product.findMany({ where: { id: { in: productIds }, businessId: business.id } })
+        const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+
+        let serverTotal = 0;
+        const itemsToCreate = cart.map(c => {
+            const p = productMap[c.productId];
+            serverTotal += (p.sellPrice * c.quantity);
+            return {
+                businessId: business.id,
+                productId: c.productId,
+                quantity: c.quantity,
+                priceAtSale: p.sellPrice,
+                hppAtSale: p.calculatedHpp || 0
+            };
+        });
+
+        await prisma.$transaction(async (tx) => {
+            // Delete old items
+            await tx.saleItem.deleteMany({ where: { saleId: existing.id } });
+            // Update draft
+            await tx.sale.update({
+                where: { id: existing.id },
+                data: {
+                    totalAmount: serverTotal,
+                    draftName: draftName,
+                    saleItems: {
+                        create: itemsToCreate
+                    }
+                }
+            });
+        });
+        return { success: true }
+    } catch (e: any) {
+        console.error(e)
+        return { error: e.message }
+    }
+}
+
+export async function deleteDraftSale(clientTransactionId: string) {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) return { error: "Unauthorized" }
+        
+        const existing = await prisma.sale.findUnique({ where: { clientTransactionId } })
+        if (!existing) return { error: "Draft tidak ditemukan" }
+        if (existing.status !== "DRAFT") return { error: "Hanya pesanan gantung yang bisa dihapus" }
+
+        // Hard delete the draft and its items (cascade handles items)
+        await prisma.sale.delete({ where: { id: existing.id } });
+        
+        return { success: true }
+    } catch (e: any) {
+        console.error(e)
+        return { error: e.message }
+    }
+}
+
+export async function getDraftSales() {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) return { error: "Unauthorized" }
+        
+        const whereClause = (session.user as any).staffBusinessId ? { id: (session.user as any).staffBusinessId } : { userId: session.user.id };
+        const business = await prisma.business.findFirst({ where: whereClause })
+        if (!business) return { error: "Business not found" }
+
+        const drafts = await prisma.sale.findMany({
+            where: {
+                businessId: business.id,
+                status: "DRAFT"
+            },
+            include: {
+                saleItems: {
+                    include: {
+                        product: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        return { success: true, drafts }
+    } catch (e: any) {
+        console.error(e)
+        return { error: e.message }
+    }
+}

@@ -4,7 +4,7 @@ import { formatNumber, formatRupiah } from '@/lib/format';
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { checkoutSale } from "@/actions/pos"
+import { checkoutSale, saveDraftSale, getDraftSales, deleteDraftSale } from "@/actions/pos"
 import { quickAddCustomer } from "@/actions/customer"
 import { getPendingTransactions, getPendingCount, setPendingTransactions, savePendingTransaction } from "@/lib/adapters/offlineQueueAdapter"
 import { Button } from "@/components/ui/Button"
@@ -45,6 +45,17 @@ export default function KasirClient({ products, customers }: { products: any[], 
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
   
   // Promo State
+  // Draft State
+  const [showDraftModal, setShowDraftModal] = useState(false)
+  const [draftNameInput, setDraftNameInput] = useState("")
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
+  
+  const [showDraftListModal, setShowDraftListModal] = useState(false)
+  const [draftsList, setDraftsList] = useState<any[]>([])
+  const [isLoadingDrafts, setIsLoadingDrafts] = useState(false)
+  
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null)
+
   const [promoCodeInput, setPromoCodeInput] = useState("")
   const [appliedPromo, setAppliedPromo] = useState<any>(null)
   const [promoDiscount, setPromoDiscount] = useState(0)
@@ -220,6 +231,55 @@ export default function KasirClient({ products, customers }: { products: any[], 
     updateSyncCount()
   }
 
+  const loadDrafts = async () => {
+    setIsLoadingDrafts(true);
+    const res = await getDraftSales();
+    if (res.success) {
+      setDraftsList(res.drafts || []);
+    }
+    setIsLoadingDrafts(false);
+  }
+
+  const handleSaveDraft = async () => {
+    if (cart.length === 0) return;
+    setIsSavingDraft(true);
+    const draftName = draftNameInput || "Meja/Pelanggan Tanpa Nama";
+    // We reuse activeDraftId if it exists, else new ID
+    const clientTransactionId = activeDraftId || `TRX-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    
+    const res = await saveDraftSale(
+      cart.map(c => ({ ...c, quantity: c.quantity })),
+      clientTransactionId,
+      draftName
+    );
+
+    setIsSavingDraft(false);
+    if (res.error) {
+      alert(res.error);
+    } else {
+      setShowDraftModal(false);
+      setCart([]);
+      setActiveDraftId(null);
+      setStep("CART");
+      alert("Pesanan berhasil digantung/disimpan!");
+    }
+  }
+
+  const resumeDraft = (draft: any) => {
+    // Map items back to cart format
+    const newCart = draft.saleItems.map((item: any) => ({
+      id: item.product.id,
+      name: item.product.name,
+      sellPrice: item.priceAtSale,
+      imageUrl: item.product.imageUrl,
+      quantity: item.quantity,
+      productId: item.product.id
+    }));
+    setCart(newCart);
+    setActiveDraftId(draft.clientTransactionId);
+    setShowDraftListModal(false);
+  }
+  
   const handleCheckout = async () => {
     if (cart.length === 0) return
     
@@ -248,6 +308,11 @@ export default function KasirClient({ products, customers }: { products: any[], 
     try {
       // Coba online
       const mappedCart = cart.map(c => ({ productId: c.id, quantity: c.quantity, price: c.sellPrice }))
+      if (activeDraftId) {
+        // We are checking out a draft, so we delete it first before committing
+        await deleteDraftSale(activeDraftId);
+      }
+      
       const res = await checkoutSale(mappedCart, clientTransactionId, paymentMethod, paidAmount, selectedCustomerId || undefined, appliedPromo?.code)
       if (res.error) {
         alert(res.error)
@@ -620,6 +685,16 @@ export default function KasirClient({ products, customers }: { products: any[], 
             <Button onClick={handleCheckout} disabled={isProcessing || !isCashValid} variant="primary" className="w-full py-4 text-lg rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
               <span>{isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}</span>
               {!isProcessing && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>}
+            </Button>
+            
+            <Button onClick={() => {
+              setDraftNameInput(selectedCustomerId ? localCustomers.find((c: any) => c.id === selectedCustomerId)?.name || "" : "");
+              setShowDraftModal(true);
+            }} disabled={isProcessing} variant="outline" className="w-full mt-3 py-4 text-lg rounded-xl flex items-center justify-center gap-2 text-gray-700 border-gray-300 hover:bg-gray-50">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Simpan Pesanan (Hold)</span>
             </Button>
           </div>
         </div>

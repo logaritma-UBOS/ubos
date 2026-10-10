@@ -239,6 +239,8 @@ model Sale {
   promoId             String?
   promo               Promo?     @relation(fields: [promoId], references: [id])
   campaignId          String?
+  status              String     @default("COMPLETED") // DRAFT, COMPLETED
+  draftName           String?
   campaign            Campaign?  @relation(fields: [campaignId], references: [id])
   syncStatus          String     @default("SYNCED") // LOCAL, PENDING, SYNCED, FAILED
   createdAt           DateTime   @default(now())

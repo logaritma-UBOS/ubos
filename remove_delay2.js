@@ -1,0 +1,10 @@
+const fs = require("fs")
+const file = "src/app/(dashboard)/katalog/BulkSupplierModal.tsx"
+let content = fs.readFileSync(file, "utf8")
+content = content.replace("setTimeout(() => {", "")
+content = content.replace("router.refresh()", "router.refresh()")
+content = content.replace("onClose()", "onClose()")
+content = content.replace("}, 1500)", "")
+content = content.replace("// Beri waktu 1.5 detik agar database replica Turso tersinkronisasi", "")
+content = content.replace("// sebelum me-refresh tampilan UI", "")
+fs.writeFileSync(file, content)

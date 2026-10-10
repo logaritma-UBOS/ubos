@@ -1,1 +1,11 @@
-const fs = require('fs'); let c = fs.readFileSync('prisma/schema.prisma', 'utf8'); c = c.replace(/fundRequests\s+TeamFundRequest\[\]/, 'sourceLeads ManualLead[] @relation("LeadSource")\n  assignedLeads ManualLead[] @relation("LeadAssigned")\n  fundRequests TeamFundRequest[]'); fs.writeFileSync('prisma/schema.prisma', c);
+const fs = require('fs');
+const file = 'prisma/schema.prisma';
+let code = fs.readFileSync(file, 'utf8');
+
+code = code.replace(
+  'campaignId          String?',
+  'campaignId          String?\n  status              String     @default("COMPLETED") // DRAFT, COMPLETED\n  draftName           String?'
+);
+
+fs.writeFileSync(file, code);
+console.log('Schema updated');

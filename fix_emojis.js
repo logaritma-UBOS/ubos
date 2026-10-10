@@ -1,48 +1,13 @@
 const fs = require('fs');
+const file = 'src/app/api/cron/wa-alerts/route.ts';
+let content = fs.readFileSync(file, 'utf8');
 
-function fixEmojis(file) {
-    if (!fs.existsSync(file)) return;
-    let content = fs.readFileSync(file, 'utf8');
-    let changed = false;
-    
-    // Corrupted "camera" or "image" emoji: dY"
-    if (content.includes('dY"')) {
-        content = content.replace(/dY"/g, '📷');
-        changed = true;
-    }
-    
-    // Corrupted "arrow left" +? Batal
-    if (content.includes('+?')) {
-        content = content.replace(/\+\?/g, '←');
-        changed = true;
-    }
+// Replace weird symbols
+content = content.replace(/\?\? \*Laporan Progres Ceklis Harian\*/g, "?? *Laporan Progres Ceklis Harian*");
+content = content.replace(/Halo " \+ member.name \+ "! \?\?/g, "Halo \" + member.name + \"! ??");
+content = content.replace(/Sore " \+ member.name \+ "! \?/g, "Sore \" + member.name + \"! ?");
+content = content.replace(/Tetap semangat dan persiapkan diri untuk besok! \?\?/g, "Tetap semangat dan persiapkan diri untuk besok! ??");
+content = content.replace(/reportMsg \+= "\?\? \*" \+ member.name \+ "\*: " \+ completed \+ "\/" \+ total \+ " Selesai \(" \+ percentage \+ "%\)\\n";/g, 'reportMsg += "? *" + member.name + "*: " + completed + "/" + total + " Selesai (" + percentage + "%)\\n";');
 
-    // Corrupted info icon ,?
-    if (content.includes(',?')) {
-        content = content.replace(/,\?/g, 'ℹ️');
-        changed = true;
-    }
-
-    if (changed) {
-        fs.writeFileSync(file, content, 'utf8');
-        console.log('Fixed ' + file);
-    }
-}
-
-function walk(dir) {
-  let results = [];
-  const list = fs.readdirSync(dir);
-  list.forEach(file => {
-    file = dir + '/' + file;
-    const stat = fs.statSync(file);
-    if (stat && stat.isDirectory()) {
-      results = results.concat(walk(file));
-    } else if (file.endsWith('.tsx') || file.endsWith('.ts')) {
-      results.push(file);
-    }
-  });
-  return results;
-}
-
-const files = walk('./src');
-files.forEach(fixEmojis);
+fs.writeFileSync(file, content);
+console.log('Emojis fixed');

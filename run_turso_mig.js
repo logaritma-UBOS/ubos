@@ -37,6 +37,10 @@ async function migrate() {
     try { await client.execute('ALTER TABLE "Product" ADD COLUMN "minStock" REAL DEFAULT 0'); } catch(e) {}
     try { await client.execute('ALTER TABLE "User" ADD COLUMN "followUpCount" INTEGER NOT NULL DEFAULT 0'); } catch(e) {}
     try { await client.execute('ALTER TABLE "Product" ADD COLUMN "purchaseCost" REAL NOT NULL DEFAULT 0'); } catch(e) {}
+    
+    // Draft Order Support
+    try { await client.execute('ALTER TABLE "Sale" ADD COLUMN "status" TEXT NOT NULL DEFAULT \'COMPLETED\''); } catch(e) {}
+    try { await client.execute('ALTER TABLE "Sale" ADD COLUMN "draftName" TEXT'); } catch(e) {}
 
     console.log('Safe migrations done.');
 }
